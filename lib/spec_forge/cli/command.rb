@@ -9,9 +9,10 @@ module SpecForge
           syntax
           description
           summary
+          options
         ])
 
-        def name(name)
+        def command_name(name)
           self.command_name = name
         end
 
@@ -34,6 +35,12 @@ module SpecForge
           @examples << [description, command]
         end
 
+        def option(*args, &block)
+          @options ||= []
+
+          @options << [args, block]
+        end
+
         def register(context)
           raise "Missing command name" if @command_name.nil?
 
@@ -42,6 +49,11 @@ module SpecForge
             c.summary = @summary
             c.description = @description
             c.examples = @examples if @examples
+
+            @options.each do |opts, block|
+              c.option(*opts, &block)
+            end
+
             c.action { |args, opts| new(args, opts).call }
           end
         end
