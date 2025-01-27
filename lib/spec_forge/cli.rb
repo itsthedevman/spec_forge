@@ -3,12 +3,13 @@
 require_relative "cli/actions"
 require_relative "cli/command"
 require_relative "cli/init"
+require_relative "cli/run"
 
 module SpecForge
   class CLI
     include Commander::Methods
 
-    COMMANDS = [Init]
+    COMMANDS = [Init, Run]
 
     def run
       program :name, "SpecForge"
@@ -17,7 +18,7 @@ module SpecForge
 
       register_commands
 
-      default_command :help
+      default_command :run
 
       run!
     end
