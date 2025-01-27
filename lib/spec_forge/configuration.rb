@@ -29,25 +29,5 @@ module SpecForge
       yield(self) if block
       self
     end
-
-    def to_yaml
-      to_h.join_map("\n") do |key, value|
-        config = CONFIG_ATTRIBUTES[key]
-
-        # Convert the individual key/value into yaml
-        # ---
-        # key: value
-        yaml = {key.to_s => value}.to_yaml
-
-        # Description time
-        description = config[:description]
-        if (default = config[:default]) && !config.nil?
-          description += " Defaults to #{default.inspect}"
-        end
-
-        # Replace the header with our description comment
-        yaml.sub!("---", "# #{description}")
-      end
-    end
   end
 end
