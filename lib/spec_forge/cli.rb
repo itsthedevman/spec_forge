@@ -13,9 +13,11 @@ module SpecForge
     def run
       program :name, "SpecForge"
       program :version, SpecForge::VERSION
-      program :description, "A doo daa"
+      program :description, "SpecForge is a config-driven API testing framework that generates OpenAPI documentation from your test suite."
 
       register_commands
+
+      default_command :help
 
       run!
     end
