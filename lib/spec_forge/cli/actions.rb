@@ -13,6 +13,7 @@ module SpecForge
 
       def initialize(...)
         self.destination_root = SpecForge.root
+        self.options = {}
       end
     end
   end
