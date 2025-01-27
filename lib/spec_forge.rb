@@ -1,11 +1,18 @@
 # frozen_string_literal: true
 
-require "commander"
-require "singleton"
-require "thor"
-
 env = ENV["GEM_ENV"] || ENV["RAILS_ENV"] || ENV["RACK_ENV"]
 require "pry" if env == "development"
+
+################################################################################
+
+require "logger"
+require "active_support"
+require "active_support/core_ext"
+require "commander"
+require "everythingrb"
+require "singleton"
+require "thor"
+require "yaml"
 
 require_relative "spec_forge/version"
 require_relative "spec_forge/cli"
