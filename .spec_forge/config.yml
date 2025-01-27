@@ -1,0 +1,5 @@
+# Requires if each spec must have a non-blank `name` attribute defined. Defaults to true
+require_name: true
+
+# Requires if each spec must have a non-blank `description` attribute defined. Defaults to true
+require_description: true
