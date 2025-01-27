@@ -35,4 +35,6 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency "thor", "~> 1.3"
   spec.add_dependency "commander", "~> 5.0"
+  spec.add_dependency "rspec", "~> 3.13"
+  spec.add_dependency "rspec-rails" if Gem::Specification.find_all_by_name("rails").size > 0
 end
