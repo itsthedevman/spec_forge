@@ -1,0 +1,8 @@
+# frozen_string_literal: true
+
+SpecForge.configure do |config|
+<% configurations.each do |key, config| %>
+  # <%= config[:description] %>
+  config.<%= key %> = <%= config[:value].inspect %>
+<% end %>
+end

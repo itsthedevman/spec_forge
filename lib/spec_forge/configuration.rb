@@ -2,12 +2,16 @@
 
 module SpecForge
   CONFIG_ATTRIBUTES = {
+    path: {
+      description: "The path to where SpecForge stores tests, factories, etc.",
+      default: ".spec_forge"
+    },
     require_name: {
-      description: "Requires if each spec must have a non-blank `name` attribute defined.",
+      description: "Validates that the model has a non-blank name attribute, failing validation if missing or empty",
       default: true
     },
     require_description: {
-      description: "Requires if each spec must have a non-blank `description` attribute defined.",
+      description: "Validates that the model has a non-blank description attribute, failing validation if missing or empty",
       default: true
     }
   }.freeze
@@ -29,5 +33,8 @@ module SpecForge
       yield(self) if block
       self
     end
+
+    # Whoever did this was not thinking about the bigger picture
+    alias_method :each, :each_pair
   end
 end
