@@ -36,8 +36,13 @@ RSpec.describe SpecForge::Attribute do
       end
     end
 
+    context "when the input is a Boolean" do
+      let(:input) { true }
+
+      it { is_expected.to be_kind_of(described_class::Literal) }
+    end
+
     context "when the input is a Hash"
-    context "when the input is a Boolean"
     context "when the input is an Array"
   end
 end
