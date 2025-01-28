@@ -30,6 +30,7 @@ module SpecForge
       @input = input
     end
 
+    # This needs to be implemented, even though @input already exists
     def value
       raise "not implemented"
     end
