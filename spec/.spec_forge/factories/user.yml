@@ -2,4 +2,4 @@ user:
   class: User
   attributes:
     name: faker.string.random
-    email: faker.internet.email_address
+    email: faker.internet.email

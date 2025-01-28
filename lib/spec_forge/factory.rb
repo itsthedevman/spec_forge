@@ -7,10 +7,10 @@ module SpecForge
     #
     # Loads the factories from their yml files and binds the factory with FactoryBot
     #
-    # @param path [String, Path] The path where the factories are located
+    # @param path [String, Path] The base path where the factories directory is located
     #
-    def self.load_and_register(path)
-      factories = load_from_path(path.join("factories", "**/*.yml"))
+    def self.load_and_register(base_path)
+      factories = load_from_path(base_path.join("factories", "**/*.yml"))
       factories.each(&:register_with_factory_bot)
     end
 
@@ -44,7 +44,7 @@ module SpecForge
 
     attr_reader :name, :model_class
 
-    def initialize(name:, model_class:, attributes:)
+    def initialize(name:, model_class: nil, attributes: {})
       @name = name
       @model_class = model_class
       @attributes = attributes
@@ -60,7 +60,7 @@ module SpecForge
     # Registers this factory with FactoryBot.
     # Once registered, you can call FactoryBot.build and other methods
     #
-    # @return [nil]
+    # @return [Self]
     #
     def register_with_factory_bot
       dsl = FactoryBot::Syntax::Default::DSL.new
@@ -78,7 +78,7 @@ module SpecForge
       # This creates the factory in FactoryBot
       dsl.factory(name, options, &factory_definition)
 
-      nil
+      self
     ensure
       DefinitionProxy.reset
     end
