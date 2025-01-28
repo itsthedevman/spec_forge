@@ -11,10 +11,22 @@ module SpecForge
         @arguments = {positional:, keyword:}
 
         # faker.class.method
-        class_name, method_name = @input.split(".")[1..]
+        sections = @input.split(".")[1..2]
 
-        @faker_class = "::Faker::#{class_name.titleize}".constantize
-        @faker_method = @faker_class.method(method_name)
+        class_name = sections.first.underscore.classify
+        method_name = sections.second
+
+        @faker_class = begin
+          "::Faker::#{class_name}".constantize
+        rescue NameError
+          raise InvalidFakerClass, class_name
+        end
+
+        @faker_method = begin
+          @faker_class.method(method_name)
+        rescue NameError
+          raise InvalidFakerMethod.new(method_name, class_name)
+        end
       end
 
       def value
