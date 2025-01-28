@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+require "grape"
+require "rack-test"
+
 # See https://rubydoc.info/gems/rspec-core/RSpec/Core/Configuration
 RSpec.configure do |config|
   config.expect_with :rspec do |expectations|
