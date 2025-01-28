@@ -6,7 +6,7 @@ module SpecForge
       attr_reader :faker_class, :faker_method, :arguments
 
       def initialize(input, positional = [], keyword = {})
-        super(input)
+        super(input.downcase)
 
         @arguments = {positional:, keyword:}
 
