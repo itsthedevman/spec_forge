@@ -7,12 +7,11 @@ module SpecForge
       syntax "run"
       summary "Runs all specs"
 
-      option "-n", "--no-docs", "Do not generate OpenAPI documentation on completion"
+      # option "-n", "--no-docs", "Do not generate OpenAPI documentation on completion"
 
       def call
+        SpecForge.run
       end
-
-      private
     end
   end
 end
