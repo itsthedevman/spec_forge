@@ -9,11 +9,11 @@ module SpecForge
       case value
       when String
         case value
-        when /^faker\./
+        when /^faker\./i
           Faker.new(value)
-        # when /^factory\./
-        # when /^variables\./
-        # when /^transform\./
+        # when /^factory\./i
+        # when /^variables\./i
+        # when /^transform\./i
         else
           Literal.new(value)
         end
