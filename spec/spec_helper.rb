@@ -1,7 +1,9 @@
 # frozen_string_literal: true
 
 require "grape"
-require "rack-test"
+require "rack/test"
+
+require "spec_forge"
 
 # See https://rubydoc.info/gems/rspec-core/RSpec/Core/Configuration
 RSpec.configure do |config|
