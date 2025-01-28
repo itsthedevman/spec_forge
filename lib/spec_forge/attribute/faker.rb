@@ -31,9 +31,9 @@ module SpecForge
 
       def value
         if uses_positional_arguments?
-          @faker_method.call(@arguments[:positional])
+          @faker_method.call(*@arguments[:positional])
         elsif uses_keyword_arguments?
-          @faker_method.call(@arguments[:keyword])
+          @faker_method.call(**@arguments[:keyword])
         else
           @faker_method.call
         end
@@ -45,7 +45,7 @@ module SpecForge
         @faker_method.parameters.any? { |a| [:req, :opt].include?(a.first) }
       end
 
-      def uses_keyword_arguments?(method)
+      def uses_keyword_arguments?
         @faker_method.parameters.any? { |a| [:keyreq, :key].include?(a.first) }
       end
     end
