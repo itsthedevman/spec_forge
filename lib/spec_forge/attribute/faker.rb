@@ -16,12 +16,14 @@ module SpecForge
         class_name = sections.first.underscore.classify
         method_name = sections.second
 
+        # Load the class
         @faker_class = begin
           "::Faker::#{class_name}".constantize
         rescue NameError
           raise InvalidFakerClass, class_name
         end
 
+        # Load the method
         @faker_method = begin
           @faker_class.method(method_name)
         rescue NameError
