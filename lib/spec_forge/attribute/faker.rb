@@ -27,7 +27,7 @@ module SpecForge
         @faker_method = begin
           @faker_class.method(method_name)
         rescue NameError
-          raise InvalidFakerMethod.new(method_name, class_name)
+          raise InvalidFakerMethod.new(method_name, @faker_class)
         end
       end
 

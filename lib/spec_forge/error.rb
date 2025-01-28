@@ -5,13 +5,23 @@ module SpecForge
 
   class InvalidFakerClass < Error
     def initialize(input)
-      super("Invalid Faker class \"#{input}\". Please check https://github.com/faker-ruby/faker#generators for available classes.")
+      super(
+        "Invalid Faker class \"#{input}\". Please check https://github.com/faker-ruby/faker#generators for available classes."
+      )
     end
   end
 
   class InvalidFakerMethod < Error
     def initialize(input, klass)
-      super("Undefined Faker method \"#{input}\" for \"#{klass}\". Please check https://github.com/faker-ruby/faker#generators for available methods.")
+      spell_checker = DidYouMean::SpellChecker.new(dictionary: klass.public_methods)
+      corrections = spell_checker.correct(input)
+
+      super(<<~STRING
+        "Undefined Faker method "#{input}" for "#{klass}". #{DidYouMean::Formatter.message_for(corrections)}
+
+        If not, please check https://github.com/faker-ruby/faker#generators for available methods."
+      STRING
+      )
     end
   end
 end
