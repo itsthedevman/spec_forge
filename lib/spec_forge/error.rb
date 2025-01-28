@@ -5,8 +5,15 @@ module SpecForge
 
   class InvalidFakerClass < Error
     def initialize(input)
-      super(
-        "Invalid Faker class \"#{input}\". Please check https://github.com/faker-ruby/faker#generators for available classes."
+      dictionary = Faker::Base.descendants.map { |c| c.to_s.downcase.gsub!("::", ".") }
+      spell_checker = DidYouMean::SpellChecker.new(dictionary:)
+      corrections = spell_checker.correct(input)
+
+      super(<<~STRING.chomp
+        Undefined Faker class "#{input}". #{DidYouMean::Formatter.message_for(corrections)}
+
+        For available classes, please check https://github.com/faker-ruby/faker#generators.
+      STRING
       )
     end
   end
@@ -16,10 +23,10 @@ module SpecForge
       spell_checker = DidYouMean::SpellChecker.new(dictionary: klass.public_methods)
       corrections = spell_checker.correct(input)
 
-      super(<<~STRING
-        "Undefined Faker method "#{input}" for "#{klass}". #{DidYouMean::Formatter.message_for(corrections)}
+      super(<<~STRING.chomp
+        Undefined Faker method "#{input}" for "#{klass}". #{DidYouMean::Formatter.message_for(corrections)}
 
-        If not, please check https://github.com/faker-ruby/faker#generators for available methods."
+        For available methods for this class, please check https://github.com/faker-ruby/faker#generators.
       STRING
       )
     end
