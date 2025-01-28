@@ -89,6 +89,8 @@ GEM
     everythingrb (0.1.0)
       json (~> 2.9)
       ostruct (~> 0.6.1)
+    faker (3.5.1)
+      i18n (>= 1.8.11, < 2)
     globalid (1.2.1)
       activesupport (>= 6.1)
     highline (3.0.1)
@@ -243,6 +245,7 @@ PLATFORMS
   x86_64-linux
 
 DEPENDENCIES
+  faker (~> 3.5)
   pry
   rails
   rake (~> 13.0)
