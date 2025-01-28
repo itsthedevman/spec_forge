@@ -22,4 +22,9 @@ RSpec.configure do |config|
   config.warnings = true
   config.profile_examples = 10
   config.order = :random
+
+  config.before :each do
+    # Remove any factories that were registered
+    FactoryBot::Internal.configuration.factories.clear
+  end
 end
