@@ -52,7 +52,7 @@ module SpecForge
             c.description = @description
             c.examples = @examples if @examples
 
-            @options.each do |opts, block|
+            @options&.each do |opts, block|
               c.option(*opts, &block)
             end
 
