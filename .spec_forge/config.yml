@@ -1,5 +1,5 @@
-# Requires if each spec must have a non-blank `name` attribute defined. Defaults to true
+# Validates that the model has a non-blank name attribute, failing validation if missing or empty. Defaults to true
 require_name: true
 
-# Requires if each spec must have a non-blank `description` attribute defined. Defaults to true
+# Validates that the model has a non-blank description attribute, failing validation if missing or empty. Defaults to true
 require_description: true
