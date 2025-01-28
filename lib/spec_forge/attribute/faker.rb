@@ -10,15 +10,17 @@ module SpecForge
 
         @arguments = {positional:, keyword:}
 
+        # As of right now, Faker only goes 2 sub classes deep. I've added +2 padding just in case
         # faker.class.method
-        sections = @input.split(".")[1..2]
+        # faker.class.subclass.method
+        sections = @input.split(".")[0..5]
 
-        class_name = sections.first.underscore.classify
-        method_name = sections.second
+        class_name = sections[0..-2].join("::").underscore.classify
+        method_name = sections.last
 
         # Load the class
         @faker_class = begin
-          "::Faker::#{class_name}".constantize
+          "::#{class_name}".constantize
         rescue NameError
           raise InvalidFakerClass, class_name
         end

@@ -16,9 +16,18 @@ RSpec.describe SpecForge::Attribute::Faker do
     end
   end
 
+  context "when the faker path has subclasses" do
+    let(:path) { "faker.games.zelda.game" }
+
+    it "parses the faker class and method" do
+      expect(attribute.faker_class).to eq(Faker::Games::Zelda)
+      expect(attribute.faker_method).to eq(Faker::Games::Zelda.method(:game))
+    end
+  end
+
   context "when the faker path is not valid" do
     context "due to the class not being valid" do
-      let(:path) { "faker.does_not_exist" }
+      let(:path) { "faker.noop.does_not_exist" }
 
       it "is expected to raise" do
         expect { attribute }.to raise_error(SpecForge::InvalidFakerClass)
