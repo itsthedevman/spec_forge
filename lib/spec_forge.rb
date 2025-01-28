@@ -20,6 +20,7 @@ require "yaml"
 require_relative "spec_forge/version"
 require_relative "spec_forge/cli"
 require_relative "spec_forge/configuration"
+require_relative "spec_forge/factory"
 
 module SpecForge
   class Error < StandardError; end
@@ -27,7 +28,7 @@ module SpecForge
   def self.run(path = ".spec_forge")
     path = root.join(path)
 
-    Factory.load_from_path(path.join("factories", "**/*.yml"))
+    Factory.load_and_register(path)
   end
 
   def self.root
