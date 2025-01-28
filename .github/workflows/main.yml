@@ -3,9 +3,10 @@ name: Ruby
 on:
   push:
     branches:
-      - main
+    - main
 
   pull_request:
+
 
 jobs:
   build:
@@ -14,7 +15,7 @@ jobs:
     strategy:
       matrix:
         ruby:
-          - '3.3.6'
+        - '3.3.6'
 
     steps:
     - uses: actions/checkout@v4
@@ -23,5 +24,5 @@ jobs:
       with:
         ruby-version: ${{ matrix.ruby }}
         bundler-cache: true
-    - name: Run the default task
-      run: bundle exec rake
+    - name: Run RSpec
+      run: bundle exec rspec spec
