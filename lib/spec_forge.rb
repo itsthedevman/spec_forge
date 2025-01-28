@@ -17,10 +17,11 @@ require "singleton"
 require "thor"
 require "yaml"
 
-require_relative "spec_forge/version"
+require_relative "spec_forge/attribute"
 require_relative "spec_forge/cli"
 require_relative "spec_forge/configuration"
 require_relative "spec_forge/factory"
+require_relative "spec_forge/version"
 
 module SpecForge
   class Error < StandardError; end

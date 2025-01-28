@@ -23,7 +23,7 @@ RSpec.describe SpecForge::Factory do
 
       user = FactoryBot.build(:user)
       expect(user).not_to be(nil)
-      expect(user.name).to eq(attributes[:name])
+      expect(user.name).to eq(attributes[:name].value)
     end
   end
 end

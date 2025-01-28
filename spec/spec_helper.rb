@@ -3,6 +3,8 @@
 require "grape"
 require "rack/test"
 
+ENV["GEM_ENV"] ||= "development"
+
 require "spec_forge"
 
 # See https://rubydoc.info/gems/rspec-core/RSpec/Core/Configuration

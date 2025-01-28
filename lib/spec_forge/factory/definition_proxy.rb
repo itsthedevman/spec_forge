@@ -22,8 +22,8 @@ module SpecForge
       def self.define(proxy)
         factory = instance.factory
 
-        factory.attributes.to_h.each do |name, value|
-          proxy.add_attribute(name) { value }
+        factory.attributes.each do |name, attribute|
+          proxy.add_attribute(name, &attribute.to_proc)
         end
       end
 

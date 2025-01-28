@@ -41,12 +41,18 @@ module SpecForge
 
     ############################################################################
 
-    attr_reader :name, :model_class, :attributes
+    attr_reader :name, :model_class
 
     def initialize(name:, model_class:, attributes:)
       @name = name
       @model_class = model_class
-      @attributes = attributes.to_istruct
+      @attributes = attributes
+    end
+
+    def attributes
+      @attributes.to_h.transform_values! do |value|
+        Attribute.from(value)
+      end
     end
 
     #
