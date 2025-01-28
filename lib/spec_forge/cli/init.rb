@@ -14,7 +14,7 @@ module SpecForge
 
         actions.create_file(
           SpecForge.root.join(base_path, "config.yml"),
-          SpecForge.configuration.to_yaml
+          SpecForge.config.to_yaml
         )
       end
     end

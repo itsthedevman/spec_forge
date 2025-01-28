@@ -10,6 +10,7 @@ require "active_support"
 require "active_support/core_ext"
 require "commander"
 require "everythingrb"
+require "factory_bot"
 require "faker"
 require "pathname"
 require "singleton"
@@ -23,15 +24,17 @@ require_relative "spec_forge/configuration"
 module SpecForge
   class Error < StandardError; end
 
+  def self.run(path = ".spec_forge")
+    path = root.join(path)
+
+    Factory.load_from_path(path.join("factories", "**/*.yml"))
+  end
+
   def self.root
     Pathname.pwd
   end
 
-  def self.configuration
+  def self.config
     Configuration.instance
-  end
-
-  def self.configure(&)
-    Configuration.configure(&)
   end
 end

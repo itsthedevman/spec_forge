@@ -15,19 +15,10 @@ module SpecForge
   class Configuration < Struct.new(*CONFIG_ATTRIBUTES.keys)
     include Singleton
 
-    def self.configure(&)
-      instance.configure(&)
-    end
-
     def initialize
       CONFIG_ATTRIBUTES.each do |key, config|
         self[key] = config[:default]
       end
-    end
-
-    def configure(&block)
-      yield(self) if block
-      self
     end
 
     def to_yaml
