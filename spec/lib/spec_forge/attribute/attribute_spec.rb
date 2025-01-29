@@ -25,10 +25,6 @@ RSpec.describe SpecForge::Attribute do
         it { is_expected.to be_kind_of(described_class::Literal) }
       end
 
-      # context "and it is the transform macro"
-      # context "and it is the variable macro"
-      # context "and it is the factory macro"
-
       context "and it is literally anything else" do
         let(:input) { "literally anything else" }
 
@@ -42,8 +38,31 @@ RSpec.describe SpecForge::Attribute do
       it { is_expected.to be_kind_of(described_class::Literal) }
     end
 
-    context "when the input is a Hash"
-    context "when the input is an Array"
+    context "when the input is a Hash" do
+      context "and it is the faker macro" do
+        let(:input) { {"faker.number.between": {from: 0, to: 10}} }
+
+        it { is_expected.to be_kind_of(described_class::Faker) }
+      end
+
+      context "and it is the transform macro" do
+        let(:input) { {"transform.join": ["foo", "bar"]} }
+
+        it { is_expected.to be_kind_of(described_class::Transform) }
+      end
+
+      context "and it is not an expanded macro" do
+        let(:input) { {foo: "foo", bar: "bar"} }
+
+        it { is_expected.to be_kind_of(described_class::Literal) }
+      end
+    end
+
+    context "when the input is an Array" do
+      let(:input) { [] }
+
+      it { is_expected.to be_kind_of(described_class::Literal) }
+    end
   end
 
   describe "#value" do
