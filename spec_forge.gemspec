@@ -46,6 +46,4 @@ Gem::Specification.new do |spec|
   spec.add_dependency "bigdecimal"
   spec.add_dependency "mutex_m"
   ##
-
-  spec.add_dependency "rspec-rails" if Gem::Specification.find_all_by_name("rails").size > 0
 end
