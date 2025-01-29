@@ -127,6 +127,42 @@ RSpec.describe SpecForge::Attribute do
     end
   end
 
+  describe "#result" do
+    let(:input) do
+      [
+        "faker.number.positive",
+        [
+          "faker.number.positive",
+          Faker::String.random, # Literal
+          Faker::Number.positive, # Literal
+          {
+            key_1: {
+              "transform.join" => [
+                "foo", " ", "bar"
+              ]
+            }
+          }
+        ]
+      ]
+    end
+
+    subject(:result) { described_class.from(input).result }
+
+    it "recursively converts the attributes and returns the result" do
+      expect(result).to match([
+        be_kind_of(Numeric),
+        [
+          be_kind_of(Numeric),
+          be_kind_of(String),
+          be_kind_of(Numeric),
+          {
+            key_1: "foo bar"
+          }
+        ]
+      ])
+    end
+  end
+
   describe "#to_proc" do
     let(:attribute) { described_class.new("") }
 

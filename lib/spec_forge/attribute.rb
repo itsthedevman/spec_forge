@@ -109,9 +109,9 @@ module SpecForge
       converted_value = value
       case converted_value
       when Array
-        converted_value.map(&:values)
+        converted_value.map(&:result)
       when Hash
-        converted_value.transform_values(&:values)
+        converted_value.transform_values(&:result)
       else
         converted_value
       end
