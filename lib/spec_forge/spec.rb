@@ -36,15 +36,29 @@ module SpecForge
 
     ############################################################################
 
-    attr_reader :name, :path, :method, :params, :body, :expectations
+    attr_reader :name, :path, :method, :content_type, :params, :body, :expectations
 
-    def initialize(name:, path:, method: "GET", params: {}, body: {}, expectations: [])
-      @name = name
-      @path = path
-      @method = method
-      @params = params
-      @body = body
-      @expectations = expectations
+    def initialize(**options)
+      @name = options[:name]
+      @path = options[:path] || "GET"
+      @method = options[:method]
+
+      @content_type = MIME::Types[options[:content_type] || "application/json"].first
+
+      # Params can only be a hash
+      @params = (options[:params] || {}).transform_values { |v| Attribute.from(v) }
+
+      # Body can support different types. Only supporting JSON and plain text right now
+      @body =
+        case @content_type
+        when "application/json"
+          body = options[:body] || {}
+          body.transform_values { |v| Attribute.from(v) }
+        when "text/plain"
+          Attribute.from(options[:body].to_s)
+        end
+
+      @expectations = options[:expectations] || []
     end
   end
 end
