@@ -56,12 +56,64 @@ RSpec.describe SpecForge::Attribute do
 
         it { is_expected.to be_kind_of(described_class::Literal) }
       end
+
+      context "and it has nested attributes" do
+        let(:input) do
+          {
+            key_1: {
+              key_2: {
+                key_3: "faker.number.positive"
+              }
+            }
+          }
+        end
+
+        it "is expected to deeply convert hash values to attributes" do
+          expect(attribute).to be_kind_of(described_class::Literal)
+
+          # Lol
+          nested_attribute = attribute.value[:key_1].value[:key_2].value[:key_3]
+          expect(nested_attribute).to be_kind_of(described_class::Faker)
+        end
+      end
     end
 
     context "when the input is an Array" do
-      let(:input) { [] }
+      context "and it is simple" do
+        let(:input) { [] }
 
-      it { is_expected.to be_kind_of(described_class::Literal) }
+        it { is_expected.to be_kind_of(described_class::Literal) }
+      end
+
+      context "and it contains nested attributes" do
+        let(:input) do
+          [
+            "faker.number.positive",
+            [
+              "faker.number.positive",
+              {
+                key_1: {
+                  "transform.join" => [
+                    "foo", " ", "bar"
+                  ]
+                }
+              }
+            ]
+          ]
+        end
+
+        it "is expected to deeply convert" do
+          expect(attribute).to be_kind_of(described_class::Literal)
+
+          expect(attribute.value.first).to be_kind_of(described_class::Faker)
+
+          array = attribute.value.second.value
+          expect(array.first).to be_kind_of(described_class::Faker)
+
+          hash_value = array.second.value[:key_1]
+          expect(hash_value).to be_kind_of(described_class::Transform)
+        end
+      end
     end
   end
 
