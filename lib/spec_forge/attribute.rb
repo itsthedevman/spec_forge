@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative "attribute/parameterized"
+
 require_relative "attribute/faker"
 require_relative "attribute/literal"
 require_relative "attribute/transform"

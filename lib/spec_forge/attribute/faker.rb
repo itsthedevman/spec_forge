@@ -2,30 +2,11 @@
 
 module SpecForge
   class Attribute
-    class Faker < Attribute
-      def self.from_hash(hash)
-        metadata = hash.first
+    class Faker < Parameterized
+      attr_reader :faker_class, :faker_method
 
-        path = metadata.first
-        arguments = metadata.second
-
-        case arguments
-        when Array
-          new(path, arguments)
-        when Hash
-          # Offset for positional arguments. No support for both at this time
-          new(path, [], arguments)
-        else
-          new(path)
-        end
-      end
-
-      attr_reader :faker_class, :faker_method, :arguments
-
-      def initialize(input, positional = [], keyword = {})
-        super(input.to_s.downcase)
-
-        @arguments = {positional:, keyword:}
+      def initialize(...)
+        super
 
         # As of right now, Faker only goes 2 sub classes deep. I've added +2 padding just in case
         # faker.class.method
@@ -51,23 +32,13 @@ module SpecForge
       end
 
       def value
-        if uses_positional_arguments?
+        if uses_positional_arguments?(@faker_method)
           @faker_method.call(*@arguments[:positional])
-        elsif uses_keyword_arguments?
+        elsif uses_keyword_arguments?(@faker_method)
           @faker_method.call(**@arguments[:keyword])
         else
           @faker_method.call
         end
-      end
-
-      private
-
-      def uses_positional_arguments?
-        @faker_method.parameters.any? { |a| [:req, :opt].include?(a.first) }
-      end
-
-      def uses_keyword_arguments?
-        @faker_method.parameters.any? { |a| [:keyreq, :key].include?(a.first) }
       end
     end
   end
