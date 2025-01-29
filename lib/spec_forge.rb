@@ -22,6 +22,7 @@ require_relative "spec_forge/cli"
 require_relative "spec_forge/configuration"
 require_relative "spec_forge/error"
 require_relative "spec_forge/factory"
+require_relative "spec_forge/spec"
 require_relative "spec_forge/version"
 
 module SpecForge
@@ -29,6 +30,7 @@ module SpecForge
     path = root.join(path)
 
     Factory.load_and_register(path)
+    Spec.load_and_run(path)
   end
 
   def self.root
