@@ -34,12 +34,13 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
 
   spec.add_dependency "activesupport", ">= 6.0"
+  spec.add_dependency "commander", "~> 5.0"
   spec.add_dependency "everythingrb", "~> 0.1"
   spec.add_dependency "factory_bot", "~> 6.5"
   spec.add_dependency "faker", "~> 3.5"
-  spec.add_dependency "thor", "~> 1.3"
-  spec.add_dependency "commander", "~> 5.0"
+  spec.add_dependency "mime-types", "~> 3.6"
   spec.add_dependency "rspec", "~> 3.13"
+  spec.add_dependency "thor", "~> 1.3"
 
   # ActiveSupport deprecations for Ruby 3.4
   spec.add_dependency "base64"
