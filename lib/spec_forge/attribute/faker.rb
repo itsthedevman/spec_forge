@@ -3,10 +3,27 @@
 module SpecForge
   class Attribute
     class Faker < Attribute
+      def self.from_hash(hash)
+        metadata = hash.first
+
+        path = metadata.first
+        arguments = metadata.second
+
+        case arguments
+        when Array
+          new(path, arguments)
+        when Hash
+          # Offset for positional arguments. No support for both at this time
+          new(path, [], arguments)
+        else
+          new(path)
+        end
+      end
+
       attr_reader :faker_class, :faker_method, :arguments
 
       def initialize(input, positional = [], keyword = {})
-        super(input.downcase)
+        super(input.to_s.downcase)
 
         @arguments = {positional:, keyword:}
 

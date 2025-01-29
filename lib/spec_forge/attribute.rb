@@ -2,25 +2,39 @@
 
 require_relative "attribute/faker"
 require_relative "attribute/literal"
+require_relative "attribute/transform"
 
 module SpecForge
   class Attribute
     def self.from(value)
       case value
       when String
-        case value
-        when /^faker\./i
-          Faker.new(value)
-        # when /^factory\./i
-        # when /^variables\./i
-        # when /^transform\./i
-        else
-          Literal.new(value)
-        end
+        from_string(value)
       when Hash
-        # TODO
+        from_hash(value)
       else
         Literal.new(value)
+      end
+    end
+
+    def self.from_string(string)
+      if string.match?(/^faker\./i)
+        Faker.new(string)
+      else
+        Literal.new(string)
+      end
+    end
+
+    def self.from_hash(hash)
+      # Determine if the hash is an expanded macro call
+      has_macro = ->(h, regex) { h.any? { |k, _| k.match?(regex) } }
+
+      if has_macro.call(hash, /^transform\./i)
+        Transform.from_hash(hash)
+      elsif has_macro.call(hash, /^faker\./i)
+        Faker.from_hash(hash)
+      else
+        Literal.new(hash)
       end
     end
 
