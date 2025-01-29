@@ -31,4 +31,16 @@ module SpecForge
       )
     end
   end
+
+  class InvalidTransformFunction < Error
+    def initialize(input)
+      # TODO: Update link to docs
+      super(<<~STRING.chomp
+        Undefined transform function "#{input}".
+
+        For available functions, please check https://github.com/itsthedevman/spec_forge.
+      STRING
+      )
+    end
+  end
 end
