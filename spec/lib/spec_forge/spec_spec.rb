@@ -59,4 +59,12 @@ RSpec.describe SpecForge::Spec do
 
     it { expect { spec }.to raise_error(TypeError, "Expected Hash, got String for 'body'") }
   end
+
+  context "when 'http_method' is mixed case" do
+    let(:method) { "DeLeTe" }
+
+    it "works because it is case insensitive" do
+      expect(spec.http_method).to eq("DELETE")
+    end
+  end
 end
