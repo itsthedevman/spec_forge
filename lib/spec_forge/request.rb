@@ -17,7 +17,8 @@ module SpecForge
     def initialize(**options)
       url = options[:path] || options[:url]
 
-      http_method = HTTPMethod.from(options[:method] || "GET")
+      http_method = options[:method] || options[:http_method] || "GET"
+      http_method = HTTPMethod.from(http_method)
 
       content_type = options[:content_type] || "application/json"
       content_type = MIME::Types[content_type].first
