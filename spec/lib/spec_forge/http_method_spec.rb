@@ -108,4 +108,59 @@ RSpec.describe SpecForge::HTTPMethod do
       end
     end
   end
+
+  describe "#==" do
+    let(:other) {}
+    let(:verb) { "get" }
+
+    subject(:equals) { method == other }
+
+    context "when the comparison is against a String" do
+      context "and it is a valid verb" do
+        let(:other) { "GeT" } # case insensitive
+
+        it { is_expected.to be(true) }
+      end
+
+      context "and it is an invalid verb" do
+        let(:other) { "other" }
+
+        it { is_expected.to be(false) }
+      end
+    end
+
+    context "when the comparison is against a Symbol" do
+      context "and it is a valid verb" do
+        let(:other) { :Get } # case insensitive
+
+        it { is_expected.to be(true) }
+      end
+
+      context "and it is an invalid verb" do
+        let(:other) { :other }
+
+        it { is_expected.to be(false) }
+      end
+    end
+
+    context "when the comparison is against a HTTPMethod" do
+      context "and it is a valid verb" do
+        let(:other) { described_class::GET }
+
+        it { is_expected.to be(true) }
+      end
+
+      context "and it is an other verb" do
+        let(:other) { described_class::POST }
+
+        it { is_expected.to be(false) }
+      end
+    end
+
+    context "when the comparison is against anything else" do
+      let(:other) { nil }
+
+      it { is_expected.to be(false) }
+    end
+  end
 end

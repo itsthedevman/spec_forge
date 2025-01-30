@@ -48,6 +48,25 @@ module SpecForge
     end
 
     #
+    # Returns if this HTTPMethod verb matches another HTTPMethod's verb, or the verb
+    # as a String or Symbol
+    #
+    # @param other [Object] The thing to check against this object
+    #
+    # @return [Boolean]
+    #
+    def ==(other)
+      case other
+      when HTTPMethod
+        verb == other.verb
+      when String, Symbol
+        self == self.class.from(other)
+      else
+        false
+      end
+    end
+
+    #
     # Returns if this HTTPMethod is a DELETE
     #
     # @return [Boolean]
