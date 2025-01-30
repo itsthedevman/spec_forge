@@ -24,6 +24,7 @@ require_relative "spec_forge/configuration"
 require_relative "spec_forge/error"
 require_relative "spec_forge/factory"
 require_relative "spec_forge/http_method"
+require_relative "spec_forge/request"
 require_relative "spec_forge/spec"
 require_relative "spec_forge/version"
 

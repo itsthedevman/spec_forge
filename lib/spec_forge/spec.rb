@@ -10,7 +10,18 @@ module SpecForge
     # @param path [String, Path] The base path where the specs directory is located
     #
     def self.load_and_run(base_path)
-      load_from_path(base_path.join("specs", "**/*.yml"))
+      specs = load_from_path(base_path.join("specs", "**/*.yml"))
+
+      failures = []
+
+      specs.each do |spec|
+        spec.compile!
+        # spec.run!
+      rescue => e
+        failures << [spec, e]
+      end
+
+      # TODO: Handle failures
     end
 
     #
@@ -38,43 +49,23 @@ module SpecForge
 
     ############################################################################
 
-    attr_reader :name, :path, :http_method, :content_type, :params, :body, :expectations
+    attr_reader :name, :expectations
+
+    delegate :url, :http_method, :content_type, :params, :body, to: :@request
 
     def initialize(**options)
       @name = options[:name]
-      @path = options[:path]
-      @http_method = HTTPMethod.from(options[:method] || "GET")
+      @request = Request.new(**options)
 
-      content_type = options[:content_type] || "application/json"
-      @content_type = MIME::Types[content_type].first
-
-      if @content_type.nil?
-        raise ArgumentError, "Invalid content_type provided: #{content_type.inspect}"
-      end
-
-      # Params can only be a hash
-      params = options[:params] || {}
-
-      if !params.is_a?(Hash)
-        raise TypeError, "Expected Hash, got #{params.class} for 'params'"
-      end
-
-      @params = params.transform_values { |v| Attribute.from(v) }
-
-      # Body can support different types. Only supporting JSON and plain text right now
-      @body =
-        case @content_type
-        when "application/json"
-          body = options[:body] || {}
-          raise TypeError, "Expected Hash, got #{body.class} for 'body'" if !body.is_a?(Hash)
-
-          body.transform_values { |v| Attribute.from(v) }
-        when "text/plain"
-          Attribute.from(options[:body].to_s)
-        end
-
-      expectations = options[:expectations] || []
-      @expectations = expectations.map { |e| Expectation.new(e) }
+      @expectations = (options[:expectations] || []).map { |e| Expectation.new(e) }
     end
+  end
+
+  def compile
+    # Build the expectations, this can cause a failure
+    # TODO: Handle errors
+    @expectations.each_with_index { |e, i| e.compile!(self) }
+
+    # Build the spec
   end
 end
