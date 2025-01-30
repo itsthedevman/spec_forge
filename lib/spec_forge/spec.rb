@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative "spec/expectation"
+
 module SpecForge
   class Spec
     #
@@ -71,7 +73,8 @@ module SpecForge
           Attribute.from(options[:body].to_s)
         end
 
-      @expectations = options[:expectations] || []
+      expectations = options[:expectations] || []
+      @expectations = expectations.map { |e| Expectation.new(e) }
     end
   end
 end
