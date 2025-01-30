@@ -36,23 +36,36 @@ module SpecForge
 
     ############################################################################
 
-    attr_reader :name, :path, :method, :content_type, :params, :body, :expectations
+    attr_reader :name, :path, :http_method, :content_type, :params, :body, :expectations
 
     def initialize(**options)
       @name = options[:name]
-      @path = options[:path] || "GET"
-      @method = options[:method]
+      @path = options[:path]
+      @http_method = HTTPMethod.from(options[:method] || "GET")
 
-      @content_type = MIME::Types[options[:content_type] || "application/json"].first
+      content_type = options[:content_type] || "application/json"
+      @content_type = MIME::Types[content_type].first
+
+      if @content_type.nil?
+        raise ArgumentError, "Invalid content_type provided: #{content_type.inspect}"
+      end
 
       # Params can only be a hash
-      @params = (options[:params] || {}).transform_values { |v| Attribute.from(v) }
+      params = options[:params] || {}
+
+      if !params.is_a?(Hash)
+        raise TypeError, "Expected Hash, got #{params.class} for 'params'"
+      end
+
+      @params = params.transform_values { |v| Attribute.from(v) }
 
       # Body can support different types. Only supporting JSON and plain text right now
       @body =
         case @content_type
         when "application/json"
           body = options[:body] || {}
+          raise TypeError, "Expected Hash, got #{body.class} for 'body'" if !body.is_a?(Hash)
+
           body.transform_values { |v| Attribute.from(v) }
         when "text/plain"
           Attribute.from(options[:body].to_s)
