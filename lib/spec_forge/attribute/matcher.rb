@@ -7,7 +7,6 @@ module SpecForge
 
       attr_reader :matcher_method
 
-      # RSpec::Matchers.public_instance_methods for all matchers
       def initialize(...)
         super
 
@@ -95,12 +94,12 @@ module SpecForge
         # No matcher found yet, maybe it is prefixed with "be_"?
         return resolve_matcher("be_#{method}") if defined_matcher?("be_#{method}")
 
-        # Ok, so maybe its one of those dynamic predicates
+        # Ok, so maybe it's one of those dynamic predicates, be_<predicate>
         # Let's set up for that
         arguments[:positional].insert(0, method)
 
-        # We are expecting a method to call that returns something
-        # Since we have to return a raw BuiltIn, it'll need to happen via a call
+        # We are expecting a method to call that returns a Matcher
+        # Since we don't have a method, we'll create our own and use it as a proxy
         self.method(:dispatch_dynamic_predicate)
       end
 
