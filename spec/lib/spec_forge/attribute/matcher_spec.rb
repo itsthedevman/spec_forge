@@ -44,7 +44,7 @@ RSpec.describe SpecForge::Attribute::Matcher do
         let(:positional) { [1] }
 
         it "is expected to find the matcher" do
-          expect(attribute.matcher_method).to be_kind_of(UnboundMethod)
+          expect(attribute.matcher_method).to be_kind_of(Method)
           expect(attribute.matcher_method.name).to eq(:contain_exactly)
           expect(attribute.arguments[:positional]).to eq([1])
         end
@@ -68,7 +68,7 @@ RSpec.describe SpecForge::Attribute::Matcher do
         let(:input) { "kind_of.string" }
 
         it "is expected to find the matcher" do
-          expect(attribute.matcher_method).to be_kind_of(UnboundMethod)
+          expect(attribute.matcher_method).to be_kind_of(Method)
           expect(attribute.matcher_method.name).to eq(:be_kind_of)
           expect(attribute.arguments[:positional]).to eq([String])
         end
@@ -84,12 +84,9 @@ RSpec.describe SpecForge::Attribute::Matcher do
         let(:input) { "be.does_not_exist" }
 
         it "is expected to return a BePredicate" do
-          expect(attribute.matcher_method).to be_kind_of(UnboundMethod)
-          expect(attribute.arguments[:positional]).to eq([:be_does_not_exist])
-
-          predicate = attribute.value
-          expect(predicate).to be_kind_of(RSpec::Matchers::BuiltIn::BePredicate)
-          expect(predicate.instance_variable_get(:@method_name)).to eq(:be_does_not_exist)
+          expect(attribute.matcher_method).to be_kind_of(Method)
+          expect(attribute.matcher_method.name).to eq(:be_does_not_exist)
+          expect(attribute.arguments[:positional]).to eq([])
         end
 
         it "is expected to NOT work with RSpec" do
@@ -103,7 +100,7 @@ RSpec.describe SpecForge::Attribute::Matcher do
         let(:input) { "be.truthy" }
 
         it "is expected to find the matcher" do
-          expect(attribute.matcher_method).to be_kind_of(UnboundMethod)
+          expect(attribute.matcher_method).to be_kind_of(Method)
           expect(attribute.matcher_method.name).to eq(:be_truthy)
           expect(attribute.arguments[:positional]).to eq([])
         end
@@ -117,12 +114,9 @@ RSpec.describe SpecForge::Attribute::Matcher do
         let(:input) { "be.empty" }
 
         it "is expected to find the matcher" do
-          expect(attribute.matcher_method).to be_kind_of(UnboundMethod)
-          expect(attribute.arguments[:positional]).to eq([:be_empty])
-
-          predicate = attribute.value
-          expect(predicate).to be_kind_of(RSpec::Matchers::BuiltIn::BePredicate)
-          expect(predicate.instance_variable_get(:@method_name)).to eq(:be_empty)
+          expect(attribute.matcher_method).to be_kind_of(Method)
+          expect(attribute.matcher_method.name).to eq(:be_empty)
+          expect(attribute.arguments[:positional]).to eq([])
         end
 
         it "is expected to work with RSpec" do
@@ -134,7 +128,7 @@ RSpec.describe SpecForge::Attribute::Matcher do
         let(:input) { "be.nil" }
 
         it "is expected to find the matcher" do
-          expect(attribute.matcher_method).to be_kind_of(UnboundMethod)
+          expect(attribute.matcher_method).to be_kind_of(Method)
           expect(attribute.matcher_method.name).to eq(:be)
           expect(attribute.arguments[:positional]).to eq([nil])
         end
@@ -148,7 +142,7 @@ RSpec.describe SpecForge::Attribute::Matcher do
         let(:input) { "be.true" }
 
         it "is expected to find the matcher" do
-          expect(attribute.matcher_method).to be_kind_of(UnboundMethod)
+          expect(attribute.matcher_method).to be_kind_of(Method)
           expect(attribute.matcher_method.name).to eq(:be)
           expect(attribute.arguments[:positional]).to eq([true])
         end
@@ -162,7 +156,7 @@ RSpec.describe SpecForge::Attribute::Matcher do
         let(:input) { "be.false" }
 
         it "is expected to find the matcher" do
-          expect(attribute.matcher_method).to be_kind_of(UnboundMethod)
+          expect(attribute.matcher_method).to be_kind_of(Method)
           expect(attribute.matcher_method.name).to eq(:be)
           expect(attribute.arguments[:positional]).to eq([false])
         end
@@ -177,7 +171,7 @@ RSpec.describe SpecForge::Attribute::Matcher do
         let(:positional) { [1] }
 
         it "is expected to find the matcher" do
-          expect(attribute.matcher_method).to be_kind_of(UnboundMethod)
+          expect(attribute.matcher_method).to be_kind_of(Method)
           expect(attribute.matcher_method.name).to eq(:>)
           expect(attribute.arguments[:positional]).to eq([1])
         end
@@ -192,7 +186,7 @@ RSpec.describe SpecForge::Attribute::Matcher do
         let(:positional) { [1] }
 
         it "is expected to find the matcher" do
-          expect(attribute.matcher_method).to be_kind_of(UnboundMethod)
+          expect(attribute.matcher_method).to be_kind_of(Method)
           expect(attribute.matcher_method.name).to eq(:>=)
           expect(attribute.arguments[:positional]).to eq([1])
         end
@@ -207,7 +201,7 @@ RSpec.describe SpecForge::Attribute::Matcher do
         let(:positional) { [1] }
 
         it "is expected to find the matcher" do
-          expect(attribute.matcher_method).to be_kind_of(UnboundMethod)
+          expect(attribute.matcher_method).to be_kind_of(Method)
           expect(attribute.matcher_method.name).to eq(:>)
           expect(attribute.arguments[:positional]).to eq([1])
         end
@@ -222,7 +216,7 @@ RSpec.describe SpecForge::Attribute::Matcher do
         let(:positional) { [1] }
 
         it "is expected to find the matcher" do
-          expect(attribute.matcher_method).to be_kind_of(UnboundMethod)
+          expect(attribute.matcher_method).to be_kind_of(Method)
           expect(attribute.matcher_method.name).to eq(:>=)
           expect(attribute.arguments[:positional]).to eq([1])
         end
@@ -237,7 +231,7 @@ RSpec.describe SpecForge::Attribute::Matcher do
         let(:positional) { [1] }
 
         it "is expected to find the matcher" do
-          expect(attribute.matcher_method).to be_kind_of(UnboundMethod)
+          expect(attribute.matcher_method).to be_kind_of(Method)
           expect(attribute.matcher_method.name).to eq(:<)
           expect(attribute.arguments[:positional]).to eq([1])
         end
@@ -252,7 +246,7 @@ RSpec.describe SpecForge::Attribute::Matcher do
         let(:positional) { [1] }
 
         it "is expected to find the matcher" do
-          expect(attribute.matcher_method).to be_kind_of(UnboundMethod)
+          expect(attribute.matcher_method).to be_kind_of(Method)
           expect(attribute.matcher_method.name).to eq(:<=)
           expect(attribute.arguments[:positional]).to eq([1])
         end
@@ -267,7 +261,7 @@ RSpec.describe SpecForge::Attribute::Matcher do
         let(:positional) { [1] }
 
         it "is expected to find the matcher" do
-          expect(attribute.matcher_method).to be_kind_of(UnboundMethod)
+          expect(attribute.matcher_method).to be_kind_of(Method)
           expect(attribute.matcher_method.name).to eq(:<)
           expect(attribute.arguments[:positional]).to eq([1])
         end
@@ -282,7 +276,7 @@ RSpec.describe SpecForge::Attribute::Matcher do
         let(:positional) { [1] }
 
         it "is expected to find the matcher" do
-          expect(attribute.matcher_method).to be_kind_of(UnboundMethod)
+          expect(attribute.matcher_method).to be_kind_of(Method)
           expect(attribute.matcher_method.name).to eq(:<=)
           expect(attribute.arguments[:positional]).to eq([1])
         end
