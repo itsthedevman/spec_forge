@@ -19,6 +19,7 @@ module SpecForge
         end
 
         # Status is the only required field
+        load_name
         load_status
         load_variables
         load_json
@@ -34,6 +35,13 @@ module SpecForge
       end
 
       private
+
+      def load_name
+        name = input[:name]
+        return if name.blank?
+
+        @name = name
+      end
 
       def load_status
         @status = input[:status]
