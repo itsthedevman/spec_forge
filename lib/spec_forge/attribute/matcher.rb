@@ -21,17 +21,7 @@ module SpecForge
       def initialize(...)
         super
 
-        sections = input.split(".")
-
-        case sections.size
-        when 1
-          method = sections.first
-        when 2
-          namespace = sections.first
-          method = sections.second
-        else
-          raise InvalidMatcherError.new(input)
-        end
+        namespace, method = extract_namespace_and_method
 
         @matcher_method =
           case namespace
@@ -42,8 +32,6 @@ module SpecForge
           else
             resolve_matcher(method)
           end
-
-        raise "Invalid matcher" if @matcher_method.nil?
       end
 
       def value
@@ -57,6 +45,16 @@ module SpecForge
       end
 
       private
+
+      def extract_namespace_and_method
+        sections = input.split(".", 2)
+
+        if sections.size > 1
+          sections[..1]
+        else
+          [nil, sections.first]
+        end
+      end
 
       def resolve_matcher(method_name, namespace: MATCHER_METHODS)
         namespace.public_method(method_name)
