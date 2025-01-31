@@ -6,6 +6,7 @@ require_relative "attribute/parameterized"
 # Sub classes
 require_relative "attribute/faker"
 require_relative "attribute/literal"
+require_relative "attribute/matcher"
 require_relative "attribute/transform"
 require_relative "attribute/variable"
 
@@ -42,10 +43,13 @@ module SpecForge
     # @private
     #
     def self.from_string(string)
-      if string.match?(Faker::KEYWORD_REGEX)
+      case string
+      when Faker::KEYWORD_REGEX
         Faker.new(string)
-      elsif string.match?(Variable::KEYWORD_REGEX)
+      when Variable::KEYWORD_REGEX
         Variable.new(string)
+      when Matcher::KEYWORD_REGEX
+        Matcher.new(string)
       else
         Literal.new(string)
       end
