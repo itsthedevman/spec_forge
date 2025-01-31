@@ -3,6 +3,8 @@
 module SpecForge
   class Attribute
     class Variable < Attribute
+      KEYWORD_REGEX = /^variable\./i
+
       NUMBER_REGEX = /^\d+$/i
 
       attr_reader :variable_name, :invocation_chain, :lookup_table
@@ -52,8 +54,10 @@ module SpecForge
       end
 
       def invoke(step, object)
-        if hash_key?(object, step) || index?(object, step)
+        if hash_key?(object, step)
           object[step]
+        elsif index?(object, step)
+          object[step.to_i]
         elsif method?(object, step)
           object.public_send(step)
         else
