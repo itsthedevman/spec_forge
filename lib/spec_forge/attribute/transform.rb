@@ -3,6 +3,8 @@
 module SpecForge
   class Attribute
     class Transform < Parameterized
+      KEYWORD_REGEX = /^transform\./i
+
       attr_reader :transform_method
 
       def initialize(...)

@@ -3,6 +3,8 @@
 module SpecForge
   class Attribute
     class Faker < Parameterized
+      KEYWORD_REGEX = /^faker\./i
+
       attr_reader :faker_class, :faker_method
 
       def initialize(...)

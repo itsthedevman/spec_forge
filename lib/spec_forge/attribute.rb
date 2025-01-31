@@ -42,9 +42,9 @@ module SpecForge
     # @private
     #
     def self.from_string(string)
-      if string.match?(/^faker\./i)
+      if string.match?(Faker::KEYWORD_REGEX)
         Faker.new(string)
-      elsif string.match?(/^variable\./i)
+      elsif string.match?(Variable::KEYWORD_REGEX)
         Variable.new(string)
       else
         Literal.new(string)
@@ -64,9 +64,9 @@ module SpecForge
       # Determine if the hash is an expanded macro call
       has_macro = ->(h, regex) { h.any? { |k, _| k.match?(regex) } }
 
-      if has_macro.call(hash, /^transform\./i)
+      if has_macro.call(hash, Transform::KEYWORD_REGEX)
         Transform.from_hash(hash)
-      elsif has_macro.call(hash, /^faker\./i)
+      elsif has_macro.call(hash, Faker::KEYWORD_REGEX)
         Faker.from_hash(hash)
       else
         hash = hash.transform_values { |v| Attribute.from(v) }
