@@ -15,7 +15,7 @@ module SpecForge
       failures = []
 
       specs.each do |spec|
-        spec.run!
+        spec.register_and_run
       rescue => e
         failures << [spec, e]
       end
@@ -72,7 +72,7 @@ module SpecForge
       end
     end
 
-    def run!
+    def run
       compile
       register_with_rspec
       run
@@ -111,7 +111,7 @@ module SpecForge
       end
     end
 
-    def run
+    def run_spec
       # stdout = StringIO.new
       # stderr = StringIO.new
 
