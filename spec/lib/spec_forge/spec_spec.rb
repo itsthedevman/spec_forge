@@ -13,6 +13,27 @@ RSpec.describe SpecForge::Spec do
     described_class.new(name:, path:, method:, content_type:, params:, body:, expectations:)
   end
 
+  describe ".load_and_run" do
+    it "cannot be ran via RSpec. Run `bin/integration_specs`" do
+      expect(true).to be(true)
+    end
+  end
+
+  describe ".load_from_path" do
+    let(:path) { SpecForge.root.join("spec", ".spec_forge", "specs", "**/*.yml") }
+
+    subject(:specs) { described_class.load_from_path(path) }
+
+    context "when all specs are valid" do
+      it "loads the specs" do
+        expect(specs).to be_kind_of(Array)
+        expect(specs.size).to be > 0
+
+        expect(specs.first).to be_kind_of(described_class)
+      end
+    end
+  end
+
   describe "#initialize" do
     context "when the minimal is given" do
       it "is valid" do
