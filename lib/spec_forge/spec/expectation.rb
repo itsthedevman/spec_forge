@@ -19,7 +19,9 @@ module SpecForge
 
         # Status is the only required field
         @status = input[:status]
-        raise ArgumentError, "Missing 'status'" if @status.blank?
+        if @status.blank?
+          raise ArgumentError, "'status' must be provided on a expectation"
+        end
 
         # Check for variables (optional) and convert
         @variables = input[:variables] || {}
