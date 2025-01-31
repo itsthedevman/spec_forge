@@ -14,13 +14,13 @@ RSpec.describe SpecForge::Spec do
   end
 
   describe ".load_and_run" do
-    it "cannot be ran via RSpec. Run `bin/integration_specs`" do
+    it "cannot be ran via RSpec. Run `bin/test_runner`" do
       expect(true).to be(true)
     end
   end
 
   describe ".load_from_path" do
-    let(:path) { SpecForge.root.join("spec", ".spec_forge", "specs", "**/*.yml") }
+    let(:path) { SpecForge.root.join(".spec_forge", "specs", "**/*.yml") }
 
     subject(:specs) { described_class.load_from_path(path) }
 

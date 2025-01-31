@@ -2,7 +2,7 @@
 
 RSpec.describe SpecForge::Factory do
   describe ".load_and_register" do
-    let(:path) { SpecForge.root.join("spec", ".spec_forge") }
+    let(:path) { SpecForge.root.join(".spec_forge") }
 
     let(:factory_names) do
       Dir[path.join("factories", "**/*.yml")].flat_map do |file_path|

@@ -1,0 +1,18 @@
+create_user:
+  path: "/users"
+  method: "POST"
+  expectations:
+  - status: 201
+    variables:
+      name: "Test User"
+      email: "faker.internet.email"
+    body:
+      name: "variable.name"
+      email: "variable.email"
+    json:
+      id:
+      - kind_of.integer?
+      name: variable.name
+      email:
+      - kind_of.string?
+      - "test@example.com"
