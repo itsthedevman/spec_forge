@@ -3,7 +3,7 @@
 module SpecForge
   class Attribute
     class Variable < Attribute
-      NUMBER_REGEX = /\d+/i
+      NUMBER_REGEX = /^\d+$/i
 
       attr_reader :variable_name, :invocation_chain, :lookup_table
 
@@ -21,6 +21,10 @@ module SpecForge
       end
 
       def update_lookup_table(variables_hash)
+        if !variables_hash.is_a?(Hash)
+          raise InvalidTypeError.new(variables_hash, Hash, for: "'variables'")
+        end
+
         @lookup_table = variables_hash.with_indifferent_access
         self
       end
