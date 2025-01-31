@@ -52,23 +52,181 @@ RSpec.describe SpecForge::Attribute::Matcher do
     end
 
     context "when the starts with 'kind_of'" do
-      context "and the matcher does not exist"
-      context "and the matcher exists"
+      context "and the matcher does not exist" do
+        let(:input) { "kind_of.does_not_exist" }
+
+        it do
+          expect { attribute }.to raise_error(NameError)
+        end
+      end
+
+      context "and the matcher exists" do
+        let(:input) { "kind_of.string" }
+
+        it "is expected to find the matcher" do
+          expect(attribute.matcher_method).to be_kind_of(UnboundMethod)
+          expect(attribute.matcher_method.name).to eq(:be_kind_of)
+          expect(attribute.arguments[:positional]).to eq([String])
+        end
+      end
     end
 
     context "when the starts with 'be'" do
-      context "and the matcher does not exist"
-      context "and the matcher exists"
+      context "and the matcher does not exist" do
+        let(:input) { "be.does_not_exist" }
 
-      context "and the matcher is 'nil'"
-      context "and the matcher is 'greater_than'"
-      context "and the matcher is 'greater_than_or_equal'"
-      context "and the matcher is 'greater'"
-      context "and the matcher is 'greater_or_equal'"
-      context "and the matcher is 'less_than'"
-      context "and the matcher is 'less_than_or_equal'"
-      context "and the matcher is 'less'"
-      context "and the matcher is 'less_or_equal'"
+        # NOTE: This is technically invalid
+        # This will raise with RSpec, but not at this point
+        it "is expected to return a BePredicate" do
+          expect(attribute.matcher_method).to be_kind_of(Method)
+          expect(attribute.arguments[:positional]).to eq(["does_not_exist"])
+
+          predicate = attribute.value
+          expect(predicate).to be_kind_of(RSpec::Matchers::BuiltIn::BePredicate)
+          expect(predicate.instance_variable_get(:@method_name)).to eq("does_not_exist")
+        end
+      end
+
+      context "and the matcher is predefined" do
+        let(:input) { "be.truthy" }
+
+        it "is expected to find the matcher" do
+          expect(attribute.matcher_method).to be_kind_of(UnboundMethod)
+          expect(attribute.matcher_method.name).to eq(:be_truthy)
+          expect(attribute.arguments[:positional]).to eq([])
+        end
+      end
+
+      context "and the matcher is dynamic" do
+        let(:input) { "be.empty" }
+
+        it "is expected to find the matcher" do
+          expect(attribute.matcher_method).to be_kind_of(Method)
+          expect(attribute.arguments[:positional]).to eq(["empty"])
+
+          predicate = attribute.value
+          expect(predicate).to be_kind_of(RSpec::Matchers::BuiltIn::BePredicate)
+          expect(predicate.instance_variable_get(:@method_name)).to eq("empty")
+        end
+      end
+
+      context "and the matcher is 'nil'" do
+        let(:input) { "be.nil" }
+
+        it "is expected to find the matcher" do
+          expect(attribute.matcher_method).to be_kind_of(UnboundMethod)
+          expect(attribute.matcher_method.name).to eq(:be)
+          expect(attribute.arguments[:positional]).to eq([nil])
+        end
+      end
+
+      context "and the matcher is 'true'" do
+        let(:input) { "be.true" }
+
+        it "is expected to find the matcher" do
+          expect(attribute.matcher_method).to be_kind_of(UnboundMethod)
+          expect(attribute.matcher_method.name).to eq(:be)
+          expect(attribute.arguments[:positional]).to eq([true])
+        end
+      end
+
+      context "and the matcher is 'false'" do
+        let(:input) { "be.false" }
+
+        it "is expected to find the matcher" do
+          expect(attribute.matcher_method).to be_kind_of(UnboundMethod)
+          expect(attribute.matcher_method.name).to eq(:be)
+          expect(attribute.arguments[:positional]).to eq([false])
+        end
+      end
+
+      context "and the matcher is 'greater_than'" do
+        let(:input) { "be.greater_than" }
+        let(:positional) { [1] }
+
+        it "is expected to find the matcher" do
+          expect(attribute.matcher_method).to be_kind_of(UnboundMethod)
+          expect(attribute.matcher_method.name).to eq(:>)
+          expect(attribute.arguments[:positional]).to eq([1])
+        end
+      end
+
+      context "and the matcher is 'greater_than_or_equal'" do
+        let(:input) { "be.greater_than_or_equal" }
+        let(:positional) { [1] }
+
+        it "is expected to find the matcher" do
+          expect(attribute.matcher_method).to be_kind_of(UnboundMethod)
+          expect(attribute.matcher_method.name).to eq(:>=)
+          expect(attribute.arguments[:positional]).to eq([1])
+        end
+      end
+
+      context "and the matcher is 'greater'" do
+        let(:input) { "be.greater" }
+        let(:positional) { [1] }
+
+        it "is expected to find the matcher" do
+          expect(attribute.matcher_method).to be_kind_of(UnboundMethod)
+          expect(attribute.matcher_method.name).to eq(:>)
+          expect(attribute.arguments[:positional]).to eq([1])
+        end
+      end
+
+      context "and the matcher is 'greater_or_equal'" do
+        let(:input) { "be.greater_or_equal" }
+        let(:positional) { [1] }
+
+        it "is expected to find the matcher" do
+          expect(attribute.matcher_method).to be_kind_of(UnboundMethod)
+          expect(attribute.matcher_method.name).to eq(:>=)
+          expect(attribute.arguments[:positional]).to eq([1])
+        end
+      end
+
+      context "and the matcher is 'less_than'" do
+        let(:input) { "be.less_than" }
+        let(:positional) { [1] }
+
+        it "is expected to find the matcher" do
+          expect(attribute.matcher_method).to be_kind_of(UnboundMethod)
+          expect(attribute.matcher_method.name).to eq(:<)
+          expect(attribute.arguments[:positional]).to eq([1])
+        end
+      end
+
+      context "and the matcher is 'less_than_or_equal'" do
+        let(:input) { "be.less_than_or_equal" }
+        let(:positional) { [1] }
+
+        it "is expected to find the matcher" do
+          expect(attribute.matcher_method).to be_kind_of(UnboundMethod)
+          expect(attribute.matcher_method.name).to eq(:<=)
+          expect(attribute.arguments[:positional]).to eq([1])
+        end
+      end
+
+      context "and the matcher is 'less'" do
+        let(:input) { "be.less" }
+        let(:positional) { [1] }
+
+        it "is expected to find the matcher" do
+          expect(attribute.matcher_method).to be_kind_of(UnboundMethod)
+          expect(attribute.matcher_method.name).to eq(:<)
+          expect(attribute.arguments[:positional]).to eq([1])
+        end
+      end
+
+      context "and the matcher is 'less_or_equal'" do
+        let(:input) { "be.less_or_equal" }
+        let(:positional) { [1] }
+
+        it "is expected to find the matcher" do
+          expect(attribute.matcher_method).to be_kind_of(UnboundMethod)
+          expect(attribute.matcher_method.name).to eq(:<=)
+          expect(attribute.arguments[:positional]).to eq([1])
+        end
+      end
     end
   end
 end
