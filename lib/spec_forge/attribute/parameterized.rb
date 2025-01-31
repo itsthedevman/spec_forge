@@ -31,11 +31,11 @@ module SpecForge
       protected
 
       def uses_positional_arguments?(method)
-        method.parameters.any? { |a| [:req, :opt].include?(a.first) }
+        method.parameters.any? { |a| [:req, :opt, :rest].include?(a.first) }
       end
 
       def uses_keyword_arguments?(method)
-        method.parameters.any? { |a| [:keyreq, :key].include?(a.first) }
+        method.parameters.any? { |a| [:keyreq, :key, :keyrest].include?(a.first) }
       end
     end
   end
