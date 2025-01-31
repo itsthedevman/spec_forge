@@ -96,7 +96,7 @@ module SpecForge
 
         # Ok, so maybe it's one of those dynamic predicates, be_<predicate>
         # Let's set up for that
-        arguments[:positional].insert(0, method)
+        arguments[:positional].insert(0, :"be_#{method}")
 
         # We are expecting a method to call that returns a Matcher
         # Since we don't have a method, we'll create our own and use it as a proxy
