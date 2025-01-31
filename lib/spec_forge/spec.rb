@@ -15,13 +15,24 @@ module SpecForge
       failures = []
 
       specs.each do |spec|
-        spec.compile!
-        # spec.run!
+        spec.run!
       rescue => e
         failures << [spec, e]
       end
 
-      # TODO: Handle failures
+      if failures.present?
+        # TEMP
+        raise StandardError, failures.join_map("\n") do |(spec, error)|
+          <<~STRING.chomp
+            #{error.message}
+            #{error.backtrace}
+
+            #{spec}
+          STRING
+        end
+      end
+
+      specs
     end
 
     #
@@ -58,13 +69,48 @@ module SpecForge
       @request = Request.new(**options)
       @expectations = (options[:expectations] || []).map { |e| Expectation.new(e) }
     end
-  end
 
-  def compile
-    # Build the expectations, this can cause a failure
-    # TODO: Handle errors
-    @expectations.each_with_index { |e, i| e.compile!(self) }
+    def run!
+      compile
+      register_with_rspec
+      run
+    end
 
-    # Build the spec
+    def compile
+      failures = []
+
+      # Build the expectations, this can cause a failure
+      @expectations.each_with_index do |expectation, index|
+        expectation.compile(self)
+      rescue => error
+        failures << [expectation, index + 1, error]
+      end
+    end
+
+    def register_with_rspec
+      # Store the scope
+      current_spec = self
+
+      # And register with RSpec
+      RSpec.describe(name) do
+        current_spec.expectations.each do |expectation|
+          expectation.variables.each do |variable_name, attribute|
+            let(variable_name, &attribute.to_proc)
+          end
+        end
+      end
+    end
+
+    def run
+      stdout = StringIO.new
+      stderr = StringIO.new
+
+      RSpec::Core::Runner.disable_autorun!
+      status = RSpec::Core::Runner.run([], stderr, stdout).to_i
+
+      puts "Status: #{status}"
+      puts "STDOUT: #{stdout.readlines}"
+      puts "STDERR: #{stderr.readlines}"
+    end
   end
 end
