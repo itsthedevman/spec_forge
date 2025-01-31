@@ -67,7 +67,9 @@ module SpecForge
     def initialize(**options)
       @name = options[:name]
       @request = Request.new(**options)
-      @expectations = (options[:expectations] || []).map { |e| Expectation.new(e) }
+      @expectations = (options[:expectations] || []).map.with_index do |e, index|
+        Expectation.new(e, "expectation #{index + 1}")
+      end
     end
 
     def run!
@@ -89,28 +91,36 @@ module SpecForge
 
     def register_with_rspec
       # Store the scope
-      current_spec = self
+      # Specific naming to avoid naming collisions
+      spec_forge_context = self
 
       # And register with RSpec
       RSpec.describe(name) do
-        current_spec.expectations.each do |expectation|
-          expectation.variables.each do |variable_name, attribute|
-            let(variable_name, &attribute.to_proc)
+        spec_forge_context.expectations.each do |spec_forge_expectation|
+          # Define the example group
+          describe(spec_forge_expectation.name) do
+            # Define any variables for this test
+            spec_forge_expectation.variables.each do |variable_name, attribute|
+              let(variable_name, &attribute.to_proc)
+            end
+
+            # Define the example
+            example(&spec_forge_expectation.to_example_proc)
           end
         end
       end
     end
 
     def run
-      stdout = StringIO.new
-      stderr = StringIO.new
+      # stdout = StringIO.new
+      # stderr = StringIO.new
 
       RSpec::Core::Runner.disable_autorun!
-      status = RSpec::Core::Runner.run([], stderr, stdout).to_i
+      status = RSpec::Core::Runner.run([], $stderr, $stdout).to_i
 
       puts "Status: #{status}"
-      puts "STDOUT: #{stdout.readlines}"
-      puts "STDERR: #{stderr.readlines}"
+      # puts "STDOUT: #{stdout.read}"
+      # puts "STDERR: #{stderr.read}"
     end
   end
 end
