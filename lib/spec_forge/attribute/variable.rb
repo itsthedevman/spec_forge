@@ -32,6 +32,9 @@ module SpecForge
       end
 
       def value
+        # No nil check here.
+        raise MissingVariableError, @variable_name unless lookup_table.key?(@variable_name)
+
         variable = lookup_table[@variable_name]
         invoke_chain(variable)
       end

@@ -73,4 +73,10 @@ module SpecForge
       super(message)
     end
   end
+
+  class MissingVariableError < Error
+    def initialize(variable_name)
+      super("Undefined variable \"#{variable_name}\" for expectation")
+    end
+  end
 end
