@@ -43,14 +43,22 @@ RSpec.describe SpecForge::Request do
     context "when 'params' is not a Hash" do
       let(:params) { "raw_params=are%20not%20allowed" }
 
-      it { expect { request }.to raise_error(TypeError, "Expected Hash, got String for 'params'") }
+      it do
+        expect { request }.to raise_error(
+          SpecForge::InvalidTypeError, "Expected Hash, got String for 'params'"
+        )
+      end
     end
 
     context "when 'content_type' is json but 'body' is not a Hash" do
       # Default content_type is already json
       let(:body) { "not_a_hash" }
 
-      it { expect { request }.to raise_error(TypeError, "Expected Hash, got String for 'body'") }
+      it do
+        expect { request }.to raise_error(
+          SpecForge::InvalidTypeError, "Expected Hash, got String for 'body'"
+        )
+      end
     end
 
     context "when 'http_method' is mixed case" do

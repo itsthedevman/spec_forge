@@ -44,22 +44,33 @@ module SpecForge
     end
   end
 
-  def initialize(step, object)
-    valid_operations =
-      case object
-      when Array
-        "Array index (0, 1, 2, etc.) or any Array methods ('first', 'last', 'size', etc.)"
-      when Hash
-        "Any Hash key: #{object.keys.join(", ")}"
-      else
-        "Any method available on #{object.class}"
-      end
+  class InvalidInvocationError < Error
+    def initialize(step, object)
+      valid_operations =
+        case object
+        when Array
+          "Array index (0, 1, 2, etc.) or any Array methods (first, last, size, etc.)"
+        when Hash
+          "Any Hash key: #{object.keys.join(", ")}"
+        else
+          "Any method available on #{object.class}"
+        end
 
-    super(<<~STRING.chomp
-      Cannot invoke "#{step}" on #{object.class}.
+      super(<<~STRING.chomp
+        Cannot invoke "#{step}" on #{object.class}.
 
-      Valid operations include: #{valid_operations}
-    STRING
-    )
+        Valid operations include: #{valid_operations}
+      STRING
+      )
+    end
+  end
+
+  class InvalidTypeError < TypeError
+    def initialize(object, expected_type, **opts)
+      message = "Expected #{expected_type}, got #{object.class}"
+      message += " for #{opts[:for]}" if opts[:for].present?
+
+      super(message)
+    end
   end
 end

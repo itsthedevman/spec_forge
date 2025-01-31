@@ -6,7 +6,9 @@ module SpecForge
       # Body can support different types. Only supporting JSON and plain text right now
       case content_type
       when "application/json"
-        raise TypeError, "Expected Hash, got #{body.class} for 'body'" if !body.is_a?(Hash)
+        if !body.is_a?(Hash)
+          raise InvalidTypeError.new(body, Hash, for: "'body'")
+        end
 
         body.transform_values { |v| Attribute.from(v) }
       when "text/plain"
@@ -30,7 +32,7 @@ module SpecForge
       # Params can only be a hash
       params = options[:params] || {}
       if !params.is_a?(Hash)
-        raise TypeError, "Expected Hash, got #{params.class} for 'params'"
+        raise InvalidTypeError.new(params, Hash, for: "'params'")
       end
 
       params.transform_values! { |v| Attribute.from(v) }

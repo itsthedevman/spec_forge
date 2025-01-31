@@ -13,7 +13,9 @@ module SpecForge
         @spec = spec
 
         # Only hash is supported
-        raise TypeError, "Expected Hash, got #{input.class}" if !input.is_a?(Hash)
+        if !input.is_a?(Hash)
+          raise InvalidTypeError.new(variables_hash, Hash, for: "expectation")
+        end
 
         # Status is the only required field
         @status = input[:status]
@@ -21,15 +23,22 @@ module SpecForge
 
         # Check for variables (optional) and convert
         @variables = input[:variables] || {}
-        raise TypeError, "Expected Hash, got #{variables.class}" if !variables.is_a?(Hash)
 
+        if !variables.is_a?(Hash)
+          raise InvalidTypeError.new(variables, Hash, for: "'variables' on expectation")
+        end
+
+        # Convert the variables and prepare them
         @variables.deep_stringify_keys!
           .transform_values! { |v| Attribute.from(v) }
           .each_value { |v| v.update_lookup_table(@variables) }
 
         # Check for json (optional) and convert
         @json = input[:json] || {}
-        raise TypeError, "Expected Hash, got #{json.class}" if !json.is_a?(Hash)
+
+        if !json.is_a?(Hash)
+          InvalidTypeError.new(json, Hash, for: "'json' on expectation")
+        end
 
         @json.transform_values! { |v| Attribute.from(v) }
 
