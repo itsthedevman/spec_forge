@@ -20,14 +20,14 @@ module SpecForge
         @faker_class = begin
           "::#{class_name}".constantize
         rescue NameError
-          raise InvalidFakerClass, class_name
+          raise InvalidFakerClassError, class_name
         end
 
         # Load the method
         @faker_method = begin
           faker_class.method(method_name)
         rescue NameError
-          raise InvalidFakerMethod.new(method_name, faker_class)
+          raise InvalidFakerMethodError.new(method_name, faker_class)
         end
       end
 

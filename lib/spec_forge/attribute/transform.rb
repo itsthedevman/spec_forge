@@ -20,7 +20,7 @@ module SpecForge
               array.join
             end
           else
-            raise InvalidTransformFunction, @input
+            raise InvalidTransformFunctionError, @input
           end
       end
 

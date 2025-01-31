@@ -9,7 +9,7 @@ RSpec.describe SpecForge::Attribute::Transform do
 
   context "when the function is not defined" do
     it "is expected to raise" do
-      expect { attribute }.to raise_error(SpecForge::InvalidTransformFunction)
+      expect { attribute }.to raise_error(SpecForge::InvalidTransformFunctionError)
     end
   end
 

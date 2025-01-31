@@ -30,7 +30,7 @@ RSpec.describe SpecForge::Attribute::Faker do
       let(:path) { "faker.noop.does_not_exist" }
 
       it "is expected to raise" do
-        expect { attribute }.to raise_error(SpecForge::InvalidFakerClass)
+        expect { attribute }.to raise_error(SpecForge::InvalidFakerClassError)
       end
     end
 
@@ -38,7 +38,7 @@ RSpec.describe SpecForge::Attribute::Faker do
       let(:path) { "faker.string.does_not_exist" }
 
       it "is expected to raise" do
-        expect { attribute }.to raise_error(SpecForge::InvalidFakerMethod)
+        expect { attribute }.to raise_error(SpecForge::InvalidFakerMethodError)
       end
     end
   end

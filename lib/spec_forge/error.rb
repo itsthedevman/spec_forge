@@ -3,7 +3,7 @@
 module SpecForge
   class Error < StandardError; end
 
-  class InvalidFakerClass < Error
+  class InvalidFakerClassError < Error
     def initialize(input)
       dictionary = Faker::Base.descendants.map { |c| c.to_s.downcase.gsub!("::", ".") }
       spell_checker = DidYouMean::SpellChecker.new(dictionary:)
@@ -18,7 +18,7 @@ module SpecForge
     end
   end
 
-  class InvalidFakerMethod < Error
+  class InvalidFakerMethodError < Error
     def initialize(input, klass)
       spell_checker = DidYouMean::SpellChecker.new(dictionary: klass.public_methods)
       corrections = spell_checker.correct(input)
@@ -32,7 +32,7 @@ module SpecForge
     end
   end
 
-  class InvalidTransformFunction < Error
+  class InvalidTransformFunctionError < Error
     def initialize(input)
       # TODO: Update link to docs
       super(<<~STRING.chomp
@@ -42,5 +42,8 @@ module SpecForge
       STRING
       )
     end
+  end
+
+  class InvalidInvocationError < Error
   end
 end
