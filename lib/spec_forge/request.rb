@@ -26,7 +26,7 @@ module SpecForge
       content_type = MIME::Types[content_type].first
 
       if content_type.nil?
-        raise ArgumentError, "Invalid content_type provided: #{content_type.inspect}"
+        raise ArgumentError, "Invalid 'content_type' provided: #{content_type.inspect}"
       end
 
       # Params can only be a hash
