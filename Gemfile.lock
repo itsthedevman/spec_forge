@@ -325,6 +325,7 @@ PLATFORMS
 DEPENDENCIES
   benchmark-ips (~> 2.14)
   grape (~> 2.2)
+  minitest (~> 5.25)
   pry
   rack-test (~> 2.2)
   rails (~> 7.1)

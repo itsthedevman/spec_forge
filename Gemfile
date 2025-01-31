@@ -18,3 +18,5 @@ gem "grape", "~> 2.2"
 gem "rack-test", "~> 2.2"
 
 gem "benchmark-ips", "~> 2.14"
+
+gem "minitest", "~> 5.25"
