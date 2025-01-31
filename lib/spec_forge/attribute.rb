@@ -1,10 +1,13 @@
 # frozen_string_literal: true
 
+# Base class
 require_relative "attribute/parameterized"
 
+# Sub classes
 require_relative "attribute/faker"
 require_relative "attribute/literal"
 require_relative "attribute/transform"
+require_relative "attribute/variable"
 
 module SpecForge
   class Attribute
@@ -41,6 +44,8 @@ module SpecForge
     def self.from_string(string)
       if string.match?(/^faker\./i)
         Faker.new(string)
+      elsif string.match?(/^variable\./i)
+        Variable.new(string)
       else
         Literal.new(string)
       end

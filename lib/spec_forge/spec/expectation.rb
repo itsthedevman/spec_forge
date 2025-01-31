@@ -17,13 +17,15 @@ module SpecForge
 
         # Status is the only required field
         @status = input[:status]
-        raise "Missing 'status'" if @status.blank?
+        raise ArgumentError, "Missing 'status'" if @status.blank?
 
         # Check for variables (optional) and convert
         @variables = input[:variables] || {}
         raise TypeError, "Expected Hash, got #{variables.class}" if !variables.is_a?(Hash)
 
-        @variables.transform_values! { |v| Attribute.from(v) }
+        @variables.deep_stringify_keys!
+          .transform_values! { |v| Attribute.from(v) }
+          .each_value { |v| v.update_lookup_table(@variables) }
 
         # Check for json (optional) and convert
         @json = input[:json] || {}

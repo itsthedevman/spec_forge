@@ -56,7 +56,6 @@ module SpecForge
     def initialize(**options)
       @name = options[:name]
       @request = Request.new(**options)
-
       @expectations = (options[:expectations] || []).map { |e| Expectation.new(e) }
     end
   end
