@@ -3,5 +3,5 @@ set -euo pipefail
 IFS=$'\n\t'
 set -vx
 
-./rspec
-./test_runner
+bin/rspec
+bin/test_runner
