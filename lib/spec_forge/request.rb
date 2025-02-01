@@ -20,7 +20,12 @@ module SpecForge
       url = options[:path] || options[:url]
 
       http_method = options[:method] || options[:http_method] || "GET"
-      http_method = HTTPMethod.from(http_method)
+      http_method =
+        if http_method.is_a?(String)
+          HTTPMethod.from(http_method)
+        else
+          http_method
+        end
 
       content_type = options[:content_type] || "application/json"
       content_type = MIME::Types[content_type].first
@@ -35,10 +40,15 @@ module SpecForge
         raise InvalidTypeError.new(params, Hash, for: "'params'")
       end
 
-      params.transform_values! { |v| Attribute.from(v) }
+      params = params.transform_values { |v| Attribute.from(v) }
       body = self.class.normalize_body(content_type, options[:body] || {})
 
       super(url:, http_method:, content_type:, params:, body:)
+    end
+
+    def update_variables(&)
+      params.each_value(&)
+      body.each_value(&)
     end
   end
 end

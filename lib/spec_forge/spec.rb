@@ -73,16 +73,16 @@ module SpecForge
 
     ############################################################################
 
-    attr_reader :name, :file_path, :expectations
+    attr_reader :name, :file_path, :expectations, :request
 
-    delegate :url, :http_method, :content_type, :params, :body, to: :@request
+    delegate :url, :http_method, :content_type, :params, :body, to: :request
 
     def initialize(**options)
       @name = options[:name]
       @file_path = options[:file_path]
       @request = Request.new(**options)
       @expectations = (options[:expectations] || []).map.with_index do |e, index|
-        Expectation.new(e, "expectation #{index + 1}")
+        Expectation.new(e, "expectation #{index + 1}", file_path)
       end
     end
 
@@ -97,8 +97,7 @@ module SpecForge
 
       # Build the expectations, this can cause a failure
       expectations.each_with_index do |expectation, index|
-        puts "Compiling expectation #{index}"
-        expectation.compile(self)
+        expectation.compile(request)
       rescue => error
         failures << [expectation, error]
       end
