@@ -11,8 +11,8 @@ create_user:
       email: "variable.email"
     json:
       id:
-      - kind_of.integer?
+      - kind_of.integer
       name: variable.name
       email:
-      - kind_of.string?
+      - kind_of.string
       - "test@example.com"

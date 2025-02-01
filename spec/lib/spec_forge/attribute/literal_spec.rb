@@ -44,7 +44,7 @@ RSpec.describe SpecForge::Attribute::Literal do
       let(:input) { [1] }
 
       it "is expected to return the exact value" do
-        expect(value).to eq(input)
+        expect(value).to eq([described_class.new(1)])
       end
     end
 
