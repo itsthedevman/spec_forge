@@ -67,16 +67,6 @@ module SpecForge
         @variables = transform_attributes(variables)
       end
 
-      def load_body
-        body = input[:body] || {}
-
-        if body.is_a?(Hash)
-          InvalidTypeError.new(body, Hash, for: "'body' on expectation")
-        end
-
-        @body = transform_attributes(body)
-      end
-
       def load_json
         @json = input[:json] || {}
 
@@ -99,11 +89,18 @@ module SpecForge
 
       def update_request
         body = input[:body] || {}
+        if !body.is_a?(Hash)
+          InvalidTypeError.new(body, Hash, for: "'body' on expectation")
+        end
+
         params = input[:params] || {}
+        if !params.is_a?(Hash)
+          InvalidTypeError.new(params, Hash, for: "'params' on expectation")
+        end
 
         @request = request.with(
-          body: transform_attributes(body),
-          params: transform_attributes(params)
+          body: request.body.merge(body),
+          params: request.params.merge(params)
         )
       end
     end
