@@ -44,4 +44,15 @@ module SpecForge
   def self.config
     Configuration.instance
   end
+
+  def self.backtrace_cleaner
+    @backtrace_cleaner ||= begin
+      root = "#{SpecForge.root}/"
+
+      cleaner = ActiveSupport::BacktraceCleaner.new
+      cleaner.add_filter { |line| line.delete_prefix(root) }
+      cleaner.add_silencer { |line| /rubygems|backtrace_cleaner/.match?(line) }
+      cleaner
+    end
+  end
 end

@@ -20,17 +20,7 @@ module SpecForge
         failures << [spec, e]
       end
 
-      if failures.present?
-        # TEMP
-        raise StandardError, failures.join_map("\n") do |(spec, error)|
-          <<~STRING.chomp
-            #{error.message}
-            #{error.backtrace}
-
-            #{spec}
-          STRING
-        end
-      end
+      handle_failures!(failures) if failures.present?
 
       specs
     end
@@ -50,6 +40,7 @@ module SpecForge
 
         hash.each do |spec_name, spec_hash|
           spec_hash[:name] = spec_name
+          spec_hash[:file_path] = file_path
 
           specs << new(**spec_hash)
         end
@@ -58,21 +49,44 @@ module SpecForge
       specs
     end
 
+    def self.handle_failures!(failures)
+      # TEMP
+      # TODO: Improve significantly!
+      cleaner = SpecForge.backtrace_cleaner
+      errors = failures.join_map("\n") do |(spec, error)|
+        backtrace = cleaner.clean(error.backtrace)
+
+        <<~STRING
+
+          ---
+          SpecForge raised an exception:
+          File: #{spec.file_path}
+          Spec Name: #{spec.name}
+
+            #{error}
+            #{backtrace.join("\n  ")}
+        STRING
+      end
+
+      raise StandardError, errors
+    end
+
     ############################################################################
 
-    attr_reader :name, :expectations
+    attr_reader :name, :file_path, :expectations
 
     delegate :url, :http_method, :content_type, :params, :body, to: :@request
 
     def initialize(**options)
       @name = options[:name]
+      @file_path = options[:file_path]
       @request = Request.new(**options)
       @expectations = (options[:expectations] || []).map.with_index do |e, index|
         Expectation.new(e, "expectation #{index + 1}")
       end
     end
 
-    def run
+    def register_and_run
       compile
       register_with_rspec
       run
@@ -82,11 +96,14 @@ module SpecForge
       failures = []
 
       # Build the expectations, this can cause a failure
-      @expectations.each_with_index do |expectation, index|
+      expectations.each_with_index do |expectation, index|
+        puts "Compiling expectation #{index}"
         expectation.compile(self)
       rescue => error
-        failures << [expectation, index + 1, error]
+        failures << [expectation, error]
       end
+
+      self.class.handle_failures!(failures) if failures.present?
     end
 
     def register_with_rspec
@@ -96,22 +113,22 @@ module SpecForge
 
       # And register with RSpec
       RSpec.describe(name) do
-        spec_forge_context.expectations.each do |spec_forge_expectation|
+        spec_forge_context.expectations.each do |expectation_forge|
           # Define the example group
-          describe(spec_forge_expectation.name) do
+          describe(expectation_forge.name) do
             # Define any variables for this test
-            spec_forge_expectation.variables.each do |variable_name, attribute|
+            expectation_forge.variables.each do |variable_name, attribute|
               let(variable_name, &attribute.to_proc)
             end
 
             # Define the example
-            example(&spec_forge_expectation.to_example_proc)
+            example(&expectation_forge.to_example_proc)
           end
         end
       end
     end
 
-    def run_spec
+    def run
       # stdout = StringIO.new
       # stderr = StringIO.new
 
