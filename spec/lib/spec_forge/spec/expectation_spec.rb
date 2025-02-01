@@ -191,7 +191,7 @@ RSpec.describe SpecForge::Spec::Expectation do
         it do
           expect { expectation }.to raise_error(
             SpecForge::InvalidTypeError,
-            "Expected Hash, got String for 'params' on expectation"
+            "Expected Hash, got String for 'query' on expectation"
           )
         end
       end

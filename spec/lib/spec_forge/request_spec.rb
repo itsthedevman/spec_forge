@@ -44,7 +44,7 @@ RSpec.describe SpecForge::Request do
 
       it do
         expect { request }.to raise_error(
-          SpecForge::InvalidTypeError, "Expected Hash, got String for 'params'"
+          SpecForge::InvalidTypeError, "Expected Hash, got String for 'query'"
         )
       end
     end

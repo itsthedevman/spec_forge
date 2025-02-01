@@ -55,7 +55,12 @@ module SpecForge
       #
       def to_example_proc
         expectation_forge = self
+
+        # RSpec example group scope
         lambda do |example|
+          request = expectation_forge.request
+          response = request.call
+
           binding.pry
         end
       end
@@ -124,7 +129,7 @@ module SpecForge
 
         params = input[:params] || {}
         if !params.is_a?(Hash)
-          raise InvalidTypeError.new(params, Hash, for: "'params' on expectation")
+          raise InvalidTypeError.new(params, Hash, for: "'query' on expectation")
         end
 
         @request = request.update(body, params)
