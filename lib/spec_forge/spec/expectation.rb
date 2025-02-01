@@ -90,18 +90,15 @@ module SpecForge
       def update_request
         body = input[:body] || {}
         if !body.is_a?(Hash)
-          InvalidTypeError.new(body, Hash, for: "'body' on expectation")
+          raise InvalidTypeError.new(body, Hash, for: "'body' on expectation")
         end
 
         params = input[:params] || {}
         if !params.is_a?(Hash)
-          InvalidTypeError.new(params, Hash, for: "'params' on expectation")
+          raise InvalidTypeError.new(params, Hash, for: "'params' on expectation")
         end
 
-        @request = request.with(
-          body: request.body.merge(body),
-          params: request.params.merge(params)
-        )
+        @request = request.update(body, params)
       end
     end
   end

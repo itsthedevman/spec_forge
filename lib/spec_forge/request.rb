@@ -37,7 +37,7 @@ module SpecForge
       # Params can only be a hash
       params = options[:params] || {}
       if !params.is_a?(Hash)
-        raise InvalidTypeError.new(params, Hash, for: "'params'")
+        raise InvalidTypeError.new(params, Hash, for: "'params' on spec")
       end
 
       params = params.transform_values { |v| Attribute.from(v) }
@@ -46,9 +46,11 @@ module SpecForge
       super(url:, http_method:, content_type:, params:, body:)
     end
 
-    def update_variables(&)
-      params.each_value(&)
-      body.each_value(&)
+    def update(body, params)
+      with(
+        body: self.body.merge(body),
+        params: self.params.merge(params)
+      )
     end
   end
 end
