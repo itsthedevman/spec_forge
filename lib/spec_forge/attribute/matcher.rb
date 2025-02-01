@@ -7,8 +7,8 @@ module SpecForge
         include RSpec::Matchers
       end
 
-      KEYWORD_REGEX = /^matcher\.|^be\.|^kind_of\./i
       MATCHER_METHODS = Methods.new.freeze
+      KEYWORD_REGEX = /^matcher\.|^be\.|^kind_of\./i
 
       LITERAL_MAPPINGS = {
         "nil" => nil,

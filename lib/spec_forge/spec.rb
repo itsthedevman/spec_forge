@@ -80,6 +80,7 @@ module SpecForge
     def initialize(**options)
       @name = options[:name]
       @file_path = options[:file_path]
+
       @request = Request.new(**options)
       @expectations = (options[:expectations] || []).map.with_index do |e, index|
         Expectation.new(e, "expectation #{index + 1}", file_path)
@@ -108,11 +109,11 @@ module SpecForge
     def register_with_rspec
       # Store the scope
       # Specific naming to avoid naming collisions
-      spec_forge_context = self
+      spec_forge = self
 
       # And register with RSpec
       RSpec.describe(name) do
-        spec_forge_context.expectations.each do |expectation_forge|
+        spec_forge.expectations.each do |expectation_forge|
           # Define the example group
           describe(expectation_forge.name) do
             # Define any variables for this test
