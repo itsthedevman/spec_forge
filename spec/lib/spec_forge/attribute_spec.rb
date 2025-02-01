@@ -186,4 +186,23 @@ RSpec.describe SpecForge::Attribute do
       end
     end
   end
+
+  describe "#==" do
+    let(:other) {}
+    let(:attribute) { described_class::Literal.new(12345) }
+
+    subject(:equals) { attribute == other }
+
+    context "when the other is an Attribute" do
+      let(:other) { described_class::Literal.new(12345) }
+
+      it { is_expected.to be(true) }
+    end
+
+    context "when the other is not an Attribute" do
+      let(:other) { "hello world!" }
+
+      it { is_expected.to be(false) }
+    end
+  end
 end
