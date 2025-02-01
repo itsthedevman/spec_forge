@@ -3,7 +3,7 @@
 module SpecForge
   class Spec
     class Expectation
-      attr_reader :input, :name, :file_path, :spec, :status, :variables, :json, :request # :xml, :html
+      attr_reader :input, :name, :file_path, :status, :variables, :json, :request # :xml, :html
 
       delegate :url, :http_method, :content_type, :params, :body, to: :request
 
@@ -18,7 +18,7 @@ module SpecForge
 
         # Only hash is supported
         if !input.is_a?(Hash)
-          raise InvalidTypeError.new(variables_hash, Hash, for: "expectation")
+          raise InvalidTypeError.new(input, Hash, for: "expectation")
         end
 
         # Status is the only required field
@@ -50,11 +50,20 @@ module SpecForge
       end
 
       def load_status
-        @status = input[:status]
+        status = input[:status]
 
-        if status.blank?
-          raise ArgumentError, "'status' must be provided on a expectation"
-        end
+        @status =
+          case status
+          when String
+            status.to_i
+          when Integer
+            status
+          else
+            raise InvalidTypeError.new(
+              status, "Integer | String",
+              for: "'status' on expectation"
+            )
+          end
       end
 
       def load_variables
@@ -68,10 +77,10 @@ module SpecForge
       end
 
       def load_json
-        @json = input[:json] || {}
+        json = input[:json] || {}
 
         if !json.is_a?(Hash)
-          InvalidTypeError.new(json, Hash, for: "'json' on expectation")
+          raise InvalidTypeError.new(json, Hash, for: "'json' on expectation")
         end
 
         @json = transform_attributes(json)
