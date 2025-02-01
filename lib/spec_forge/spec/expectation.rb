@@ -5,18 +5,22 @@ module SpecForge
     class Expectation
       attr_reader :input, :name, :spec, :status, :variables, :json # :xml, :html
 
+      delegate :url, :http_method, :content_type, :params, :body, to: :@request
+
       def initialize(input, name)
         @input = input
         @name = name
       end
 
-      def compile(spec)
-        @spec = spec
+      def compile(request)
+        puts "Expectation #{name} is compiling"
 
         # Only hash is supported
         if !input.is_a?(Hash)
           raise InvalidTypeError.new(variables_hash, Hash, for: "expectation")
         end
+
+        update_request(request)
 
         # Status is the only required field
         load_name
@@ -24,11 +28,11 @@ module SpecForge
         load_variables
         load_json
 
-        update_request
         self
       end
 
       def to_example_proc
+        expectation_forge = self
         lambda do |example|
           binding.pry
         end
@@ -52,16 +56,28 @@ module SpecForge
       end
 
       def load_variables
-        @variables = input[:variables] || {}
+        variables = input[:variables] || {}
 
         if !variables.is_a?(Hash)
           raise InvalidTypeError.new(variables, Hash, for: "'variables' on expectation")
         end
 
+        @variables = variables.deep_stringify_keys
+
         # Convert the variables and prepare them
-        variables.deep_stringify_keys!
+        @variables
           .transform_values! { |v| Attribute.from(v) }
-          .each_value { |v| v.update_lookup_table(variables) }
+          .each_value { |v| v.update_lookup_table(variables) if v.is_a?(Attribute::Variable) }
+      end
+
+      def load_body
+        @body = input[:body] || {}
+
+        if body.is_a?(Hash)
+          InvalidTypeError.new(body, Hash, for: "'body' on expectation")
+        end
+
+        body.transform_values { |v| Attribute.from(v) }
       end
 
       def load_json
@@ -71,11 +87,12 @@ module SpecForge
           InvalidTypeError.new(json, Hash, for: "'json' on expectation")
         end
 
-        json.transform_values! { |v| Attribute.from(v) }
+        @json = json.deep_stringify_keys
+          .transform_values! { |v| Attribute.from(v) }
       end
 
       def update_request
-        @request = spec.request.with(**input)
+        @request = request.with(**input)
       end
     end
   end

@@ -26,8 +26,6 @@ module SpecForge
         from_string(value)
       when Hash
         from_hash(value)
-      when Array
-        Literal.new(value.map { |v| Attribute.from(v) })
       else
         Literal.new(value)
       end

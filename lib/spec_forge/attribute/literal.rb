@@ -4,7 +4,12 @@ module SpecForge
   class Attribute
     class Literal < Attribute
       def value
-        @input
+        case input
+        when Array
+          input.map { |v| Attribute.from(v) }
+        else
+          input
+        end
       end
     end
   end
