@@ -3,12 +3,21 @@
 module SpecForge
   CONFIG_ATTRIBUTES = {
     require_name: {
-      description: "Validates that the model has a non-blank name attribute, failing validation if missing or empty.",
+      description: "Validates that each spec has a non-blank name attribute, failing validation if missing or empty.",
       default: true
     },
     require_description: {
-      description: "Validates that the model has a non-blank description attribute, failing validation if missing or empty.",
+      description: "Validates that each spec has a non-blank description attribute, failing validation if missing or empty.",
       default: true
+    },
+    authorization: {
+      description: "Configures the global authorization header and value for API requests.",
+      default: {
+        default: {
+          header: "Authorization",
+          value: "Bearer <%= ENV.fetch('API_TOKEN') %>"
+        }
+      }
     }
   }.freeze
 
@@ -24,6 +33,7 @@ module SpecForge
     def to_yaml
       to_h.join_map("\n") do |key, value|
         config = CONFIG_ATTRIBUTES[key]
+        value = value.deep_stringify_keys if value.is_a?(Hash)
 
         # Convert the individual key/value into yaml
         # ---
@@ -33,10 +43,6 @@ module SpecForge
         # Description time
         description = config[:description]
         raise "Missing description for \"#{key}\" config attribute" if description.blank?
-
-        if (default = config[:default]) && !config.nil?
-          description += " Defaults to #{default.inspect}"
-        end
 
         # Replace the header with our description comment
         yaml.sub!("---", "# #{description}")

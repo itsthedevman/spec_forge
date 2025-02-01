@@ -1,5 +1,11 @@
-# Validates that the model has a non-blank name attribute, failing validation if missing or empty. Defaults to true
+# Validates that each spec has a non-blank name attribute, failing validation if missing or empty.
 require_name: true
 
-# Validates that the model has a non-blank description attribute, failing validation if missing or empty. Defaults to true
+# Validates that each spec has a non-blank description attribute, failing validation if missing or empty.
 require_description: true
+
+# Configures the global authorization header and value for API requests.
+authorization:
+  default:
+    header: Authorization
+    value: Bearer <%= ENV.fetch('API_TOKEN') %>
