@@ -7,12 +7,26 @@ module SpecForge
 
       delegate :url, :http_method, :content_type, :params, :body, to: :request
 
+      #
+      # Creates a new Expectation
+      #
+      # @param input [Hash] A hash containing the various attributes to control the expectation
+      # @param name [String] The name of the expectation
+      # @param file_path [String/Pathname] The path to the file where this expectation is defined
+      #
       def initialize(input, name, file_path)
         @input = input
         @name = name
         @file_path = file_path
       end
 
+      #
+      # Builds the expectation and prepares it to be ran
+      #
+      # @param request [Request] The request to use when testing
+      #
+      # @return [Self]
+      #
       def compile(request)
         @request = request
 
@@ -33,6 +47,12 @@ module SpecForge
         self
       end
 
+      #
+      # Converts this expectation to an RSpec example.
+      # Note: the scope of the resulting block is expecting the scope of an RSpec example group
+      #
+      # @return [Proc]
+      #
       def to_example_proc
         expectation_forge = self
         lambda do |example|
