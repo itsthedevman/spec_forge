@@ -20,7 +20,7 @@ RSpec.describe SpecForge::Spec do
   end
 
   describe ".load_from_path" do
-    let(:path) { SpecForge.root.join(".spec_forge", "specs", "**/*.yml") }
+    let(:path) { SpecForge.forge.join("specs", "**/*.yml") }
 
     subject(:specs) { described_class.load_from_path(path) }
 

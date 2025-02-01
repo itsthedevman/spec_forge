@@ -38,7 +38,11 @@ module SpecForge
   end
 
   def self.root
-    Pathname.pwd
+    @root ||= Pathname.pwd
+  end
+
+  def self.forge
+    @forge ||= root.join(".spec_forge")
   end
 
   def self.config
