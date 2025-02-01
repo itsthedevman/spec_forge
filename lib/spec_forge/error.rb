@@ -4,9 +4,10 @@ module SpecForge
   class Error < StandardError; end
 
   class InvalidFakerClassError < Error
+    FAKER_CLASSES = Faker::Base.descendants.map { |c| c.to_s.downcase.gsub!("::", ".") }.freeze
+
     def initialize(input)
-      dictionary = Faker::Base.descendants.map { |c| c.to_s.downcase.gsub!("::", ".") }
-      spell_checker = DidYouMean::SpellChecker.new(dictionary:)
+      spell_checker = DidYouMean::SpellChecker.new(dictionary: FAKER_CLASSES)
       corrections = spell_checker.correct(input)
 
       super(<<~STRING.chomp
