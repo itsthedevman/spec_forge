@@ -7,7 +7,7 @@ module SpecForge
 
       NUMBER_REGEX = /^\d+$/i
 
-      attr_reader :variable_name, :invocation_chain, :lookup_table
+      attr_reader :variable_name, :invocation_chain, :variable_value
 
       # <keyword>.<variable_name>.<hash_key | method | index>
       def initialize(...)
@@ -18,31 +18,30 @@ module SpecForge
 
         @variable_name = sections.first.to_s
         @invocation_chain = sections[1..]
-
-        @lookup_table = {}
+        @variable_value = nil
       end
 
-      def update_lookup_table(variables_hash)
-        if !variables_hash.is_a?(Hash)
-          raise InvalidTypeError.new(variables_hash, Hash, for: "'variables'")
+      def set_variable_value(lookup_table)
+        if !lookup_table.is_a?(Hash)
+          raise InvalidTypeError.new(lookup_table, Hash, for: "'variables'")
         end
 
-        @lookup_table = variables_hash.with_indifferent_access
+        # No nil check here.
+        lookup_table = lookup_table.with_indifferent_access
+        raise MissingVariableError, variable_name unless lookup_table.key?(variable_name)
+
+        @variable_value = lookup_table[variable_name]
         self
       end
 
       def value
-        # No nil check here.
-        raise MissingVariableError, @variable_name unless lookup_table.key?(@variable_name)
-
-        variable = lookup_table[@variable_name]
-        invoke_chain(variable)
+        invoke_chain
       end
 
       private
 
-      def invoke_chain(variable_attribute)
-        current_value = variable_attribute
+      def invoke_chain
+        current_value = @variable_value
 
         invocation_chain.each do |step|
           object = retrieve_value(current_value)
