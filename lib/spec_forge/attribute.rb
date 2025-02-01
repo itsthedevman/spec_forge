@@ -135,16 +135,21 @@ module SpecForge
     end
 
     #
-    # Compares this attributes input to another attributes input
+    # Compares this attributes input to other
     #
-    # @param other [Object]
+    # @param other [Object, Attribute] If another Attribute, the input will be compared
     #
     # @return [Boolean]
     #
     def ==(other)
-      return false unless other.is_a?(Attribute)
+      other =
+        if other.is_a?(Attribute)
+          other.input
+        else
+          other
+        end
 
-      input == other.input
+      input == other
     end
   end
 end

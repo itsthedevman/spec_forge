@@ -200,9 +200,17 @@ RSpec.describe SpecForge::Attribute do
     end
 
     context "when the other is not an Attribute" do
-      let(:other) { "hello world!" }
+      context "and is not equal to the input" do
+        let(:other) { "hello world!" }
 
-      it { is_expected.to be(false) }
+        it { is_expected.to be(false) }
+      end
+
+      context "and is equal to the input" do
+        let(:other) { 12345 }
+
+        it { is_expected.to be(true) }
+      end
     end
   end
 end
