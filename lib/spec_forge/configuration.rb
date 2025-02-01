@@ -15,7 +15,7 @@ module SpecForge
       default: {
         default: {
           header: "Authorization",
-          value: "Bearer <%= ENV.fetch('API_TOKEN') %>"
+          value: "Bearer <%= ENV.fetch('API_TOKEN', '') %>"
         }
       }
     }
@@ -25,8 +25,26 @@ module SpecForge
     include Singleton
 
     def initialize
+      load_defaults
+    end
+
+    def load_defaults
       CONFIG_ATTRIBUTES.each do |key, config|
         self[key] = config[:default]
+      end
+    end
+
+    def load_from_file
+      path = SpecForge.forge.join("config.yml")
+      return unless File.exist?(path)
+
+      erb = ERB.new(File.read(path)).result
+      hash = YAML.safe_load(erb, aliases: true, symbolize_names: true)
+
+      CONFIG_ATTRIBUTES.each_key do |key|
+        next unless hash.key?(key)
+
+        self[key] = hash[key]
       end
     end
 

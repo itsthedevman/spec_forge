@@ -8,4 +8,4 @@ require_description: true
 authorization:
   default:
     header: Authorization
-    value: Bearer <%= ENV.fetch('API_TOKEN') %>
+    value: Bearer <%= ENV.fetch('API_TOKEN', '') %>

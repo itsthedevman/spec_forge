@@ -30,8 +30,8 @@ require_relative "spec_forge/spec"
 require_relative "spec_forge/version"
 
 module SpecForge
-  def self.run(path = ".spec_forge")
-    path = root.join(path)
+  def self.run(path = forge)
+    config.load_from_file
 
     Factory.load_and_register(path)
     Spec.load_and_run(path)
