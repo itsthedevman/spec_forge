@@ -133,5 +133,18 @@ module SpecForge
       this = self # kek - what are we, javascript?
       -> { this.result }
     end
+
+    #
+    # Compares this attributes input to another attributes input
+    #
+    # @param other [Object]
+    #
+    # @return [Boolean]
+    #
+    def ==(other)
+      return false unless other.is_a?(Attribute)
+
+      input == other.input
+    end
   end
 end
