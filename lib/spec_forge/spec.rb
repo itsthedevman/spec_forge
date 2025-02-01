@@ -75,7 +75,7 @@ module SpecForge
 
     attr_reader :name, :file_path, :expectations, :request
 
-    delegate :url, :http_method, :content_type, :params, :body, to: :request
+    delegate :url, :http_method, :content_type, :query, :body, to: :request
 
     def initialize(**options)
       @name = options[:name]
