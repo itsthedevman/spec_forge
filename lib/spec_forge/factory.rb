@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require_relative "factory/definition_proxy"
-
 module SpecForge
   class Factory
     #
@@ -68,19 +66,15 @@ module SpecForge
       options = {}
       options[:class] = model_class if model_class
 
-      # This allows us to use this class within FactoryBot::DefinitionProxy
-      DefinitionProxy.prepare(self)
-
-      # This lambda will be called via instance_eval on FactoryBot::DefinitionProxy
-      # self is not this class
-      factory_definition = ->(_) { SpecForge::Factory::DefinitionProxy.define(self) }
-
       # This creates the factory in FactoryBot
-      dsl.factory(name, options, &factory_definition)
+      factory_forge = self
+      dsl.factory(name, options) do
+        factory_forge.attributes.each do |name, attribute|
+          add_attribute(name, &attribute.to_proc)
+        end
+      end
 
       self
-    ensure
-      DefinitionProxy.reset
     end
   end
 end
