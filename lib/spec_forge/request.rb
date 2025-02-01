@@ -37,7 +37,7 @@ module SpecForge
       # Params can only be a hash
       params = options[:params] || {}
       if !params.is_a?(Hash)
-        raise InvalidTypeError.new(params, Hash, for: "'params' on spec")
+        raise InvalidTypeError.new(params, Hash, for: "'params'")
       end
 
       params = params.transform_values { |v| Attribute.from(v) }
