@@ -32,6 +32,10 @@ module SpecForge
       CONFIG_ATTRIBUTES.each do |key, config|
         self[key] = config[:default]
       end
+
+      # Remove the default ERB for authorization
+      # The defaults above are used as an example
+      authorization[:default][:value] = ""
     end
 
     def load_from_file
