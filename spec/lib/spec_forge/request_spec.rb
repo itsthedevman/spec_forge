@@ -6,10 +6,9 @@ RSpec.describe SpecForge::Request do
   let(:content_type) {}
   let(:params) {}
   let(:body) {}
+  let(:options) { {path:, method:, content_type:, params:, body:} }
 
-  subject(:request) do
-    described_class.new(path:, method:, content_type:, params:, body:)
-  end
+  subject(:request) { described_class.new(**options) }
 
   describe "#initialize" do
     it "defaults content_type to application/json" do
@@ -66,6 +65,44 @@ RSpec.describe SpecForge::Request do
 
       it "works because it is case insensitive" do
         expect(request.http_method).to eq("DELETE")
+      end
+    end
+
+    describe "Aliases" do
+      context "when 'http_method' is given instead of 'method'" do
+        let(:method) { "POST" }
+
+        before do
+          options[:http_method] = options.delete(:method)
+        end
+
+        it "supports the alias" do
+          expect(request.http_method).to eq("POST")
+        end
+      end
+
+      context "when 'query' is given instead of 'params'" do
+        let(:params) { {foo: "bar"} }
+
+        before do
+          options[:query] = options.delete(:params)
+        end
+
+        it "supports the alias" do
+          expect(request.params).to eq({foo: "bar"})
+        end
+      end
+
+      context "when 'url' is given instead of 'path'" do
+        let(:path) { "/users/:id/edit" }
+
+        before do
+          options[:url] = options.delete(:path)
+        end
+
+        it "supports the alias" do
+          expect(request.path).to eq("/users/:id/edit")
+        end
       end
     end
   end
