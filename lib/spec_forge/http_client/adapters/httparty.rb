@@ -10,8 +10,7 @@ module SpecForge
 
         def initialize(**options)
           adapter.base_uri(options[:base_url])
-          adapter.default_params(options[:params])
-          adapter.format(options[:content_type])
+          adapter.format(HTTParty::Parser::SupportedFormats[options[:content_type].to_s])
 
           # Authorization header
           authorization = SpecForge.config.authorization[:default]
