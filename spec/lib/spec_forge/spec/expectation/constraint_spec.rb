@@ -18,6 +18,7 @@ RSpec.describe SpecForge::Spec::Expectation::Constraint do
 
         it "is expected to convert the status to an integer" do
           expect(constraint.status).to eq(404)
+          expect(constraint.status).to be_kind_of(SpecForge::Attribute)
         end
       end
 
@@ -26,6 +27,7 @@ RSpec.describe SpecForge::Spec::Expectation::Constraint do
 
         it "is expected to store the status as an integer" do
           expect(constraint.status).to eq(404)
+          expect(constraint.status).to be_kind_of(SpecForge::Attribute)
         end
       end
 

@@ -8,9 +8,9 @@ module SpecForge
           status =
             case (status = options[:status]&.value)
             when String
-              status.to_i
+              Attribute.from(status.to_i)
             when Integer
-              status
+              Attribute.from(status)
             else
               raise InvalidTypeError.new(status, "Integer | String", for: "'status' on constraint")
             end
