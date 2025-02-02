@@ -2,15 +2,19 @@
 
 RSpec.describe SpecForge::Spec do
   let(:name) { Faker::String.random }
-  let(:path) { "/users" }
+  let(:url) { "/users" }
   let(:method) {}
   let(:content_type) {}
-  let(:params) {}
+  let(:variables) {}
+  let(:query) {}
   let(:body) {}
-  let(:expectations) {}
+  let(:expectations) { [] }
 
   subject(:spec) do
-    described_class.new(name:, path:, method:, content_type:, params:, body:, expectations:)
+    described_class.new(
+      name:, url:, method:, content_type:,
+      variables:, query:, body:, expectations:
+    )
   end
 
   describe ".load_and_run" do
@@ -42,15 +46,15 @@ RSpec.describe SpecForge::Spec do
     end
 
     context "when 'expectations' are given" do
-      context "and they are valid" do
+      context "and it is an array" do
         let(:expectations) do
           [
             {status: 400},
-            {status: 200}
+            {expect: {status: 200}}
           ]
         end
 
-        it "stores them in as an Expectation" do
+        it "stores them in as an Expectation regardless of validity" do
           expect(spec.expectations).to include(
             be_kind_of(described_class::Expectation),
             be_kind_of(described_class::Expectation)
@@ -58,18 +62,55 @@ RSpec.describe SpecForge::Spec do
         end
       end
 
-      context "and they are not valid" do
-        let(:expectations) do
-          [
-            Faker::String.random,
-            Faker::Number.positive
-          ]
+      context "and it is not an array" do
+        let(:expectations) { nil }
+
+        it do
+          expect { spec }.to raise_error(
+            SpecForge::InvalidTypeError,
+            "Expected Array, got NilClass for 'expectations' on spec"
+          )
+        end
+      end
+    end
+
+    context "when 'variables' are given" do
+      context "and it is a hash" do
+        let(:variables) do
+          {id: 1, name: "Billy"}
         end
 
-        it "stores them in as an Expectation regardless" do
-          expect(spec.expectations).to include(
-            be_kind_of(described_class::Expectation),
-            be_kind_of(described_class::Expectation)
+        context "and the expectations do not have variables" do
+          let(:expectations) do
+            [{expect: {status: 200}}]
+          end
+
+          it "passes them into the expectations" do
+            expect(spec.expectations.first.input).to match(expect: {status: 200}, variables:)
+          end
+        end
+
+        context "and the expectations have variables as well" do
+          let(:expectations) do
+            [{expect: {status: 200}, variables: {id: 2}}]
+          end
+
+          it "is expected to merge and be overwritten by the expectation variables" do
+            expect(spec.expectations.first.input).to match(
+              expect: {status: 200},
+              variables: {id: 2, name: "Billy"}
+            )
+          end
+        end
+      end
+
+      context "and it is not a hash" do
+        let(:variables) { [] }
+
+        it do
+          expect { spec }.to raise_error(
+            SpecForge::InvalidTypeError,
+            "Expected Hash, got Array for 'variables' on spec"
           )
         end
       end

@@ -73,18 +73,36 @@ module SpecForge
 
     ############################################################################
 
-    attr_reader :name, :file_path, :expectations, :request
+    # Internal
+    attr_reader :file_path
+
+    # User defined
+    attr_reader :name, :expectations, :request
 
     delegate :url, :http_method, :content_type, :query, :body, to: :request
 
     def initialize(**options)
       @name = options[:name]
       @file_path = options[:file_path]
-
       @request = Request.new(**options)
-      @expectations = (options[:expectations] || []).map.with_index do |e, index|
-        Expectation.new(e, "expectation #{index + 1}", file_path)
+
+      variables = options[:variables] || {}
+      if !variables.is_a?(Hash)
+        raise InvalidTypeError.new(variables, Hash, for: "'variables' on spec")
       end
+
+      # Do not default
+      expectations = options[:expectations]
+      if !expectations.is_a?(Array)
+        raise InvalidTypeError.new(expectations, Array, for: "'expectations' on spec")
+      end
+
+      @expectations =
+        expectations.map.with_index do |input, index|
+          merge_variables(input, variables)
+
+          Expectation.new(input, name: "#{name}->expectations->##{index + 1}")
+        end
     end
 
     def register_and_run
@@ -138,6 +156,19 @@ module SpecForge
       puts "Status: #{status}"
       # puts "STDOUT: #{stdout.read}"
       # puts "STDERR: #{stderr.read}"
+    end
+
+    private
+
+    def merge_variables(input, variables)
+      return unless input.is_a?(Hash) && variables.size > 0
+
+      input[:variables] =
+        if input[:variables]
+          variables.merge(input[:variables] || {})
+        else
+          variables
+        end
     end
   end
 end
