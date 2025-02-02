@@ -57,8 +57,9 @@ module SpecForge
         # RSpec example group scope
         lambda do |example|
           constraints = expectation_forge.constraints
-          response = expectation_forge.request.call
+          response = expectation_forge.http_client.call
 
+          binding.pry
           # Status check
           expect(response.status).to eq(constraints.status.result)
         end
