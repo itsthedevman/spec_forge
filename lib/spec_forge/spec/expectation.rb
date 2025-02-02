@@ -1,11 +1,18 @@
 # frozen_string_literal: true
 
+require_relative "expectation/constraint"
+
 module SpecForge
   class Spec
     class Expectation
-      attr_reader :input, :name, :file_path, :status, :variables, :json, :request # :xml, :html
+      # Internal
+      attr_reader :input, :file_path, :request
 
-      delegate :url, :http_method, :content_type, :params, :body, to: :request
+      # User defined (including the ones for request)
+      attr_reader :name, :variables, :constraints
+
+      # Contains user defined method
+      delegate :url, :http_method, :content_type, :query, :body, to: :request
 
       #
       # Creates a new Expectation
@@ -35,13 +42,11 @@ module SpecForge
           raise InvalidTypeError.new(input, Hash, for: "expectation")
         end
 
-        # Status is the only required field
         load_name
-        load_status
         load_variables
-        load_json
+        load_constraints
 
-        # Must be after the loads
+        # Must be last
         update_request
 
         self
@@ -58,10 +63,8 @@ module SpecForge
 
         # RSpec example group scope
         lambda do |example|
-          request = expectation_forge.request
-          response = request.call
-
           binding.pry
+          response = expectation_forge.request.call
         end
       end
 
@@ -74,23 +77,6 @@ module SpecForge
         @name = name
       end
 
-      def load_status
-        status = input[:status]
-
-        @status =
-          case status
-          when String
-            status.to_i
-          when Integer
-            status
-          else
-            raise InvalidTypeError.new(
-              status, "Integer | String",
-              for: "'status' on expectation"
-            )
-          end
-      end
-
       def load_variables
         variables = input[:variables] || {}
 
@@ -101,24 +87,21 @@ module SpecForge
         @variables = transform_attributes(variables)
       end
 
-      def load_json
-        json = input[:json] || {}
+      def load_constraints
+        constraints = input[:expect]
 
-        if !json.is_a?(Hash)
-          raise InvalidTypeError.new(json, Hash, for: "'json' on expectation")
+        if !constraints.is_a?(Hash)
+          raise InvalidTypeError.new(constraints, Hash, for: "'expect' on expectation")
         end
 
-        @json = transform_attributes(json)
+        constraints = transform_attributes(constraints)
+        @constraints = Constraint.new(**constraints)
       end
 
       def transform_attributes(hash)
         hash.with_indifferent_access
           .transform_values! { |v| Attribute.from(v) }
-          .each_value(&method(:update_variables))
-      end
-
-      def update_variables(value)
-        value.set_variable_value(variables) if value.is_a?(Attribute::Variable)
+          .each_value { |v| v.set_variable_value(variables) if v.is_a?(Attribute::Variable) }
       end
 
       def update_request
@@ -127,7 +110,7 @@ module SpecForge
           raise InvalidTypeError.new(body, Hash, for: "'body' on expectation")
         end
 
-        params = input[:params] || {}
+        params = input[:query] || input[:params] || {}
         if !params.is_a?(Hash)
           raise InvalidTypeError.new(params, Hash, for: "'query' on expectation")
         end
