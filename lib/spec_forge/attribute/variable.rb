@@ -18,7 +18,6 @@ module SpecForge
 
         @variable_name = sections.first.to_s
         @invocation_chain = sections[1..]
-        @variable_value = nil
       end
 
       def set_variable_value(lookup_table)
