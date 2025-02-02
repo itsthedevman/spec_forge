@@ -51,7 +51,7 @@ module SpecForge
       #
       # @return [Proc]
       #
-      def to_example_proc
+      def to_spec_proc
         expectation_forge = self
 
         # RSpec example group scope

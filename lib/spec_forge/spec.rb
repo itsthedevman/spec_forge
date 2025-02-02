@@ -138,7 +138,7 @@ module SpecForge
             end
 
             # Define the example
-            example(&expectation_forge.to_example_proc)
+            example(&expectation_forge.to_spec_proc)
           end
         end
       end
