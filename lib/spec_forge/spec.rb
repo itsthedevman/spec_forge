@@ -99,7 +99,7 @@ module SpecForge
         expectations.map.with_index do |input, index|
           merge_variables(input, variables)
 
-          Expectation.new(input, name: "#{name}->expectations->##{index + 1}")
+          Expectation.new(input, "#{name}.expectations.#{index + 1}")
         end
     end
 
