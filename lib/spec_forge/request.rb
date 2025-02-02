@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module SpecForge
-  class Request < Data.define(:url, :http_method, :content_type, :query, :body, :http_client)
+  class Request < Data.define(:url, :http_method, :content_type, :query, :body)
     #
     # Initializes a new Request instance with the given options
     #
@@ -28,9 +28,8 @@ module SpecForge
       http_method = normalize_http_method(options)
       query = normalize_query(options)
       body = normalize_body(content_type, options)
-      http_client = HTTPClient.new(self)
 
-      super(url:, http_method:, content_type:, query:, body:, http_client:)
+      super(url:, http_method:, content_type:, query:, body:)
     end
 
     def overlay(**input)

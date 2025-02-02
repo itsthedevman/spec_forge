@@ -6,13 +6,10 @@ module SpecForge
   class Spec
     class Expectation
       # Internal
-      attr_reader :input, :file_path, :request
+      attr_reader :input, :file_path, :http_client
 
-      # User defined (including the ones for request)
+      # User defined (rest are in available via :http_client)
       attr_reader :name, :variables, :constraints
-
-      # Contains user defined method
-      delegate :url, :http_method, :content_type, :query, :body, to: :request
 
       #
       # Creates a new Expectation
@@ -33,8 +30,6 @@ module SpecForge
       # @return [Self]
       #
       def compile(request)
-        @request = request
-
         # Only hash is supported
         if !input.is_a?(Hash)
           raise InvalidTypeError.new(input, Hash, for: "expectation")
@@ -45,7 +40,7 @@ module SpecForge
         load_constraints
 
         # Must be last
-        @request = request.overlay(**input)
+        @http_client = HTTPClient.new(request.overlay(**input))
 
         self
       end
@@ -61,8 +56,11 @@ module SpecForge
 
         # RSpec example group scope
         lambda do |example|
-          binding.pry
+          constraints = expectation_forge.constraints
           response = expectation_forge.request.call
+
+          # Status check
+          expect(response.status).to eq(constraints.status.result)
         end
       end
 

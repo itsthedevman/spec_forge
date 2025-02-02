@@ -4,8 +4,10 @@ require_relative "http_client/adapter"
 
 module SpecForge
   class HTTPClient
+    attr_reader :request
+
     def initialize(request)
-      @spec_request = request
+      @request = request
       # @adapter = HTTParty.new
     end
 
