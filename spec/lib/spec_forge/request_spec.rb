@@ -1,12 +1,13 @@
 # frozen_string_literal: true
 
 RSpec.describe SpecForge::Request do
+  let(:base_url) {}
   let(:url) { "/users" }
   let(:method) {}
   let(:content_type) {}
   let(:query) {}
   let(:body) {}
-  let(:options) { {url:, method:, content_type:, query:, body:} }
+  let(:options) { {base_url:, url:, method:, content_type:, query:, body:} }
 
   subject(:request) { described_class.new(**options) }
 
@@ -20,7 +21,21 @@ RSpec.describe SpecForge::Request do
       expect(request.http_method).to be_kind_of(SpecForge::HTTPMethod::Get)
     end
 
-    context "when params are provided" do
+    context "when 'base_url' is provided" do
+      let(:base_url) { "http://example.com" }
+
+      it "is expected to use it" do
+        expect(request.base_url).to eq(base_url)
+      end
+    end
+
+    context "when 'base_url' is not provided" do
+      it "is expected to use the global default" do
+        expect(request.base_url).to eq(SpecForge.config.base_url)
+      end
+    end
+
+    context "when 'query' is provided" do
       let(:query) { {id: Faker::String.random, filter: "faker.string.random"} }
 
       it "is expected to convert them to Attribute" do

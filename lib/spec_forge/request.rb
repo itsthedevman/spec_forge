@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module SpecForge
-  class Request < Data.define(:url, :http_method, :content_type, :query, :body)
+  class Request < Data.define(:base_url, :url, :http_method, :content_type, :query, :body)
     #
     # Initializes a new Request instance with the given options
     #
@@ -23,13 +23,14 @@ module SpecForge
     # @option options [Hash] :body The request body (defaults to {})
     #
     def initialize(**options)
+      base_url = extract_base_url(options)
       url = extract_url(options)
       content_type = normalize_content_type(options)
       http_method = normalize_http_method(options)
       query = normalize_query(options)
       body = normalize_body(content_type, options)
 
-      super(url:, http_method:, content_type:, query:, body:)
+      super(base_url:, url:, http_method:, content_type:, query:, body:)
     end
 
     def overlay(**input)
@@ -39,7 +40,15 @@ module SpecForge
       with(query: self.query.merge(query), body: self.body.merge(body))
     end
 
+    def http_verb
+      http_method.verb.downcase
+    end
+
     private
+
+    def extract_base_url(options)
+      options[:base_url].presence || SpecForge.config.base_url
+    end
 
     def extract_url(options)
       options[:path] || options[:url]
