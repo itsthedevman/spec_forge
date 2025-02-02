@@ -2,6 +2,10 @@
 
 module SpecForge
   CONFIG_ATTRIBUTES = {
+    base_url: {
+      description: "Sets the base URL prefix for all API requests. All test paths will be appended to this URL.",
+      default: "http://localhost:3000"
+    },
     require_name: {
       description: "Validates that each spec has a non-blank name attribute, failing validation if missing or empty.",
       default: true
@@ -30,7 +34,7 @@ module SpecForge
 
     def load_defaults
       CONFIG_ATTRIBUTES.each do |key, config|
-        self[key] = config[:default]
+        self[key] = config[:default].deep_dup
       end
 
       # Remove the default ERB for authorization
@@ -52,9 +56,9 @@ module SpecForge
       end
     end
 
-    def to_yaml
-      to_h.join_map("\n") do |key, value|
-        config = CONFIG_ATTRIBUTES[key]
+    def to_config_yaml
+      CONFIG_ATTRIBUTES.join_map("\n") do |key, config|
+        value = config[:default]
         value = value.deep_stringify_keys if value.is_a?(Hash)
 
         # Convert the individual key/value into yaml
