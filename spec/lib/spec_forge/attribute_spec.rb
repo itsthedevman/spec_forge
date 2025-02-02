@@ -6,6 +6,15 @@ RSpec.describe SpecForge::Attribute do
 
     subject(:attribute) { described_class.from(input) }
 
+    context "when the input is an Attribute" do
+      let(:input) { described_class::Literal.new(1) }
+
+      it "is expected to return the value without any modifications" do
+        expect(attribute).to eq(input)
+        expect(attribute).to eql(input)
+      end
+    end
+
     context "when the input is a String" do
       context "and it is a valid faker macro" do
         let(:input) { "faker.number.positive" }

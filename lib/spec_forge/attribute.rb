@@ -26,6 +26,8 @@ module SpecForge
         from_string(value)
       when Hash
         from_hash(value)
+      when Attribute
+        value
       else
         Literal.new(value)
       end
