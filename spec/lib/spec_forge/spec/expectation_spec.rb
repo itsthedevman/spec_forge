@@ -6,7 +6,7 @@ RSpec.describe SpecForge::Spec::Expectation do
     let(:request) { SpecForge::Request.new }
 
     subject(:expectation) do
-      described_class.new(input, "expectation_name", "/file/path")
+      described_class.new(input, "expectation_name")
         .compile(request)
     end
 

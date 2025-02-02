@@ -19,12 +19,10 @@ module SpecForge
       #
       # @param input [Hash] A hash containing the various attributes to control the expectation
       # @param name [String] The name of the expectation
-      # @param file_path [String/Pathname] The path to the file where this expectation is defined
       #
-      def initialize(input, name, file_path)
+      def initialize(input, name)
         @input = input
         @name = name
-        @file_path = file_path
       end
 
       #
