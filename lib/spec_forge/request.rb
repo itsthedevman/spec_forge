@@ -2,28 +2,6 @@
 
 module SpecForge
   class Request < Data.define(:url, :http_method, :content_type, :query, :body)
-    CONTENT_TYPES = {
-      "application/json" => ->(body) { validate_and_transform_hash(body) },
-      "text/plain" => ->(body) { Attribute.from(body.to_s) }
-    }.freeze
-
-    class << self
-      def normalize_body(content_type, body)
-        transformer = CONTENT_TYPES[content_type.to_s]
-        raise ArgumentError, "Unsupported content type: #{content_type}" if transformer.nil?
-
-        transformer.call(body)
-      end
-
-      private
-
-      def validate_and_transform_hash(body)
-        raise InvalidTypeError.new(body, Hash, for: "'body'") unless body.is_a?(Hash)
-
-        body.transform_values { |v| Attribute.from(v) }
-      end
-    end
-
     #
     # Initializes a new Request instance with the given options
     #
@@ -41,33 +19,28 @@ module SpecForge
     # @option options [Hash] :params The query parameters for the request (alias for :query)
     # @option options [Hash] :query The query parameters for the request (defaults to {})
     #
-    # @option options [Hash, String] :body The request body (defaults to {})
+    # @option options [Hash] :data The request body (alias for :body)
+    # @option options [Hash] :body The request body (defaults to {})
     #
     def initialize(**options)
-      super(
-        url: extract_url(options),
-        http_method: normalize_http_method(options),
-        content_type: normalize_content_type(options),
-        query: normalize_query(options),
-        body: self.class.normalize_body(
-          options[:content_type] || "application/json",
-          options[:body] || {}
-        )
-      )
-    end
+      url = extract_url(options)
+      content_type = normalize_content_type(options)
+      http_method = normalize_http_method(options)
+      query = normalize_query(options)
+      body = normalize_body(content_type, options)
 
-    alias_method :path, :url
-    alias_method :params, :query
-
-    def update(body, params)
-      with(
-        body: self.body.merge(body),
-        query: query.merge(params)
-      )
+      super(url:, http_method:, content_type:, query:, body:)
     end
 
     def call
       HTTPClient.new(self).call
+    end
+
+    def update_from_expectation(**input)
+      query = normalize_query(input)
+      body = normalize_body(content_type, input)
+
+      with(query:, body:)
     end
 
     private
@@ -95,10 +68,25 @@ module SpecForge
     end
 
     def normalize_query(options)
-      params = options[:query] || options[:params] || {}
-      raise InvalidTypeError.new(params, Hash, for: "'query'") unless params.is_a?(Hash)
+      query = options[:query] || options[:params] || {}
+      raise InvalidTypeError.new(query, Hash, for: "'query'") unless query.is_a?(Hash)
 
-      params.transform_values { |v| Attribute.from(v) }
+      query.transform_values { |v| Attribute.from(v) }
+    end
+
+    def normalize_body(content_type, options)
+      body = options[:body] || options[:data] || {}
+
+      case content_type
+      when "application/json"
+        validate_and_transform_hash(body)
+      end
+    end
+
+    def validate_and_transform_hash(hash)
+      raise InvalidTypeError.new(hash, Hash, for: "'body'") unless hash.is_a?(Hash)
+
+      hash.transform_values { |v| Attribute.from(v) }
     end
   end
 end

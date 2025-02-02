@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
 RSpec.describe SpecForge::Request do
-  let(:path) { "/users" }
+  let(:url) { "/users" }
   let(:method) {}
   let(:content_type) {}
-  let(:params) {}
+  let(:query) {}
   let(:body) {}
-  let(:options) { {path:, method:, content_type:, params:, body:} }
+  let(:options) { {url:, method:, content_type:, query:, body:} }
 
   subject(:request) { described_class.new(**options) }
 
@@ -21,10 +21,10 @@ RSpec.describe SpecForge::Request do
     end
 
     context "when params are provided" do
-      let(:params) { {id: Faker::String.random, filter: "faker.string.random"} }
+      let(:query) { {id: Faker::String.random, filter: "faker.string.random"} }
 
       it "is expected to convert them to Attribute" do
-        expect(request.params).to match(
+        expect(request.query).to match(
           hash_including(
             id: be_kind_of(SpecForge::Attribute::Literal),
             filter: be_kind_of(SpecForge::Attribute::Faker)
@@ -39,8 +39,8 @@ RSpec.describe SpecForge::Request do
       it { expect { request }.to raise_error(ArgumentError) }
     end
 
-    context "when 'params' is not a Hash" do
-      let(:params) { "raw_params=are%20not%20allowed" }
+    context "when 'query' is not a Hash" do
+      let(:query) { "raw_params=are%20not%20allowed" }
 
       it do
         expect { request }.to raise_error(
@@ -81,27 +81,39 @@ RSpec.describe SpecForge::Request do
         end
       end
 
-      context "when 'query' is given instead of 'params'" do
-        let(:params) { {foo: "bar"} }
+      context "when 'params' is given instead of 'query'" do
+        let(:query) { {foo: "bar"} }
 
         before do
-          options[:query] = options.delete(:params)
+          options[:params] = options.delete(:query)
         end
 
         it "supports the alias" do
-          expect(request.params).to eq({foo: "bar"})
+          expect(request.query).to eq({foo: "bar"})
         end
       end
 
-      context "when 'url' is given instead of 'path'" do
-        let(:path) { "/users/:id/edit" }
+      context "when 'path' is given instead of 'url'" do
+        let(:url) { "/users/:id/edit" }
 
         before do
-          options[:url] = options.delete(:path)
+          options[:path] = options.delete(:url)
         end
 
         it "supports the alias" do
-          expect(request.path).to eq("/users/:id/edit")
+          expect(request.url).to eq("/users/:id/edit")
+        end
+      end
+
+      context "when 'data' is given instead of 'body'" do
+        let(:body) { {foo: "bar"} }
+
+        before do
+          options[:data] = options.delete(:body)
+        end
+
+        it "supports the alias" do
+          expect(request.body).to eq({foo: "bar"})
         end
       end
     end
