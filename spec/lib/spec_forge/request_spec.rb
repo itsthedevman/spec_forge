@@ -119,12 +119,55 @@ RSpec.describe SpecForge::Request do
     end
   end
 
-  describe "#with" do
-    subject(:updated_request) { request.with(content_type: "text/plain", method: "POST") }
+  describe "#overlay" do
+    let(:input) {}
+    let(:query) { {id: 1, name: Faker::String.random} }
+    let(:body) { {email: Faker::String.random, username: Faker::String.random} }
 
-    it "converts the new attributes correctly" do
-      expect(updated_request.content_type).to eq("text/plain")
-      expect(updated_request.http_method).to eq("POST")
+    subject(:overlay) { request.overlay(**input) }
+
+    context "when 'query' is provided" do
+      let(:input) { {query: {id: 2}} }
+
+      it "is expected to merge with the existing values" do
+        expect(overlay.query).to match(
+          id: SpecForge::Attribute.from(input[:query][:id]),
+          name: SpecForge::Attribute.from(query[:name])
+        )
+      end
+    end
+
+    context "when 'params' is provided" do
+      let(:input) { {params: {id: 2}} }
+
+      it "is expected to merge with the existing values" do
+        expect(overlay.query).to match(
+          id: SpecForge::Attribute.from(input[:params][:id]),
+          name: SpecForge::Attribute.from(query[:name])
+        )
+      end
+    end
+
+    context "when 'body' is provided" do
+      let(:input) { {body: {email: Faker::String.random}} }
+
+      it "is expected to merge with the existing values" do
+        expect(overlay.body).to match(
+          email: SpecForge::Attribute.from(input[:body][:email]),
+          username: SpecForge::Attribute.from(body[:username])
+        )
+      end
+    end
+
+    context "when 'data' is provided" do
+      let(:input) { {data: {email: Faker::String.random}} }
+
+      it "is expected to merge with the existing values" do
+        expect(overlay.body).to match(
+          email: SpecForge::Attribute.from(input[:data][:email]),
+          username: SpecForge::Attribute.from(body[:username])
+        )
+      end
     end
   end
 end

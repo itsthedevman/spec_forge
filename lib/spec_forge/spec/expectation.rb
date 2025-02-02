@@ -45,7 +45,7 @@ module SpecForge
         load_constraints
 
         # Must be last
-        @request = request.update_from_expectation(**input)
+        @request = request.overlay(**input)
 
         self
       end

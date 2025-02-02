@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module SpecForge
-  class Request < Data.define(:url, :http_method, :content_type, :query, :body)
+  class Request < Data.define(:url, :http_method, :content_type, :query, :body, :http_client)
     #
     # Initializes a new Request instance with the given options
     #
@@ -28,19 +28,16 @@ module SpecForge
       http_method = normalize_http_method(options)
       query = normalize_query(options)
       body = normalize_body(content_type, options)
+      http_client = HTTPClient.new(self)
 
-      super(url:, http_method:, content_type:, query:, body:)
+      super(url:, http_method:, content_type:, query:, body:, http_client:)
     end
 
-    def call
-      HTTPClient.new(self).call
-    end
-
-    def update_from_expectation(**input)
+    def overlay(**input)
       query = normalize_query(input)
       body = normalize_body(content_type, input)
 
-      with(query:, body:)
+      with(query: self.query.merge(query), body: self.body.merge(body))
     end
 
     private
