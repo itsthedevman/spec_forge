@@ -47,7 +47,7 @@ module SpecForge
         load_constraints
 
         # Must be last
-        update_request
+        @request = request.update_from_expectation(**input)
 
         self
       end
@@ -102,20 +102,6 @@ module SpecForge
         hash.with_indifferent_access
           .transform_values! { |v| Attribute.from(v) }
           .each_value { |v| v.set_variable_value(variables) if v.is_a?(Attribute::Variable) }
-      end
-
-      def update_request
-        body = input[:body] || {}
-        if !body.is_a?(Hash)
-          raise InvalidTypeError.new(body, Hash, for: "'body' on expectation")
-        end
-
-        params = input[:query] || input[:params] || {}
-        if !params.is_a?(Hash)
-          raise InvalidTypeError.new(params, Hash, for: "'query' on expectation")
-        end
-
-        @request = request.update(body, params)
       end
     end
   end
