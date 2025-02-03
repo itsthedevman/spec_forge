@@ -158,7 +158,7 @@ RSpec.describe SpecForge::HTTP::Request do
     let(:query) { {id: 1, name: Faker::String.random} }
     let(:body) { {email: Faker::String.random, username: Faker::String.random} }
 
-    subject(:overlay) { request.overlay(**input) }
+    subject(:overlay) { request.overlay({}, **input) }
 
     context "when 'query' is provided" do
       let(:input) { {query: {id: 2}} }

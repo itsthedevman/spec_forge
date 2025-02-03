@@ -16,6 +16,20 @@ require_relative "attribute/resolvable"
 module SpecForge
   class Attribute
     #
+    # Transforms a hash's values into Attributes and updates any Attribute::Variable's values
+    #
+    # @param hash [Hash] Hash whose values need to be transformed into Attributes
+    #
+    # @param variables [Array] List of variables to update the Attribute values with (default: [])
+    #
+    # @return [Hash] Hash with values transformed into Attributes and updated with variables
+    #
+    def self.transform_hash_values(hash, variables = {})
+      hash.transform_values { |v| from(v) }
+        .each_value { |v| Variable.update_value!(v, variables) }
+    end
+
+    #
     # Creates an Attribute instance based on the input value's type and content.
     # Recursively converts Array and Hash
     #

@@ -42,7 +42,8 @@ module SpecForge
         load_constraints
 
         # Must be last
-        @http_client = HTTP::Client.new(request.overlay(**input))
+        request = request.overlay(variables, **input)
+        @http_client = HTTP::Client.new(request)
 
         self
       end
@@ -90,7 +91,7 @@ module SpecForge
           raise InvalidTypeError.new(variables, Hash, for: "'variables' on expectation")
         end
 
-        @variables = transform_attributes(variables)
+        @variables = Attribute.transform_hash_values(variables)
       end
 
       def load_constraints
@@ -100,13 +101,8 @@ module SpecForge
           raise InvalidTypeError.new(constraints, Hash, for: "'expect' on expectation")
         end
 
-        constraints = transform_attributes(constraints)
+        constraints = Attribute.transform_hash_values(constraints, variables)
         @constraints = Constraint.new(**constraints)
-      end
-
-      def transform_attributes(hash)
-        hash.transform_values! { |v| Attribute.from(v) }
-          .each_value { |v| Attribute::Variable.update_variable_value(v, variables) }
       end
     end
   end
