@@ -58,15 +58,19 @@ module SpecForge
 
         # RSpec example group scope
         lambda do |example|
-          constraints = expectation_forge.constraints
           response = expectation_forge.http_client.call
+          constraints = expectation_forge.constraints
 
-          binding.pry
           # Status check
           expect(response.status).to eq(constraints.status.resolve)
 
           # JSON check
-          expect(response.body).to match(constrains.json.resolve)
+          if constraints.json.size > 0
+            response_body = response.body
+            body_constraint = constraints.json.resolve.deep_stringify_keys
+
+            expect(response_body).to match(body_constraint)
+          end
         end
       end
 
@@ -96,12 +100,7 @@ module SpecForge
           raise InvalidTypeError.new(constraints, Hash, for: "'expect' on expectation")
         end
 
-        constraints[:status] = Attribute.from(constraints[:status])
-
-        if (json = constraints[:json])
-          constraints[:json] = transform_attributes(json)
-        end
-
+        constraints = transform_attributes(constraints)
         @constraints = Constraint.new(**constraints)
       end
 
