@@ -1,8 +1,5 @@
 # frozen_string_literal: true
 
-require "grape"
-require "rack/test"
-
 ENV["GEM_ENV"] ||= "development"
 
 require "spec_forge"

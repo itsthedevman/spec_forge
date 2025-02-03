@@ -104,23 +104,6 @@ GEM
     date (3.4.1)
     diff-lcs (1.5.1)
     drb (2.2.1)
-    dry-core (1.1.0)
-      concurrent-ruby (~> 1.0)
-      logger
-      zeitwerk (~> 2.6)
-    dry-inflector (1.2.0)
-    dry-logic (1.6.0)
-      bigdecimal
-      concurrent-ruby (~> 1.0)
-      dry-core (~> 1.1)
-      zeitwerk (~> 2.6)
-    dry-types (1.8.1)
-      bigdecimal (~> 3.0)
-      concurrent-ruby (~> 1.0)
-      dry-core (~> 1.0)
-      dry-inflector (~> 1.0)
-      dry-logic (~> 1.4)
-      zeitwerk (~> 2.6)
     erubi (1.13.1)
     everythingrb (0.1.0)
       json (~> 2.9)
@@ -131,12 +114,6 @@ GEM
       i18n (>= 1.8.11, < 2)
     globalid (1.2.1)
       activesupport (>= 6.1)
-    grape (2.2.0)
-      activesupport (>= 6)
-      dry-types (>= 1.1)
-      mustermann-grape (~> 1.1.0)
-      rack (>= 2)
-      zeitwerk
     highline (3.0.1)
     httparty (0.22.0)
       csv
@@ -171,10 +148,6 @@ GEM
     minitest (5.25.4)
     multi_xml (0.7.1)
       bigdecimal (~> 3.1)
-    mustermann (3.0.3)
-      ruby2_keywords (~> 0.0.1)
-    mustermann-grape (1.1.0)
-      mustermann (>= 1.0.0)
     mutex_m (0.3.0)
     net-imap (0.5.5)
       date
@@ -290,7 +263,6 @@ GEM
       rubocop (>= 1.48.1, < 2.0)
       rubocop-ast (>= 1.31.1, < 2.0)
     ruby-progressbar (1.13.0)
-    ruby2_keywords (0.0.5)
     securerandom (0.4.1)
     standard (1.44.0)
       language_server-protocol (~> 3.17.0.2)
@@ -331,11 +303,9 @@ PLATFORMS
 
 DEPENDENCIES
   benchmark-ips (~> 2.14)
-  grape (~> 2.2)
   httparty (~> 0.22.0)
   minitest (~> 5.25)
   pry
-  rack-test (~> 2.2)
   rails (~> 7.1)
   rake (~> 13.0)
   spec_forge!
