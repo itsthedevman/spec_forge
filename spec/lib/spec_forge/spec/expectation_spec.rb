@@ -76,5 +76,17 @@ RSpec.describe SpecForge::Spec::Expectation do
         end
       end
     end
+
+    context "when 'json' is provided on 'constraints'" do
+      context "and it is a hash" do
+        let(:input) { {expect: {status: 404, json: {key_1: "faker.number.positive"}}} }
+
+        it "is expected to convert into a constraint" do
+          expect(expectation.constraints.status).to eq(404)
+          expect(expectation.constraints.json).to be_kind_of(SpecForge::Attribute::Resolvable)
+          expect(expectation.constraints.json[:key_1]).to be_kind_of(SpecForge::Attribute::Faker)
+        end
+      end
+    end
   end
 end
