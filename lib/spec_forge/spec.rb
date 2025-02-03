@@ -82,7 +82,7 @@ module SpecForge
     def initialize(**options)
       @name = options[:name]
       @file_path = options[:file_path]
-      @request = Request.new(**options)
+      @request = HTTP::Request.new(**options)
 
       variables = options[:variables] || {}
       if !variables.is_a?(Hash)

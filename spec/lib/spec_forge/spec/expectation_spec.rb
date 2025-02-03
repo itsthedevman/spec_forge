@@ -3,7 +3,7 @@
 RSpec.describe SpecForge::Spec::Expectation do
   describe "#compile" do
     let(:input) {}
-    let(:request) { SpecForge::Request.new }
+    let(:request) { SpecForge::HTTP::Request.new }
 
     subject(:expectation) do
       described_class.new(input, "expectation_name")

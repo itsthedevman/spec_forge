@@ -1,10 +1,8 @@
 # frozen_string_literal: true
 
-require_relative "adapters/httparty"
-
 module SpecForge
-  class HTTPClient
-    class Adapter
+  module HTTP
+    class Backend
       attr_reader :options
 
       def initialize(**options)

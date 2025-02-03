@@ -40,7 +40,7 @@ module SpecForge
         load_constraints
 
         # Must be last
-        @http_client = HTTPClient.new(request.overlay(**input))
+        @http_client = HTTP::Client.new(request.overlay(**input))
 
         self
       end

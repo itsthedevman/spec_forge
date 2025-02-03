@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe SpecForge::HTTPMethod do
+RSpec.describe SpecForge::HTTP::Method do
   let(:verb) {}
 
   subject(:method) { described_class.from(verb) }

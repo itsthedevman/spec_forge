@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe SpecForge::Request do
+RSpec.describe SpecForge::HTTP::Request do
   let(:base_url) {}
   let(:url) { "/users" }
   let(:method) {}
@@ -18,7 +18,7 @@ RSpec.describe SpecForge::Request do
     end
 
     it "defaults http_method to GET" do
-      expect(request.http_method).to be_kind_of(SpecForge::HTTPMethod::Get)
+      expect(request.http_method).to be_kind_of(SpecForge::HTTP::Method::Get)
     end
 
     context "when 'base_url' is provided" do
