@@ -16,7 +16,8 @@ module SpecForge
           # Offset for positional arguments. No support for both at this time
           new(input, [], arguments)
         else
-          new(input)
+          # Single value
+          new(input, [arguments])
         end
       end
 

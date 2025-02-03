@@ -75,6 +75,8 @@ module SpecForge
         Transform.from_hash(hash)
       elsif has_macro.call(hash, Faker::KEYWORD_REGEX)
         Faker.from_hash(hash)
+      elsif has_macro.call(hash, Matcher::KEYWORD_REGEX)
+        Matcher.from_hash(hash)
       else
         hash = hash.transform_values { |v| Attribute.from(v) }
         Literal.new(hash)
