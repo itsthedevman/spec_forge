@@ -6,14 +6,14 @@ module SpecForge
       KEYWORD_REGEX = /^variables\./i
       NUMBER_REGEX = /^\d+$/i
 
-      def self.update_variable_value(value, variables)
+      def self.update_value!(value, variables)
         case value
         when Array
-          value.each { |v| update_variable_value(v, variables) }
+          value.each { |v| update_value!(v, variables) }
         when Hash
-          value.each_value { |v| update_variable_value(v, variables) }
+          value.each_value { |v| update_value!(v, variables) }
         when self
-          value.update_variable_value!(variables)
+          value.update_value!(variables)
         end
 
         value
@@ -32,7 +32,7 @@ module SpecForge
         @invocation_chain = sections[1..] || []
       end
 
-      def update_variable_value!(lookup_table)
+      def update_value!(lookup_table)
         if !lookup_table.is_a?(Hash)
           raise InvalidTypeError.new(lookup_table, Hash, for: "'variables'")
         end

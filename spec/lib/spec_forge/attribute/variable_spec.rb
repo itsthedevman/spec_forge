@@ -4,7 +4,7 @@ RSpec.describe SpecForge::Attribute::Variable do
   let(:input) {}
   let(:variables) { {} }
 
-  subject(:variable) { described_class.new(input).update_variable_value!(variables) }
+  subject(:variable) { described_class.new(input).update_value!(variables) }
 
   context "when just the variable name is referenced" do
     let(:input) { "variable.id" }
