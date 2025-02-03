@@ -4,14 +4,14 @@ RSpec.describe SpecForge::Attribute::Variable do
   let(:input) {}
   let(:variables) { {} }
 
-  subject(:variable) { described_class.new(input).set_variable_value(variables) }
+  subject(:variable) { described_class.new(input).update_variable_value!(variables) }
 
   context "when just the variable name is referenced" do
     let(:input) { "variable.id" }
     let(:variables) { {id: Faker::String.random} }
 
     it "is expected to return the value" do
-      expect(variable.variable_name).to eq("id")
+      expect(variable.variable_name).to eq(:id)
       expect(variable.invocation_chain).to eq([])
 
       expect(variable.value).to eq(variables[:id])
@@ -25,7 +25,7 @@ RSpec.describe SpecForge::Attribute::Variable do
       let(:input) { "variable.hash.key_1" }
 
       it "is expected to return the value" do
-        expect(variable.variable_name).to eq("hash")
+        expect(variable.variable_name).to eq(:hash)
         expect(variable.invocation_chain).to eq(["key_1"])
 
         expect(variable.value).to eq(variables[:hash][:key_1])
@@ -36,7 +36,7 @@ RSpec.describe SpecForge::Attribute::Variable do
       let(:input) { "variable.hash.size" }
 
       it "is expected to return the method results" do
-        expect(variable.variable_name).to eq("hash")
+        expect(variable.variable_name).to eq(:hash)
         expect(variable.invocation_chain).to eq(["size"])
 
         expect(variable.value).to eq(variables[:hash].size)
@@ -47,7 +47,7 @@ RSpec.describe SpecForge::Attribute::Variable do
       let(:input) { "variable.hash.1" }
 
       it "is expected to raise" do
-        expect(variable.variable_name).to eq("hash")
+        expect(variable.variable_name).to eq(:hash)
         expect(variable.invocation_chain).to eq(["1"])
 
         expect { variable.value }.to raise_error(SpecForge::InvalidInvocationError)
@@ -62,7 +62,7 @@ RSpec.describe SpecForge::Attribute::Variable do
       let(:input) { "variable.array.key_1" }
 
       it "is expected to raise" do
-        expect(variable.variable_name).to eq("array")
+        expect(variable.variable_name).to eq(:array)
         expect(variable.invocation_chain).to eq(["key_1"])
 
         expect { variable.value }.to raise_error(SpecForge::InvalidInvocationError)
@@ -73,7 +73,7 @@ RSpec.describe SpecForge::Attribute::Variable do
       let(:input) { "variable.array.size" }
 
       it "is expected to return the result of the method" do
-        expect(variable.variable_name).to eq("array")
+        expect(variable.variable_name).to eq(:array)
         expect(variable.invocation_chain).to eq(["size"])
 
         expect(variable.value).to eq(variables[:array].size)
@@ -85,7 +85,7 @@ RSpec.describe SpecForge::Attribute::Variable do
         let(:input) { "variable.array.1" }
 
         it "is expected to return the value at that index" do
-          expect(variable.variable_name).to eq("array")
+          expect(variable.variable_name).to eq(:array)
           expect(variable.invocation_chain).to eq(["1"])
 
           expect(variable.value).to eq(variables[:array][1])
@@ -96,7 +96,7 @@ RSpec.describe SpecForge::Attribute::Variable do
         let(:input) { "variable.array.second" }
 
         it "is expected to return the value at that index" do
-          expect(variable.variable_name).to eq("array")
+          expect(variable.variable_name).to eq(:array)
           expect(variable.invocation_chain).to eq(["second"])
 
           expect(variable.value).to eq(variables[:array].second)
@@ -116,7 +116,7 @@ RSpec.describe SpecForge::Attribute::Variable do
       let(:input) { "variable.object.key_1" }
 
       it "is expected to raise because it is not a valid method" do
-        expect(variable.variable_name).to eq("object")
+        expect(variable.variable_name).to eq(:object)
         expect(variable.invocation_chain).to eq(["key_1"])
 
         expect { variable.value }.to raise_error(SpecForge::InvalidInvocationError)
@@ -127,7 +127,7 @@ RSpec.describe SpecForge::Attribute::Variable do
       let(:input) { "variable.object.name" }
 
       it "is expected to return the result of the method" do
-        expect(variable.variable_name).to eq("object")
+        expect(variable.variable_name).to eq(:object)
         expect(variable.invocation_chain).to eq(["name"])
 
         expect(variable.value).to eq(variables[:object].name)
@@ -138,7 +138,7 @@ RSpec.describe SpecForge::Attribute::Variable do
       let(:input) { "variable.object.0" }
 
       it "is expected to raise because it is not a valid method" do
-        expect(variable.variable_name).to eq("object")
+        expect(variable.variable_name).to eq(:object)
         expect(variable.invocation_chain).to eq(["0"])
 
         expect { variable.value }.to raise_error(SpecForge::InvalidInvocationError)

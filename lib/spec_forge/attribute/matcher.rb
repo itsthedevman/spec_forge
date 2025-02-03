@@ -14,7 +14,7 @@ module SpecForge
         "nil" => nil,
         "true" => true,
         "false" => false
-      }.with_indifferent_access.freeze
+      }.freeze
 
       attr_reader :matcher_method
 

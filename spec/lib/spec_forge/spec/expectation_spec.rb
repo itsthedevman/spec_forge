@@ -61,7 +61,6 @@ RSpec.describe SpecForge::Spec::Expectation do
         let(:input) { {expect: {status: 404}, variables: {foo: "bar"}} }
 
         it "is expected to convert the variable attributes" do
-          expect(expectation.variables).to be_kind_of(ActiveSupport::HashWithIndifferentAccess)
           expect(expectation.variables[:foo]).to be_kind_of(SpecForge::Attribute::Literal)
         end
       end

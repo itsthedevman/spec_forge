@@ -35,6 +35,8 @@ module SpecForge
           raise InvalidTypeError.new(input, Hash, for: "expectation")
         end
 
+        @input = input.deep_symbolize_keys
+
         load_name
         load_variables
         load_constraints
@@ -62,6 +64,9 @@ module SpecForge
           binding.pry
           # Status check
           expect(response.status).to eq(constraints.status.resolve)
+
+          # JSON check
+          expect(response.body).to match(constrains.json.resolve)
         end
       end
 
@@ -91,14 +96,18 @@ module SpecForge
           raise InvalidTypeError.new(constraints, Hash, for: "'expect' on expectation")
         end
 
-        constraints = transform_attributes(constraints)
+        constraints[:status] = Attribute.from(constraints[:status])
+
+        if (json = constraints[:json])
+          constraints[:json] = transform_attributes(json)
+        end
+
         @constraints = Constraint.new(**constraints)
       end
 
       def transform_attributes(hash)
-        hash.with_indifferent_access
-          .transform_values! { |v| Attribute.from(v) }
-          .each_value { |v| v.set_variable_value(variables) if v.is_a?(Attribute::Variable) }
+        hash.transform_values! { |v| Attribute.from(v) }
+          .each_value { |v| Attribute::Variable.update_variable_value(v, variables) }
       end
     end
   end

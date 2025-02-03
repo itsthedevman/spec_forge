@@ -35,7 +35,7 @@ module SpecForge
         patch: PATCH,
         post: POST,
         put: PUT
-      }.with_indifferent_access.freeze
+      }.freeze
 
       #
       # Retrieves the corresponding Verb instance based on the provided HTTP name
@@ -45,7 +45,7 @@ module SpecForge
       # @return [Verb, nil] The corresponding Verb instance, or nil if not found
       #
       def self.from(name)
-        VERBS[name.downcase]
+        VERBS[name.downcase.to_sym]
       end
 
       #

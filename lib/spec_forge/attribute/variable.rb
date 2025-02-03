@@ -4,8 +4,20 @@ module SpecForge
   class Attribute
     class Variable < Attribute
       KEYWORD_REGEX = /^variable\./i
-
       NUMBER_REGEX = /^\d+$/i
+
+      def self.update_variable_value(value, variables)
+        case value
+        when Array
+          value.each { |v| update_variable_value(v, variables) }
+        when Hash
+          value.each_value { |v| update_variable_value(v, variables) }
+        when self
+          value.update_variable_value!(variables)
+        end
+
+        value
+      end
 
       attr_reader :variable_name, :invocation_chain, :variable_value
 
@@ -16,17 +28,16 @@ module SpecForge
         # Drop the keyword
         sections = input.split(".")[1..]
 
-        @variable_name = sections.first.to_s
-        @invocation_chain = sections[1..]
+        @variable_name = sections.first&.to_sym
+        @invocation_chain = sections[1..] || []
       end
 
-      def set_variable_value(lookup_table)
+      def update_variable_value!(lookup_table)
         if !lookup_table.is_a?(Hash)
           raise InvalidTypeError.new(lookup_table, Hash, for: "'variables'")
         end
 
         # No nil check here.
-        lookup_table = lookup_table.with_indifferent_access
         raise MissingVariableError, variable_name unless lookup_table.key?(variable_name)
 
         @variable_value = lookup_table[variable_name]
@@ -56,7 +67,7 @@ module SpecForge
 
       def invoke(step, object)
         if hash_key?(object, step)
-          object[step]
+          object[step.to_sym]
         elsif index?(object, step)
           object[step.to_i]
         elsif method?(object, step)
@@ -67,7 +78,7 @@ module SpecForge
       end
 
       def hash_key?(object, key)
-        object.is_a?(Hash) && object.with_indifferent_access.key?(key)
+        object.is_a?(Hash) && object.key?(key.to_sym)
       end
 
       def method?(object, method_name)
