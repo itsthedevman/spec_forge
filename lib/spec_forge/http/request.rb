@@ -28,8 +28,8 @@ module SpecForge
         url = extract_url(options)
         content_type = normalize_content_type(options)
         http_method = normalize_http_method(options)
-        query = normalize_query(options)
-        body = normalize_body(content_type, options)
+        query = Attribute::Resolvable.new(normalize_query(options))
+        body = Attribute::Resolvable.new(normalize_body(content_type, options))
 
         super(base_url:, url:, http_method:, content_type:, query:, body:)
       end
