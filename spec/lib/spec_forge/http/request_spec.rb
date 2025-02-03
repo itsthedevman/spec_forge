@@ -7,7 +7,8 @@ RSpec.describe SpecForge::HTTP::Request do
   let(:content_type) {}
   let(:query) {}
   let(:body) {}
-  let(:options) { {base_url:, url:, method:, content_type:, query:, body:} }
+  let(:authorization) {}
+  let(:options) { {base_url:, url:, method:, content_type:, query:, body:, authorization:} }
 
   subject(:request) { described_class.new(**options) }
 
@@ -80,6 +81,24 @@ RSpec.describe SpecForge::HTTP::Request do
 
       it "works because it is case insensitive" do
         expect(request.http_method).to eq("DELETE")
+      end
+    end
+
+    context "when 'authorization' is provided" do
+      let(:authorization) { :not_supported_yet }
+
+      it "uses the default config" do
+        expect(request.authorization).to match(
+          header: be_kind_of(String), value: be_kind_of(String)
+        )
+      end
+    end
+
+    context "when 'authorization' is not provided" do
+      it "uses the default config" do
+        expect(request.authorization).to match(
+          header: be_kind_of(String), value: be_kind_of(String)
+        )
       end
     end
 

@@ -2,7 +2,9 @@
 
 module SpecForge
   module HTTP
-    class Request < Data.define(:base_url, :url, :http_method, :content_type, :query, :body)
+    attributes = [:base_url, :url, :http_method, :content_type, :query, :body, :authorization]
+
+    class Request < Data.define(*attributes)
       #
       # Initializes a new Request instance with the given options
       #
@@ -30,8 +32,9 @@ module SpecForge
         http_method = normalize_http_method(options)
         query = Attribute::Resolvable.new(normalize_query(options))
         body = Attribute::Resolvable.new(normalize_body(content_type, options))
+        authorization = extract_authorization(options)
 
-        super(base_url:, url:, http_method:, content_type:, query:, body:)
+        super(base_url:, url:, http_method:, content_type:, query:, body:, authorization:)
       end
 
       def overlay(**input)
@@ -87,6 +90,10 @@ module SpecForge
         when "application/json"
           validate_and_transform_hash(body)
         end
+      end
+
+      def extract_authorization(options)
+        SpecForge.config.authorization[:default]
       end
 
       def validate_and_transform_hash(hash)
