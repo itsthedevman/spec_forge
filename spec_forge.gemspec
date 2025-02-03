@@ -38,6 +38,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency "everythingrb", "~> 0.1"
   spec.add_dependency "factory_bot", "~> 6.5"
   spec.add_dependency "faker", "~> 3.5"
+  spec.add_dependency "faraday", "~> 2.12"
   spec.add_dependency "mime-types", "~> 3.6"
   spec.add_dependency "rspec", "~> 3.13"
   spec.add_dependency "thor", "~> 1.3"
