@@ -20,7 +20,30 @@ module SpecForge
             raise InvalidTypeError.new(json, Hash, for: "'json' on constraint")
           end
 
-          super(status:, json: Attribute::Resolvable.new(json))
+          super(status:, json: normalize_hash(json))
+        end
+
+        private
+
+        def normalize_hash(hash)
+          hash =
+            hash.transform_values do |attribute|
+              if attribute.is_a?(Attribute::Literal)
+                normalize_literal(attribute.value)
+              else
+                attribute
+              end
+            end
+
+          Attribute::Resolvable.new(hash)
+        end
+
+        def normalize_literal(value)
+          if value.is_a?(Regexp)
+            Attribute.from({"matcher.match" => value})
+          else
+            Attribute.from({"matcher.eq" => value})
+          end
         end
       end
     end
