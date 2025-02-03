@@ -18,7 +18,7 @@ RSpec.describe SpecForge::HTTP::Request do
     end
 
     it "defaults http_method to GET" do
-      expect(request.http_method).to be_kind_of(SpecForge::HTTP::Method::Get)
+      expect(request.http_method).to be_kind_of(SpecForge::HTTP::Verb::Get)
     end
 
     context "when 'base_url' is provided" do

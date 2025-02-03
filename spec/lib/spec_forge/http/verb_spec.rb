@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe SpecForge::HTTP::Method do
+RSpec.describe SpecForge::HTTP::Verb do
   let(:verb) {}
 
   subject(:method) { described_class.from(verb) }
@@ -143,7 +143,7 @@ RSpec.describe SpecForge::HTTP::Method do
       end
     end
 
-    context "when the comparison is against a HTTPMethod" do
+    context "when the comparison is against a HTTP::Verb" do
       context "and it is a valid verb" do
         let(:other) { described_class::GET }
 

@@ -11,8 +11,8 @@ module SpecForge
       # @option options [String] :path The request URL (alias for :url)
       # @option options [String] :url The request URL
       #
-      # @option options [String, Method] :method The HTTP method to use (alias for :http_method)
-      # @option options [String, Method] :http_method The HTTP method to use
+      # @option options [String, Verb] :method The HTTP method to use (alias for :http_method)
+      # @option options [String, Verb] :http_method The HTTP method to use
       #
       # @option options [String] :content_type
       #  The content type for the request (defaults to "application/json")
@@ -59,7 +59,7 @@ module SpecForge
         method = options[:method] || options[:http_method] || "GET"
 
         if method.is_a?(String)
-          Method.from(method)
+          Verb.from(method)
         else
           method
         end
