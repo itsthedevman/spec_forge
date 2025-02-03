@@ -1,19 +1,16 @@
 create_user:
-  path: "/users"
-  method: "POST"
+  path: /users
+  method: POST
   expectations:
   - variables:
-      name: "Test User"
-      email: "faker.internet.email"
+      name: Test User
+      email: faker.internet.email
     body:
-      name: "variable.name"
-      email: "variable.email"
+      name: variables.name
+      email: variables.email
     expect:
-      status: 201
+      status: 200
       json:
-        id:
-        - kind_of.integer
-        name: variable.name
-        email:
-        - kind_of.string
-        - "test@example.com"
+        id: kind_of.integer
+        name: variables.name
+        email: test@example.com

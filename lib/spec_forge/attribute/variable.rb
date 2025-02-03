@@ -3,7 +3,7 @@
 module SpecForge
   class Attribute
     class Variable < Attribute
-      KEYWORD_REGEX = /^variable\./i
+      KEYWORD_REGEX = /^variables\./i
       NUMBER_REGEX = /^\d+$/i
 
       def self.update_variable_value(value, variables)

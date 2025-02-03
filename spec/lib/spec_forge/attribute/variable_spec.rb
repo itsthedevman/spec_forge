@@ -156,7 +156,7 @@ RSpec.describe SpecForge::Attribute::Variable do
   end
 
   context "when no variable name is given" do
-    let(:input) { "variable." }
+    let(:input) { "variables." }
 
     it do
       expect { variable.value }.to raise_error(SpecForge::MissingVariableError)
