@@ -61,7 +61,7 @@ module SpecForge
 
           binding.pry
           # Status check
-          expect(response.status).to eq(constraints.status.result)
+          expect(response.status).to eq(constraints.status.resolve)
         end
       end
 

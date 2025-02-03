@@ -102,38 +102,38 @@ module SpecForge
     end
 
     #
-    # Returns the fully evaluated result, recursively processing any nested attributes
+    # Returns the fully evaluated result, recursively resolving any nested attributes
     #
-    # @return [Object] The evaluated result
+    # @return [Object] The resolved value
     #
     # @example Simple literal
     #   attr = Attribute::Literal.new("hello")
-    #   attr.result # => "hello"
+    #   attr.resolve # => "hello"
     #
     # @example Nested array with faker
     #   attr = Attribute::Literal.new(["faker.number.positive", ["faker.name.first_name"]])
-    #   attr.result # => [42, ["Jane"]]
+    #   attr.resolve # => [42, ["Jane"]]
     #
-    def result
+    def resolve
       converted_value = value
       case converted_value
       when Array
-        converted_value.map(&:result)
+        converted_value.map(&:resolve)
       when Hash
-        converted_value.transform_values(&:result)
+        converted_value.transform_values(&:resolve)
       else
         converted_value
       end
     end
 
     #
-    # Wraps the call to #result in a proc. Used with FactoryBot
+    # Wraps the call to #resolve in a proc. Used with FactoryBot
     #
     # @return [Proc]
     #
     def to_proc
       this = self # kek - what are we, javascript?
-      -> { this.result }
+      -> { this.resolve }
     end
 
     #

@@ -7,19 +7,15 @@ module SpecForge
 
       def initialize(request)
         @request = request
-
-        base_url = request.base_url
-        content_type = request.content_type
-
-        @adapter = Backend.new(base_url:, content_type:)
+        @adapter = Backend.new(request)
       end
 
       def call
         @adapter.public_send(
           request.http_verb,
           request.url,
-          query: request.query.transform_values(&:result),
-          body: request.body.transform_values(&:result)
+          query: request.query.transform_values(&:resolve),
+          body: request.body.transform_values(&:resolve)
         )
       end
     end

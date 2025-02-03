@@ -136,7 +136,7 @@ RSpec.describe SpecForge::Attribute do
     end
   end
 
-  describe "#result" do
+  describe "#resolve" do
     let(:input) do
       [
         "faker.number.positive",
@@ -155,10 +155,10 @@ RSpec.describe SpecForge::Attribute do
       ]
     end
 
-    subject(:result) { described_class.from(input).result }
+    subject(:resolved) { described_class.from(input).resolve }
 
     it "recursively converts the attributes and returns the result" do
-      expect(result).to match([
+      expect(resolved).to match([
         be_kind_of(Numeric),
         [
           be_kind_of(Numeric),
