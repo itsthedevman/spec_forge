@@ -1,13 +1,63 @@
 # frozen_string_literal: true
 
 RSpec.describe SpecForge::Spec::Expectation do
-  describe "#compile" do
-    let(:input) {}
-    let(:request) { SpecForge::HTTP::Request.new }
+  describe "#initialize" do
+    let(:input) { {} }
+    let(:global_options) { {} }
 
     subject(:expectation) do
-      described_class.new(input, "expectation_name")
-        .compile(request)
+      described_class.new("expectation_name", input, global_options:)
+    end
+
+    context "when 'global_options' is provided" do
+      let(:input) do
+        {
+          path: "/users/admin",
+          method: "GET",
+          content_type: "application/xml",
+          query: {
+            query_2: 3
+          },
+          body: {
+            body_1: 3
+          },
+          variables: {
+            var_2: 3
+          },
+          expect: {}
+        }
+      end
+
+      let(:global_options) do
+        {
+          path: "/users",
+          method: "POST",
+          content_type: "application/json",
+          query: {
+            query_1: 1,
+            query_2: 2
+          },
+          body: {
+            body_1: 1,
+            body_2: 2
+          },
+          variables: {
+            var_1: 1,
+            var_2: 2
+          }
+        }
+      end
+
+      it "is expected to been deeply overwritten by the input" do
+      end
+    end
+  end
+
+  describe "#compile" do
+    let(:input) {}
+
+    subject(:expectation) do
+      described_class.new("expectation_name", input).compile
     end
 
     context "when input is an empty hash" do

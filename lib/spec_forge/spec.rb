@@ -73,34 +73,15 @@ module SpecForge
 
     ############################################################################
 
-    # Internal
-    attr_reader :file_path
-
-    # User defined
-    attr_reader :name, :expectations, :request
+    attr_reader :name, :file_path, :expectations
 
     def initialize(**options)
-      @name = options[:name]
-      @file_path = options[:file_path]
-      @request = HTTP::Request.new(**options)
+      @name = options.delete(:name)
+      @file_path = options.delete(:file_path)
 
-      variables = options[:variables] || {}
-      if !variables.is_a?(Hash)
-        raise InvalidTypeError.new(variables, Hash, for: "'variables' on spec")
-      end
+      validate_variables(options)
 
-      # Do not default
-      expectations = options[:expectations]
-      if !expectations.is_a?(Array)
-        raise InvalidTypeError.new(expectations, Array, for: "'expectations' on spec")
-      end
-
-      @expectations =
-        expectations.map.with_index do |input, index|
-          merge_variables(input, variables)
-
-          Expectation.new(input, "#{name}.expectations.#{index + 1}")
-        end
+      @expectations = normalize_expectations(options)
     end
 
     def register_and_run
@@ -114,7 +95,7 @@ module SpecForge
 
       # Build the expectations, this can cause a failure
       expectations.each_with_index do |expectation, index|
-        expectation.compile(request)
+        expectation.compile
       rescue => error
         failures << [expectation, error]
       end
@@ -158,15 +139,24 @@ module SpecForge
 
     private
 
-    def merge_variables(input, variables)
-      return unless input.is_a?(Hash) && variables.size > 0
+    def validate_variables(options)
+      variables = options[:variables] || {}
+      return if variables.is_a?(Hash)
 
-      input[:variables] =
-        if input[:variables]
-          variables.merge(input[:variables] || {})
-        else
-          variables
-        end
+      raise InvalidTypeError.new(variables, Hash, for: "'variables' on spec")
+    end
+
+    def normalize_expectations(options)
+      # Do not default - this is required
+      expectations = options.delete(:expectations)
+
+      if !expectations.is_a?(Array)
+        raise InvalidTypeError.new(expectations, Array, for: "'expectations' on spec")
+      end
+
+      expectations.map.with_index do |input, index|
+        Expectation.new("#{name}.expectations.#{index + 1}", input, global_options: options)
+      end
     end
   end
 end

@@ -37,13 +37,6 @@ module SpecForge
         super(base_url:, url:, http_method:, content_type:, query:, body:, authorization:)
       end
 
-      def overlay(variables, **input)
-        query = normalize_query(input, variables:)
-        body = normalize_body(content_type, input, variables:)
-
-        with(query: self.query.merge(query), body: self.body.merge(body))
-      end
-
       def http_verb
         http_method.name.downcase
       end
@@ -76,19 +69,19 @@ module SpecForge
         raise ArgumentError, "Invalid content type: #{type.inspect}"
       end
 
-      def normalize_query(options, variables: {})
+      def normalize_query(options)
         query = options[:query] || options[:params] || {}
         raise InvalidTypeError.new(query, Hash, for: "'query'") unless query.is_a?(Hash)
 
-        Attribute.transform_hash_values(query, variables)
+        Attribute.transform_hash_values(query, options[:variables])
       end
 
-      def normalize_body(content_type, options, variables: {})
+      def normalize_body(content_type, options)
         body = options[:body] || options[:data] || {}
 
         case content_type
         when "application/json"
-          validate_and_transform_hash(body, variables)
+          validate_and_transform_hash(body, options[:variables])
         end
       end
 

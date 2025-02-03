@@ -17,33 +17,31 @@ module SpecForge
       # @param input [Hash] A hash containing the various attributes to control the expectation
       # @param name [String] The name of the expectation
       #
-      def initialize(input, name)
-        @input = input
+      def initialize(name, input, global_options: {})
         @name = name
+
+        if !input.is_a?(Hash)
+          raise InvalidTypeError.new(input, Hash, for: "expectation")
+        end
+
+        # This allows defining spec level attributes that can be overwritten by the expectation
+        @input = global_options.deep_merge(input).deep_symbolize_keys
       end
 
       #
       # Builds the expectation and prepares it to be ran
       #
-      # @param request [Request] The request to use when testing
-      #
       # @return [Self]
       #
-      def compile(request)
-        # Only hash is supported
-        if !input.is_a?(Hash)
-          raise InvalidTypeError.new(input, Hash, for: "expectation")
-        end
-
-        @input = input.deep_symbolize_keys
-
+      def compile
         load_name
         load_variables
+
+        # Must be after load_variables
         load_constraints
 
         # Must be last
-        request = request.overlay(variables, **input)
-        @http_client = HTTP::Client.new(request)
+        @http_client = HTTP::Client.new(variables:, **input.except(:name, :variables, :expect))
 
         self
       end

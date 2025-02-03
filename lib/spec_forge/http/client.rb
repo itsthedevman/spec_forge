@@ -5,8 +5,8 @@ module SpecForge
     class Client
       attr_reader :request
 
-      def initialize(request)
-        @request = request
+      def initialize(**)
+        @request = Request.new(**)
         @adapter = Backend.new(request)
       end
 

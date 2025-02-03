@@ -86,7 +86,7 @@ RSpec.describe SpecForge::Spec do
           end
 
           it "passes them into the expectations" do
-            expect(spec.expectations.first.input).to match(expect: {status: 200}, variables:)
+            expect(spec.expectations.first.input).to include(expect: {status: 200}, variables:)
           end
         end
 
@@ -96,7 +96,7 @@ RSpec.describe SpecForge::Spec do
           end
 
           it "is expected to merge and be overwritten by the expectation variables" do
-            expect(spec.expectations.first.input).to match(
+            expect(spec.expectations.first.input).to include(
               expect: {status: 200},
               variables: {id: 2, name: "Billy"}
             )
