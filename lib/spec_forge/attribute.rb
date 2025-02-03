@@ -10,6 +10,9 @@ require_relative "attribute/matcher"
 require_relative "attribute/transform"
 require_relative "attribute/variable"
 
+# Delegator
+require_relative "attribute/resolvable"
+
 module SpecForge
   class Attribute
     #
