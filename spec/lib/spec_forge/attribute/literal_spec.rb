@@ -55,5 +55,49 @@ RSpec.describe SpecForge::Attribute::Literal do
         expect(value).to eq(input)
       end
     end
+
+    context "when input is a string and it has regex like syntax" do
+      context "and it is empty" do
+        let(:input) { "//" }
+
+        it { expect(value).to be_kind_of(String) }
+      end
+
+      context "and it has no flags" do
+        let(:input) { "/hello_world/" }
+
+        it { expect(value).to be_kind_of(Regexp) }
+      end
+
+      context "and it has the lowercase flag" do
+        let(:input) { "/hello_world/i" }
+
+        it { expect(value).to be_kind_of(Regexp) }
+      end
+
+      context "and it has the multiline flag" do
+        let(:input) { "/hello_world/m" }
+
+        it { expect(value).to be_kind_of(Regexp) }
+      end
+
+      context "and it has the extended flag" do
+        let(:input) { "/hello_world/x" }
+
+        it { expect(value).to be_kind_of(Regexp) }
+      end
+
+      context "and it has the no encoding flag" do
+        let(:input) { "/hello_world/n" }
+
+        it { expect(value).to be_kind_of(Regexp) }
+      end
+
+      context "and it has all flags" do
+        let(:input) { "/hello_world/ximn" }
+
+        it { expect(value).to be_kind_of(Regexp) }
+      end
+    end
   end
 end
