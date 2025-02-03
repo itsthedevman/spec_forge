@@ -20,7 +20,7 @@ module SpecForge
             raise InvalidTypeError.new(json, Hash, for: "'json' on constraint")
           end
 
-          super(status:, json:)
+          super(status:, json: Attribute::Resolvable.new(json))
         end
       end
     end
