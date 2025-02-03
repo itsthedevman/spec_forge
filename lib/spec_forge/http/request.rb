@@ -45,7 +45,7 @@ module SpecForge
       end
 
       def http_verb
-        http_method.verb.downcase
+        http_method.name.downcase
       end
 
       private
