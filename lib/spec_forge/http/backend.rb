@@ -3,10 +3,15 @@
 module SpecForge
   module HTTP
     class Backend
-      attr_reader :options
-
-      def initialize(**options)
-        @options = options
+      def initialize(request)
+        @connection = Faraday.new(
+          url: request.base_url,
+          params: request.query.resolve,
+          headers: {
+            "Content-Type" => request.content_type.to_s,
+            request.authorization[:header] => request.authorization[:value]
+          }
+        )
       end
 
       def delete(url, query: {}, body: {})
