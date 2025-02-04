@@ -219,5 +219,34 @@ RSpec.describe SpecForge::Normalizer do
         end
       end
     end
+
+    context "Normalizing Constraints" do
+      let(:constraint) { expectation[:expect] }
+
+      subject(:normalized_constraint) { normalized[:expectations].first[:expect] }
+
+      context "when 'status' is not an Integer" do
+        before do
+          constraint[:status] = nil
+        end
+
+        it do
+          expect { normalized }.to raise_error(
+            SpecForge::InvalidStructureError,
+            "Expected Integer, got NilClass for \"status\" on expect (item 0)"
+          )
+        end
+      end
+
+      context "when 'json' is not a Hash" do
+        before do
+          constraint[:json] = nil
+        end
+
+        it "is expected to default to an empty hash" do
+          expect(normalized_constraint[:json]).to eq({})
+        end
+      end
+    end
   end
 end

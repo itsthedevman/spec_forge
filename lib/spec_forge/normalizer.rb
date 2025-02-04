@@ -119,7 +119,7 @@ module SpecForge
               output: normalized_constraint,
               errors:,
               structure: CONSTRAINT_STRUCTURE,
-              label: "expect"
+              label: "expect (item #{index})"
             )
           end
 
