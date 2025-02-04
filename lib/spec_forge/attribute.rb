@@ -23,9 +23,8 @@ module SpecForge
     #
     # @return [Hash] Hash with values transformed into Attributes and updated with variables
     #
-    def self.transform_hash_values(hash, variables = {})
-      hash.transform_values { |v| from(v) }
-        .each_value { |v| Variable.update_value!(v, variables) }
+    def self.update_hash_values(hash, variables = {})
+      hash.each_value { |v| Variable.update_value!(v, variables) }
     end
 
     #
@@ -40,11 +39,11 @@ module SpecForge
       case value
       when String
         from_string(value)
-      when Hash
+      when Hash, ResolvableHash
         from_hash(value)
       when Attribute
         value
-      when Array
+      when Array, ResolvableArray
         array = value.map { |v| Attribute.from(v) }
         Attribute::ResolvableArray.new(array)
       else

@@ -10,9 +10,9 @@ module SpecForge
         arguments = metadata.second
 
         case arguments
-        when Array
+        when Array, ResolvableArray
           new(input, arguments)
-        when Hash
+        when Hash, ResolvableHash
           # Offset for positional arguments. No support for both at this time
           new(input, [], arguments)
         else

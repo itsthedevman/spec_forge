@@ -79,7 +79,6 @@ module SpecForge
 
       normalize_spec(output:, errors:)
       normalize_expectations(output:, errors:)
-
       raise InvalidStructureError.new(errors) if errors.size > 0
 
       Attribute::ResolvableHash.new(output)

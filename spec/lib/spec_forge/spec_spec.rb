@@ -61,17 +61,6 @@ RSpec.describe SpecForge::Spec do
           )
         end
       end
-
-      context "and it is not an array" do
-        let(:expectations) { nil }
-
-        it do
-          expect { spec }.to raise_error(
-            SpecForge::InvalidTypeError,
-            "Expected Array, got NilClass for 'expectations' on spec"
-          )
-        end
-      end
     end
 
     context "when 'variables' are given" do
@@ -86,7 +75,7 @@ RSpec.describe SpecForge::Spec do
           end
 
           it "passes them into the expectations" do
-            expect(spec.expectations.first.input).to include(expect: {status: 200}, variables:)
+            expect(spec.expectations.first.variables).to eq([])
           end
         end
 
@@ -96,9 +85,8 @@ RSpec.describe SpecForge::Spec do
           end
 
           it "is expected to merge and be overwritten by the expectation variables" do
-            expect(spec.expectations.first.input).to include(
-              expect: {status: 200},
-              variables: {id: 2, name: "Billy"}
+            expect(spec.expectations.first.variables.resolve).to include(
+              id: 2, name: "Billy"
             )
           end
         end

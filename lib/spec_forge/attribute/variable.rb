@@ -8,9 +8,9 @@ module SpecForge
 
       def self.update_value!(value, variables)
         case value
-        when Array
+        when Array, ResolvableArray
           value.each { |v| update_value!(v, variables) }
-        when Hash
+        when Hash, ResolvableHash
           value.each_value { |v| update_value!(v, variables) }
         when self
           value.update_value!(variables)
@@ -33,7 +33,7 @@ module SpecForge
       end
 
       def update_value!(lookup_table)
-        if !lookup_table.is_a?(Hash)
+        if !(lookup_table.is_a?(Hash) || lookup_table.is_a?(ResolvableHash))
           raise InvalidTypeError.new(lookup_table, Hash, for: "'variables'")
         end
 
@@ -78,7 +78,7 @@ module SpecForge
       end
 
       def hash_key?(object, key)
-        object.is_a?(Hash) && object.key?(key.to_sym)
+        (object.is_a?(Hash) || object.is_a?(ResolvableHash)) && object.key?(key.to_sym)
       end
 
       def method?(object, method_name)
@@ -86,7 +86,7 @@ module SpecForge
       end
 
       def index?(object, step)
-        object.is_a?(Array) && step.match?(NUMBER_REGEX)
+        (object.is_a?(Array) || object.is_a?(ResolvableArray)) && step.match?(NUMBER_REGEX)
       end
     end
   end

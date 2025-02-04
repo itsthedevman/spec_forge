@@ -75,32 +75,26 @@ module SpecForge
 
     attr_reader :name, :file_path, :expectations
 
-    def initialize(**options)
-      @name = options.delete(:name)
-      @file_path = options.delete(:file_path)
+    def initialize(**input)
+      @name = input.delete(:name)
+      @file_path = input.delete(:file_path)
 
-      validate_variables(options)
+      input = Normalizer.new(input).normalize
+      global_options = input.except(:expectations)
 
-      @expectations = normalize_expectations(options)
+      @expectations =
+        input[:expectations].map.with_index do |expectation_input, index|
+          Expectation.new(
+            "#{name}.expectations.#{index + 1}",
+            expectation_input,
+            global_options:
+          )
+        end
     end
 
     def register_and_run
-      compile
       register_with_rspec
       run
-    end
-
-    def compile
-      failures = []
-
-      # Build the expectations, this can cause a failure
-      expectations.each_with_index do |expectation, index|
-        expectation.compile
-      rescue => error
-        failures << [expectation, error]
-      end
-
-      self.class.handle_failures!(failures) if failures.present?
     end
 
     def register_with_rspec
@@ -135,28 +129,6 @@ module SpecForge
       puts "Status: #{status}"
       # puts "STDOUT: #{stdout.read}"
       # puts "STDERR: #{stderr.read}"
-    end
-
-    private
-
-    def validate_variables(options)
-      variables = options[:variables] || {}
-      return if variables.is_a?(Hash)
-
-      raise InvalidTypeError.new(variables, Hash, for: "'variables' on spec")
-    end
-
-    def normalize_expectations(options)
-      # Do not default - this is required
-      expectations = options.delete(:expectations)
-
-      if !expectations.is_a?(Array)
-        raise InvalidTypeError.new(expectations, Array, for: "'expectations' on spec")
-      end
-
-      expectations.map.with_index do |input, index|
-        Expectation.new("#{name}.expectations.#{index + 1}", input, global_options: options)
-      end
     end
   end
 end

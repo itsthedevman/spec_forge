@@ -5,11 +5,7 @@ require_relative "expectation/constraint"
 module SpecForge
   class Spec
     class Expectation
-      # Internal
-      attr_reader :input, :file_path, :http_client
-
-      # User defined (rest are in available via :http_client)
-      attr_reader :name, :variables, :constraints
+      attr_reader :name, :variables, :constraints, :http_client
 
       #
       # Creates a new Expectation
@@ -20,30 +16,17 @@ module SpecForge
       def initialize(name, input, global_options: {})
         @name = name
 
-        if !input.is_a?(Hash)
-          raise InvalidTypeError.new(input, Hash, for: "expectation")
-        end
-
         # This allows defining spec level attributes that can be overwritten by the expectation
-        @input = global_options.deep_merge(input).deep_symbolize_keys
-      end
+        input = overlay_options(input, global_options)
 
-      #
-      # Builds the expectation and prepares it to be ran
-      #
-      # @return [Self]
-      #
-      def compile
-        load_name
-        load_variables
+        load_name(input)
+        load_variables(input)
 
         # Must be after load_variables
-        load_constraints
+        load_constraints(input)
 
         # Must be last
         @http_client = HTTP::Client.new(variables:, **input.except(:name, :variables, :expect))
-
-        self
       end
 
       #
@@ -75,31 +58,23 @@ module SpecForge
 
       private
 
-      def load_name
+      def overlay_options(input, global_options)
+
+      end
+
+      def load_name(input)
         name = input[:name]
         return if name.blank?
 
         @name = name
       end
 
-      def load_variables
-        variables = input[:variables] || {}
-
-        if !variables.is_a?(Hash)
-          raise InvalidTypeError.new(variables, Hash, for: "'variables' on expectation")
-        end
-
-        @variables = Attribute.transform_hash_values(variables)
+      def load_variables(input)
+        @variables = input[:variables]
       end
 
-      def load_constraints
-        constraints = input[:expect]
-
-        if !constraints.is_a?(Hash)
-          raise InvalidTypeError.new(constraints, Hash, for: "'expect' on expectation")
-        end
-
-        constraints = Attribute.transform_hash_values(constraints, variables)
+      def load_constraints(input)
+        constraints = Attribute.update_hash_values(input[:expect], variables)
         @constraints = Constraint.new(**constraints)
       end
     end

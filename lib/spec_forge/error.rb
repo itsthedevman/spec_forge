@@ -50,9 +50,9 @@ module SpecForge
     def initialize(step, object)
       valid_operations =
         case object
-        when Array
+        when Array, ResolvableArray
           "Array index (0, 1, 2, etc.) or any Array methods (first, last, size, etc.)"
-        when Hash
+        when Hash, ResolvableHash
           "Any Hash key: #{object.keys.join(", ")}"
         else
           "Any method available on #{object.class}"
@@ -79,6 +79,16 @@ module SpecForge
   class MissingVariableError < Error
     def initialize(variable_name)
       super("Undefined variable \"#{variable_name}\" referenced in expectation")
+    end
+  end
+
+  class InvalidStructureError < Error
+    def initialize(errors)
+      message = errors.join_map("\n") do |error|
+        error.message
+      end
+
+      super(message)
     end
   end
 end
