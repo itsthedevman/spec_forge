@@ -5,7 +5,7 @@ RSpec.describe SpecForge::Normalizer do
     let(:expectation) do
       {
         url: Faker::String.random,
-        method: SpecForge::HTTP::Verb::VERBS.keys.sample.to_s,
+        http_method: SpecForge::HTTP::Verb::VERBS.keys.sample.to_s,
         content_type: Faker::String.random,
         query: {
           query_1: Faker::String.random,
@@ -32,7 +32,7 @@ RSpec.describe SpecForge::Normalizer do
     let(:spec) do
       {
         url: Faker::String.random,
-        method: Faker::String.random,
+        http_method: Faker::String.random,
         content_type: Faker::String.random,
         query: {
           query_1: Faker::String.random,
@@ -52,6 +52,52 @@ RSpec.describe SpecForge::Normalizer do
 
     subject(:normalized) { described_class.new(spec).normalize }
 
+    it "is expected to resolve fully" do
+      expect(normalized.resolve).to match(
+        url: be_kind_of(String),
+        http_method: be_kind_of(String),
+        content_type: be_kind_of(String),
+        query: {
+          query_1: be_kind_of(String),
+          query_2: be_kind_of(String)
+        },
+        body: {
+          body_1: be_kind_of(String),
+          body_2: be_kind_of(String)
+        },
+        variables: {
+          variable_1: be_kind_of(String),
+          variable_2: be_kind_of(String)
+        },
+        expectations: [
+          include(
+            url: be_kind_of(String),
+            http_method: be_kind_of(String),
+            content_type: be_kind_of(String),
+            query: {
+              query_1: be_kind_of(String),
+              query_2: be_kind_of(String)
+            },
+            body: {
+              body_1: be_kind_of(String),
+              body_2: be_kind_of(String)
+            },
+            variables: {
+              variable_1: be_kind_of(String),
+              variable_2: be_kind_of(String)
+            },
+            expect: {
+              status: be_kind_of(Integer),
+              json: {
+                json_1: be_kind_of(String),
+                json_2: be_kind_of(String)
+              }
+            }
+          )
+        ]
+      )
+    end
+
     context "Normalizing Spec" do
       context "when 'url' is not a String" do
         before do
@@ -63,17 +109,17 @@ RSpec.describe SpecForge::Normalizer do
         end
       end
 
-      context "when 'method' is not a String" do
+      context "when 'http_method' is not a String" do
         before do
-          spec[:method] = nil
+          spec[:http_method] = nil
         end
 
         it "is expected to default to 'GET'" do
-          expect(normalized[:method]).to eq("GET")
+          expect(normalized[:http_method]).to eq("GET")
 
           # Ensure the value is disconnected from the default
-          default_value = described_class::SPEC_STRUCTURE[:method][:default]
-          expect(default_value).not_to eq(normalized[:method].object_id)
+          default_value = described_class::SPEC_STRUCTURE[:http_method][:default]
+          expect(default_value).not_to eq(normalized[:http_method].object_id)
         end
       end
 
@@ -148,17 +194,17 @@ RSpec.describe SpecForge::Normalizer do
         end
       end
 
-      context "when 'method' is not a String" do
+      context "when 'http_method' is not a String" do
         before do
-          expectation[:method] = nil
+          expectation[:http_method] = nil
         end
 
         it "is expected to default to 'GET'" do
-          expect(normalized_expectation[:method]).to eq("GET")
+          expect(normalized_expectation[:http_method]).to eq("GET")
 
           # Ensure the value is disconnected from the default
-          default_value = described_class::EXPECTATION_STRUCTURE[:method][:default]
-          expect(default_value).not_to eq(normalized_expectation[:method].object_id)
+          default_value = described_class::EXPECTATION_STRUCTURE[:http_method][:default]
+          expect(default_value).not_to eq(normalized_expectation[:http_method].object_id)
         end
       end
 
@@ -246,6 +292,44 @@ RSpec.describe SpecForge::Normalizer do
         it "is expected to default to an empty hash" do
           expect(normalized_constraint[:json]).to eq({})
         end
+      end
+    end
+
+    context "when aliases are used" do
+      before do
+        spec[:path] = spec.delete(:url)
+        spec[:method] = spec.delete(:http_method)
+        spec[:type] = spec.delete(:content_type)
+        spec[:params] = spec.delete(:query)
+        spec[:data] = spec.delete(:body)
+
+        expectation[:path] = expectation.delete(:url)
+        expectation[:method] = expectation.delete(:http_method)
+        expectation[:type] = expectation.delete(:content_type)
+        expectation[:params] = expectation.delete(:query)
+        expectation[:data] = expectation.delete(:body)
+      end
+
+      it "normalizes them" do
+        expect(normalized.resolve).to include(
+          url: spec[:path],
+          http_method: spec[:method],
+          content_type: spec[:type],
+          query: spec[:params],
+          body: spec[:data],
+          variables: spec[:variables],
+          expectations: [
+            include(
+              url: expectation[:path],
+              http_method: expectation[:method],
+              content_type: expectation[:type],
+              query: expectation[:params],
+              body: expectation[:data],
+              variables: expectation[:variables],
+              expect: expectation[:expect]
+            )
+          ]
+        )
       end
     end
   end

@@ -8,9 +8,9 @@ module SpecForge
         aliases: %i[path],
         default: ""
       },
-      method: {
+      http_method: {
         type: String,
-        aliases: %i[http_method],
+        aliases: %i[method],
         default: "GET"
       },
       content_type: {
@@ -36,7 +36,7 @@ module SpecForge
 
     SPEC_STRUCTURE = {
       url: SHARED_ATTRIBUTES[:url],
-      method: SHARED_ATTRIBUTES[:method],
+      http_method: SHARED_ATTRIBUTES[:http_method],
       content_type: SHARED_ATTRIBUTES[:content_type],
       query: SHARED_ATTRIBUTES[:query],
       body: SHARED_ATTRIBUTES[:body],
@@ -48,7 +48,7 @@ module SpecForge
 
     EXPECTATION_STRUCTURE = {
       url: SHARED_ATTRIBUTES[:url],
-      method: SHARED_ATTRIBUTES[:method],
+      http_method: SHARED_ATTRIBUTES[:http_method],
       content_type: SHARED_ATTRIBUTES[:content_type],
       query: SHARED_ATTRIBUTES[:query],
       body: SHARED_ATTRIBUTES[:body],
@@ -82,7 +82,7 @@ module SpecForge
 
       raise InvalidStructureError.new(errors) if errors.size > 0
 
-      output
+      Attribute::ResolvableHash.new(output)
     end
 
     private
@@ -99,7 +99,7 @@ module SpecForge
     def normalize_expectations(output:, errors:)
       input = @user_input[:expectations] || []
 
-      output[:expectations] =
+      expectations =
         input.map.with_index do |expectation, index|
           normalized_expectation = {}
           normalized_constraint = {}
@@ -123,10 +123,11 @@ module SpecForge
             )
           end
 
-          # Get around Attribute converting Hash to Literal
           normalized_expectation[:expect] = normalized_constraint
-          normalized_expectation
+          Attribute.from(normalized_expectation)
         end
+
+      output[:expectations] = Attribute::ResolvableArray.new(expectations)
     end
 
     def normalize_to_structure(input, output:, errors:, structure:, label:)
