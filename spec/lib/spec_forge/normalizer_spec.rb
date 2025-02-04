@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 RSpec.describe SpecForge::Normalizer do
-  describe "#normalized" do
+  describe ".normalize" do
     let(:expectation) do
       {
         url: Faker::String.random,
@@ -50,52 +50,45 @@ RSpec.describe SpecForge::Normalizer do
       }
     end
 
-    subject(:normalized) { described_class.new(spec).normalize }
+    subject(:normalized) { described_class.normalize(spec) }
 
     it "is expected to resolve fully" do
-      expect(normalized.resolve).to match(
-        url: be_kind_of(String),
-        http_method: be_kind_of(String),
-        content_type: be_kind_of(String),
-        query: {
-          query_1: be_kind_of(String),
-          query_2: be_kind_of(String)
-        },
-        body: {
-          body_1: be_kind_of(String),
-          body_2: be_kind_of(String)
-        },
-        variables: {
-          variable_1: be_kind_of(String),
-          variable_2: be_kind_of(String)
-        },
-        expectations: [
-          include(
-            url: be_kind_of(String),
-            http_method: be_kind_of(String),
-            content_type: be_kind_of(String),
-            query: {
-              query_1: be_kind_of(String),
-              query_2: be_kind_of(String)
-            },
-            body: {
-              body_1: be_kind_of(String),
-              body_2: be_kind_of(String)
-            },
-            variables: {
-              variable_1: be_kind_of(String),
-              variable_2: be_kind_of(String)
-            },
-            expect: {
-              status: be_kind_of(Integer),
-              json: {
-                json_1: be_kind_of(String),
-                json_2: be_kind_of(String)
-              }
-            }
-          )
-        ]
-      )
+      resolved = normalized.resolve
+
+      expect(resolved[:url]).to be_kind_of(String)
+      expect(resolved[:http_method]).to be_kind_of(String)
+      expect(resolved[:content_type]).to be_kind_of(String)
+      expect(resolved[:query]).to be_kind_of(Hash)
+      expect(resolved[:query][:query_1]).to be_kind_of(String)
+      expect(resolved[:query][:query_2]).to be_kind_of(String)
+      expect(resolved[:body]).to be_kind_of(Hash)
+      expect(resolved[:body][:body_1]).to be_kind_of(String)
+      expect(resolved[:body][:body_2]).to be_kind_of(String)
+      expect(resolved[:variables]).to be_kind_of(Hash)
+      expect(resolved[:variables][:variable_1]).to be_kind_of(String)
+      expect(resolved[:variables][:variable_2]).to be_kind_of(String)
+      expect(resolved[:expectations]).to be_kind_of(Array)
+
+      expectation = resolved[:expectations].first
+      expect(expectation[:url]).to be_kind_of(String)
+      expect(expectation[:http_method]).to be_kind_of(String)
+      expect(expectation[:content_type]).to be_kind_of(String)
+      expect(expectation[:query]).to be_kind_of(Hash)
+      expect(expectation[:query][:query_1]).to be_kind_of(String)
+      expect(expectation[:query][:query_2]).to be_kind_of(String)
+      expect(expectation[:body]).to be_kind_of(Hash)
+      expect(expectation[:body][:body_1]).to be_kind_of(String)
+      expect(expectation[:body][:body_2]).to be_kind_of(String)
+      expect(expectation[:variables]).to be_kind_of(Hash)
+      expect(expectation[:variables][:variable_1]).to be_kind_of(String)
+      expect(expectation[:variables][:variable_2]).to be_kind_of(String)
+      expect(expectation[:expect]).to be_kind_of(Hash)
+
+      constraint = expectation[:expect]
+      expect(constraint[:status]).to be_kind_of(Integer)
+      expect(constraint[:json]).to be_kind_of(Hash)
+      expect(constraint[:json][:json_1]).to be_kind_of(String)
+      expect(constraint[:json][:json_2]).to be_kind_of(String)
     end
 
     context "Normalizing Spec" do

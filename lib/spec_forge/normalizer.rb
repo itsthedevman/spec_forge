@@ -68,68 +68,91 @@ module SpecForge
       }
     }.freeze
 
-    # Go through and convert any aliases to the expected name
-    # Convert any attributes to Attribute
-    def initialize(user_input)
-      @user_input = user_input
+    STRUCTURE = {}
+
+    class Spec < Normalizer
+      STRUCTURE = Normalizer::SPEC_STRUCTURE
+    end
+
+    class Expectation < Normalizer
+      STRUCTURE = Normalizer::EXPECTATION_STRUCTURE
+    end
+
+    class Constraint < Normalizer
+      STRUCTURE = Normalizer::CONSTRAINT_STRUCTURE
+    end
+
+    def self.normalize(input)
+      output, errors = normalize_spec(input)
+
+      if (expectations = input[:expectations])
+        expectation_output, expectation_errors = normalize_expectations(expectations)
+
+        output[:expectations] = expectation_output
+        errors += expectation_errors if expectation_errors.size > 0
+      end
+
+      raise InvalidStructureError.new(errors) if errors.size > 0
+
+      Attribute.from(output)
+    end
+
+    def self.normalize_spec(spec)
+      raise InvalidTypeError.new(spec, Hash, for: "spec") if !spec.is_a?(Hash)
+
+      Normalizer::Spec.new("spec", spec).normalize
+    end
+
+    def self.normalize_expectations(expectations)
+      if !expectations.is_a?(Array)
+        raise InvalidTypeError.new(expectations, Array, for: "\"expectations\" on spec")
+      end
+
+      final_errors = []
+      final_output = expectations.map.with_index do |expectation, index|
+        normalizer = Normalizer::Expectation.new("expectation (item #{index})", expectation)
+        output, errors = normalizer.normalize
+
+        # If expect is not provided, skip the constraints
+        if (constraint = expectation[:expect])
+          constraint_output, constraint_errors = Normalizer::Constraint.new(
+            "expect (item #{index})", constraint
+          ).normalize
+
+          output[:expect] = constraint_output
+          errors += constraint_errors if constraint_errors.size > 0
+        end
+
+        final_errors += errors if errors.size > 0
+        output
+      end
+
+      [final_output, final_errors]
+    end
+
+    def self.normalize_constraint(constraint)
+      raise InvalidTypeError.new(constraint, Hash, for: "expect") if !constraint.is_a?(Hash)
+
+      Normalizer::Constraint.new("expect", constraint).normalize
+    end
+
+    attr_reader :label, :input, :structure
+
+    def initialize(label, input)
+      @label = label
+      @input = input
+      @structure = self.class::STRUCTURE
     end
 
     def normalize
+      normalize_to_structure
+    end
+
+    protected
+
+    def normalize_to_structure
       output, errors = {}, []
 
-      normalize_spec(output:, errors:)
-      normalize_expectations(output:, errors:)
-      raise InvalidStructureError.new(errors) if errors.size > 0
-
-      Attribute::ResolvableHash.new(output)
-    end
-
-    private
-
-    def normalize_spec(output:, errors:)
-      normalize_to_structure(
-        @user_input,
-        output:, errors:,
-        structure: SPEC_STRUCTURE,
-        label: "spec"
-      )
-    end
-
-    def normalize_expectations(output:, errors:)
-      input = @user_input[:expectations] || []
-
-      expectations =
-        input.map.with_index do |expectation, index|
-          normalized_expectation = {}
-          normalized_constraint = {}
-
-          normalize_to_structure(
-            expectation,
-            output: normalized_expectation,
-            errors:,
-            structure: EXPECTATION_STRUCTURE,
-            label: "expectation (item #{index})"
-          )
-
-          # If expect is not provided, skip attempting to constraints
-          if (input = expectation[:expect])
-            normalize_to_structure(
-              input,
-              output: normalized_constraint,
-              errors:,
-              structure: CONSTRAINT_STRUCTURE,
-              label: "expect (item #{index})"
-            )
-          end
-
-          normalized_expectation[:expect] = normalized_constraint
-          Attribute.from(normalized_expectation)
-        end
-
-      output[:expectations] = Attribute::ResolvableArray.new(expectations)
-    end
-
-    def normalize_to_structure(input, output:, errors:, structure:, label:)
       structure.each do |key, attribute|
         type_class = attribute[:type]
         aliases = attribute[:aliases] || []
@@ -152,6 +175,8 @@ module SpecForge
       rescue => e
         errors << e
       end
+
+      [output, errors]
     end
 
     def value_from_keys(hash, keys)
