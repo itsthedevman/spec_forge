@@ -7,11 +7,10 @@ require_relative "attribute/parameterized"
 require_relative "attribute/faker"
 require_relative "attribute/literal"
 require_relative "attribute/matcher"
+require_relative "attribute/resolvable_array"
+require_relative "attribute/resolvable_hash"
 require_relative "attribute/transform"
 require_relative "attribute/variable"
-
-# Delegator
-require_relative "attribute/resolvable"
 
 module SpecForge
   class Attribute
@@ -45,6 +44,9 @@ module SpecForge
         from_hash(value)
       when Attribute
         value
+      when Array
+        array = value.map { |v| Attribute.from(v) }
+        Attribute::ResolvableArray.new(array)
       else
         Literal.new(value)
       end
@@ -93,7 +95,7 @@ module SpecForge
         Matcher.from_hash(hash)
       else
         hash = hash.transform_values { |v| Attribute.from(v) }
-        Literal.new(hash)
+        Attribute::ResolvableHash.new(hash)
       end
     end
 
@@ -136,9 +138,9 @@ module SpecForge
     def resolve
       converted_value = value
       case converted_value
-      when Array
+      when Array, ResolvableArray
         converted_value.map(&:resolve)
-      when Hash
+      when Hash, ResolvableHash
         converted_value.transform_values(&:resolve)
       else
         converted_value

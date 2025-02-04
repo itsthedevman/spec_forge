@@ -63,7 +63,7 @@ RSpec.describe SpecForge::Attribute do
       context "and it is not an expanded macro" do
         let(:input) { {foo: "foo", bar: "bar"} }
 
-        it { is_expected.to be_kind_of(described_class::Literal) }
+        it { is_expected.to be_kind_of(described_class::ResolvableHash) }
       end
 
       context "and it has nested attributes" do
@@ -78,7 +78,7 @@ RSpec.describe SpecForge::Attribute do
         end
 
         it "is expected to deeply convert hash values to attributes" do
-          expect(attribute).to be_kind_of(described_class::Literal)
+          expect(attribute).to be_kind_of(described_class::ResolvableHash)
 
           # Lol
           nested_attribute = attribute.value[:key_1].value[:key_2].value[:key_3]
@@ -91,7 +91,7 @@ RSpec.describe SpecForge::Attribute do
       context "and it is simple" do
         let(:input) { [] }
 
-        it { is_expected.to be_kind_of(described_class::Literal) }
+        it { is_expected.to be_kind_of(described_class::ResolvableArray) }
       end
 
       context "and it contains nested attributes" do
@@ -112,7 +112,7 @@ RSpec.describe SpecForge::Attribute do
         end
 
         it "is expected to deeply convert" do
-          expect(attribute).to be_kind_of(described_class::Literal)
+          expect(attribute).to be_kind_of(described_class::ResolvableArray)
 
           expect(attribute.value.first).to be_kind_of(described_class::Faker)
 
