@@ -2,33 +2,31 @@
 
 RSpec.describe SpecForge::Normalizer do
   describe "#normalized" do
-    let(:expectations) do
-      [
-        {
-          url: Faker::String.random,
-          method: SpecForge::HTTP::Verb::VERBS.keys.sample.to_s,
-          content_type: Faker::String.random,
-          query: {
-            query_1: Faker::String.random,
-            query_2: Faker::String.random
-          },
-          body: {
-            body_1: Faker::String.random,
-            body_2: Faker::String.random
-          },
-          variables: {
-            variable_1: Faker::String.random,
-            variable_2: Faker::String.random
-          },
-          expect: {
-            status: 0,
-            json: {
-              json_1: Faker::String.random,
-              json_2: Faker::String.random
-            }
+    let(:expectation) do
+      {
+        url: Faker::String.random,
+        method: SpecForge::HTTP::Verb::VERBS.keys.sample.to_s,
+        content_type: Faker::String.random,
+        query: {
+          query_1: Faker::String.random,
+          query_2: Faker::String.random
+        },
+        body: {
+          body_1: Faker::String.random,
+          body_2: Faker::String.random
+        },
+        variables: {
+          variable_1: Faker::String.random,
+          variable_2: Faker::String.random
+        },
+        expect: {
+          status: 0,
+          json: {
+            json_1: Faker::String.random,
+            json_2: Faker::String.random
           }
         }
-      ]
+      }
     end
 
     let(:spec) do
@@ -48,7 +46,7 @@ RSpec.describe SpecForge::Normalizer do
           variable_1: Faker::String.random,
           variable_2: Faker::String.random
         },
-        expectations:
+        expectations: [expectation]
       }
     end
 
@@ -132,6 +130,91 @@ RSpec.describe SpecForge::Normalizer do
           expect { normalized }.to raise_error(
             SpecForge::InvalidStructureError,
             "Expected Array, got NilClass for \"expectations\" on spec"
+          )
+        end
+      end
+    end
+
+    context "Normalizing Expectations" do
+      subject(:normalized_expectation) { normalized[:expectations].first }
+
+      context "when 'url' is not a String" do
+        before do
+          expectation[:url] = nil
+        end
+
+        it "is expected to default to an empty string" do
+          expect(normalized_expectation[:url]).to eq("")
+        end
+      end
+
+      context "when 'method' is not a String" do
+        before do
+          expectation[:method] = nil
+        end
+
+        it "is expected to default to 'GET'" do
+          expect(normalized_expectation[:method]).to eq("GET")
+
+          # Ensure the value is disconnected from the default
+          default_value = described_class::EXPECTATION_STRUCTURE[:method][:default]
+          expect(default_value).not_to eq(normalized_expectation[:method].object_id)
+        end
+      end
+
+      context "when 'content_type' is not a String" do
+        before do
+          expectation[:content_type] = nil
+        end
+
+        it "is expected to default to 'application/json'" do
+          expect(normalized_expectation[:content_type]).to eq("application/json")
+        end
+      end
+
+      context "when 'query' is not a Hash" do
+        before do
+          expectation[:query] = nil
+        end
+
+        it "is expected to default to an empty hash" do
+          expect(normalized_expectation[:query]).to eq({})
+
+          # Ensure the value is disconnected from the default
+          default_value = described_class::EXPECTATION_STRUCTURE[:query][:default]
+          expect(default_value).not_to eq(normalized_expectation[:query].object_id)
+        end
+      end
+
+      context "when 'body' is not a Hash" do
+        before do
+          expectation[:body] = nil
+        end
+
+        it "is expected to default to an empty hash" do
+          expect(normalized_expectation[:body]).to eq({})
+        end
+      end
+
+      context "when 'variables' is not a Hash" do
+        before do
+          expectation[:variables] = nil
+        end
+
+        it "is expected to default to an empty hash" do
+          expect(normalized_expectation[:variables]).to eq({})
+        end
+      end
+
+      context "when 'expect' is not a Hash" do
+        before do
+          expectation[:expect] = nil
+        end
+
+        it do
+          expect { normalized }.to raise_error(
+            SpecForge::InvalidStructureError,
+            "Expected Hash, got NilClass for \"expect\" on expectation (item 0)"
           )
         end
       end

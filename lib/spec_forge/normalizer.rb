@@ -109,16 +109,19 @@ module SpecForge
             output: normalized_expectation,
             errors:,
             structure: EXPECTATION_STRUCTURE,
-            label: "expectation (item #{index + 1})"
+            label: "expectation (item #{index})"
           )
 
-          normalize_to_structure(
-            expectation[:expect],
-            output: normalized_constraint,
-            errors:,
-            structure: CONSTRAINT_STRUCTURE,
-            label: "expect"
-          )
+          # If expect is not provided, skip attempting to constraints
+          if (input = expectation[:expect])
+            normalize_to_structure(
+              input,
+              output: normalized_constraint,
+              errors:,
+              structure: CONSTRAINT_STRUCTURE,
+              label: "expect"
+            )
+          end
 
           # Get around Attribute converting Hash to Literal
           normalized_expectation[:expect] = normalized_constraint
