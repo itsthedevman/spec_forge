@@ -11,6 +11,13 @@ module SpecForge
           super(status:, json:)
         end
 
+        def resolve
+          {
+            status: status.resolve,
+            json: json.resolve.deep_stringify_keys
+          }
+        end
+
         private
 
         def normalize_hash(hash)
