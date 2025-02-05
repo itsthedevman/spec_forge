@@ -7,15 +7,8 @@ module SpecForge
     end
 
     def run
-      # stdout = StringIO.new
-      # stderr = StringIO.new
-
       RSpec::Core::Runner.disable_autorun!
-      status = RSpec::Core::Runner.run([], $stderr, $stdout).to_i
-
-      puts "Status: #{status}"
-      # puts "STDOUT: #{stdout.read}"
-      # puts "STDERR: #{stderr.read}"
+      RSpec::Core::Runner.run([], $stderr, $stdout)
     end
 
     def define_spec(spec_forge)
@@ -63,25 +56,3 @@ module SpecForge
     end
   end
 end
-
-# def handle_failures!(failures)
-#   # TEMP
-#   # TODO: Improve significantly!
-#   cleaner = SpecForge.backtrace_cleaner
-#   errors = failures.join_map("\n") do |(spec, error)|
-#     backtrace = cleaner.clean(error.backtrace)
-
-#     <<~STRING
-
-#       ---
-#       SpecForge raised an exception:
-#       File: #{spec.file_path}
-#       Spec Name: #{spec.name}
-
-#         #{error}
-#         #{backtrace.join("\n  ")}
-#     STRING
-#   end
-
-#   raise StandardError, errors
-# end
