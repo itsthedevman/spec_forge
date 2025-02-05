@@ -13,4 +13,4 @@ create_user:
       json:
         id: kind_of.integer
         name: variables.name
-        email: test@example.com
+        email: variables.email
