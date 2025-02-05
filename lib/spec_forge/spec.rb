@@ -79,7 +79,7 @@ module SpecForge
       @name = input.delete(:name)
       @file_path = input.delete(:file_path)
 
-      input = Normalizer.new(input).normalize
+      input = Normalizer.normalize(input)
       global_options = input.except(:expectations)
 
       @expectations =

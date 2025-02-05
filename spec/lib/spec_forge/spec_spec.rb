@@ -46,61 +46,18 @@ RSpec.describe SpecForge::Spec do
     end
 
     context "when 'expectations' are given" do
-      context "and it is an array" do
-        let(:expectations) do
-          [
-            {status: 400},
-            {expect: {status: 200}}
-          ]
-        end
-
-        it "stores them in as an Expectation regardless of validity" do
-          expect(spec.expectations).to include(
-            be_kind_of(described_class::Expectation),
-            be_kind_of(described_class::Expectation)
-          )
-        end
-      end
-    end
-
-    context "when 'variables' are given" do
-      context "and it is a hash" do
-        let(:variables) do
-          {id: 1, name: "Billy"}
-        end
-
-        context "and the expectations do not have variables" do
-          let(:expectations) do
-            [{expect: {status: 200}}]
-          end
-
-          it "passes them into the expectations" do
-            expect(spec.expectations.first.variables).to eq([])
-          end
-        end
-
-        context "and the expectations have variables as well" do
-          let(:expectations) do
-            [{expect: {status: 200}, variables: {id: 2}}]
-          end
-
-          it "is expected to merge and be overwritten by the expectation variables" do
-            expect(spec.expectations.first.variables.resolve).to include(
-              id: 2, name: "Billy"
-            )
-          end
-        end
+      let(:expectations) do
+        [
+          {expect: {status: 200}},
+          {expect: {status: 400}}
+        ]
       end
 
-      context "and it is not a hash" do
-        let(:variables) { [] }
-
-        it do
-          expect { spec }.to raise_error(
-            SpecForge::InvalidTypeError,
-            "Expected Hash, got Array for 'variables' on spec"
-          )
-        end
+      it "is expected to convert them to Expectations" do
+        expect(spec.expectations).to include(
+          be_kind_of(described_class::Expectation),
+          be_kind_of(described_class::Expectation)
+        )
       end
     end
   end
