@@ -17,7 +17,7 @@ module SpecForge
         @name = name
 
         # This allows defining spec level attributes that can be overwritten by the expectation
-        input = overlay_options(input, global_options)
+        input = Attribute.from(global_options.deep_merge(input))
 
         load_name(input)
         load_variables(input)
@@ -57,10 +57,6 @@ module SpecForge
       end
 
       private
-
-      def overlay_options(input, global_options)
-
-      end
 
       def load_name(input)
         name = input[:name]
