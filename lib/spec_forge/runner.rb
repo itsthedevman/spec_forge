@@ -32,24 +32,32 @@ module SpecForge
 
     def define_examples(context, expectation)
       context.instance_exec(expectation) do |expectation|
-        subject(:response) { expectation.http_client.call }
+        # Ensures the only one API call happens per expectation
+        before(:all) { @response = expectation.http_client.call }
 
         constraints = expectation.constraints
-        expected_status = constraints.status.resolve
-        expected_json = constraints.json.resolve.deep_stringify_keys
+        request = expectation.http_client.request
 
-        # Status check
-        it "expects the response to return a status code of #{expected_status}" do
-          expect(response.status).to eq(expected_status)
-        end
+        # Define the example group
+        context "#{request.http_method} #{request.url}" do
+          subject(:response) { @response }
 
-        # JSON check
-        if expected_json.size > 0
-          it "expects the body to return JSON" do
-            response_body = response.body
+          # Status check
+          expected_status = constraints.status.resolve
+          it "expects the response to return a status code of #{expected_status}" do
+            expect(response.status).to eq(expected_status)
+          end
 
-            expect(response_body).to be_kind_of(Hash)
-            expect(response_body).to include(expected_json)
+          # JSON check
+          expected_json = constraints.json.resolve.deep_stringify_keys
+          if expected_json.size > 0
+            it "expects the body to return valid JSON" do
+              expect(response.body).to be_kind_of(Hash)
+            end
+
+            it "expects the body to include values" do
+              expect(response.body).to include(expected_json)
+            end
           end
         end
       end
