@@ -11,12 +11,12 @@ module SpecForge
       http_method: {
         type: String,
         aliases: %i[method],
-        default: "GET"
+        default: ""
       },
       content_type: {
         type: String,
         aliases: %i[type],
-        default: "application/json"
+        default: ""
       },
       query: {
         type: Hash,

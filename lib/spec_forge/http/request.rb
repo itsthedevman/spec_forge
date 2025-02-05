@@ -48,7 +48,7 @@ module SpecForge
       end
 
       def normalize_http_method(options)
-        method = options[:http_method].value
+        method = options[:http_method].value.presence || "GET"
 
         if method.is_a?(String)
           Verb.from(method)
@@ -58,7 +58,7 @@ module SpecForge
       end
 
       def normalize_content_type(options)
-        type = options[:content_type].value
+        type = options[:content_type].value.presence || "application/json"
         mime_type = MIME::Types[type].first
         return mime_type if mime_type
 

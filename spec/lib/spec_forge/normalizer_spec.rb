@@ -119,8 +119,8 @@ RSpec.describe SpecForge::Normalizer do
           spec[:http_method] = nil
         end
 
-        it "is expected to default to 'GET'" do
-          expect(normalized[:http_method]).to eq("GET")
+        it "is expected to default to an empty string" do
+          expect(normalized[:http_method]).to eq("")
 
           # Ensure the value is disconnected from the default
           default_value = described_class::SPEC_STRUCTURE[:http_method][:default]
@@ -146,8 +146,8 @@ RSpec.describe SpecForge::Normalizer do
           spec[:content_type] = nil
         end
 
-        it "is expected to default to 'application/json'" do
-          expect(normalized[:content_type]).to eq("application/json")
+        it "is expected to default to an empty string" do
+          expect(normalized[:content_type]).to eq("")
         end
       end
 
@@ -282,8 +282,8 @@ RSpec.describe SpecForge::Normalizer do
           expectation[:http_method] = nil
         end
 
-        it "is expected to default to 'GET'" do
-          expect(normalized_expectation[:http_method]).to eq("GET")
+        it "is expected to default to an empty string" do
+          expect(normalized_expectation[:http_method]).to eq("")
 
           # Ensure the value is disconnected from the default
           default_value = described_class::EXPECTATION_STRUCTURE[:http_method][:default]
@@ -297,7 +297,7 @@ RSpec.describe SpecForge::Normalizer do
         end
 
         it "is expected to default to 'application/json'" do
-          expect(normalized_expectation[:content_type]).to eq("application/json")
+          expect(normalized_expectation[:content_type]).to eq("")
         end
       end
 

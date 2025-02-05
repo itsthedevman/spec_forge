@@ -89,8 +89,8 @@ RSpec.describe SpecForge::Spec::Expectation do
         expect(expectation.variables).to eq(var_1: "data")
 
         expect(request.url).to eq(input[:url])
-        expect(request.http_method).to eq(global_options[:http_method])
-        expect(request.content_type).to eq(input[:content_type])
+        expect(request.http_method).to eq("GET")
+        expect(request.content_type).to eq("application/json")
         expect(request.query).to eq(query_1: "data")
         expect(request.body).to eq(body_1: "data")
       end
