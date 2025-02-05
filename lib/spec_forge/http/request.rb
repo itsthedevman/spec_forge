@@ -72,12 +72,7 @@ module SpecForge
 
       def normalize_body(content_type, options)
         body = options[:body]
-
-        body =
-          case content_type
-          when "application/json"
-            Attribute.update_hash_values(body, options[:variables])
-          end
+        body = Attribute.update_hash_values(body, options[:variables])
 
         Attribute::ResolvableHash.new(body)
       end
