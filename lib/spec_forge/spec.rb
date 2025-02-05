@@ -85,7 +85,7 @@ module SpecForge
       @expectations =
         input[:expectations].map.with_index do |expectation_input, index|
           Expectation.new(
-            "#{name}.expectations.#{index + 1}",
+            "#{name} -> expectations (item #{index})",
             expectation_input,
             global_options:
           )
