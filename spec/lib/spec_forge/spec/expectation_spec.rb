@@ -6,7 +6,11 @@ RSpec.describe SpecForge::Spec::Expectation do
     let(:global_options) { {} }
 
     subject(:expectation) do
-      described_class.new("expectation_name", input, global_options:)
+      described_class.new(
+        "expectation_name",
+        SpecForge::Normalizer.normalize_expectations([input]).flatten.first,
+        global_options: SpecForge::Normalizer.normalize_spec(global_options).first
+      )
     end
 
     context "when 'global_options' is provided" do
@@ -49,25 +53,7 @@ RSpec.describe SpecForge::Spec::Expectation do
       end
 
       it "is expected to been deeply overwritten by the input" do
-      end
-    end
-  end
-
-  describe "#compile" do
-    let(:input) {}
-
-    subject(:expectation) do
-      described_class.new("expectation_name", input).compile
-    end
-
-    context "when input is an empty hash" do
-      let(:input) { {} }
-
-      it do
-        expect { expectation }.to raise_error(
-          SpecForge::InvalidTypeError,
-          "Expected Hash, got NilClass for 'expect' on expectation"
-        )
+        expect(expectation)
       end
     end
 
@@ -76,17 +62,6 @@ RSpec.describe SpecForge::Spec::Expectation do
 
       it "is expected to compile" do
         expect(expectation.constraints.status).to eq(404)
-      end
-    end
-
-    context "when input is not a hash" do
-      let(:input) { "" }
-
-      it do
-        expect { expectation }.to raise_error(
-          SpecForge::InvalidTypeError,
-          "Expected Hash, got String for expectation"
-        )
       end
     end
 
@@ -107,35 +82,20 @@ RSpec.describe SpecForge::Spec::Expectation do
     end
 
     context "when 'variables' is provided" do
-      context "and it is a hash" do
-        let(:input) { {expect: {status: 404}, variables: {foo: "bar"}} }
+      let(:input) { {expect: {status: 404}, variables: {foo: "bar"}} }
 
-        it "is expected to convert the variable attributes" do
-          expect(expectation.variables[:foo]).to be_kind_of(SpecForge::Attribute::Literal)
-        end
-      end
-
-      context "and it not a hash" do
-        let(:input) { {expect: {status: 404}, variables: ""} }
-
-        it do
-          expect { expectation }.to raise_error(
-            SpecForge::InvalidTypeError,
-            "Expected Hash, got String for 'variables' on expectation"
-          )
-        end
+      it "is expected to convert the variable attributes" do
+        expect(expectation.variables[:foo]).to be_kind_of(SpecForge::Attribute::Literal)
       end
     end
 
     context "when 'json' is provided on 'constraints'" do
-      context "and it is a hash" do
-        let(:input) { {expect: {status: 404, json: {key_1: "faker.number.positive"}}} }
+      let(:input) { {expect: {status: 404, json: {key_1: "faker.number.positive"}}} }
 
-        it "is expected to convert into a constraint" do
-          expect(expectation.constraints.status).to eq(404)
-          expect(expectation.constraints.json).to be_kind_of(SpecForge::Attribute::Resolvable)
-          expect(expectation.constraints.json[:key_1]).to be_kind_of(SpecForge::Attribute::Faker)
-        end
+      it "is expected to convert into a constraint" do
+        expect(expectation.constraints.status).to eq(404)
+        expect(expectation.constraints.json).to be_kind_of(SpecForge::Attribute::ResolvableHash)
+        expect(expectation.constraints.json[:key_1]).to be_kind_of(SpecForge::Attribute::Faker)
       end
     end
   end
