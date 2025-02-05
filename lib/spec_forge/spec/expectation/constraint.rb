@@ -6,7 +6,7 @@ module SpecForge
       class Constraint < Data.define(:status, :json) # :xml, :html
         def initialize(**options)
           status = options[:status]
-          json = normalize_hash(options[:json])
+          json = Attribute::ResolvableHash.new(normalize_hash(options[:json]))
 
           super(status:, json:)
         end
