@@ -35,7 +35,7 @@ module SpecForge
         # Ensures the only one API call happens per expectation
         before(:all) { @response = expectation.http_client.call }
 
-        constraints = expectation.constraints
+        constraints = expectation.constraints.resolve
         request = expectation.http_client.request
 
         # Define the example group
@@ -43,13 +43,13 @@ module SpecForge
           subject(:response) { @response }
 
           # Status check
-          expected_status = constraints.status.resolve
+          expected_status = constraints[:status]
           it "expects the response to return a status code of #{expected_status}" do
             expect(response.status).to eq(expected_status)
           end
 
           # JSON check
-          expected_json = constraints.json.resolve.deep_stringify_keys
+          expected_json = constraints[:json]
           if expected_json.size > 0
             it "expects the body to return valid JSON" do
               expect(response.body).to be_kind_of(Hash)
