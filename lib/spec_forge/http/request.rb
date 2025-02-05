@@ -40,7 +40,7 @@ module SpecForge
       private
 
       def extract_base_url(options)
-        options[:base_url].presence || SpecForge.config.base_url
+        options[:base_url]&.value&.presence || SpecForge.config.base_url
       end
 
       def extract_url(options)
