@@ -79,14 +79,30 @@ module SpecForge
       STRUCTURE = Normalizer::CONSTRAINT_STRUCTURE
     end
 
+    #
+    # Normalizes a hash by standardizing its keys while ensuring the required data
+    # is provided or defaulted.
+    # Raises InvalidStructureError if anything is missing/invalid type
+    #
+    # @param input [Hash] The hash to normalize
+    #
+    # @return [Hash] A normalized hash as a new instance
+    #
     def self.normalize(input)
-      output, errors = normalize_spec(input)
+      errors = []
 
-      if (expectations = input[:expectations])
-        expectation_output, expectation_errors = normalize_expectations(expectations)
+      begin
+        output, spec_errors = normalize_spec(input)
+        errors += spec_errors if spec_errors.size > 0
 
-        output[:expectations] = expectation_output
-        errors += expectation_errors if expectation_errors.size > 0
+        if (expectations = input[:expectations]) && expectations.is_a?(Array)
+          expectation_output, expectation_errors = normalize_expectations(expectations)
+
+          output[:expectations] = expectation_output
+          errors += expectation_errors if expectation_errors.size > 0
+        end
+      rescue => e
+        errors << e
       end
 
       raise InvalidStructureError.new(errors) if errors.size > 0
@@ -94,12 +110,32 @@ module SpecForge
       output
     end
 
+    #
+    # Normalize a spec hash
+    # Used internally by .normalize, but is available for utility
+    #
+    # @param spec [Hash] Spec representation as a Hash
+    #
+    # @return [Array] Two item array
+    #   First - The normalized hash
+    #   Second - Array of errors, if any
+    #
     def self.normalize_spec(spec)
       raise InvalidTypeError.new(spec, Hash, for: "spec") if !spec.is_a?(Hash)
 
       Normalizer::Spec.new("spec", spec).normalize
     end
 
+    #
+    # Normalize an array of expectation hashes
+    # Used internally by .normalize, but is available for utility
+    #
+    # @param spec [Array<Hash>] An array of expectation hashes
+    #
+    # @return [Array] Two item array
+    #   First - The normalized Array<Hash>
+    #   Second - Array of errors, if any
+    #
     def self.normalize_expectations(expectations)
       if !expectations.is_a?(Array)
         raise InvalidTypeError.new(expectations, Array, for: "\"expectations\" on spec")
@@ -127,6 +163,16 @@ module SpecForge
       [final_output, final_errors]
     end
 
+    #
+    # Normalize a constraint hash
+    # Used internally by .normalize, but is available for utility
+    #
+    # @param spec [Hash] Spec representation as a Hash
+    #
+    # @return [Array] Two item array
+    #   First - The normalized hash
+    #   Second - Array of errors, if any
+    #
     def self.normalize_constraint(constraint)
       raise InvalidTypeError.new(constraint, Hash, for: "expect") if !constraint.is_a?(Hash)
 

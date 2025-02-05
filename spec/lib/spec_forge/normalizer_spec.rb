@@ -91,7 +91,7 @@ RSpec.describe SpecForge::Normalizer do
     end
 
     context "Normalizing Spec" do
-      context "when 'url' is not a String" do
+      context "when 'url' is nil" do
         before do
           spec[:url] = nil
         end
@@ -101,7 +101,20 @@ RSpec.describe SpecForge::Normalizer do
         end
       end
 
-      context "when 'http_method' is not a String" do
+      context "when 'url' is not a String" do
+        before do
+          spec[:url] = 1
+        end
+
+        it do
+          expect { normalized }.to raise_error(
+            SpecForge::InvalidStructureError,
+            "Expected String, got Integer for \"url\" on spec"
+          )
+        end
+      end
+
+      context "when 'http_method' is nil" do
         before do
           spec[:http_method] = nil
         end
@@ -115,7 +128,20 @@ RSpec.describe SpecForge::Normalizer do
         end
       end
 
-      context "when 'content_type' is not a String" do
+      context "when 'http_method' is not a String" do
+        before do
+          spec[:http_method] = 1
+        end
+
+        it do
+          expect { normalized }.to raise_error(
+            SpecForge::InvalidStructureError,
+            "Expected String, got Integer for \"http_method\" on spec"
+          )
+        end
+      end
+
+      context "when 'content_type' is nil" do
         before do
           spec[:content_type] = nil
         end
@@ -125,7 +151,20 @@ RSpec.describe SpecForge::Normalizer do
         end
       end
 
-      context "when 'query' is not a Hash" do
+      context "when 'content_type' is not a String" do
+        before do
+          spec[:content_type] = 1
+        end
+
+        it do
+          expect { normalized }.to raise_error(
+            SpecForge::InvalidStructureError,
+            "Expected String, got Integer for \"content_type\" on spec"
+          )
+        end
+      end
+
+      context "when 'query' is nil" do
         before do
           spec[:query] = nil
         end
@@ -139,7 +178,20 @@ RSpec.describe SpecForge::Normalizer do
         end
       end
 
-      context "when 'body' is not a Hash" do
+      context "when 'query' is not a Hash" do
+        before do
+          spec[:query] = 1
+        end
+
+        it do
+          expect { normalized }.to raise_error(
+            SpecForge::InvalidStructureError,
+            "Expected Hash, got Integer for \"query\" on spec"
+          )
+        end
+      end
+
+      context "when 'body' is nil" do
         before do
           spec[:body] = nil
         end
@@ -149,7 +201,20 @@ RSpec.describe SpecForge::Normalizer do
         end
       end
 
-      context "when 'variables' is not a Hash" do
+      context "when 'body' is not a Hash" do
+        before do
+          spec[:body] = 1
+        end
+
+        it do
+          expect { normalized }.to raise_error(
+            SpecForge::InvalidStructureError,
+            "Expected Hash, got Integer for \"body\" on spec"
+          )
+        end
+      end
+
+      context "when 'variables' is nil" do
         before do
           spec[:variables] = nil
         end
@@ -159,7 +224,20 @@ RSpec.describe SpecForge::Normalizer do
         end
       end
 
-      context "when 'expectations' is not an Array" do
+      context "when 'variables' is not a Hash" do
+        before do
+          spec[:variables] = 1
+        end
+
+        it do
+          expect { normalized }.to raise_error(
+            SpecForge::InvalidStructureError,
+            "Expected Hash, got Integer for \"variables\" on spec"
+          )
+        end
+      end
+
+      context "when 'expectations' is nil" do
         before do
           spec[:expectations] = nil
         end
@@ -168,6 +246,19 @@ RSpec.describe SpecForge::Normalizer do
           expect { normalized }.to raise_error(
             SpecForge::InvalidStructureError,
             "Expected Array, got NilClass for \"expectations\" on spec"
+          )
+        end
+      end
+
+      context "when 'expectations' is not an Array" do
+        before do
+          spec[:expectations] = 1
+        end
+
+        it do
+          expect { normalized }.to raise_error(
+            SpecForge::InvalidStructureError,
+            "Expected Array, got Integer for \"expectations\" on spec"
           )
         end
       end
