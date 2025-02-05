@@ -94,7 +94,7 @@ module SpecForge
 
       raise InvalidStructureError.new(errors) if errors.size > 0
 
-      Attribute.from(output)
+      output
     end
 
     def self.normalize_spec(spec)
@@ -171,7 +171,7 @@ module SpecForge
         end
 
         # Store
-        output[key] = Attribute.from(value)
+        output[key] = value
       rescue => e
         errors << e
       end

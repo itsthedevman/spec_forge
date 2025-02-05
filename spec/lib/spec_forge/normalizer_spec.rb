@@ -52,24 +52,22 @@ RSpec.describe SpecForge::Normalizer do
 
     subject(:normalized) { described_class.normalize(spec) }
 
-    it "is expected to resolve fully" do
-      resolved = normalized.resolve
+    it "is expected to normalize fully" do
+      expect(normalized[:url]).to be_kind_of(String)
+      expect(normalized[:http_method]).to be_kind_of(String)
+      expect(normalized[:content_type]).to be_kind_of(String)
+      expect(normalized[:query]).to be_kind_of(Hash)
+      expect(normalized[:query][:query_1]).to be_kind_of(String)
+      expect(normalized[:query][:query_2]).to be_kind_of(String)
+      expect(normalized[:body]).to be_kind_of(Hash)
+      expect(normalized[:body][:body_1]).to be_kind_of(String)
+      expect(normalized[:body][:body_2]).to be_kind_of(String)
+      expect(normalized[:variables]).to be_kind_of(Hash)
+      expect(normalized[:variables][:variable_1]).to be_kind_of(String)
+      expect(normalized[:variables][:variable_2]).to be_kind_of(String)
+      expect(normalized[:expectations]).to be_kind_of(Array)
 
-      expect(resolved[:url]).to be_kind_of(String)
-      expect(resolved[:http_method]).to be_kind_of(String)
-      expect(resolved[:content_type]).to be_kind_of(String)
-      expect(resolved[:query]).to be_kind_of(Hash)
-      expect(resolved[:query][:query_1]).to be_kind_of(String)
-      expect(resolved[:query][:query_2]).to be_kind_of(String)
-      expect(resolved[:body]).to be_kind_of(Hash)
-      expect(resolved[:body][:body_1]).to be_kind_of(String)
-      expect(resolved[:body][:body_2]).to be_kind_of(String)
-      expect(resolved[:variables]).to be_kind_of(Hash)
-      expect(resolved[:variables][:variable_1]).to be_kind_of(String)
-      expect(resolved[:variables][:variable_2]).to be_kind_of(String)
-      expect(resolved[:expectations]).to be_kind_of(Array)
-
-      expectation = resolved[:expectations].first
+      expectation = normalized[:expectations].first
       expect(expectation[:url]).to be_kind_of(String)
       expect(expectation[:http_method]).to be_kind_of(String)
       expect(expectation[:content_type]).to be_kind_of(String)
@@ -304,7 +302,7 @@ RSpec.describe SpecForge::Normalizer do
       end
 
       it "normalizes them" do
-        expect(normalized.resolve).to include(
+        expect(normalized).to include(
           url: spec[:path],
           http_method: spec[:method],
           content_type: spec[:type],
