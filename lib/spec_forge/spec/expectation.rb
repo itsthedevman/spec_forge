@@ -41,7 +41,6 @@ module SpecForge
         lambda do |example|
           response = expectation_forge.http_client.call
           constraints = expectation_forge.constraints
-          binding.pry
 
           # Status check
           expect(response.status).to eq(constraints.status.resolve)
