@@ -33,7 +33,7 @@ module SpecForge
       end
 
       def update_value!(lookup_table)
-        if !(lookup_table.is_a?(Hash) || lookup_table.is_a?(ResolvableHash))
+        if !lookup_table.respond_to?(:key?) # I might regret this
           raise InvalidTypeError.new(lookup_table, Hash, for: "'variables'")
         end
 
@@ -48,21 +48,31 @@ module SpecForge
         invoke_chain
       end
 
+      #
+      # Custom implementation to ensure the underlying values are resolved
+      # without breaking #value's functionality
+      #
+      def resolve
+        @resolved ||= __resolve(invoke_chain(resolve: true))
+      end
+
       private
 
-      def invoke_chain
+      def invoke_chain(resolve: false)
         current_value = @variable_value
 
         invocation_chain.each do |step|
-          object = retrieve_value(current_value)
+          object = retrieve_value(current_value, resolve:)
           current_value = invoke(step, object)
         end
 
-        retrieve_value(current_value)
+        retrieve_value(current_value, resolve:)
       end
 
-      def retrieve_value(object)
-        object.is_a?(Attribute) ? object.value : object
+      def retrieve_value(object, resolve: false)
+        return object if !object.is_a?(Attribute)
+
+        resolve ? object.resolve : object.value
       end
 
       def invoke(step, object)
@@ -78,9 +88,8 @@ module SpecForge
       end
 
       def hash_key?(object, key)
-        (
-          object.is_a?(Hash) || object.is_a?(ResolvableHash)
-        ) && object.key?(key.to_sym)
+        # This is to support the silly delegator
+        method?(object, :key?) && object.key?(key.to_sym)
       end
 
       def method?(object, method_name)
@@ -88,9 +97,8 @@ module SpecForge
       end
 
       def index?(object, step)
-        (
-          object.is_a?(Array) || object.is_a?(ResolvableArray)
-        ) && step.match?(NUMBER_REGEX)
+        # This is to support the silly delegator
+        method?(object, :index) && step.match?(NUMBER_REGEX)
       end
     end
   end

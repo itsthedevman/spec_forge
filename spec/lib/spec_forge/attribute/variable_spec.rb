@@ -193,4 +193,49 @@ RSpec.describe SpecForge::Attribute::Variable do
       )
     end
   end
+
+  #
+  # Scenario:
+  #
+  # A variable is referenced by more than one attribute.
+  #
+  # ---
+  # spec:
+  #   variables:
+  #     var_1: faker.string.random
+  #   expectations:
+  #   - body:
+  #       body_1: variables.var_1
+  #     expect:
+  #       json:
+  #         json_1: variables.var_1
+  # ---
+  #
+  context "when multiple attributes rely on a single variable" do
+    let(:input) { "variables.var_1" }
+
+    let(:variables) do
+      SpecForge::Attribute.from(
+        var_1: "faker.string.random"
+      )
+    end
+
+    let(:other_attribute) { described_class.new("variables.var_1").update_value!(variables) }
+
+    context "and #resolve is called" do
+      it "is expected return to the same value" do
+        expect(variable.resolve).to eq(other_attribute.resolve)
+      end
+    end
+
+    context "and #value is called" do
+      it "is expected to return different values" do
+        expect(variable.value).not_to eq(other_attribute.value)
+
+        # Just to make sure
+        expect(variable.resolve).to eq(other_attribute.resolve)
+        expect(variable.value).not_to eq(other_attribute.value)
+      end
+    end
+  end
 end

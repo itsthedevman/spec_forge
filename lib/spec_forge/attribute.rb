@@ -123,6 +123,8 @@ module SpecForge
 
     #
     # Returns the fully evaluated result, recursively resolving any nested attributes
+    # Note: This method can only be called once to ensure data is correct across the board
+    # You can still call #value if you need a new value
     #
     # @return [Object] The resolved value
     #
@@ -135,15 +137,8 @@ module SpecForge
     #   attr.resolve # => [42, ["Jane"]]
     #
     def resolve
-      converted_value = value
-      case converted_value
-      when Array, ResolvableArray
-        converted_value.map(&:resolve)
-      when Hash, ResolvableHash
-        converted_value.transform_values(&:resolve)
-      else
-        converted_value
-      end
+      # Past test for the variable
+      @resolved ||= __resolve(value)
     end
 
     #
@@ -172,6 +167,19 @@ module SpecForge
         end
 
       input == other
+    end
+
+    protected
+
+    def __resolve(value)
+      case value
+      when Array, ResolvableArray
+        value.map(&:resolve)
+      when Hash, ResolvableHash
+        value.transform_values(&:resolve)
+      else
+        value
+      end
     end
   end
 end
