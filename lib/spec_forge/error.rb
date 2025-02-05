@@ -50,9 +50,9 @@ module SpecForge
     def initialize(step, object)
       valid_operations =
         case object
-        when Array, ResolvableArray
+        when Array, Attribute::ResolvableArray
           "Array index (0, 1, 2, etc.) or any Array methods (first, last, size, etc.)"
-        when Hash, ResolvableHash
+        when Hash, Attribute::ResolvableHash
           "Any Hash key: #{object.keys.join(", ")}"
         else
           "Any method available on #{object.class}"
