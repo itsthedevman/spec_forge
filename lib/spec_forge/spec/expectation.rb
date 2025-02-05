@@ -28,34 +28,6 @@ module SpecForge
         @http_client = HTTP::Client.new(variables:, **input.except(:name, :variables, :expect))
       end
 
-      #
-      # Converts this expectation to an RSpec example.
-      # Note: the scope of the resulting block is expecting the scope of an RSpec example group
-      #
-      # @return [Proc]
-      #
-      def to_spec_proc
-        expectation_forge = self
-
-        # RSpec example group scope
-        lambda do |example|
-          response = expectation_forge.http_client.call
-          constraints = expectation_forge.constraints
-
-          # Status check
-          expect(response.status).to eq(constraints.status.resolve)
-
-          # JSON check
-          if constraints.json.size > 0
-            response_body = response.body
-            body_constraint = constraints.json.resolve.deep_stringify_keys
-
-            expect(response_body).to be_kind_of(Hash)
-            expect(response_body).to include(body_constraint)
-          end
-        end
-      end
-
       private
 
       def overlay_options(source, overlay)

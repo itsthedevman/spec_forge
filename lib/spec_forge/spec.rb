@@ -11,18 +11,7 @@ module SpecForge
     #
     def self.load_and_run(base_path)
       specs = load_from_path(base_path.join("specs", "**/*.yml"))
-
-      failures = []
-
-      specs.each do |spec|
-        spec.register_and_run
-      rescue => e
-        failures << [spec, e]
-      end
-
-      handle_failures!(failures) if failures.present?
-
-      specs
+      specs.each(&:run)
     end
 
     #
@@ -49,28 +38,6 @@ module SpecForge
       specs
     end
 
-    def self.handle_failures!(failures)
-      # TEMP
-      # TODO: Improve significantly!
-      cleaner = SpecForge.backtrace_cleaner
-      errors = failures.join_map("\n") do |(spec, error)|
-        backtrace = cleaner.clean(error.backtrace)
-
-        <<~STRING
-
-          ---
-          SpecForge raised an exception:
-          File: #{spec.file_path}
-          Spec Name: #{spec.name}
-
-            #{error}
-            #{backtrace.join("\n  ")}
-        STRING
-      end
-
-      raise StandardError, errors
-    end
-
     ############################################################################
 
     attr_reader :name, :file_path, :expectations
@@ -85,50 +52,15 @@ module SpecForge
       @expectations =
         input[:expectations].map.with_index do |expectation_input, index|
           Expectation.new(
-            "#{name} -> expectations (item #{index})",
+            "expectations (item #{index})",
             expectation_input,
             global_options:
           )
         end
     end
 
-    def register_and_run
-      register_with_rspec
-      run
-    end
-
-    def register_with_rspec
-      # Store the scope
-      # Specific naming to avoid naming collisions
-      spec_forge = self
-
-      # And register with RSpec
-      RSpec.describe(name) do
-        spec_forge.expectations.each do |expectation_forge|
-          # Define the example group
-          describe(expectation_forge.name) do
-            # Define any variables for this test
-            expectation_forge.variables.each do |variable_name, attribute|
-              let(variable_name, &attribute.to_proc)
-            end
-
-            # Define the example
-            example(&expectation_forge.to_spec_proc)
-          end
-        end
-      end
-    end
-
     def run
-      # stdout = StringIO.new
-      # stderr = StringIO.new
-
-      RSpec::Core::Runner.disable_autorun!
-      status = RSpec::Core::Runner.run([], $stderr, $stdout).to_i
-
-      puts "Status: #{status}"
-      # puts "STDOUT: #{stdout.read}"
-      # puts "STDERR: #{stderr.read}"
+      Runner.new(self).run
     end
   end
 end
