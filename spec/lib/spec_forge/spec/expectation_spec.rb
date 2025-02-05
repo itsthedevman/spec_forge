@@ -16,8 +16,8 @@ RSpec.describe SpecForge::Spec::Expectation do
     context "when 'global_options' is provided" do
       let(:input) do
         {
-          path: "/users/admin",
-          method: "GET",
+          url: "/users/admin",
+          http_method: "GET",
           content_type: "application/xml",
           query: {
             query_2: 3
@@ -34,8 +34,8 @@ RSpec.describe SpecForge::Spec::Expectation do
 
       let(:global_options) do
         {
-          path: "/users",
-          method: "POST",
+          url: "/users",
+          http_method: "POST",
           content_type: "application/json",
           query: {
             query_1: 1,
@@ -53,7 +53,46 @@ RSpec.describe SpecForge::Spec::Expectation do
       end
 
       it "is expected to been deeply overwritten by the input" do
-        expect(expectation)
+        request = expectation.http_client.request
+
+        expect(expectation.variables).to eq(var_1: 1, var_2: 3)
+
+        expect(request.url).to eq(input[:url])
+        expect(request.http_method).to eq(input[:http_method])
+        expect(request.content_type).to eq(input[:content_type])
+        expect(request.query).to eq(query_1: 1, query_2: 3)
+        expect(request.body).to eq(body_1: 3, body_2: 2)
+      end
+    end
+
+    context "when 'global_options' is provided and input has empty values" do
+      let(:input) do
+        default = SpecForge::Normalizer.default_expectation
+        default[:url] = "/url"
+        default[:http_method] = ""
+        default[:body] = {}
+        default[:query] = {}
+        default[:variables] = {var_1: "data"}
+        default
+      end
+
+      let(:global_options) do
+        default = SpecForge::Normalizer.default_expectation
+        default[:body] = {body_1: "data"}
+        default[:query] = {query_1: "data"}
+        default
+      end
+
+      it "is expected to not overwrite with empty values" do
+        request = expectation.http_client.request
+
+        expect(expectation.variables).to eq(var_1: "data")
+
+        expect(request.url).to eq(input[:url])
+        expect(request.http_method).to eq(global_options[:http_method])
+        expect(request.content_type).to eq(input[:content_type])
+        expect(request.query).to eq(query_1: "data")
+        expect(request.body).to eq(body_1: "data")
       end
     end
 

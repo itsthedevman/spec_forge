@@ -17,7 +17,7 @@ module SpecForge
         load_name(name, input)
 
         # This allows defining spec level attributes that can be overwritten by the expectation
-        input = Attribute.from(global_options.deep_merge(input))
+        input = Attribute.from(overlay_options(global_options, input))
 
         load_variables(input)
 
@@ -41,6 +41,7 @@ module SpecForge
         lambda do |example|
           response = expectation_forge.http_client.call
           constraints = expectation_forge.constraints
+          binding.pry
 
           # Status check
           expect(response.status).to eq(constraints.status.resolve)
@@ -50,12 +51,19 @@ module SpecForge
             response_body = response.body
             body_constraint = constraints.json.resolve.deep_stringify_keys
 
-            expect(response_body).to match(body_constraint)
+            expect(response_body).to be_kind_of(Hash)
+            expect(response_body).to include(body_constraint)
           end
         end
       end
 
       private
+
+      def overlay_options(source, overlay)
+        # Remove any blank values to avoid overwriting anything from source
+        overlay = overlay.delete_if { |_k, v| v.blank? }
+        source.deep_merge(overlay)
+      end
 
       def load_name(name, input)
         @name = input[:name].presence || name
