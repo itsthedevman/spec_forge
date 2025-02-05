@@ -14,12 +14,11 @@ module SpecForge
       # @param name [String] The name of the expectation
       #
       def initialize(name, input, global_options: {})
-        @name = name
+        load_name(name, input)
 
         # This allows defining spec level attributes that can be overwritten by the expectation
         input = Attribute.from(global_options.deep_merge(input))
 
-        load_name(input)
         load_variables(input)
 
         # Must be after load_variables
@@ -58,11 +57,8 @@ module SpecForge
 
       private
 
-      def load_name(input)
-        name = input[:name]
-        return if name.blank?
-
-        @name = name
+      def load_name(name, input)
+        @name = input[:name].presence || name
       end
 
       def load_variables(input)
