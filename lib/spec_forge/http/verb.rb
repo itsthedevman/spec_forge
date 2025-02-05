@@ -67,6 +67,8 @@ module SpecForge
         end
       end
 
+      alias_method :to_s, :name
+
       #
       # Returns if this Verb is a DELETE
       #
