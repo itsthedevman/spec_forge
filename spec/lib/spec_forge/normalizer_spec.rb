@@ -68,6 +68,7 @@ RSpec.describe SpecForge::Normalizer do
       expect(normalized[:expectations]).to be_kind_of(Array)
 
       expectation = normalized[:expectations].first
+      expect(expectation[:name]).to be_kind_of(String)
       expect(expectation[:url]).to be_kind_of(String)
       expect(expectation[:http_method]).to be_kind_of(String)
       expect(expectation[:content_type]).to be_kind_of(String)

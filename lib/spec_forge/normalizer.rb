@@ -41,21 +41,18 @@ module SpecForge
       query: SHARED_ATTRIBUTES[:query],
       body: SHARED_ATTRIBUTES[:body],
       variables: SHARED_ATTRIBUTES[:variables],
-      expectations: {
-        type: Array
-      }
+      expectations: {type: Array}
     }.freeze
 
     EXPECTATION_STRUCTURE = {
+      name: {type: String, default: ""},
       url: SHARED_ATTRIBUTES[:url],
       http_method: SHARED_ATTRIBUTES[:http_method],
       content_type: SHARED_ATTRIBUTES[:content_type],
       query: SHARED_ATTRIBUTES[:query],
       body: SHARED_ATTRIBUTES[:body],
       variables: SHARED_ATTRIBUTES[:variables],
-      expect: {
-        type: Hash
-      }
+      expect: {type: Hash}
     }.freeze
 
     CONSTRAINT_STRUCTURE = {
