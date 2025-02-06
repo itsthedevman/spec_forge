@@ -45,6 +45,10 @@ module SpecForge
       end
 
       def create_new_factory(name)
+        actions.create_file(
+          SpecForge.forge.join("factories", "#{name}.yml"),
+          generate_factory(name)
+        )
       end
 
       def generate_spec(name)
@@ -124,9 +128,33 @@ module SpecForge
           )
         }
 
-        hash.deep_stringify_keys.join_map("\n") do |key, value|
-          {key => value}.to_yaml.sub!("---\n", "").gsub("!ruby/regexp ", "")
-        end.delete!("\"")
+        generate_yaml(hash)
+      end
+
+      def generate_factory(name)
+        singular_name = name.singularize
+
+        hash = {
+          singular_name => {
+            class: singular_name.titleize,
+            attributes: {
+              attribute: "value"
+            }
+          }
+        }
+
+        generate_yaml(hash)
+      end
+
+      def generate_yaml(hash)
+        result = hash.deep_stringify_keys.join_map("\n") do |key, value|
+          {key => value}.to_yaml
+            .sub!("---\n", "")
+            .gsub("!ruby/regexp ", "")
+        end
+
+        result.delete!("\"")
+        result
       end
     end
   end
