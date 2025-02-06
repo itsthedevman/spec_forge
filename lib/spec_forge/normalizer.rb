@@ -94,6 +94,26 @@ module SpecForge
       }.freeze
     end
 
+    class Config < Normalizer
+      STRUCTURE = {
+        base_url: {},
+        authorization: {
+          type: Hash,
+          default: {},
+          content: {
+            # Default is a key on this hash
+            default: {
+              type: Hash,
+              default: {
+                header: {type: String},
+                value: {type: String}
+              }
+            }
+          }
+        }
+      }.freeze
+    end
+
     class << self
       #
       # Generates an empty spec hash
@@ -101,7 +121,7 @@ module SpecForge
       # @return [Hash]
       #
       def default_spec
-        generate_default_from_structure(Spec::STRUCTURE)
+        Spec.default
       end
 
       #
@@ -110,7 +130,7 @@ module SpecForge
       # @return [Hash]
       #
       def default_expectation
-        generate_default_from_structure(Expectation::STRUCTURE)
+        Expectation.default
       end
 
       #
@@ -119,7 +139,7 @@ module SpecForge
       # @return [Hash]
       #
       def default_constraint
-        generate_default_from_structure(Constraint::STRUCTURE)
+        Constraint.default
       end
 
       #
@@ -128,7 +148,16 @@ module SpecForge
       # @return [Hash]
       #
       def default_factory
-        generate_default_from_structure(Factory::STRUCTURE)
+        Factory.default
+      end
+
+      #
+      # Generates an empty config hash
+      #
+      # @return [Hash]
+      #
+      def default_config
+        Config.default
       end
 
       #
@@ -272,18 +301,20 @@ module SpecForge
         Normalizer::Factory.new("factory", factory).normalize
       end
 
-      private
+      #
+      # Normalize a config hash
+      # Used internally by .normalize_config, but is available for utility
+      #
+      # @param config [Hash] Configuration representation as a Hash
+      #
+      # @return [Array] Two item array
+      #   First - The normalized hash
+      #   Second - Array of errors, if any
+      #
+      def normalize_config(config)
+        raise InvalidTypeError.new(config, Hash, for: "config") if config.is_a?(Hash)
 
-      def generate_default_from_structure(structure)
-        structure.transform_values do |value|
-          if (default = value[:default])
-            default.dup
-          elsif value[:type] == Integer # Can't call new on int
-            0
-          else
-            value[:type].new
-          end
-        end
+        Normalizer::Config.new("config", config).normalize
       end
     end
 
@@ -297,6 +328,18 @@ module SpecForge
 
     def normalize
       normalize_to_structure
+    end
+
+    def default
+      structure.transform_values do |value|
+        if (default = value[:default])
+          default.dup
+        elsif value[:type] == Integer # Can't call new on int
+          0
+        else
+          value[:type].new
+        end
+      end
     end
 
     protected
