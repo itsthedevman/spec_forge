@@ -1,0 +1,4 @@
+user:
+  class: User
+  attributes:
+    attribute: value

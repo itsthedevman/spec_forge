@@ -1,0 +1,63 @@
+index_users:
+  url: /users
+  expectations:
+  - expect:
+      status: 200
+
+show_user:
+  url: /users/{id}
+  expectations:
+  - expect:
+      status: 404
+  - expect:
+      status: 200
+      json:
+        name: kind_of.string
+        email: /\w+@example\.com/i
+    query:
+      id: 1
+
+create_user:
+  url: /users
+  method: post
+  expectations:
+  - expect:
+      status: 400
+  - expect:
+      status: 200
+      json:
+        name: variables.name
+        role: variables.role
+    variables:
+      name: faker.name.name
+      role: user
+    body:
+      name: variables.name
+
+update_user:
+  url: /users/{id}
+  method: patch
+  query:
+    id: 1
+  variables:
+    number:
+      faker.number.between:
+        from: 100000
+        to: 999999
+  expectations:
+  - expect:
+      status: 200
+      json:
+        name: kind_of.string
+        number: kind_of.integer
+    body:
+      number: variables.number
+
+destroy_user:
+  url: /users/{id}
+  method: delete
+  query:
+    id: 1
+  expectations:
+  - expect:
+      status: 200
