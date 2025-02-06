@@ -22,7 +22,7 @@ require "yaml"
 
 require_relative "spec_forge/attribute"
 require_relative "spec_forge/cli"
-require_relative "spec_forge/configuration"
+require_relative "spec_forge/config"
 require_relative "spec_forge/error"
 require_relative "spec_forge/factory"
 require_relative "spec_forge/http"
@@ -51,7 +51,7 @@ module SpecForge
   end
 
   def self.config
-    Configuration.instance
+    Config.instance
   end
 
   def self.backtrace_cleaner
