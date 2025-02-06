@@ -3,6 +3,7 @@
 require_relative "cli/actions"
 require_relative "cli/command"
 require_relative "cli/init"
+require_relative "cli/new"
 require_relative "cli/run"
 
 module SpecForge
