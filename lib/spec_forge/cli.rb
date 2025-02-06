@@ -10,12 +10,12 @@ module SpecForge
   class CLI
     include Commander::Methods
 
-    COMMANDS = [Init, Run]
+    COMMANDS = [Init, New, Run]
 
     def run
       program :name, "SpecForge"
       program :version, SpecForge::VERSION
-      program :description, "SpecForge is a config-driven API testing framework that generates OpenAPI documentation from your test suite."
+      program :description, "Write expressive API tests in YAML with the power of RSpec matchers"
 
       register_commands
 

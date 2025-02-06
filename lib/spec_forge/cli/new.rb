@@ -2,7 +2,7 @@
 
 module SpecForge
   class CLI
-    class Init < Command
+    class New < Command
       command_name "new"
       summary "Create a new spec or factory"
 
