@@ -35,8 +35,11 @@ module SpecForge
   def self.run(path = forge)
     config.load_from_file
 
-    Factory.load_and_register(path)
-    Spec.load_and_run(path)
+    factories = Factory.load_and_register(path)
+    puts "Loaded #{factories.size} #{"factory".pluralize(factories.size)}"
+
+    specs = Spec.load_and_run(path)
+    puts "Ran #{specs.size} #{"spec".pluralize(specs.size)}"
   end
 
   def self.root
