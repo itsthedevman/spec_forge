@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 RSpec.describe SpecForge::Normalizer do
-  describe ".normalize" do
+  describe ".normalize_spec!" do
     let(:expectation) do
       {
         url: Faker::String.random,
@@ -50,7 +50,7 @@ RSpec.describe SpecForge::Normalizer do
       }
     end
 
-    subject(:normalized) { described_class.normalize(spec) }
+    subject(:normalized) { described_class.normalize_spec!(spec) }
 
     it "is expected to normalize fully" do
       expect(normalized[:url]).to be_kind_of(String)
