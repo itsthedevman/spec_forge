@@ -9,7 +9,7 @@ module SpecForge
     #
     def self.load_and_register(base_path)
       factories = load_from_path(base_path.join("factories", "**/*.yml"))
-      factories.each(&:register_with_factory_bot)
+      factories.each(&:register)
     end
 
     #
@@ -19,7 +19,7 @@ module SpecForge
     #
     # @return [Array<Factory>] An array of factories that were loaded.
     #   Note: This factories have not been registered with FactoryBot.
-    #   See #register_with_factory_bot
+    #   See #register
     #
     def self.load_from_path(path)
       factories = []
@@ -29,7 +29,6 @@ module SpecForge
 
         hash.each do |factory_name, factory_hash|
           factory_hash[:name] = factory_name
-          factory_hash[:model_class] = factory_hash.delete(:class)
 
           factories << new(**factory_hash)
         end
@@ -40,18 +39,15 @@ module SpecForge
 
     ############################################################################
 
-    attr_reader :name, :model_class
+    attr_reader :name, :input, :model_class, :attributes
 
-    def initialize(name:, model_class: nil, attributes: {})
+    def initialize(name:, **input)
       @name = name
-      @model_class = model_class
-      @attributes = attributes
-    end
+      input = Normalizer.normalize_factory!(input)
 
-    def attributes
-      @attributes.to_h.transform_values! do |value|
-        Attribute.from(value)
-      end
+      @input = input
+      @model_class = input[:model_class]
+      @attributes = Attribute.from(input[:attributes])
     end
 
     #
@@ -60,7 +56,7 @@ module SpecForge
     #
     # @return [Self]
     #
-    def register_with_factory_bot
+    def register
       dsl = FactoryBot::Syntax::Default::DSL.new
 
       options = {}

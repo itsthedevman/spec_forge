@@ -26,7 +26,7 @@ RSpec.describe SpecForge::Factory do
     end
 
     context "when there is a duplicated factory" do
-      let!(:factory) { SpecForge::Factory.new(name: "user").register_with_factory_bot }
+      let!(:factory) { SpecForge::Factory.new(name: "user").register }
 
       it "is expected to raise" do
         expect { factories }.to raise_error(FactoryBot::DuplicateDefinitionError)
@@ -49,14 +49,14 @@ RSpec.describe SpecForge::Factory do
     end
 
     it "register successfully and can be built by FactoryBot" do
-      factory.register_with_factory_bot
+      factory.register
 
       bot_factory = FactoryBot::Internal.factory_by_name(name)
       expect(bot_factory).not_to be(nil)
 
       user = FactoryBot.build(:user)
       expect(user).not_to be(nil)
-      expect(user.name).to eq(attributes[:name].value)
+      expect(user.name).to eq(attributes[:name])
     end
   end
 end

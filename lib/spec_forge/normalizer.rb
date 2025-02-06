@@ -78,7 +78,10 @@ module SpecForge
         default: ""
       },
       variables: SHARED_ATTRIBUTES[:variables],
-      attributes: {type: Hash}
+      attributes: {
+        type: Hash,
+        default: {}
+      }
     }.freeze
 
     STRUCTURE = {}
@@ -274,7 +277,7 @@ module SpecForge
       def normalize_factory(factory)
         raise InvalidTypeError.new(factory, Hash, for: "factory") if !factory.is_a?(Hash)
 
-        Normalizer::Constraint.new("factory", factory).normalize
+        Normalizer::Factory.new("factory", factory).normalize
       end
 
       private
