@@ -1,6 +1,0 @@
-#!/usr/bin/env ruby
-
-require "bundler/setup"
-require_relative "../test/test_helper"
-
-Dir[SpecForge.root.join("test", "**/*_test.rb")].each { |file| require file }

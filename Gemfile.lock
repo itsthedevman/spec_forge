@@ -306,7 +306,6 @@ PLATFORMS
 
 DEPENDENCIES
   benchmark-ips (~> 2.14)
-  minitest (~> 5.25)
   pry
   rails (~> 7.1)
   rake (~> 13.0)
