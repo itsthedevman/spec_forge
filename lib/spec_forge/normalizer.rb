@@ -3,6 +3,10 @@
 module SpecForge
   class Normalizer
     SHARED_ATTRIBUTES = {
+      base_url: {
+        type: String,
+        default: ""
+      },
       url: {
         type: String,
         aliases: %i[path],
@@ -35,6 +39,7 @@ module SpecForge
     }.freeze
 
     SPEC_STRUCTURE = {
+      base_url: SHARED_ATTRIBUTES[:base_url],
       url: SHARED_ATTRIBUTES[:url],
       http_method: SHARED_ATTRIBUTES[:http_method],
       content_type: SHARED_ATTRIBUTES[:content_type],
@@ -46,6 +51,7 @@ module SpecForge
 
     EXPECTATION_STRUCTURE = {
       name: {type: String, default: ""},
+      base_url: SHARED_ATTRIBUTES[:base_url],
       url: SHARED_ATTRIBUTES[:url],
       http_method: SHARED_ATTRIBUTES[:http_method],
       content_type: SHARED_ATTRIBUTES[:content_type],

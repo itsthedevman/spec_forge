@@ -91,6 +91,29 @@ RSpec.describe SpecForge::Normalizer do
     end
 
     context "Normalizing Spec" do
+      context "when 'base_url' is nil" do
+        before do
+          spec[:base_url] = nil
+        end
+
+        it "is expected to default to an empty string" do
+          expect(normalized[:base_url]).to eq("")
+        end
+      end
+
+      context "when 'base_url' is not a String" do
+        before do
+          spec[:base_url] = 1
+        end
+
+        it do
+          expect { normalized }.to raise_error(
+            SpecForge::InvalidStructureError,
+            "Expected String, got Integer for \"base_url\" on spec"
+          )
+        end
+      end
+
       context "when 'url' is nil" do
         before do
           spec[:url] = nil
