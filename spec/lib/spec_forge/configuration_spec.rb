@@ -7,7 +7,7 @@ RSpec.describe SpecForge::Configuration do
 
       let(:yaml_content) do
         <<~YAML
-          require_name: <%= false %>
+          base_url: <%= "http://localhost:3000" %>
         YAML
       end
 
@@ -24,7 +24,7 @@ RSpec.describe SpecForge::Configuration do
       end
 
       it "is expecting to parse, load, and overwrite the defaults" do
-        expect(SpecForge.config.require_name).to be(false)
+        expect(SpecForge.config.base_url).to eq("http://localhost:3000")
       end
     end
   end
