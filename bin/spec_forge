@@ -1,6 +1,5 @@
 #!/usr/bin/env ruby
+# frozen_string_literal: true
 
-ENV["GEM_ENV"] = "development"
-
-require_relative "../lib/spec_forge"
+require "spec_forge"
 SpecForge::CLI.new.run
