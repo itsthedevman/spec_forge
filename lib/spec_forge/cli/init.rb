@@ -5,10 +5,10 @@ module SpecForge
     class Init < Command
       command_name "init"
       syntax "init"
-      summary "Initializes directory structure and configuration files at .spec_forge"
+      summary "Initializes directory structure and configuration files"
 
       def call
-        base_path = ".spec_forge"
+        base_path = "spec_forge"
         actions.empty_directory "#{base_path}/factories"
         actions.empty_directory "#{base_path}/specs"
 

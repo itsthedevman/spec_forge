@@ -44,7 +44,7 @@ module SpecForge
   end
 
   def self.forge
-    @forge ||= root.join(".spec_forge")
+    @forge ||= root.join("spec_forge")
   end
 
   def self.config
