@@ -146,7 +146,7 @@ RSpec.describe SpecForge::Normalizer do
           expect(normalized[:http_method]).to eq("")
 
           # Ensure the value is disconnected from the default
-          default_value = described_class::SPEC_STRUCTURE[:http_method][:default]
+          default_value = described_class::Spec::STRUCTURE[:http_method][:default]
           expect(default_value).not_to eq(normalized[:http_method].object_id)
         end
       end
@@ -196,7 +196,7 @@ RSpec.describe SpecForge::Normalizer do
           expect(normalized[:query]).to eq({})
 
           # Ensure the value is disconnected from the default
-          default_value = described_class::SPEC_STRUCTURE[:query][:default]
+          default_value = described_class::Spec::STRUCTURE[:query][:default]
           expect(default_value).not_to eq(normalized[:query].object_id)
         end
       end
@@ -309,7 +309,7 @@ RSpec.describe SpecForge::Normalizer do
           expect(normalized_expectation[:http_method]).to eq("")
 
           # Ensure the value is disconnected from the default
-          default_value = described_class::EXPECTATION_STRUCTURE[:http_method][:default]
+          default_value = described_class::Expectation::STRUCTURE[:http_method][:default]
           expect(default_value).not_to eq(normalized_expectation[:http_method].object_id)
         end
       end
@@ -333,7 +333,7 @@ RSpec.describe SpecForge::Normalizer do
           expect(normalized_expectation[:query]).to eq({})
 
           # Ensure the value is disconnected from the default
-          default_value = described_class::EXPECTATION_STRUCTURE[:query][:default]
+          default_value = described_class::Expectation::STRUCTURE[:query][:default]
           expect(default_value).not_to eq(normalized_expectation[:query].object_id)
         end
       end

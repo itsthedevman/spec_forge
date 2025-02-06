@@ -38,87 +38,85 @@ module SpecForge
       }
     }.freeze
 
-    SPEC_STRUCTURE = {
-      base_url: SHARED_ATTRIBUTES[:base_url],
-      url: SHARED_ATTRIBUTES[:url],
-      http_method: SHARED_ATTRIBUTES[:http_method],
-      content_type: SHARED_ATTRIBUTES[:content_type],
-      query: SHARED_ATTRIBUTES[:query],
-      body: SHARED_ATTRIBUTES[:body],
-      variables: SHARED_ATTRIBUTES[:variables],
-      expectations: {type: Array}
-    }.freeze
-
-    EXPECTATION_STRUCTURE = {
-      name: {type: String, default: ""},
-      base_url: SHARED_ATTRIBUTES[:base_url],
-      url: SHARED_ATTRIBUTES[:url],
-      http_method: SHARED_ATTRIBUTES[:http_method],
-      content_type: SHARED_ATTRIBUTES[:content_type],
-      query: SHARED_ATTRIBUTES[:query],
-      body: SHARED_ATTRIBUTES[:body],
-      variables: SHARED_ATTRIBUTES[:variables],
-      expect: {type: Hash}
-    }.freeze
-
-    CONSTRAINT_STRUCTURE = {
-      status: {
-        type: Integer
-      },
-      json: {
-        type: Hash,
-        default: {}
-      }
-    }.freeze
-
-    FACTORY_STRUCTURE = {
-      model_class: {
-        type: String,
-        aliases: %i[class],
-        default: ""
-      },
-      variables: SHARED_ATTRIBUTES[:variables],
-      attributes: {
-        type: Hash,
-        default: {}
-      }
-    }.freeze
-
     STRUCTURE = {}
 
     class Spec < Normalizer
-      STRUCTURE = Normalizer::SPEC_STRUCTURE
+      STRUCTURE = {
+        base_url: SHARED_ATTRIBUTES[:base_url],
+        url: SHARED_ATTRIBUTES[:url],
+        http_method: SHARED_ATTRIBUTES[:http_method],
+        content_type: SHARED_ATTRIBUTES[:content_type],
+        query: SHARED_ATTRIBUTES[:query],
+        body: SHARED_ATTRIBUTES[:body],
+        variables: SHARED_ATTRIBUTES[:variables],
+        expectations: {type: Array}
+      }.freeze
     end
 
     class Expectation < Normalizer
-      STRUCTURE = Normalizer::EXPECTATION_STRUCTURE
+      STRUCTURE = {
+        name: {type: String, default: ""},
+        base_url: SHARED_ATTRIBUTES[:base_url],
+        url: SHARED_ATTRIBUTES[:url],
+        http_method: SHARED_ATTRIBUTES[:http_method],
+        content_type: SHARED_ATTRIBUTES[:content_type],
+        query: SHARED_ATTRIBUTES[:query],
+        body: SHARED_ATTRIBUTES[:body],
+        variables: SHARED_ATTRIBUTES[:variables],
+        expect: {type: Hash}
+      }.freeze
     end
 
     class Constraint < Normalizer
-      STRUCTURE = Normalizer::CONSTRAINT_STRUCTURE
+      STRUCTURE = {
+        status: {
+          type: Integer
+        },
+        json: {
+          type: Hash,
+          default: {}
+        }
+      }.freeze
     end
 
     class Factory < Normalizer
-      STRUCTURE = Normalizer::FACTORY_STRUCTURE
+      STRUCTURE = {
+        model_class: {
+          type: String,
+          aliases: %i[class],
+          default: ""
+        },
+        variables: SHARED_ATTRIBUTES[:variables],
+        attributes: {
+          type: Hash,
+          default: {}
+        }
+      }.freeze
+    end
+
+    class Factory < Normalizer
+      STRUCTURE = {
+        model_class: {
+          type: String,
+          aliases: %i[class],
+          default: ""
+        },
+        variables: SHARED_ATTRIBUTES[:variables],
+        attributes: {
+          type: Hash,
+          default: {}
+        }
+      }.freeze
     end
 
     class << self
-      #
-      # Generates an empty factory hash
-      #
-      # @return [Hash]
-      #
-      def default_factory
-        generate_default_from_structure(FACTORY_STRUCTURE)
-      end
-
       #
       # Generates an empty spec hash
       #
       # @return [Hash]
       #
       def default_spec
-        generate_default_from_structure(SPEC_STRUCTURE)
+        generate_default_from_structure(Spec::STRUCTURE)
       end
 
       #
@@ -127,7 +125,7 @@ module SpecForge
       # @return [Hash]
       #
       def default_expectation
-        generate_default_from_structure(EXPECTATION_STRUCTURE)
+        generate_default_from_structure(Expectation::STRUCTURE)
       end
 
       #
@@ -136,7 +134,16 @@ module SpecForge
       # @return [Hash]
       #
       def default_constraint
-        generate_default_from_structure(CONSTRAINT_STRUCTURE)
+        generate_default_from_structure(Constraint::STRUCTURE)
+      end
+
+      #
+      # Generates an empty factory hash
+      #
+      # @return [Hash]
+      #
+      def default_factory
+        generate_default_from_structure(Factory::STRUCTURE)
       end
 
       #
