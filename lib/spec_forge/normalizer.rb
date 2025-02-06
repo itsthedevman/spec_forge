@@ -71,6 +71,16 @@ module SpecForge
       }
     }.freeze
 
+    FACTORY_STRUCTURE = {
+      model_class: {
+        type: String,
+        aliases: %i[class],
+        default: ""
+      },
+      variables: SHARED_ATTRIBUTES[:variables],
+      attributes: {type: Hash}
+    }.freeze
+
     STRUCTURE = {}
 
     class Spec < Normalizer
@@ -85,7 +95,20 @@ module SpecForge
       STRUCTURE = Normalizer::CONSTRAINT_STRUCTURE
     end
 
+    class Factory < Normalizer
+      STRUCTURE = Normalizer::FACTORY_STRUCTURE
+    end
+
     class << self
+      #
+      # Generates an empty factory hash
+      #
+      # @return [Hash]
+      #
+      def default_factory
+        generate_default_from_structure(FACTORY_STRUCTURE)
+      end
+
       #
       # Generates an empty spec hash
       #
@@ -114,7 +137,7 @@ module SpecForge
       end
 
       #
-      # Normalizes a hash by standardizing its keys while ensuring the required data
+      # Normalizes a factory hash by standardizing its keys while ensuring the required data
       # is provided or defaulted.
       # Raises InvalidStructureError if anything is missing/invalid type
       #
@@ -122,13 +145,38 @@ module SpecForge
       #
       # @return [Hash] A normalized hash as a new instance
       #
-      def normalize(input)
+      def normalize_factory!(input)
+        errors = []
+
+        begin
+          output, factory_errors = normalize_factory(input)
+          errors += factory_errors if factory_errors.size > 0
+        rescue => e
+          errors << e
+        end
+
+        raise InvalidStructureError.new(errors) if errors.size > 0
+
+        output
+      end
+
+      #
+      # Normalizes a complete spec hash by standardizing its keys while ensuring the required data
+      # is provided or defaulted.
+      # Raises InvalidStructureError if anything is missing/invalid type
+      #
+      # @param input [Hash] The hash to normalize
+      #
+      # @return [Hash] A normalized hash as a new instance
+      #
+      def normalize_spec!(input)
         errors = []
 
         begin
           output, spec_errors = normalize_spec(input)
           errors += spec_errors if spec_errors.size > 0
 
+          # Process expectations
           if (expectations = input[:expectations]) && expectations.is_a?(Array)
             expectation_output, expectation_errors = normalize_expectations(expectations)
 
@@ -146,7 +194,7 @@ module SpecForge
 
       #
       # Normalize a spec hash
-      # Used internally by .normalize, but is available for utility
+      # Used internally by .normalize_spec, but is available for utility
       #
       # @param spec [Hash] Spec representation as a Hash
       #
@@ -162,9 +210,9 @@ module SpecForge
 
       #
       # Normalize an array of expectation hashes
-      # Used internally by .normalize, but is available for utility
+      # Used internally by .normalize_spec, but is available for utility
       #
-      # @param spec [Array<Hash>] An array of expectation hashes
+      # @param expectations [Array<Hash>] An array of expectation hashes
       #
       # @return [Array] Two item array
       #   First - The normalized Array<Hash>
@@ -199,9 +247,9 @@ module SpecForge
 
       #
       # Normalize a constraint hash
-      # Used internally by .normalize, but is available for utility
+      # Used internally by .normalize_spec, but is available for utility
       #
-      # @param spec [Hash] Spec representation as a Hash
+      # @param constraint [Hash] Constraint representation as a Hash
       #
       # @return [Array] Two item array
       #   First - The normalized hash
@@ -211,6 +259,22 @@ module SpecForge
         raise InvalidTypeError.new(constraint, Hash, for: "expect") if !constraint.is_a?(Hash)
 
         Normalizer::Constraint.new("expect", constraint).normalize
+      end
+
+      #
+      # Normalize a factory hash
+      # Used internally by .normalize_factory, but is available for utility
+      #
+      # @param factory [Hash] Factory representation as a Hash
+      #
+      # @return [Array] Two item array
+      #   First - The normalized hash
+      #   Second - Array of errors, if any
+      #
+      def normalize_factory(factory)
+        raise InvalidTypeError.new(factory, Hash, for: "factory") if !factory.is_a?(Hash)
+
+        Normalizer::Constraint.new("factory", factory).normalize
       end
 
       private
