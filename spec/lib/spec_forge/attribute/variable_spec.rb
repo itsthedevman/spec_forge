@@ -238,4 +238,6 @@ RSpec.describe SpecForge::Attribute::Variable do
       end
     end
   end
+
+  context "when variables reference themselves"
 end

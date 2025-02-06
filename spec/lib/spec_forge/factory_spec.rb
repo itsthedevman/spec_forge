@@ -32,31 +32,37 @@ RSpec.describe SpecForge::Factory do
         expect { factories }.to raise_error(FactoryBot::DuplicateDefinitionError)
       end
     end
+
+    context "when the factory has a valid model class" do
+      let(:attributes) { {name: Faker::String.random} }
+      let(:name) { "user" }
+
+      subject(:factory) { SpecForge::Factory.new(name:, model_class: "User", attributes:) }
+
+      before do
+        stub_const(
+          "User", Class.new do
+            attr_accessor :name
+          end
+        )
+      end
+
+      it "register successfully and can be built by FactoryBot" do
+        factory.register
+
+        bot_factory = FactoryBot::Internal.factory_by_name(name)
+        expect(bot_factory).not_to be(nil)
+
+        user = FactoryBot.build(:user)
+        expect(user).not_to be(nil)
+        expect(user.name).to eq(attributes[:name])
+      end
+    end
   end
 
-  context "when the factory has a valid model class" do
-    let(:attributes) { {name: Faker::String.random} }
-    let(:name) { "user" }
-
-    subject(:factory) { SpecForge::Factory.new(name:, model_class: "User", attributes:) }
-
-    before do
-      stub_const(
-        "User", Class.new do
-          attr_accessor :name
-        end
-      )
-    end
-
-    it "register successfully and can be built by FactoryBot" do
-      factory.register
-
-      bot_factory = FactoryBot::Internal.factory_by_name(name)
-      expect(bot_factory).not_to be(nil)
-
-      user = FactoryBot.build(:user)
-      expect(user).not_to be(nil)
-      expect(user.name).to eq(attributes[:name])
+  describe "#initialize" do
+    context "when variables are referenced" do
+      it "is expected that they are properly linked"
     end
   end
 end
