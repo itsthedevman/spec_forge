@@ -94,21 +94,6 @@ module SpecForge
       }.freeze
     end
 
-    class Factory < Normalizer
-      STRUCTURE = {
-        model_class: {
-          type: String,
-          aliases: %i[class],
-          default: ""
-        },
-        variables: SHARED_ATTRIBUTES[:variables],
-        attributes: {
-          type: Hash,
-          default: {}
-        }
-      }.freeze
-    end
-
     class << self
       #
       # Generates an empty spec hash
