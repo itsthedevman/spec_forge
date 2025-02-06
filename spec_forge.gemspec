@@ -8,17 +8,19 @@ Gem::Specification.new do |spec|
   spec.authors = ["Bryan"]
   spec.email = ["bryan@itsthedevman.com"]
 
-  spec.summary = "TODO: Write a short summary, because RubyGems requires one."
-  spec.description = "TODO: Write a longer description or delete this line."
-  spec.homepage = "TODO: Put your gem's website or public repo URL here."
+  spec.summary = "Write expressive API tests in YAML with the power of RSpec matchers"
+  spec.description = "SpecForge lets you write API tests using a clean YAML syntax while leveraging RSpec's powerful matcher system. It supports dynamic test data generation through Faker, deep variable access, factory integration, and intuitive request/response validation. Reduce boilerplate and focus on what matters - testing your API's behavior."
+  spec.homepage = "https://github.com/itsthedevman/spec_forge"
   spec.license = "MIT"
   spec.required_ruby_version = ">= 3.0.0"
 
-  spec.metadata["allowed_push_host"] = "TODO: Set to your gem server 'https://example.com'"
-
-  spec.metadata["homepage_uri"] = spec.homepage
-  spec.metadata["source_code_uri"] = "TODO: Put your gem's public repo URL here."
-  spec.metadata["changelog_uri"] = "TODO: Put your gem's CHANGELOG.md URL here."
+  spec.metadata = {
+    "source_code_uri" => "https://github.com/itsthedevman/spec_forge",
+    "changelog_uri" => "https://github.com/itsthedevman/spec_forge/blob/main/CHANGELOG.md",
+    "bug_tracker_uri" => "https://github.com/itsthedevman/spec_forge/issues",
+    "documentation_uri" => "https://github.com/itsthedevman/spec_forge#readme",
+    "rubygems_mfa_required" => "true"
+  }
 
   # Specify which files should be added to the gem when it is released.
   # The `git ls-files -z` loads the files in the RubyGem that have been added into git.
@@ -29,6 +31,7 @@ Gem::Specification.new do |spec|
         f.start_with?(*%w[bin/ test/ spec/ features/ .git .github appveyor Gemfile])
     end
   end
+
   spec.bindir = "exe"
   spec.executables = spec.files.grep(%r{\Aexe/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]
