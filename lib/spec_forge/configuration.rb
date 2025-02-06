@@ -6,14 +6,6 @@ module SpecForge
       description: "Sets the base URL prefix for all API requests. All test paths will be appended to this URL.",
       default: "http://localhost:3000"
     },
-    require_name: {
-      description: "Validates that each spec has a non-blank name attribute, failing validation if missing or empty.",
-      default: true
-    },
-    require_description: {
-      description: "Validates that each spec has a non-blank description attribute, failing validation if missing or empty.",
-      default: true
-    },
     authorization: {
       description: "Configures the global authorization header and value for API requests.",
       default: {
