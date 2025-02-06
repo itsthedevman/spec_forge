@@ -43,6 +43,12 @@ module SpecForge
           @options << [args, block]
         end
 
+        def aliases(*aliases)
+          @aliases ||= []
+
+          @aliases += aliases
+        end
+
         def register(context)
           raise "Missing command name" if @command_name.nil?
 
@@ -58,13 +64,17 @@ module SpecForge
 
             c.action { |args, opts| new(args, opts).call }
           end
+
+          @aliases&.each do |alii|
+            context.alias_command(alii, @command_name)
+          end
         end
       end
 
-      attr_reader :args, :options
+      attr_reader :arguments, :options
 
-      def initialize(args, options)
-        @args = args
+      def initialize(arguments, options)
+        @arguments = arguments
         @options = options
       end
     end
