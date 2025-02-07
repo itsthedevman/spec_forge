@@ -1,16 +1,65 @@
-
 # SpecForge
 
-SpecForge is a Ruby gem that enables you to write expressive API tests using YAML. By eliminating boilerplate code and providing a clean, declarative syntax, SpecForge allows you to focus on defining your test scenarios rather than wrestling with test implementation.
+Ever notice how much time you spend writing code for API tests? Skip the boilerplate and write your tests in YAML - simple, clean, and powerful.
+
+```yaml
+get_user:
+  path: /users/1
+  expect:
+    status: 200
+    json:
+      name: kind_of.string
+      email: /@/
+```
+
+That's it. No Ruby classes, no setup code, no HTTP client configuration. Just describe what you want to test, and SpecForge handles the rest. Need test data? We've got Faker built in. Want to reuse objects? Factories are ready to go. All the power of RSpec's matchers without writing a single line of Ruby.
+
+## Table of Contents
+
+- [Features](#features)
+- [Compatibility](#compatibility)
+- [Installation](#installation)
+- [Getting Started](#getting-started)
+- [Writing Your First Test](#writing-your-first-test)
+- [Configuration](#configuration)
+  - [Base URL](#base-url)
+  - [Authorization](#authorization)
+- [The Spec Structure](#the-spec-structure)
+  - [Basic Structure](#basic-structure)
+  - [Testing Response Data](#testing-response-data)
+  - [Multiple Expectations](#multiple-expectations)
+  - [Request Data](#request-data)
+- [Dynamic Features](#dynamic-features)
+  - [Variables](#variables)
+  - [Transformations](#transformations)
+  - [Factory Integration](#factory-integration)
+- [RSpec Matchers](#rspec-matchers)
+  - ["be" namespace](#be-namespace)
+  - ["kind_of" namespace](#kind_of-namespace)
+  - ["matchers" namespace](#matchers-namespace)
+- [Contributing](#contributing)
+- [License](#license)
+- [Looking for a Software Engineer?](#looking-for-a-software-engineer)
 
 ## Features
 
+Current:
 - **Write Tests in YAML**: Create clear, maintainable API tests using a declarative YAML syntax
-- **RSpec Integration**: Uses RSpec under the hood for test execution and reporting
-- **Intuitive Matcher Access**: Clean syntax for RSpec matchers and expectations
-- **Dynamic Test Data**: Generate realistic test data using Faker, transformations, and variables
-- **Factory Integration**: Seamless integration with FactoryBot for fixture generation
-- **OpenAPI Generation** (Coming Soon): Automatically generate OpenAPI documentation from your test specifications
+- **RSpec Integration**: Harness RSpec's powerful matcher system and reporting through an intuitive interface
+- **Dynamic Test Data**: Generate realistic test data using Faker, transformations, and a flexible variable system
+- **Factory Integration**: Seamless integration with FactoryBot for test data generation
+
+Roadmap:
+- OpenAPI document generation from your test specifications
+- Support for XML/HTML response handling
+- Support for running a single spec
+- Negated matchers
+
+## Compatibility
+
+Currently tested on:
+- MRI Ruby 3.0+
+- NixOS (see `flake.nix` for details)
 
 ## Installation
 
@@ -48,78 +97,97 @@ bundle exec spec_forge init
 This creates the `spec_forge` directory with the following structure:
 ```
 spec_forge/
-  config.yml
-  factories/
-  specs/
+  config.yml      # Global configuration
+  factories/      # Your factory definitions
+  specs/          # Your test specifications
 ```
 
-## Creating a spec
+## Writing Your First Test
 
-Specs can be created using:
+Let's write a simple test to verify a user endpoint. Create a new spec file:
+
 ```bash
-bundle exec spec_forge new spec <file_name>
+bundle exec spec_forge new spec users
 ```
-_Note: You can also use `generate` or `g` instead of `new` if you prefer_
 
-This will create the file `spec_forge/specs/<name>.yml` and populate it with example specs for CRUD routes.
+This creates `spec_forge/specs/users.yml`. Here's a basic example:
 
-## Running the specs
+```yaml
+get_user:
+  path: /users/1
+  method: GET
+  expectations:
+    - name: "Retrieves a user successfully"
+      expect:
+        status: 200
+        json:
+          id: 1
+          name: kind_of.string
+          email: /@/
+```
 
-Once you have a spec forged, you can all tests using:
+Run your tests with:
+
 ```bash
 bundle exec spec_forge run
 ```
 
-## Config
+## Configuration
 
-Location: `spec_forge/config.yml`
+The configuration file (`spec_forge/config.yml`) supports ERB and allows you to set global options for your test suite.
 
-This file supports ERB.
-
-### `base_url`
+### Base URL
 
 The base URL can be specified at three levels (in order of precedence):
 1. Expectation level
 2. Spec level
 3. Config level (`config.yml`)
 
-### `authorization`
+```yaml
+# config.yml
+base_url: https://api.example.com
 
-SpecForge currently only supports header based authorization.
+# specs/users.yml
+get_user:
+  base_url: https://staging.example.com  # Overrides config.yml
+  path: /users/1
+  expectations:
+    - name: "Production check"
+      base_url: https://prod.example.com  # Overrides spec level
+      expect:
+        status: 200
+```
+
+### Authorization
+
+SpecForge currently supports header-based authorization. Configure it in your `config.yml`:
 
 ```yaml
 authorization:
   default:
     header: Authorization
-    value: Bearer MY_TOKEN
+    value: Bearer <%= ENV['API_TOKEN'] %>  # ERB is supported!
 ```
 
 ## The Spec Structure
 
-Each spec is defined by a unique name within that file.
+### Basic Structure
+
+Every spec needs a path, HTTP method, and at least one expectation to be useful:
 
 ```yaml
 show_user:
-  path: /user/1
-  method: GET
-  expectations: []
-```
-
-This is an example of a minimal spec with no tests. We have a path and the HTTP method used.
-
-Let's add an expectation
-
-```yaml
-show_user:
-  path: /user/1
-  method: GET
+  path: /users/1
+  method: GET # Optional for GET requests, can be lowercase too if that's your style
   expectations:
-  - name: "Retrieves a User"
+  - name: "Retrieves a User"  # Recommended. May be required in future versions for OpenAPI generation
     expect:
       status: 200
 ```
 
-An expectation can override anything defined on the spec.
+### Testing Response Data
+
+Let's verify the response JSON:
 
 ```yaml
 show_user:
@@ -129,13 +197,15 @@ show_user:
   - name: "Retrieves a User"
     expect:
       status: 200
-  - name: "Invalid ID"
-    path: /users/0
-    expect:
-      status: 404
+      json:
+        id: 1
+        name: kind_of.string
+        role: admin
 ```
 
-This is fine but this doesn't test much. Let's test the response's JSON:
+### Multiple Expectations
+
+Each expectation can override any spec-level setting. This is useful for testing different scenarios:
 
 ```yaml
 show_user:
@@ -148,83 +218,190 @@ show_user:
       json:
         id: 1
         role: admin
-  - name: "Invalid ID"
-    path: /users/0
+  - name: "Invalid User ID"
+    path: /users/999  # Overrides spec-level path
     expect:
       status: 404
 ```
 
-As of right now, SpecForge only supports JSON response checking. Check out the [[#Roadmap]]
+### Request Data
+
+For POST/PUT/PATCH requests, you can include query parameters and body data:
+
+```yaml
+create_user:
+  path: /users
+  method: POST
+  query:  # or 'params' if you prefer
+    team_id: 123
+  body:   # or 'data' if you prefer
+    name: John Doe
+    email: john@example.com
+    role: admin
+  expectations:
+  - expect:
+      status: 201
+      json:
+        id: kind_of.integer
+        name: John Doe
+```
+
+## Dynamic Features
+
+SpecForge provides powerful features for generating and manipulating test data dynamically.
+
+### Variables
+
+Variables let you define and reuse values across your tests. They support complex chaining and can reference generated data:
+
+```yaml
+list_posts:
+  path: /posts
+  variables:
+    author: factories.user
+    category_name: faker.lorem.word
+  query:
+    author_id: variables.author.id
+    category: variables.category_name
+  expectations:
+  - name: "Lists user's posts"
+    expect:
+      status: 200
+      json:
+        posts:
+          matchers.include:
+          - author:
+              id: variables.author.id
+              name: variables.author.name
+            category: variables.category_name
+```
+
+Variables support deep traversal:
+```yaml
+variables:
+  user: factories.user
+  first_post: variables.user.posts.last
+  author: variables.first_post.comments.2.author.name
+```
+
+### Transformations
+
+Transform data using built-in helpers:
+
+```yaml
+create_user:
+  variables:
+    first_name: faker.name.first_name
+    last_name: faker.name.last_name
+    full_name:
+      transform.join:
+      - variables.first_name
+      - " "
+      - variables.last_name
+  body:
+    name: variables.full_name
+    email: faker.internet.email
+```
+
+### Factory Integration
+
+Define factories in `spec_forge/factories/user.yml`:
+
+```yaml
+user:
+  class: User  # Optional model class name
+  attributes:
+    name: faker.name.name
+    email: faker.internet.email
+    role: admin
+```
+
+Use factories in your tests:
+
+```yaml
+create_post:
+  variables:
+    author: factories.user
+    reviewers:
+    - factories.user
+    - factories.user
+  body:
+    title: faker.lorem.sentence
+    content: faker.lorem.paragraphs
+    author_id: variables.author.id
+    reviewer_ids:
+    - variables.reviewers.0.id
+    - variables.reviewers.1.id
+  expectations:
+  - expect:
+      status: 201
+      json:
+        author:
+          id: variables.author.id
+          name: variables.author.name
+        reviewers:
+        - id: variables.reviewers.0.id
+        - id: variables.reviewers.1.id
+```
 
 ## RSpec Matchers
 
-Checking for literal values is ok, but what if you don't know the exact data? Enter RSpec's matcher system.
-_For brevity, we're going to focus just on a single expectation in these examples. Assume this is being used within the spec context above_
+SpecForge provides access to RSpec's powerful matcher system through an intuitive dot notation syntax. The matcher system dynamically integrates with RSpec's matchers through three main namespaces:
 
+#### "be" namespace
 ```yaml
-name: "Retrieves a User"
 expect:
-  status: 200
   json:
-    id: 1
-    role: admin
-    name: kind_of.string
-    last_logged_in_at: be.blank
+    # Simple predicates
+    active: be.true
+    deleted: be.false
+    description: be.nil
+    tags: be.empty
+    email: be.present
+
+    # Comparisons (aliases available)
+    price:
+      be.greater_than: 18            # be.greater also works
+    stock:
+      be.less_than_or_equal: 100     # be.less_or_equal also works
+    rating:
+      be.between:
+      - 1
+      - 5
+
+    # Dynamic predicate methods
+    published: be.published          # Maps to be_published
+    admin: be.admin                  # Maps to be_admin
 ```
 
-SpecForge utilizes a powerful dot notation system in order to do cool things. It is able to use most of RSpec's matchers, including dynamic ones. In fact, both `id` and `role` values above are converted to `eq(1)` and `eq("admin")` respectfully.
-
-I've included a non-exhaustive list of matchers below to give you the idea.
-
-## Expanded notation
-
-SpecForge supports positional and keyword argument forwarding
-
+#### "kind_of" namespace
 ```yaml
-name: "Retrieves a User"
 expect:
-  status: 200
   json:
-    id: 1
-    role:
+    id: kind_of.integer
+    name: kind_of.string
+    metadata: kind_of.hash
+    scores: kind_of.array
+```
+
+#### "matchers" namespace
+```yaml
+expect:
+  json:
+    # Direct RSpec matcher usage
+    tags:
       matchers.include:
-      - admin
-      - user
-      - guest
-    name: kind_of.string
+      - featured
+      - published
+
+    slug: /^[a-z0-9-]+$/    # Shorthand for matching regexes
+
+    # Any RSpec matcher can be used
+    config:
+      matchers.have_key: api_version
 ```
 
-The above `matchers.include` reference will create a `include("admin", "user", "guest")` matcher. You can use a hash for keyword arguments
-```yaml
-name: "Retrieves a User"
-expect:
-  status: 200
-  json:
-    id: 1
-    name: kind_of.string
-    keys:
-      matchers.include:
-        room: kind_of.integer
-        locker: kind_of.integer
-```
-## Limitations
-
-- RSpec matchers requiring Ruby blocks (like `change`) are not supported
-
-## Roadmap
-
-- [ ] Negated matchers
-- [ ] Support for running a single spec
-- [ ] OpenAPI document generation
-- [ ] Support for XML/HTML response handling
-
-## Potential features
-
-- [ ] Parallel test execution
-
-## Tested on
-
-MRI Ruby 3.0+, NixOS (see `flake.nix`)
+Note: Matchers that require Ruby blocks (like `change`) are not supported.
 
 ## Contributing
 
@@ -240,132 +417,6 @@ Please note that this project is released with a [Contributor Code of Conduct](C
 
 The gem is available as open source under the terms of the [MIT License](LICENSE.txt).
 
-## Changelog
-
-See [CHANGELOG.md](CHANGELOG.md) for a list of changes.
-
 ## Looking for a Software Engineer?
 
 I'm looking for work! Please send enquiries to bryan@itsthedevman.com
-
-## Credits
-
-- Author: Bryan "itsthedevman"
-
----
-
-Editor's note: Everything below is important but needs rewritten into the above
-
-## Advanced Usage
-
-### Factory Integration
-
-Define factories in `spec_forge/factories/user.yml`:
-
-```yaml
-user:
-  class: User
-  attributes:
-    name: faker.string.random
-    email: faker.internet.email
-```
-
-Use factories in tests:
-
-```yaml
-create_post:
-  path: /api/posts
-  method: post
-  variables:
-    author: factory.user
-    category: factory.category
-  body:
-    title: faker.lorem.sentence
-    content: faker.lorem.paragraphs
-    author_id: variables.author.id
-    category_id: variables.category.id
-expectations:
-- expect:
-    status: 201
-    json:
-      id: kind_of.integer
-      title: matcher.be_present
-      author:
-        id: variables.author.id
-        name: variables.author.name
-```
-
-### Dynamic Variables and Transforms
-
-Generate and transform test data:
-
-```yaml
-update_user:
-  path: /api/users/1
-  method: patch
-  variables:
-    first_name: faker.name.first_name
-    last_name: faker.name.last_name
-    full_name:
-      transform.join:
-        - variables.first_name
-        - " "
-        - variables.last_name
-    age:
-      faker.number.between:
-        from: 18
-        to: 65
-  body:
-    name: variables.full_name
-    age: variables.age
-expectations:
-- expect:
-    status: 200
-    json:
-      name: variables.full_name
-      age: variables.age
-```
-
-## Matcher Reference
-
-### "be" namespace
-
-| Macro | RSpec |
-| -------------------------- | ------------ |
-| be.nil | be(nil) |
-| be.true | be(true) |
-| be.false | be(false) |
-| be.present | be_present |
-| be.empty | be_empty |
-| be.truthy | be_truthy |
-| be.falsey | be_falsey |
-| be.greater_than | be > |
-| be.less_than | be < |
-| be.greater_than_or_equal | be >= |
-| be.less_than_or_equal | be <= |
-| be.between | be_between |
-| be.within | be_within |
-
-### "kind_of" namespace
-
-| Macro | RSpec |
-| ----------------- | --------------------- |
-| kind_of.integer | be_kind_of(Integer) |
-| kind_of.string | be_kind_of(String) |
-| kind_of.array | be_kind_of(Array) |
-| kind_of.hash | be_kind_of(Hash) |
-| kind_of.float | be_kind_of(Float) |
-
-### "matcher" namespace
-
-| Macro | RSpec |
-| ------------------------- | ----------------- |
-| matcher.contain_exactly | contain_exactly |
-| matcher.match | match |
-| matcher.match_array | match_array |
-| matcher.have_key | have_key |
-| matcher.start_with | start_with |
-| matcher.end_with | end_with |
-| matcher.include | include |
-| matcher.include_hash | include_hash |
-| matcher.have_attributes | have_attributes |
