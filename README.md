@@ -1,3 +1,4 @@
+
 # SpecForge
 
 SpecForge is a Ruby gem that enables you to write expressive API tests using YAML. By eliminating boilerplate code and providing a clean, declarative syntax, SpecForge allows you to focus on defining your test scenarios rather than wrestling with test implementation.
@@ -11,16 +12,12 @@ SpecForge is a Ruby gem that enables you to write expressive API tests using YAM
 - **Factory Integration**: Seamless integration with FactoryBot for fixture generation
 - **OpenAPI Generation** (Coming Soon): Automatically generate OpenAPI documentation from your test specifications
 
-## Requirements
-
-- Ruby 3.0+
-
 ## Installation
 
 Add this line to your application's Gemfile:
 
 ```ruby
-gem spec_forge
+gem "spec_forge"
 ```
 
 And then execute:
@@ -43,6 +40,11 @@ Initialize the required directory structure:
 spec_forge init
 ```
 
+Or with bundle:
+```bash
+bundle exec spec_forge init
+```
+
 This creates the `spec_forge` directory with the following structure:
 ```
 spec_forge/
@@ -51,55 +53,208 @@ spec_forge/
   specs/
 ```
 
-### Configuration
+## Creating a spec
 
-Create a minimal configuration in `spec_forge/config.yml`:
+Specs can be created using:
+```bash
+bundle exec spec_forge new spec <file_name>
+```
+_Note: You can also use `generate` or `g` instead of `new` if you prefer_
+
+This will create the file `spec_forge/specs/<name>.yml` and populate it with example specs for CRUD routes.
+
+## Running the specs
+
+Once you have a spec forged, you can all tests using:
+```bash
+bundle exec spec_forge run
+```
+
+## Config
+
+Location: `spec_forge/config.yml`
+
+This file supports ERB.
+
+### `base_url`
+
+The base URL can be specified at three levels (in order of precedence):
+1. Expectation level
+2. Spec level
+3. Config level (`config.yml`)
+
+### `authorization`
+
+SpecForge currently only supports header based authorization.
 
 ```yaml
-base_url: http://localhost:3000
 authorization:
   default:
     header: Authorization
-    value: Bearer <%= ENV.fetch('API_TOKEN') %>
+    value: Bearer MY_TOKEN
 ```
 
-### Basic Test
+## The Spec Structure
 
-Create a test specification in `spec_forge/specs/users_api.yml`:
+Each spec is defined by a unique name within that file.
 
 ```yaml
-get_user:
-  path: /api/users/1
-  method: get
-  variables:
-    base_name: faker.name.name
-  query:
-    include_details: true
-expectations:
-- query:
-    include_details: false
-  expect:
-    status: 200
-    json:
-      id: kind_of.integer
-      name: variables.base_name
-- variables:
-    admin_name: faker.name.name
-  body:
-    name: variables.admin_name
-  expect:
-    status: 200
-    json:
-      id: kind_of.integer
-      name: variables.admin_name
-      details: kind_of.hash
+show_user:
+  path: /user/1
+  method: GET
+  expectations: []
 ```
 
-Run your tests:
+This is an example of a minimal spec with no tests. We have a path and the HTTP method used.
 
-```bash
-spec_forge run
+Let's add an expectation
+
+```yaml
+show_user:
+  path: /user/1
+  method: GET
+  expectations:
+  - name: "Retrieves a User"
+    expect:
+      status: 200
 ```
+
+An expectation can override anything defined on the spec.
+
+```yaml
+show_user:
+  path: /users/1
+  method: GET
+  expectations:
+  - name: "Retrieves a User"
+    expect:
+      status: 200
+  - name: "Invalid ID"
+    path: /users/0
+    expect:
+      status: 404
+```
+
+This is fine but this doesn't test much. Let's test the response's JSON:
+
+```yaml
+show_user:
+  path: /users/1
+  method: GET
+  expectations:
+  - name: "Retrieves a User"
+    expect:
+      status: 200
+      json:
+        id: 1
+        role: admin
+  - name: "Invalid ID"
+    path: /users/0
+    expect:
+      status: 404
+```
+
+As of right now, SpecForge only supports JSON response checking. Check out the [[#Roadmap]]
+
+## RSpec Matchers
+
+Checking for literal values is ok, but what if you don't know the exact data? Enter RSpec's matcher system.
+_For brevity, we're going to focus just on a single expectation in these examples. Assume this is being used within the spec context above_
+
+```yaml
+name: "Retrieves a User"
+expect:
+  status: 200
+  json:
+    id: 1
+    role: admin
+    name: kind_of.string
+    last_logged_in_at: be.blank
+```
+
+SpecForge utilizes a powerful dot notation system in order to do cool things. It is able to use most of RSpec's matchers, including dynamic ones. In fact, both `id` and `role` values above are converted to `eq(1)` and `eq("admin")` respectfully.
+
+I've included a non-exhaustive list of matchers below to give you the idea.
+
+## Expanded notation
+
+SpecForge supports positional and keyword argument forwarding
+
+```yaml
+name: "Retrieves a User"
+expect:
+  status: 200
+  json:
+    id: 1
+    role:
+      matchers.include:
+      - admin
+      - user
+      - guest
+    name: kind_of.string
+```
+
+The above `matchers.include` reference will create a `include("admin", "user", "guest")` matcher. You can use a hash for keyword arguments
+```yaml
+name: "Retrieves a User"
+expect:
+  status: 200
+  json:
+    id: 1
+    name: kind_of.string
+    keys:
+      matchers.include:
+        room: kind_of.integer
+        locker: kind_of.integer
+```
+## Limitations
+
+- RSpec matchers requiring Ruby blocks (like `change`) are not supported
+
+## Roadmap
+
+- [ ] Negated matchers
+- [ ] Support for running a single spec
+- [ ] OpenAPI document generation
+- [ ] Support for XML/HTML response handling
+
+## Potential features
+
+- [ ] Parallel test execution
+
+## Tested on
+
+MRI Ruby 3.0+, NixOS (see `flake.nix`)
+
+## Contributing
+
+1. Fork it
+2. Create your feature branch (`git checkout -b feature/my-new-feature`)
+3. Commit your changes (`git commit -am 'Add some feature'`)
+4. Push to the branch (`git push origin feature/my-new-feature`)
+5. Create new Pull Request
+
+Please note that this project is released with a [Contributor Code of Conduct](CODE_OF_CONDUCT.md). By participating in this project you agree to abide by its terms.
+
+## License
+
+The gem is available as open source under the terms of the [MIT License](LICENSE.txt).
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for a list of changes.
+
+## Looking for a Software Engineer?
+
+I'm looking for work! Please send enquiries to bryan@itsthedevman.com
+
+## Credits
+
+- Author: Bryan "itsthedevman"
+
+---
+
+Editor's note: Everything below is important but needs rewritten into the above
 
 ## Advanced Usage
 
@@ -139,13 +294,6 @@ expectations:
         id: variables.author.id
         name: variables.author.name
 ```
-
-### URL Configuration
-
-The base URL can be specified at three levels (in order of precedence):
-1. Expectation level
-2. Spec level
-3. Config level (`config.yml`)
 
 ### Dynamic Variables and Transforms
 
@@ -221,35 +369,3 @@ expectations:
 | matcher.include | include |
 | matcher.include_hash | include_hash |
 | matcher.have_attributes | have_attributes |
-
-## Limitations
-
-- RSpec matchers requiring Ruby blocks (like `change`) are not supported
-
-## Roadmap
-
-- OpenAPI document generation
-- Support for XML/HTML response handling
-- Potential support for parallel test execution
-
-## Contributing
-
-1. Fork it
-2. Create your feature branch (`git checkout -b feature/my-new-feature`)
-3. Commit your changes (`git commit -am 'Add some feature'`)
-4. Push to the branch (`git push origin feature/my-new-feature`)
-5. Create new Pull Request
-
-Please note that this project is released with a [Contributor Code of Conduct](CODE_OF_CONDUCT.md). By participating in this project you agree to abide by its terms.
-
-## License
-
-The gem is available as open source under the terms of the [MIT License](LICENSE.txt).
-
-## Changelog
-
-See [CHANGELOG.md](CHANGELOG.md) for a list of changes.
-
-## Credits
-
-- Author: Bryan "itsthedevman"
