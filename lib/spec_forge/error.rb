@@ -69,6 +69,13 @@ module SpecForge
 
   class InvalidTypeError < TypeError
     def initialize(object, expected_type, **opts)
+      if expected_type.instance_of?(Array)
+        expected_type = expected_type.to_sentence(
+          last_word_connector: ", or ",
+          two_words_connector: " or "
+        )
+      end
+
       message = "Expected #{expected_type}, got #{object.class}"
       message += " for #{opts[:for]}" if opts[:for].present?
 
