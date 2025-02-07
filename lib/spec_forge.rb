@@ -1,10 +1,5 @@
 # frozen_string_literal: true
 
-env = ENV["GEM_ENV"] || ENV["RAILS_ENV"] || ENV["RACK_ENV"]
-require "pry" if env == "development"
-
-################################################################################
-
 require "logger"
 require "active_support"
 require "active_support/core_ext"
