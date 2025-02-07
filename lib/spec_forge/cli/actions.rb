@@ -14,6 +14,7 @@ module SpecForge
       include Thor::Actions
 
       def initialize(...)
+        self.class.source_root(File.expand_path("../../templates", __dir__))
         self.destination_root = SpecForge.root
         self.options = {}
       end

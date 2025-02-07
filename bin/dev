@@ -1,0 +1,6 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require "pry"
+require_relative "../lib/spec_forge"
+SpecForge::CLI.new.run
