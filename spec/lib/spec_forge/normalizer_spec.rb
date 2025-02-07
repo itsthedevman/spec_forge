@@ -551,6 +551,75 @@ RSpec.describe SpecForge::Normalizer do
   end
 
   describe ".normalize_config!" do
+    let(:config) do
+      {
+        base_url: "http://localhost:3000",
+        authorization: {
+          default: {
+            header: "Authorization",
+            value: ""
+          }
+        }
+      }
+    end
+
+    subject(:normalized) { described_class.normalize_config!(config) }
+
+    it "is expected to normalize fully" do
+      expect(normalized[:base_url]).to eq(config[:base_url])
+      expect(normalized[:authorization]).to eq(config[:authorization])
+    end
+
+    context "when 'base_url' is nil" do
+      before do
+        config[:base_url] = nil
+      end
+
+      it do
+        expect { normalized }.to raise_error(
+          SpecForge::InvalidStructureError,
+          "Expected String, got NilClass for \"base_url\" on config"
+        )
+      end
+    end
+
+    context "when 'base_url' is not a String" do
+      before do
+        config[:base_url] = 1
+      end
+
+      it do
+        expect { normalized }.to raise_error(
+          SpecForge::InvalidStructureError,
+          "Expected String, got Integer for \"base_url\" on config"
+        )
+      end
+    end
+
+    context "when 'authorization' is nil" do
+      before do
+        config[:authorization] = nil
+      end
+
+      it do
+        expect(normalized[:authorization]).to eq(
+          default: {header: "", value: ""}
+        )
+      end
+    end
+
+    context "when 'authorization' is not a Hash" do
+      before do
+        config[:authorization] = 1
+      end
+
+      it do
+        expect { normalized }.to raise_error(
+          SpecForge::InvalidStructureError,
+          "Expected Hash, got Integer for \"authorization\" on config"
+        )
+      end
+    end
   end
 
   describe "#normalize_to_structure" do

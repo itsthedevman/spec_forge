@@ -96,12 +96,14 @@ module SpecForge
 
     class Config < Normalizer
       STRUCTURE = {
-        base_url: {},
+        base_url: {type: String},
         authorization: {
           type: Hash,
-          default: {},
-          content: {
+          default: {
             # Default is a key on this hash
+            default: {header: "", value: ""}
+          },
+          content: {
             default: {
               type: Hash,
               default: {
@@ -250,7 +252,7 @@ module SpecForge
           raise InvalidTypeError.new(expectations, Array, for: "\"expectations\" on spec")
         end
 
-        final_errors = []
+        final_errors = Set.new
         final_output = expectations.map.with_index do |expectation, index|
           normalizer = Normalizer::Expectation.new("expectation (item #{index})", expectation)
           output, errors = normalizer.normalize
@@ -262,10 +264,10 @@ module SpecForge
             ).normalize
 
             output[:expect] = constraint_output
-            errors += constraint_errors if constraint_errors.size > 0
+            errors.merge(constraint_errors) if constraint_errors.size > 0
           end
 
-          final_errors += errors if errors.size > 0
+          final_errors.merge(errors) if errors.size > 0
           output
         end
 
@@ -321,7 +323,7 @@ module SpecForge
       # @private
       #
       def normalize_config(config)
-        raise InvalidTypeError.new(config, Hash, for: "config") if config.is_a?(Hash)
+        raise InvalidTypeError.new(config, Hash, for: "config") if !config.is_a?(Hash)
 
         Normalizer::Config.new("config", config).normalize
       end
@@ -330,11 +332,11 @@ module SpecForge
       # @private
       #
       def raise_errors!(&block)
-        errors = []
+        errors = Set.new
 
         begin
           output, new_errors = yield
-          errors += new_errors if new_errors.size > 0
+          errors.merge(new_errors) if new_errors.size > 0
         rescue => e
           errors << e
         end
