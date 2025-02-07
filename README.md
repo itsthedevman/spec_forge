@@ -419,4 +419,4 @@ The gem is available as open source under the terms of the [MIT License](LICENSE
 
 ## Looking for a Software Engineer?
 
-I'm looking for work! Please send enquiries to bryan@itsthedevman.com
+I'm looking for work! Please send serious enquiries to bryan@itsthedevman.com
