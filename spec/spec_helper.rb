@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
-ENV["GEM_ENV"] ||= "development"
-
+require "pry"
 require "spec_forge"
 
 # See https://rubydoc.info/gems/rspec-core/RSpec/Core/Configuration

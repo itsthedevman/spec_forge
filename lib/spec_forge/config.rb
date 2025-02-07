@@ -14,8 +14,13 @@ module SpecForge
     private
 
     def load_from_hash(hash)
-      @base_url = hash[:base_url]
-      @authorization = hash[:authorization]
+      if (base_url = hash[:base_url]) && base_url.present?
+        @base_url = base_url
+      end
+
+      if (authorization = hash[:authorization]) && authorization.present?
+        @authorization = authorization
+      end
     end
 
     def load_defaults
@@ -29,6 +34,7 @@ module SpecForge
 
       erb = ERB.new(File.read(path)).result
       hash = YAML.safe_load(erb, aliases: true, symbolize_names: true)
+
       load_from_hash(hash)
     end
   end
