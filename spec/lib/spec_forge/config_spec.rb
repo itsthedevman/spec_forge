@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe SpecForge::Configuration do
+RSpec.describe SpecForge::Config do
   describe "#load_from_file" do
     describe "when the configuration file exists" do
       let(:forge_path) { SpecForge.forge.join("config.yml") }
