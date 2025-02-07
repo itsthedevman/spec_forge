@@ -33,8 +33,6 @@ require_relative "spec_forge/version"
 
 module SpecForge
   def self.run(path = forge)
-    config.load_from_file
-
     factories = Factory.load_and_register(path)
     puts "Loaded #{factories.size} #{"factory".pluralize(factories.size)}"
 

@@ -19,8 +19,6 @@ RSpec.describe SpecForge::Config do
         # Mock File.read
         allow(File).to receive(:read).and_call_original
         allow(File).to receive(:read).with(forge_path).and_return(yaml_content)
-
-        SpecForge.config.load_from_file
       end
 
       it "is expecting to parse, load, and overwrite the defaults" do
