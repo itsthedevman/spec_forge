@@ -50,10 +50,10 @@ Current:
 - **Factory Integration**: Seamless integration with FactoryBot for test data generation
 
 Roadmap:
-- OpenAPI document generation from your test specifications
-- Support for XML/HTML response handling
-- Support for running a single spec
 - Negated matchers
+- OpenAPI generation from your tests
+- Support for XML/HTML response handling
+- Support for running individual specs
 
 ## Compatibility
 
