@@ -1,0 +1,8 @@
+# Sets the base URL prefix for all API requests. All test paths will be appended to this URL.
+base_url: http://localhost:3000
+
+# Configures the global authorization header and value for API requests.
+authorization:
+  default:
+    header: Authorization
+    value: <%= default_authorization_value %>

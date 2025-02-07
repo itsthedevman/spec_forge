@@ -8,14 +8,19 @@ module SpecForge
       summary "Initializes directory structure and configuration files"
 
       def call
-        base_path = "spec_forge"
+        base_path = SpecForge.forge
         actions.empty_directory "#{base_path}/factories"
         actions.empty_directory "#{base_path}/specs"
 
-        actions.create_file(
+        actions.template(
+          "config.tt",
           SpecForge.root.join(base_path, "config.yml"),
-          SpecForge.config.to_config_yaml
+          context: binding
         )
+      end
+
+      def default_authorization_value
+        "Bearer <%= ENV.fetch('API_TOKEN', '') %>"
       end
     end
   end
