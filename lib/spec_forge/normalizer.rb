@@ -314,7 +314,7 @@ module SpecForge
       # Normalize a config hash
       # Used internally by .normalize_config, but is available for utility
       #
-      # @param config [Hash] Configuration representation as a Hash
+      # @param config [Hash] Config representation as a Hash
       #
       # @return [Array] Two item array
       #   First - The normalized hash
@@ -344,6 +344,13 @@ module SpecForge
         raise InvalidStructureError.new(errors) if errors.size > 0
 
         output
+      end
+
+      #
+      # @private
+      #
+      def default
+        new("", "").default
       end
     end
 
