@@ -170,18 +170,24 @@ module SpecForge
       # @return [Hash] A normalized hash as a new instance
       #
       def normalize_factory!(input)
-        errors = []
-
-        begin
-          output, factory_errors = normalize_factory(input)
-          errors += factory_errors if factory_errors.size > 0
-        rescue => e
-          errors << e
+        raise_errors! do
+          normalize_factory(input)
         end
+      end
 
-        raise InvalidStructureError.new(errors) if errors.size > 0
-
-        output
+      #
+      # Normalizes a config hash by standardizing its keys while ensuring the required data
+      # is provided or defaulted.
+      # Raises InvalidStructureError if anything is missing/invalid type
+      #
+      # @param input [Hash] The hash to normalize
+      #
+      # @return [Hash] A normalized hash as a new instance
+      #
+      def normalize_config!(input)
+        raise_errors! do
+          normalize_config(input)
+        end
       end
 
       #
@@ -194,11 +200,8 @@ module SpecForge
       # @return [Hash] A normalized hash as a new instance
       #
       def normalize_spec!(input)
-        errors = []
-
-        begin
-          output, spec_errors = normalize_spec(input)
-          errors += spec_errors if spec_errors.size > 0
+        raise_errors! do
+          output, errors = normalize_spec(input)
 
           # Process expectations
           if (expectations = input[:expectations]) && expectations.is_a?(Array)
@@ -207,13 +210,9 @@ module SpecForge
             output[:expectations] = expectation_output
             errors += expectation_errors if expectation_errors.size > 0
           end
-        rescue => e
-          errors << e
+
+          [output, errors]
         end
-
-        raise InvalidStructureError.new(errors) if errors.size > 0
-
-        output
       end
 
       #
@@ -225,6 +224,8 @@ module SpecForge
       # @return [Array] Two item array
       #   First - The normalized hash
       #   Second - Array of errors, if any
+      #
+      # @private
       #
       def normalize_spec(spec)
         raise InvalidTypeError.new(spec, Hash, for: "spec") if !spec.is_a?(Hash)
@@ -241,6 +242,8 @@ module SpecForge
       # @return [Array] Two item array
       #   First - The normalized Array<Hash>
       #   Second - Array of errors, if any
+      #
+      # @private
       #
       def normalize_expectations(expectations)
         if !expectations.is_a?(Array)
@@ -279,6 +282,8 @@ module SpecForge
       #   First - The normalized hash
       #   Second - Array of errors, if any
       #
+      # @private
+      #
       def normalize_constraint(constraint)
         raise InvalidTypeError.new(constraint, Hash, for: "expect") if !constraint.is_a?(Hash)
 
@@ -294,6 +299,8 @@ module SpecForge
       # @return [Array] Two item array
       #   First - The normalized hash
       #   Second - Array of errors, if any
+      #
+      # @private
       #
       def normalize_factory(factory)
         raise InvalidTypeError.new(factory, Hash, for: "factory") if !factory.is_a?(Hash)
@@ -311,19 +318,39 @@ module SpecForge
       #   First - The normalized hash
       #   Second - Array of errors, if any
       #
+      # @private
+      #
       def normalize_config(config)
         raise InvalidTypeError.new(config, Hash, for: "config") if config.is_a?(Hash)
 
         Normalizer::Config.new("config", config).normalize
       end
+
+      #
+      # @private
+      #
+      def raise_errors!(&block)
+        errors = []
+
+        begin
+          output, new_errors = yield
+          errors += new_errors if new_errors.size > 0
+        rescue => e
+          errors << e
+        end
+
+        raise InvalidStructureError.new(errors) if errors.size > 0
+
+        output
+      end
     end
 
     attr_reader :label, :input, :structure
 
-    def initialize(label, input)
+    def initialize(label, input, structure: self.class::STRUCTURE)
       @label = label
       @input = input
-      @structure = self.class::STRUCTURE
+      @structure = structure
     end
 
     def normalize
@@ -345,11 +372,12 @@ module SpecForge
     protected
 
     def normalize_to_structure
-      output, errors = {}, []
+      output, errors = {}, Set.new
 
       structure.each do |key, attribute|
         type_class = attribute[:type]
         aliases = attribute[:aliases] || []
+        sub_structure = attribute[:structure]
         default = attribute[:default]
         required = !attribute.key?(:default)
 
@@ -363,6 +391,19 @@ module SpecForge
         if !value.is_a?(type_class)
           raise InvalidTypeError.new(value, type_class, for: "\"#{key}\" on #{label}")
         end
+
+        value =
+          case sub_structure
+          when Hash
+            new_value, new_errors = self.class
+              .new(label, value, structure: sub_structure)
+              .normalize
+
+            errors += new_errors if new_errors.size > 0
+            new_value
+          else
+            value
+          end
 
         # Store
         output[key] = value
