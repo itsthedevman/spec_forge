@@ -84,7 +84,7 @@ module SpecForge
 
   class InvalidStructureError < Error
     def initialize(errors)
-      message = errors.join_map("\n") do |error|
+      message = errors.to_a.join_map("\n") do |error|
         error.message
       end
 
