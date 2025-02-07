@@ -20,7 +20,9 @@ module SpecForge
       end
 
       def default_authorization_value
-        "Bearer <%= ENV.fetch('API_TOKEN', '') %>"
+        <<~STRING.chomp
+          Bearer <%= ENV.fetch("API_TOKEN", "") %>
+        STRING
       end
     end
   end
