@@ -1,10 +1,8 @@
 # frozen_string_literal: true
 
 module SpecForge
-  class Config
+  class Config < Struct.new(:base_url, :authorization)
     include Singleton
-
-    attr_reader :base_url, :authorization
 
     def initialize
       load_defaults
@@ -15,11 +13,11 @@ module SpecForge
 
     def load_from_hash(hash)
       if (base_url = hash[:base_url]) && base_url.present?
-        @base_url = base_url
+        self.base_url = base_url
       end
 
       if (authorization = hash[:authorization]) && authorization.present?
-        @authorization = authorization
+        self.authorization = authorization
       end
     end
 
