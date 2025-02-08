@@ -239,5 +239,56 @@ RSpec.describe SpecForge::Attribute::Variable do
     end
   end
 
-  context "when variables reference themselves"
+  context "when variables reference themselves" do
+    context "and the variable was defined before" do
+      let(:variables) do
+        variables = SpecForge::Attribute.from({
+          var_1: "1",
+          var_2: "variables.var_1"
+        })
+
+        SpecForge::Attribute.update_hash_values(variables, variables)
+      end
+
+      let(:input) { "variables.var_2" }
+
+      it "is expected to be able to resolve the value" do
+        expect(variable.resolve).to eq("1")
+      end
+    end
+
+    context "and the variable is defined out of order" do
+      let(:variables) do
+        variables = SpecForge::Attribute.from({
+          var_1: "variables.var_2",
+          var_2: "1"
+        })
+
+        SpecForge::Attribute.update_hash_values(variables, variables)
+      end
+
+      let(:input) { "variables.var_1" }
+
+      it "is expected to be able to resolve the value" do
+        expect(variable.resolve).to eq("1")
+      end
+    end
+
+    context "and the reference is circular" do
+      let(:variables) do
+        variables = SpecForge::Attribute.from({
+          var_1: "variables.var_2",
+          var_2: "variables.var_1"
+        })
+
+        SpecForge::Attribute.update_hash_values(variables, variables)
+      end
+
+      let(:input) { "variables.var_1" }
+
+      it do
+        expect { variable.resolve }.to raise_error(SystemStackError)
+      end
+    end
+  end
 end
