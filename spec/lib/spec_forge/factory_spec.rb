@@ -92,5 +92,22 @@ RSpec.describe SpecForge::Factory do
         expect(factory.attributes[:attr_1].value).to eq(input[:variables][:var_1])
       end
     end
+
+    context "when 'variables' reference themselves" do
+      let(:input) do
+        {
+          name: "test",
+          variables: {
+            var_1: "test",
+            var_2: "variables.var_1"
+          },
+          attributes: {}
+        }
+      end
+
+      it "is expected to be able to be resolved" do
+        expect(factory.variables[:var_2].resolve).to eq(input[:variables][:var_1])
+      end
+    end
   end
 end

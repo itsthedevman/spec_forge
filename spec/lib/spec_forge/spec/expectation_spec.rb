@@ -137,5 +137,21 @@ RSpec.describe SpecForge::Spec::Expectation do
         expect(expectation.constraints.json[:key_1]).to be_kind_of(SpecForge::Attribute::Faker)
       end
     end
+
+    context "when 'variables' reference themselves" do
+      let(:input) do
+        {
+          expect: {status: 404},
+          variables: {
+            var_1: "test",
+            var_2: "variables.var_1"
+          }
+        }
+      end
+
+      it "is expected to be able to resolve the value" do
+        expect(expectation.variables[:var_2].resolve).to eq(input[:variables][:var_1])
+      end
+    end
   end
 end

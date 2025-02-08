@@ -41,7 +41,7 @@ module SpecForge
 
     ############################################################################
 
-    attr_reader :name, :input, :model_class, :attributes
+    attr_reader :name, :input, :model_class, :variables, :attributes
 
     def initialize(name:, **input)
       @name = name
@@ -49,6 +49,8 @@ module SpecForge
 
       @input = input
       @model_class = input[:model_class]
+
+      @variables = extract_variables(input)
       @attributes = extract_attributes(input)
     end
 
@@ -77,9 +79,16 @@ module SpecForge
 
     private
 
+    def extract_variables(input)
+      variables = Attribute.from(input[:variables])
+
+      # Update the variables that reference other variables lol
+      Attribute.update_hash_values(variables, variables)
+    end
+
     def extract_attributes(input)
       attributes = Attribute.from(input[:attributes])
-      Attribute.update_hash_values(attributes, input[:variables])
+      Attribute.update_hash_values(attributes, variables)
     end
   end
 end

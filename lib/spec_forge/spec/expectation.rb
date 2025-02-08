@@ -41,7 +41,7 @@ module SpecForge
       end
 
       def load_variables(input)
-        @variables = input[:variables]
+        @variables = Attribute.update_hash_values(input[:variables], input[:variables])
       end
 
       def load_constraints(input)
