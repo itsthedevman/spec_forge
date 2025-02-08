@@ -299,43 +299,38 @@ create_user:
 
 ### Factory Integration
 
-Define factories in `spec_forge/factories/user.yml`:
+SpecForge provides a YAML interface to FactoryBot, making it easy to define and use factories in your tests:
 
-```yaml
-user:
-  class: User  # Optional model class name
-  attributes:
-    name: faker.name.name
-    email: faker.internet.email
-    role: admin
-```
+1. **Existing FactoryBot Factories**: Out of the box, SpecForge automatically discovers your existing Ruby-defined factories from:
+   - Standard paths (`spec/factories` and `test/factories`)
+   - Any custom paths you configure via your `config.yml`:
+     ```yaml
+     factories:
+       # Override default FactoryBot factory paths
+       paths:
+       - custom/factories/path
+
+       # Disable automatic factory discovery if needed (default: true)
+       auto_discover: false
+     ```
+
+2. **YAML Factory Definitions**: Define factories using YAML in `spec_forge/factories/`:
+   ```yaml
+   # spec_forge/factories/user.yml
+   user:
+     class: User  # Optional model class name
+     attributes:
+       name: faker.name.name
+       email: faker.internet.email
+       role: admin
+   ```
+   SpecForge registers these YAML definitions with FactoryBot, making them work exactly like Ruby-defined factories.
 
 Use factories in your tests:
-
 ```yaml
 create_post:
   variables:
-    author: factories.user
-    reviewers:
-    - factories.user
-    - factories.user
-  body:
-    title: faker.lorem.sentence
-    content: faker.lorem.paragraphs
-    author_id: variables.author.id
-    reviewer_ids:
-    - variables.reviewers.0.id
-    - variables.reviewers.1.id
-  expectations:
-  - expect:
-      status: 201
-      json:
-        author:
-          id: variables.author.id
-          name: variables.author.name
-        reviewers:
-        - id: variables.reviewers.0.id
-        - id: variables.reviewers.1.id
+    author: factories.user  # Works with both YAML and Ruby-defined factories
 ```
 
 ## RSpec Matchers
