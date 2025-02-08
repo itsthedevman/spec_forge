@@ -5,4 +5,15 @@ base_url: http://localhost:3000
 authorization:
   default:
     header: Authorization
-    value: Bearer <%= ENV.fetch('API_TOKEN', '') %>
+    value: Bearer <%= ENV.fetch("API_TOKEN", "") %>
+
+factories:
+  ## Optional: Overrides default FactoryBot definition paths for discovering factories
+  ## By default, FactoryBot will look in "spec/factories" and "test/factories"
+  # paths:
+  # - custom/factories/path
+
+  ## Optional: Enable/disable automatic factory discovery, default: true
+  ## Note: Disabling auto discovery will only disable FactoryBot's auto discovery. Any factories
+  ## defined in "spec_forge/factories" will still be loaded.
+  # auto_discover: false
