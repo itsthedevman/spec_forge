@@ -37,23 +37,17 @@ That's it. No Ruby classes, no setup code, no HTTP client configuration. Just de
   - ["be" namespace](#be-namespace)
   - ["kind_of" namespace](#kind_of-namespace)
   - ["matchers" namespace](#matchers-namespace)
+- [Roadmap](#roadmap)
 - [Contributing](#contributing)
 - [License](#license)
 - [Looking for a Software Engineer?](#looking-for-a-software-engineer)
 
 ## Features
 
-Current:
 - **Write Tests in YAML**: Create clear, maintainable API tests using a declarative YAML syntax
 - **RSpec Integration**: Harness RSpec's powerful matcher system and reporting through an intuitive interface
 - **Dynamic Test Data**: Generate realistic test data using Faker, transformations, and a flexible variable system
 - **Factory Integration**: Seamless integration with FactoryBot for test data generation
-
-Roadmap:
-- Negated matchers
-- OpenAPI generation from your tests
-- Support for XML/HTML response handling
-- Support for running individual specs
 
 ## Compatibility
 
@@ -107,7 +101,7 @@ spec_forge/
 Let's write a simple test to verify a user endpoint. Create a new spec file:
 
 ```bash
-bundle exec spec_forge new spec users
+spec_forge new spec users
 ```
 
 This creates `spec_forge/specs/users.yml`. Here's a basic example:
@@ -117,19 +111,19 @@ get_user:
   path: /users/1
   method: GET
   expectations:
-    - name: "Retrieves a user successfully"
-      expect:
-        status: 200
-        json:
-          id: 1
-          name: kind_of.string
-          email: /@/
+  - name: "Retrieves a user successfully"
+    expect:
+      status: 200
+      json:
+        id: 1
+        name: kind_of.string
+        email: /@/
 ```
 
 Run your tests with:
 
 ```bash
-bundle exec spec_forge run
+spec_forge run
 ```
 
 ## Configuration
@@ -152,10 +146,10 @@ get_user:
   base_url: https://staging.example.com  # Overrides config.yml
   path: /users/1
   expectations:
-    - name: "Production check"
-      base_url: https://prod.example.com  # Overrides spec level
-      expect:
-        status: 200
+  - name: "Production check"
+    base_url: https://prod.example.com  # Overrides spec level
+    expect:
+      status: 200
 ```
 
 ### Authorization
@@ -402,6 +396,13 @@ expect:
 ```
 
 Note: Matchers that require Ruby blocks (like `change`) are not supported.
+
+## Roadmap
+
+- [ ] Negated matchers
+- [ ] OpenAPI generation from your tests
+- [ ] Support for XML/HTML response handling
+- [ ] Support for running individual specs
 
 ## Contributing
 
