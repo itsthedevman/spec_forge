@@ -96,20 +96,34 @@ module SpecForge
 
     class Config < Normalizer
       STRUCTURE = {
-        base_url: {type: String},
+        base_url: {type: String}, # Required
         authorization: {
           type: Hash,
           default: {
             # Default is a key on this hash
-            default: {header: "", value: ""}
+            default: {}
           },
-          content: {
+          structure: {
             default: {
               type: Hash,
-              default: {
-                header: {type: String},
-                value: {type: String}
+              structure: {
+                header: {type: String, default: ""},
+                value: {type: String, default: ""}
               }
+            }
+          }
+        },
+        factories: {
+          type: Hash,
+          default: {},
+          structure: {
+            paths: {
+              type: Array,
+              default: []
+            },
+            auto_discover: {
+              type: [TrueClass, FalseClass],
+              default: true
             }
           }
         }
@@ -397,7 +411,7 @@ module SpecForge
         value = default.dup if !required && value.nil?
 
         # Type + existence check
-        if !value.is_a?(type_class)
+        if !valid_class?(value, type_class)
           raise InvalidTypeError.new(value, type_class, for: "\"#{key}\" on #{label}")
         end
 
@@ -424,7 +438,15 @@ module SpecForge
     end
 
     def value_from_keys(hash, keys)
-      hash.find { |k, v| v if keys.include?(k) }&.second
+      hash.find { |k, v| keys.include?(k) }&.second
+    end
+
+    def valid_class?(value, expected_type)
+      if expected_type.instance_of?(Array)
+        expected_type.any? { |type| value.is_a?(type) }
+      else
+        value.is_a?(expected_type)
+      end
     end
   end
 end

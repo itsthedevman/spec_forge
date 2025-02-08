@@ -559,6 +559,10 @@ RSpec.describe SpecForge::Normalizer do
             header: "Authorization",
             value: ""
           }
+        },
+        factories: {
+          paths: [],
+          auto_discover: true
         }
       }
     end
@@ -617,6 +621,87 @@ RSpec.describe SpecForge::Normalizer do
         expect { normalized }.to raise_error(
           SpecForge::InvalidStructureError,
           "Expected Hash, got Integer for \"authorization\" on config"
+        )
+      end
+    end
+
+    context "when 'factories' is nil" do
+      before do
+        config[:factories] = nil
+      end
+
+      it do
+        expect(normalized[:factories]).to eq(
+          paths: [], auto_discover: true
+        )
+      end
+    end
+
+    context "when 'factories' is not a Hash" do
+      before do
+        config[:factories] = 1
+      end
+
+      it do
+        expect { normalized }.to raise_error(
+          SpecForge::InvalidStructureError,
+          "Expected Hash, got Integer for \"factories\" on config"
+        )
+      end
+    end
+
+    context "when 'factories.paths' is nil" do
+      before do
+        config[:factories][:paths] = nil
+      end
+
+      it do
+        expect(normalized[:factories][:paths]).to eq([])
+      end
+    end
+
+    context "when 'factories.paths' is not an Array" do
+      before do
+        config[:factories][:paths] = 1
+      end
+
+      it do
+        expect { normalized }.to raise_error(
+          SpecForge::InvalidStructureError,
+          "Expected Array, got Integer for \"paths\" on config"
+        )
+      end
+    end
+
+    context "when 'factories.auto_discover' is nil" do
+      before do
+        config[:factories][:auto_discover] = nil
+      end
+
+      it do
+        expect(normalized[:factories][:auto_discover]).to be(true)
+      end
+    end
+
+    context "when 'factories.auto_discover' is false" do
+      before do
+        config[:factories][:auto_discover] = false
+      end
+
+      it do
+        expect(normalized[:factories][:auto_discover]).to be(false)
+      end
+    end
+
+    context "when 'factories.auto_discover' is not a Boolean" do
+      before do
+        config[:factories][:auto_discover] = 1
+      end
+
+      it do
+        expect { normalized }.to raise_error(
+          SpecForge::InvalidStructureError,
+          "Expected TrueClass or FalseClass, got Integer for \"auto_discover\" on config"
         )
       end
     end
