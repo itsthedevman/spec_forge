@@ -1,9 +1,11 @@
 # frozen_string_literal: true
 
-# Base class
+# Need to be first
 require_relative "attribute/parameterized"
+require_relative "attribute/chainable"
 
-# Sub classes
+# Doesn't matter
+require_relative "attribute/factory"
 require_relative "attribute/faker"
 require_relative "attribute/literal"
 require_relative "attribute/matcher"
