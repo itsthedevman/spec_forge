@@ -27,7 +27,7 @@ RSpec.describe SpecForge::Config do
       end
 
       it "converts attributes to Data" do
-        expect(config.authorization).to be_kind_of(Data)
+        expect(config.authorization).to be_kind_of(Struct)
         expect(config.authorization.default).to be_kind_of(SpecForge::Config::Authorization)
         expect(config.factories).to be_kind_of(SpecForge::Config::Factories)
       end
