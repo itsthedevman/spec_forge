@@ -49,7 +49,7 @@ module SpecForge
 
       @input = input
       @model_class = input[:model_class]
-      @attributes = Attribute.from(input[:attributes])
+      @attributes = extract_attributes(input)
     end
 
     #
@@ -73,6 +73,13 @@ module SpecForge
       end
 
       self
+    end
+
+    private
+
+    def extract_attributes(input)
+      attributes = Attribute.from(input[:attributes])
+      Attribute.update_hash_values(attributes, input[:variables])
     end
   end
 end

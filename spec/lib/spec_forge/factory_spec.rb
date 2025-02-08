@@ -63,16 +63,34 @@ RSpec.describe SpecForge::Factory do
       it "loads them" do
         factories # Call load_and_register
 
-        # As defined in spec/factories/test.rb
-        bot_factory = FactoryBot::Internal.factory_by_name("test")
+        # As defined in spec/factories/auto_discoverable.rb
+        bot_factory = FactoryBot::Internal.factory_by_name("auto_discoverable")
         expect(bot_factory).not_to be(nil)
       end
     end
   end
 
   describe "#initialize" do
+    let(:input) {}
+
+    subject(:factory) { described_class.new(**input) }
+
     context "when variables are referenced" do
-      it "is expected that they are properly linked"
+      let(:input) do
+        {
+          name: "test",
+          variables: {
+            var_1: "test"
+          },
+          attributes: {
+            attr_1: "variables.var_1"
+          }
+        }
+      end
+
+      it "is expected that they are properly linked" do
+        expect(factory.attributes[:attr_1].value).to eq(input[:variables][:var_1])
+      end
     end
   end
 end
