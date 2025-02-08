@@ -58,6 +58,16 @@ RSpec.describe SpecForge::Factory do
         expect(user.name).to eq(attributes[:name])
       end
     end
+
+    context "when 'auto_discovery' is enabled and specs exist" do
+      it "loads them" do
+        factories # Call load_and_register
+
+        # As defined in spec/factories/test.rb
+        bot_factory = FactoryBot::Internal.factory_by_name("test")
+        expect(bot_factory).not_to be(nil)
+      end
+    end
   end
 
   describe "#initialize" do

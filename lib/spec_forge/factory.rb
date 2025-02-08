@@ -8,6 +8,8 @@ module SpecForge
     # @param path [String, Path] The base path where the factories directory is located
     #
     def self.load_and_register(base_path)
+      FactoryBot.find_definitions if SpecForge.config.factories.auto_discover?
+
       factories = load_from_path(base_path.join("factories", "**/*.yml"))
       factories.each(&:register)
     end
