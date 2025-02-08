@@ -72,7 +72,10 @@ module SpecForge
       if expected_type.instance_of?(Array)
         expected_type = expected_type.to_sentence(
           last_word_connector: ", or ",
-          two_words_connector: " or "
+          two_words_connector: " or ",
+          # This is a minor performance improvement to avoid locales being loaded
+          # This will need to be removed if locales are added
+          locale: false
         )
       end
 
