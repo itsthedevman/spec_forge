@@ -1,17 +1,17 @@
 # frozen_string_literal: true
 
 RSpec.describe SpecForge::Spec::Expectation::Constraint do
+  let(:status) { 404 }
+  let(:json) { {} }
+
+  subject(:constraint) do
+    described_class.new(
+      status: SpecForge::Attribute.from(status),
+      json: SpecForge::Attribute.from(json)
+    )
+  end
+
   describe "#initialize" do
-    let(:status) { 404 }
-    let(:json) { {} }
-
-    subject(:constraint) do
-      described_class.new(
-        status: SpecForge::Attribute.from(status),
-        json: SpecForge::Attribute.from(json)
-      )
-    end
-
     context "when 'status' is provided" do
       let(:status) { 404 }
 
@@ -28,20 +28,20 @@ RSpec.describe SpecForge::Spec::Expectation::Constraint do
         expect(constraint.json[:foo]).to be_kind_of(SpecForge::Attribute::Faker)
       end
     end
+  end
 
-    describe "#resolve" do
-      let(:json) { {var_1: 1, var_2: "2"} }
+  describe "#resolve" do
+    let(:json) { {var_1: 1, var_2: "2"} }
 
-      subject(:resolved) { constraint.resolve }
+    subject(:resolved) { constraint.resolve }
 
-      it "is expected to resolve all constraints as a hash" do
-        expect(resolved).to be_kind_of(Hash)
-        expect(resolved[:status]).to be_kind_of(Integer).and(eq(404))
-        expect(resolved[:json]).to be_kind_of(Hash)
+    it "is expected to resolve all constraints as a hash" do
+      expect(resolved).to be_kind_of(Hash)
+      expect(resolved[:status]).to be_kind_of(Integer).and(eq(404))
+      expect(resolved[:json]).to be_kind_of(Hash)
 
-        expect(resolved[:json]["var_1"]).to be_kind_of(RSpec::Matchers::BuiltIn::Eq)
-        expect(resolved[:json]["var_2"]).to be_kind_of(RSpec::Matchers::BuiltIn::Eq)
-      end
+      expect(resolved[:json]["var_1"]).to be_kind_of(RSpec::Matchers::BuiltIn::Eq)
+      expect(resolved[:json]["var_2"]).to be_kind_of(RSpec::Matchers::BuiltIn::Eq)
     end
   end
 end
