@@ -9,7 +9,7 @@ module SpecForge
         @connection =
           Faraday.new(url: request.base_url) do |builder|
             # Authorization
-            builder.headers[request.authorization[:header]] = request.authorization[:value]
+            builder.headers[request.authorization.header] = request.authorization.value
 
             # Content-Type
             if request.content_type == "application/json"

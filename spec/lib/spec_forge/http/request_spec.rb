@@ -82,7 +82,7 @@ RSpec.describe SpecForge::HTTP::Request do
       let(:authorization) { :not_supported_yet }
 
       it "uses the default config" do
-        expect(request.authorization).to match(
+        expect(request.authorization).to have_attributes(
           header: be_kind_of(String), value: be_kind_of(String)
         )
       end
@@ -90,7 +90,7 @@ RSpec.describe SpecForge::HTTP::Request do
 
     context "when 'authorization' is not provided" do
       it "uses the default config" do
-        expect(request.authorization).to match(
+        expect(request.authorization).to have_attributes(
           header: be_kind_of(String), value: be_kind_of(String)
         )
       end

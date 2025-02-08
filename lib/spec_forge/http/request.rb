@@ -78,7 +78,7 @@ module SpecForge
       end
 
       def extract_authorization(options)
-        SpecForge.config.authorization[:default]
+        SpecForge.config.authorization.default
       end
     end
   end

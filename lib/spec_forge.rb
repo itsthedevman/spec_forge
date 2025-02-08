@@ -44,7 +44,7 @@ module SpecForge
   end
 
   def self.config
-    Config.instance
+    @config ||= Config.new
   end
 
   def self.backtrace_cleaner
