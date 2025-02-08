@@ -20,7 +20,7 @@ module SpecForge
         value
       end
 
-      attr_reader :variable_name, :variable_value
+      attr_reader :variable_name
 
       def initialize(...)
         super
@@ -37,7 +37,7 @@ module SpecForge
         # No nil check here.
         raise MissingVariableError, variable_name unless lookup_table.key?(variable_name)
 
-        @variable_value = lookup_table[variable_name]
+        @base_object = lookup_table[variable_name]
         self
       end
     end

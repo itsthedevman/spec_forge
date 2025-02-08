@@ -5,7 +5,7 @@ module SpecForge
     module Chainable
       NUMBER_REGEX = /^\d+$/i
 
-      attr_reader :invocation_chain
+      attr_reader :invocation_chain, :base_object
 
       # <keyword>.<header>.<hash_key | method | index>...
       def initialize(...)
@@ -33,7 +33,7 @@ module SpecForge
       private
 
       def invoke_chain(resolve: false)
-        current_value = @variable_value
+        current_value = @base_object
 
         invocation_chain.each do |step|
           object = retrieve_value(current_value, resolve:)
