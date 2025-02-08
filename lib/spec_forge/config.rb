@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module SpecForge
-  class Config < Struct.new(:base_url, :authorization)
+  class Config < Struct.new(:base_url, :authorization, :factories)
     include Singleton
 
     def initialize
@@ -12,12 +12,16 @@ module SpecForge
     private
 
     def load_from_hash(hash)
-      if (base_url = hash[:base_url]) && base_url.present?
-        self.base_url = base_url
+      if (config = hash[:base_url]) && config.present?
+        self.base_url = config
       end
 
-      if (authorization = hash[:authorization]) && authorization.present?
-        self.authorization = authorization
+      if (config = hash[:authorization]) && config.present?
+        self.authorization = config.to_struct
+      end
+
+      if (config = hash[:authorization]) && config.present?
+        self.factories = config.to_struct
       end
     end
 
