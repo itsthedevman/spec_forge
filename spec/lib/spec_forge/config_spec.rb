@@ -1,13 +1,14 @@
 # frozen_string_literal: true
 
 RSpec.describe SpecForge::Config do
-  describe "#load_from_file" do
+  describe "#initialize" do
     describe "when the configuration file exists" do
       let(:forge_path) { SpecForge.forge.join("config.yml") }
+      let(:config) { described_class.new }
 
       let(:yaml_content) do
         <<~YAML
-          base_url: <%= "http://localhost:3000" %>
+          base_url: <%= "http://localhost:3001" %>
         YAML
       end
 
@@ -22,7 +23,13 @@ RSpec.describe SpecForge::Config do
       end
 
       it "is expecting to parse, load, and overwrite the defaults" do
-        expect(SpecForge.config.base_url).to eq("http://localhost:3000")
+        expect(config.base_url).to eq("http://localhost:3001")
+      end
+
+      it "converts attributes to Data" do
+        expect(config.authorization).to be_kind_of(Data)
+        expect(config.authorization.default).to be_kind_of(SpecForge::Config::Authorization)
+        expect(config.factories).to be_kind_of(SpecForge::Config::Factories)
       end
     end
   end
