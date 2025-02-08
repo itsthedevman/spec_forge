@@ -68,6 +68,24 @@ RSpec.describe SpecForge::Factory do
         expect(bot_factory).not_to be(nil)
       end
     end
+
+    context "when 'factories.paths' is set" do
+      let!(:paths_before) { FactoryBot.definition_file_paths }
+
+      before do
+        SpecForge.config.factories.paths = ["test"]
+      end
+
+      after do
+        # Important! It changes this value
+        FactoryBot.definition_file_paths = paths_before
+      end
+
+      it "is expected that FactoryBot's definition paths is changed" do
+        factories # Trigger the call
+        expect(FactoryBot.definition_file_paths).to eq(["test"])
+      end
+    end
   end
 
   describe "#initialize" do
