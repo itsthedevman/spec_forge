@@ -1,13 +1,17 @@
 # frozen_string_literal: true
 
 module SpecForge
-  class Config < Struct.new(:base_url, :authorization, :factories)
+  class Config < Struct.new(:base_url, :authorization, :factories, :environment)
     class Authorization < Struct.new(:header, :value)
       attr_predicate :header, :value
     end
 
     class Factories < Struct.new(:paths, :auto_discover)
       attr_predicate :paths, :auto_discover
+    end
+
+    class Environment < Struct.new(:use, :preload, :models_path)
+      attr_predicate :use, :preload, :models_path
     end
 
     ############################################################################
@@ -19,7 +23,8 @@ module SpecForge
       super(
         base_url: normalized.delete(:base_url),
         authorization: transform_authorization(normalized),
-        factories: transform_factories(normalized)
+        factories: transform_factories(normalized),
+        environment: transform_environment(normalized)
       )
     end
 
@@ -42,6 +47,16 @@ module SpecForge
 
     def transform_factories(hash)
       Factories.new(**hash[:factories])
+    end
+
+    def transform_environment(hash)
+      environment = hash[:environment]
+
+      if environment.is_a?(Hash)
+        Environment.new(**environment)
+      else
+        environment
+      end
     end
   end
 end
