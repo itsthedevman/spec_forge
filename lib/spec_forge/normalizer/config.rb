@@ -13,7 +13,7 @@ module SpecForge
           type: [String, Hash],
           default: "rails",
           structure: {
-            use: {type: String, default: ""},
+            use: {type: String, default: "rails"},
             preload: {type: String, default: ""},
             models_path: {
               type: String,

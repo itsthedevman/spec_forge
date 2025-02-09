@@ -242,7 +242,7 @@ RSpec.describe SpecForge::Normalizer do
       end
 
       it do
-        expect(normalized[:environment][:use]).to eq("")
+        expect(normalized[:environment][:use]).to eq("rails")
       end
     end
 
