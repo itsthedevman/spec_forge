@@ -1,6 +1,17 @@
 # frozen_string_literal: true
 
 module SpecForge
+  # Pass into to_sentence
+  OR_CONNECTOR = {
+    last_word_connector: ", or ",
+    two_words_connector: " or ",
+    # This is a minor performance improvement to avoid locales being loaded
+    # This will need to be removed if locales are added
+    locale: false
+  }.freeze
+
+  private_constant :OR_CONNECTOR
+
   class Error < StandardError; end
 
   class InvalidFakerClassError < Error
@@ -70,13 +81,7 @@ module SpecForge
   class InvalidTypeError < TypeError
     def initialize(object, expected_type, **opts)
       if expected_type.instance_of?(Array)
-        expected_type = expected_type.to_sentence(
-          last_word_connector: ", or ",
-          two_words_connector: " or ",
-          # This is a minor performance improvement to avoid locales being loaded
-          # This will need to be removed if locales are added
-          locale: false
-        )
+        expected_type = expected_type.to_sentence(**OR_CONNECTOR)
       end
 
       message = "Expected #{expected_type}, got #{object.class}"
@@ -99,6 +104,19 @@ module SpecForge
       end
 
       super(message)
+    end
+  end
+
+  class InvalidBuildStrategy < Error
+    def initialize(build_strategy)
+      valid_strategies = Attribute::Factory::BUILD_STRATEGIES.to_sentence(**OR_CONNECTOR)
+
+      super(<<~STRING.chomp
+        Unknown build strategy "#{build_strategy}" referenced in spec.
+
+        Valid strategies include: #{valid_strategies}
+      STRING
+      )
     end
   end
 end
