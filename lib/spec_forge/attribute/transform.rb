@@ -5,29 +5,27 @@ module SpecForge
     class Transform < Parameterized
       KEYWORD_REGEX = /^transform\./i
 
-      attr_reader :transform_method
+      TRANSFORM_METHODS = %w[
+        join
+      ].freeze
+
+      attr_reader :function
 
       def initialize(...)
         super
 
         # Remove prefix
-        function = @input.sub("transform.", "")
+        @function = @input.sub("transform.", "")
 
-        @transform_method =
-          case function
-          when "join"
-            lambda do
-              # Technically supports any attribute, but I ain't gonna test all them edge cases
-              array = @arguments[:positional].map { |i| Attribute.from(i).value }
-              array.join
-            end
-          else
-            raise InvalidTransformFunctionError, @input
-          end
+        raise InvalidTransformFunctionError, input unless TRANSFORM_METHODS.include?(function)
       end
 
       def value
-        @transform_method.call
+        case function
+        when "join"
+          # Technically supports any attribute, but I ain't gonna test all them edge cases
+          arguments[:positional].resolve.join
+        end
       end
     end
   end

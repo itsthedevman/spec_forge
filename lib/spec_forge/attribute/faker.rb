@@ -35,9 +35,9 @@ module SpecForge
 
       def value
         if uses_positional_arguments?(faker_method)
-          faker_method.call(*arguments[:positional])
+          faker_method.call(*arguments[:positional].resolve)
         elsif uses_keyword_arguments?(faker_method)
-          faker_method.call(**arguments[:keyword])
+          faker_method.call(**arguments[:keyword].resolve)
         else
           faker_method.call
         end

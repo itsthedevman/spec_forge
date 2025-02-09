@@ -36,9 +36,9 @@ module SpecForge
 
       def value
         if uses_positional_arguments?(matcher_method)
-          matcher_method.call(*arguments[:positional])
+          matcher_method.call(*arguments[:positional].resolve)
         elsif uses_keyword_arguments?(matcher_method)
-          matcher_method.call(**arguments[:keyword])
+          matcher_method.call(**arguments[:keyword].resolve)
         else
           matcher_method.call
         end

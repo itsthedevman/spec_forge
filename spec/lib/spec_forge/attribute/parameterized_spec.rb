@@ -29,5 +29,15 @@ RSpec.describe SpecForge::Attribute::Parameterized do
         expect(attribute.arguments).to eq({positional: [1], keyword: {}})
       end
     end
+
+    context "when Attributes are used in arguments" do
+      let(:hash) { {macro: ["faker.string.random"]} }
+
+      it "is expected to convert them to Attributes" do
+        expect(attribute.arguments[:positional]).to include(
+          be_kind_of(SpecForge::Attribute::Faker)
+        )
+      end
+    end
   end
 end

@@ -26,7 +26,7 @@ module SpecForge
       def initialize(input, positional = [], keyword = {})
         super(input.to_s.downcase)
 
-        @arguments = {positional:, keyword:}
+        @arguments = Attribute.from(positional:, keyword:)
       end
 
       protected
