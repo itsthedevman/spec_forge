@@ -70,6 +70,8 @@ module SpecForge
         Variable.new(string)
       when Matcher::KEYWORD_REGEX
         Matcher.new(string)
+      when Factory::KEYWORD_REGEX
+        Factory.new(string)
       else
         Literal.new(string)
       end
@@ -94,6 +96,8 @@ module SpecForge
         Faker.from_hash(hash)
       elsif has_macro.call(hash, Matcher::KEYWORD_REGEX)
         Matcher.from_hash(hash)
+      elsif has_macro.call(hash, Factory::KEYWORD_REGEX)
+        Factory.from_hash(hash)
       else
         hash = hash.transform_values { |v| Attribute.from(v) }
         Attribute::ResolvableHash.new(hash)

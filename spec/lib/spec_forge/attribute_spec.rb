@@ -34,6 +34,24 @@ RSpec.describe SpecForge::Attribute do
         it { is_expected.to be_kind_of(described_class::Literal) }
       end
 
+      context "and it is a valid variable macro" do
+        let(:input) { "variables.var_1" }
+
+        it { is_expected.to be_kind_of(described_class::Variable) }
+      end
+
+      context "and it is a valid matcher macro" do
+        let(:input) { "matcher.include" }
+
+        it { is_expected.to be_kind_of(described_class::Matcher) }
+      end
+
+      context "and it is a valid factory macro" do
+        let(:input) { "factories.user" }
+
+        it { is_expected.to be_kind_of(described_class::Factory) }
+      end
+
       context "and it is literally anything else" do
         let(:input) { "literally anything else" }
 
@@ -58,6 +76,18 @@ RSpec.describe SpecForge::Attribute do
         let(:input) { {"transform.join": ["foo", "bar"]} }
 
         it { is_expected.to be_kind_of(described_class::Transform) }
+      end
+
+      context "and it is the matcher macro" do
+        let(:input) { {"matcher.include": ["foo", "bar"]} }
+
+        it { is_expected.to be_kind_of(described_class::Matcher) }
+      end
+
+      context "and it is the factory macro" do
+        let(:input) { {"factories.user": {attributes: {}}} }
+
+        it { is_expected.to be_kind_of(described_class::Factory) }
       end
 
       context "and it is not an expanded macro" do
