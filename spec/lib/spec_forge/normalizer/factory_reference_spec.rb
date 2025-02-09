@@ -64,5 +64,16 @@ RSpec.describe SpecForge::Normalizer do
         )
       end
     end
+
+    context "when aliases are used" do
+      before do
+        factory[:build_strategy] = "build"
+        factory[:strategy] = factory.delete(:build_strategy)
+      end
+
+      it do
+        expect(normalized[:build_strategy]).to eq(factory[:strategy])
+      end
+    end
   end
 end
