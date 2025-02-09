@@ -69,5 +69,27 @@ RSpec.describe SpecForge::Normalizer do
         )
       end
     end
+
+    context "when a structure is not the same type as the value" do
+      let(:input) { {mixed_type: "string_or_hash"} }
+
+      let(:structure) do
+        {
+          mixed_type: {
+            type: [String, Hash],
+            structure: {
+              var_1: {type: String}
+            }
+          }
+        }
+      end
+
+      it "skips over structure validation" do
+        output, errors = normalized
+        expect(errors).to be_empty
+
+        expect(output[:mixed_type]).to eq("string_or_hash")
+      end
+    end
   end
 end

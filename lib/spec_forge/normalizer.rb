@@ -115,8 +115,8 @@ module SpecForge
         end
 
         value =
-          case sub_structure
-          when Hash
+          case [value.class, sub_structure.class]
+          when [Hash, Hash]
             new_value, new_errors = self.class
               .new(label, value, structure: sub_structure)
               .normalize
