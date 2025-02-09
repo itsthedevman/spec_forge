@@ -3,12 +3,14 @@
 module SpecForge
   class Attribute
     class ResolvableArray < SimpleDelegator
+      include Resolvable
+
       def value
         __getobj__
       end
 
       def resolve
-        value.map { |v| v.respond_to?(:resolve) ? v.resolve : v }
+        value.map(&resolvable_proc)
       end
     end
   end

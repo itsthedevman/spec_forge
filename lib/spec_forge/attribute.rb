@@ -3,6 +3,7 @@
 # Need to be first
 require_relative "attribute/parameterized"
 require_relative "attribute/chainable"
+require_relative "attribute/resolvable"
 
 # Doesn't matter
 require_relative "attribute/factory"
