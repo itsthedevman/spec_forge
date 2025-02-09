@@ -263,7 +263,7 @@ list_posts:
       status: 200
       json:
         posts:
-          matchers.include:
+          matcher.include:
           - author:
               id: variables.author.id
               name: variables.author.name
@@ -379,7 +379,7 @@ expect:
   json:
     # Direct RSpec matcher usage
     tags:
-      matchers.include:
+      matcher.include:
       - featured
       - published
 
@@ -387,7 +387,7 @@ expect:
 
     # Any RSpec matcher can be used
     config:
-      matchers.have_key: api_version
+      matcher.have_key: api_version
 ```
 
 Note: Matchers that require Ruby blocks (like `change`) are not supported.
