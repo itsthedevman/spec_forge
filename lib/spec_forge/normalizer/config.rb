@@ -4,6 +4,24 @@ module SpecForge
   class Normalizer
     class Config < Normalizer
       STRUCTURE = {
+        environment: {
+          # Allows for a shorthand:
+          #   environment: rails
+          # Long form:
+          #   environment:
+          #     use: rails
+          type: [String, Hash],
+          default: "rails",
+          structure: {
+            use: {type: String, default: ""},
+            preload: {type: String, default: ""},
+            models_path: {
+              type: String,
+              aliases: %i[models],
+              default: ""
+            }
+          }
+        },
         base_url: {type: String}, # Required
         authorization: {
           type: Hash,
