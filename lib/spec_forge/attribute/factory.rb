@@ -7,6 +7,13 @@ module SpecForge
 
       KEYWORD_REGEX = /^factories\./i
 
+      BUILD_STRATEGIES = %w[
+        build
+        create
+        attributes_for
+        build_stubbed
+      ].freeze
+
       attr_reader :factory_name
 
       def initialize(...)
@@ -20,10 +27,28 @@ module SpecForge
         super
       end
 
+      def resolve
+        @base_object = create_factory_object
+        super
+      end
+
       private
 
       def create_factory_object
-        FactoryBot.create(@factory_name)
+        return FactoryBot.create(@factory_name) if arguments.blank?
+
+        attributes = Normalizer.normalize_factory_reference!(arguments[:keyword])
+        attributes = Attribute.from(attributes)
+
+        # Determine build strat
+        build_strategy = attributes[:build_strategy].resolve
+
+        # stubbed => build_stubbed
+        build_strategy.prepend("build_") if build_strategy == "stubbed"
+        raise InvalidBuildStrategy, build_strategy unless BUILD_STRATEGIES.include?(build_strategy)
+
+        attributes = attributes[:attributes].resolve
+        FactoryBot.public_send(build_strategy, @factory_name, **attributes)
       end
     end
   end
