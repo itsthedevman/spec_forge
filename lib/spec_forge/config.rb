@@ -24,6 +24,19 @@ module SpecForge
     #
     class Environment < Struct.new(:use, :preload, :models_path)
       attr_predicate :use, :preload, :models_path
+
+      def initialize(string_or_hash)
+        use, preload, models_path = "", "", ""
+
+        # "rails" or other preset
+        if string_or_hash.is_a?(String)
+          use = string_or_hash
+        else
+          string_or_hash => {use:, preload:, models_path:}
+        end
+
+        super(use:, preload:, models_path:)
+      end
     end
 
     ############################################################################
@@ -65,13 +78,7 @@ module SpecForge
     end
 
     def transform_environment(hash)
-      environment = hash[:environment]
-
-      if environment.is_a?(Hash)
-        Environment.new(**environment)
-      else
-        environment
-      end
+      Environment.new(hash[:environment])
     end
   end
 end

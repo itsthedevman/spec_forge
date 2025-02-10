@@ -81,7 +81,10 @@ module SpecForge
       cleaner
     end
   end
+
+  def self.environment
+    @environment ||= Environment.new
+  end
 end
 
-# Loads Rails, or user defined environment
-SpecForge::Environment.load
+SpecForge.environment.load
