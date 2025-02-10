@@ -33,7 +33,13 @@ RSpec.describe SpecForge::Attribute::Parameterized do
     context "when Attributes are used in arguments" do
       let(:hash) { {macro: ["faker.string.random"]} }
 
-      it "is expected to convert them to Attributes" do
+      it "is expected for them to stay as input until `prepare_arguments!` is called" do
+        expect(attribute.arguments[:positional]).to include(
+          "faker.string.random"
+        )
+
+        attribute.send(:prepare_arguments!)
+
         expect(attribute.arguments[:positional]).to include(
           be_kind_of(SpecForge::Attribute::Faker)
         )
