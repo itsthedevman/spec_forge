@@ -95,7 +95,7 @@ module SpecForge
       # @private
       #
       def normalize_config(config)
-        raise InvalidTypeError.new(config, Hash, for: "config") if !config.is_a?(Hash)
+        raise InvalidTypeError.new(config, Hash, for: "config") unless Type.hash?(config)
 
         Normalizer::Config.new("config", config).normalize
       end

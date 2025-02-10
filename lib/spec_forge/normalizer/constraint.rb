@@ -38,7 +38,7 @@ module SpecForge
       # @private
       #
       def normalize_constraint(constraint)
-        raise InvalidTypeError.new(constraint, Hash, for: "expect") if !constraint.is_a?(Hash)
+        raise InvalidTypeError.new(constraint, Hash, for: "expect") unless Type.hash?(constraint)
 
         Normalizer::Constraint.new("expect", constraint).normalize
       end

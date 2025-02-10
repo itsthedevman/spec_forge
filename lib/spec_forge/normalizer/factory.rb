@@ -56,7 +56,7 @@ module SpecForge
       # @private
       #
       def normalize_factory(factory)
-        raise InvalidTypeError.new(factory, Hash, for: "factory") if !factory.is_a?(Hash)
+        raise InvalidTypeError.new(factory, Hash, for: "factory") unless Type.hash?(factory)
 
         Normalizer::Factory.new("factory", factory).normalize
       end

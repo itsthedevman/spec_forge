@@ -40,7 +40,7 @@ module SpecForge
           output, errors = normalize_spec(input)
 
           # Process expectations
-          if (expectations = input[:expectations]) && expectations.is_a?(Array)
+          if (expectations = input[:expectations]) && Type.array?(expectations)
             expectation_output, expectation_errors = normalize_expectations(expectations)
 
             output[:expectations] = expectation_output
@@ -64,7 +64,7 @@ module SpecForge
       # @private
       #
       def normalize_spec(spec)
-        raise InvalidTypeError.new(spec, Hash, for: "spec") if !spec.is_a?(Hash)
+        raise InvalidTypeError.new(spec, Hash, for: "spec") unless Type.hash?(spec)
 
         Normalizer::Spec.new("spec", spec).normalize
       end

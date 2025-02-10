@@ -40,7 +40,7 @@ module SpecForge
       # @private
       #
       def normalize_expectations(expectations)
-        if !expectations.is_a?(Array)
+        if !Type.array?(expectations)
           raise InvalidTypeError.new(expectations, Array, for: "\"expectations\" on spec")
         end
 

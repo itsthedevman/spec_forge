@@ -55,7 +55,9 @@ module SpecForge
       # @private
       #
       def normalize_factory_reference(factory, label: "factory reference")
-        raise InvalidTypeError.new(factory, Hash, for: "factory reference") if !factory.is_a?(Hash)
+        if !Type.hash?(factory)
+          raise InvalidTypeError.new(factory, Hash, for: "factory reference")
+        end
 
         Normalizer::FactoryReference.new(label, factory).normalize
       end

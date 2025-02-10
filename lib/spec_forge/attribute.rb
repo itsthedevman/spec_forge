@@ -27,9 +27,9 @@ module SpecForge
     #
     def self.bind_variables(input, variables = {})
       case input
-      when Array, ResolvableArray
+      when ArrayLike
         input.each { |v| v.bind_variables(variables) }
-      when Hash, ResolvableHash
+      when HashLike
         input.each_value { |v| v.bind_variables(variables) }
       when Attribute
         input.bind_variables(variables)
@@ -50,11 +50,11 @@ module SpecForge
       case value
       when String
         from_string(value)
-      when Hash, ResolvableHash
+      when HashLike
         from_hash(value)
       when Attribute
         value
-      when Array, ResolvableArray
+      when ArrayLike
         array = value.map { |v| Attribute.from(v) }
         Attribute::ResolvableArray.new(array)
       else
@@ -196,9 +196,9 @@ module SpecForge
 
     def __resolve(value)
       case value
-      when Array, ResolvableArray
+      when ArrayLike
         value.map(&:resolve)
-      when Hash, ResolvableHash
+      when HashLike
         value.transform_values(&:resolve)
       else
         value

@@ -61,9 +61,9 @@ module SpecForge
     def initialize(step, object)
       valid_operations =
         case object
-        when Array, Attribute::ResolvableArray
+        when ArrayLike
           "Array index (0, 1, 2, etc.) or any Array methods (first, last, size, etc.)"
-        when Hash, Attribute::ResolvableHash
+        when HashLike
           "Any Hash key: #{object.keys.join(", ")}"
         else
           "Any method available on #{object.class}"
@@ -78,7 +78,7 @@ module SpecForge
     end
   end
 
-  class InvalidTypeError < TypeError
+  class InvalidTypeError < Error
     def initialize(object, expected_type, **opts)
       if expected_type.instance_of?(Array)
         expected_type = expected_type.to_sentence(**OR_CONNECTOR)
