@@ -4,15 +4,15 @@ RSpec.describe SpecForge::HTTP::Request do
   let(:base_url) {}
   let(:url) { "/users" }
   let(:method) {}
-  let(:content_type) {}
+  let(:headers) {}
   let(:query) {}
   let(:body) {}
   let(:authorization) {}
   let(:variables) {}
 
   let(:options) do
-    result, _errors = SpecForge::Normalizer.normalize_expectations(
-      [{url:, method:, content_type:, query:, body:}]
+    result = SpecForge::Normalizer.normalize_expectations!(
+      [{url:, method:, headers:, query:, body:, expect: {status: 404}}]
     )
 
     SpecForge::Attribute.from(result.first.merge(base_url:, authorization:, variables:))
@@ -21,13 +21,16 @@ RSpec.describe SpecForge::HTTP::Request do
   subject(:request) { described_class.new(**options) }
 
   describe "#initialize" do
-    it "defaults content_type to application/json" do
-      expect(request.content_type).to be_kind_of(MIME::Type)
-      expect(request.content_type).to eq("application/json")
-    end
-
     it "defaults http_method to GET" do
       expect(request.http_method).to be_kind_of(SpecForge::HTTP::Verb::Get)
+    end
+
+    context "when 'headers' is provided" do
+      let(:headers) { {} }
+
+      it "is expected to store it" do
+        expect(request.headers).to eq(headers)
+      end
     end
 
     context "when 'base_url' is provided" do
@@ -62,12 +65,6 @@ RSpec.describe SpecForge::HTTP::Request do
         expect(request.body[:id]).to be_kind_of(SpecForge::Attribute::Variable)
         expect(request.body[:id].value).to eq(variables[:id])
       end
-    end
-
-    context "when 'content_type' is not a valid MIME type" do
-      let(:content_type) { "in/valid" }
-
-      it { expect { request }.to raise_error(ArgumentError) }
     end
 
     context "when 'http_method' is mixed case" do

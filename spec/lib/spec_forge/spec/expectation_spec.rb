@@ -18,7 +18,9 @@ RSpec.describe SpecForge::Spec::Expectation do
         {
           url: "/users/admin",
           http_method: "GET",
-          content_type: "application/xml",
+          headers: {
+            header_1: 3
+          },
           query: {
             query_2: 3
           },
@@ -38,7 +40,10 @@ RSpec.describe SpecForge::Spec::Expectation do
         {
           url: "/users",
           http_method: "POST",
-          content_type: "application/json",
+          headers: {
+            header_1: 1,
+            header_2: 2
+          },
           query: {
             query_1: 1,
             query_2: 2
@@ -61,7 +66,7 @@ RSpec.describe SpecForge::Spec::Expectation do
 
         expect(request.url).to eq(input[:url])
         expect(request.http_method).to eq(input[:http_method])
-        expect(request.content_type).to eq(input[:content_type])
+        expect(request.headers).to eq("Header-1" => 3, "Header-2" => 2) # Request modifies these
         expect(request.query).to eq(query_1: 1, query_2: 3)
         expect(request.body).to eq(body_1: 3, body_2: 2)
       end
@@ -71,7 +76,7 @@ RSpec.describe SpecForge::Spec::Expectation do
       let(:input) do
         default = SpecForge::Normalizer.default_expectation
         default[:url] = "/url"
-        default[:http_method] = ""
+        default[:headers] = {}
         default[:body] = {}
         default[:query] = {}
         default[:variables] = {var_1: "data"}
@@ -83,6 +88,7 @@ RSpec.describe SpecForge::Spec::Expectation do
         default = SpecForge::Normalizer.default_expectation
         default[:body] = {body_1: "data"}
         default[:query] = {query_1: "data"}
+        default[:headers] = {header_1: "data"}
         default
       end
 
@@ -93,7 +99,7 @@ RSpec.describe SpecForge::Spec::Expectation do
 
         expect(request.url).to eq(input[:url])
         expect(request.http_method).to eq("GET")
-        expect(request.content_type).to eq("application/json")
+        expect(request.headers).to eq("Header-1" => "data")
         expect(request.query).to eq(query_1: "data")
         expect(request.body).to eq(body_1: "data")
       end

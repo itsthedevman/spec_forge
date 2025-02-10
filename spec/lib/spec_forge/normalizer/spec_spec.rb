@@ -8,7 +8,9 @@ RSpec.describe SpecForge::Normalizer do
       {
         url: Faker::String.random,
         http_method: SpecForge::HTTP::Verb::VERBS.keys.sample.to_s,
-        content_type: Faker::String.random,
+        headers: {
+          some_header: Faker::String.random
+        },
         query: {
           query_1: Faker::String.random,
           query_2: Faker::String.random
@@ -35,7 +37,9 @@ RSpec.describe SpecForge::Normalizer do
       {
         url: Faker::String.random,
         http_method: Faker::String.random,
-        content_type: Faker::String.random,
+        headers: {
+          some_header: Faker::String.random
+        },
         query: {
           query_1: Faker::String.random,
           query_2: Faker::String.random
@@ -57,7 +61,8 @@ RSpec.describe SpecForge::Normalizer do
     it "is expected to normalize fully" do
       expect(normalized[:url]).to be_kind_of(String)
       expect(normalized[:http_method]).to be_kind_of(String)
-      expect(normalized[:content_type]).to be_kind_of(String)
+      expect(normalized[:headers]).to be_kind_of(Hash)
+      expect(normalized[:headers][:some_header]).to be_kind_of(String)
       expect(normalized[:query]).to be_kind_of(Hash)
       expect(normalized[:query][:query_1]).to be_kind_of(String)
       expect(normalized[:query][:query_2]).to be_kind_of(String)
@@ -73,7 +78,8 @@ RSpec.describe SpecForge::Normalizer do
       expect(expectation[:name]).to be_kind_of(String)
       expect(expectation[:url]).to be_kind_of(String)
       expect(expectation[:http_method]).to be_kind_of(String)
-      expect(expectation[:content_type]).to be_kind_of(String)
+      expect(expectation[:headers]).to be_kind_of(Hash)
+      expect(expectation[:headers][:some_header]).to be_kind_of(String)
       expect(expectation[:query]).to be_kind_of(Hash)
       expect(expectation[:query][:query_1]).to be_kind_of(String)
       expect(expectation[:query][:query_2]).to be_kind_of(String)
@@ -166,25 +172,25 @@ RSpec.describe SpecForge::Normalizer do
         end
       end
 
-      context "when 'content_type' is nil" do
+      context "when 'headers' is nil" do
         before do
-          spec[:content_type] = nil
+          spec[:headers] = nil
         end
 
-        it "is expected to default to an empty string" do
-          expect(normalized[:content_type]).to eq("")
+        it "is expected to default to an empty hash" do
+          expect(normalized[:headers]).to eq({})
         end
       end
 
-      context "when 'content_type' is not a String" do
+      context "when 'headers' is not a Hash" do
         before do
-          spec[:content_type] = 1
+          spec[:headers] = 1
         end
 
         it do
           expect { normalized }.to raise_error(
             SpecForge::InvalidStructureError,
-            "Expected String, got Integer for \"content_type\" on spec"
+            "Expected Hash, got Integer for \"headers\" on spec"
           )
         end
       end
@@ -316,13 +322,13 @@ RSpec.describe SpecForge::Normalizer do
         end
       end
 
-      context "when 'content_type' is not a String" do
+      context "when 'headers' is not a String" do
         before do
-          expectation[:content_type] = nil
+          expectation[:headers] = nil
         end
 
-        it "is expected to default to 'application/json'" do
-          expect(normalized_expectation[:content_type]).to eq("")
+        it do
+          expect(normalized_expectation[:headers]).to eq({})
         end
       end
 
@@ -407,13 +413,11 @@ RSpec.describe SpecForge::Normalizer do
       before do
         spec[:path] = spec.delete(:url)
         spec[:method] = spec.delete(:http_method)
-        spec[:type] = spec.delete(:content_type)
         spec[:params] = spec.delete(:query)
         spec[:data] = spec.delete(:body)
 
         expectation[:path] = expectation.delete(:url)
         expectation[:method] = expectation.delete(:http_method)
-        expectation[:type] = expectation.delete(:content_type)
         expectation[:params] = expectation.delete(:query)
         expectation[:data] = expectation.delete(:body)
       end
@@ -422,7 +426,6 @@ RSpec.describe SpecForge::Normalizer do
         expect(normalized).to include(
           url: spec[:path],
           http_method: spec[:method],
-          content_type: spec[:type],
           query: spec[:params],
           body: spec[:data],
           variables: spec[:variables],
@@ -430,7 +433,6 @@ RSpec.describe SpecForge::Normalizer do
             include(
               url: expectation[:path],
               http_method: expectation[:method],
-              content_type: expectation[:type],
               query: expectation[:params],
               body: expectation[:data],
               variables: expectation[:variables],

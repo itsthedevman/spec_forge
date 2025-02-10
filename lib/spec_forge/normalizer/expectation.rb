@@ -29,6 +29,21 @@ module SpecForge
 
       #
       # Normalize an array of expectation hashes
+      #
+      # @raises InvalidStructureError if anything is missing/invalid type
+      #
+      # @param input [Hash] The hash to normalize
+      #
+      # @return [Hash] A normalized hash as a new instance
+      #
+      def normalize_expectations!(input)
+        raise_errors! do
+          normalize_expectations(input)
+        end
+      end
+
+      #
+      # Normalize an array of expectation hashes
       # Used internally by .normalize_spec, but is available for utility
       #
       # @param expectations [Array<Hash>] An array of expectation hashes

@@ -4,7 +4,7 @@ RSpec.describe SpecForge::Spec do
   let(:name) { Faker::String.random }
   let(:url) { "/users" }
   let(:method) {}
-  let(:content_type) {}
+  let(:headers) {}
   let(:variables) {}
   let(:query) {}
   let(:body) {}
@@ -13,7 +13,7 @@ RSpec.describe SpecForge::Spec do
   subject(:spec) do
     described_class.new(
       name:, file_path: "",
-      url:, method:, content_type:,
+      url:, method:, headers:,
       variables:, query:, body:, expectations:
     )
   end
