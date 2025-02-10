@@ -26,7 +26,7 @@ module SpecForge
       def initialize(input, positional = [], keyword = {})
         super(input.to_s.downcase)
 
-        @arguments = Attribute.from(positional:, keyword:)
+        @arguments = {positional:, keyword:}
       end
 
       def bind_variables(variables)
@@ -35,6 +35,17 @@ module SpecForge
       end
 
       protected
+
+      #
+      # Converts the arguments into Attributes
+      #
+      # @note This needs to be called by the inheriting class.
+      #   This is to allow inheriting classes to normalize their arguments before
+      #   they are converted to Attributes
+      #
+      def prepare_arguments!
+        @arguments = Attribute.from(arguments)
+      end
 
       def uses_positional_arguments?(method)
         method.parameters.any? { |a| [:req, :opt, :rest].include?(a.first) }
