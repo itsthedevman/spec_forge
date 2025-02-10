@@ -29,6 +29,11 @@ module SpecForge
         @arguments = Attribute.from(positional:, keyword:)
       end
 
+      def bind_variables(variables)
+        arguments[:positional].each { |v| Attribute.bind_variables(v, variables) }
+        arguments[:keyword].each_value { |v| Attribute.bind_variables(v, variables) }
+      end
+
       protected
 
       def uses_positional_arguments?(method)

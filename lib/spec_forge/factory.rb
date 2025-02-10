@@ -87,12 +87,12 @@ module SpecForge
       variables = Attribute.from(input[:variables])
 
       # Update the variables that reference other variables lol
-      Attribute.update_hash_values(variables, variables)
+      Attribute.bind_variables(variables, variables)
     end
 
     def extract_attributes(input)
       attributes = Attribute.from(input[:attributes])
-      Attribute.update_hash_values(attributes, variables)
+      Attribute.bind_variables(attributes, variables)
     end
   end
 end

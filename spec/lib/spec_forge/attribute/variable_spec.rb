@@ -4,7 +4,7 @@ RSpec.describe SpecForge::Attribute::Variable do
   let(:input) {}
   let(:variables) { {} }
 
-  subject(:variable) { described_class.new(input).update_value!(variables) }
+  subject(:variable) { described_class.new(input).bind_variables(variables) }
 
   context "when just the variable name is referenced" do
     let(:input) { "variable.id" }
@@ -220,7 +220,7 @@ RSpec.describe SpecForge::Attribute::Variable do
       )
     end
 
-    let(:other_attribute) { described_class.new("variables.var_1").update_value!(variables) }
+    let(:other_attribute) { described_class.new("variables.var_1").bind_variables(variables) }
 
     context "and #resolve is called" do
       it "is expected return to the same value" do
@@ -247,7 +247,7 @@ RSpec.describe SpecForge::Attribute::Variable do
           var_2: "variables.var_1"
         })
 
-        SpecForge::Attribute.update_hash_values(variables, variables)
+        SpecForge::Attribute.bind_variables(variables, variables)
       end
 
       let(:input) { "variables.var_2" }
@@ -264,7 +264,7 @@ RSpec.describe SpecForge::Attribute::Variable do
           var_2: "1"
         })
 
-        SpecForge::Attribute.update_hash_values(variables, variables)
+        SpecForge::Attribute.bind_variables(variables, variables)
       end
 
       let(:input) { "variables.var_1" }
@@ -281,7 +281,7 @@ RSpec.describe SpecForge::Attribute::Variable do
           var_2: "variables.var_1"
         })
 
-        SpecForge::Attribute.update_hash_values(variables, variables)
+        SpecForge::Attribute.bind_variables(variables, variables)
       end
 
       let(:input) { "variables.var_1" }

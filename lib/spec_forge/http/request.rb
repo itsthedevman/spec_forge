@@ -66,13 +66,13 @@ module SpecForge
       end
 
       def normalize_query(options)
-        query = Attribute.update_hash_values(options[:query], options[:variables])
+        query = Attribute.bind_variables(options[:query], options[:variables])
         Attribute::ResolvableHash.new(query)
       end
 
       def normalize_body(content_type, options)
         body = options[:body]
-        body = Attribute.update_hash_values(body, options[:variables])
+        body = Attribute.bind_variables(body, options[:variables])
 
         Attribute::ResolvableHash.new(body)
       end

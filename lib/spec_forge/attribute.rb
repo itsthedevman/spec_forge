@@ -18,16 +18,24 @@ require_relative "attribute/variable"
 module SpecForge
   class Attribute
     #
-    # Transforms a hash's values into Attributes and updates any Attribute::Variable's values
+    # Binds variables to Attribute objects
     #
-    # @param hash [Hash] Hash whose values need to be transformed into Attributes
+    # @param input [Array, Hash, Attribute] The input to loop through or bind to
+    # @param variables [Hash] Any variables to available to assign
     #
-    # @param variables [Array] List of variables to update the Attribute values with (default: [])
+    # @return [Array, Hash, Attribute] The input with bounded variables
     #
-    # @return [Hash] Hash with values transformed into Attributes and updated with variables
-    #
-    def self.update_hash_values(hash, variables = {})
-      hash.each_value { |v| Variable.update_value!(v, variables) }
+    def self.bind_variables(input, variables = {})
+      case input
+      when Array, ResolvableArray
+        input.each { |v| v.bind_variables(variables) }
+      when Hash, ResolvableHash
+        input.each_value { |v| v.bind_variables(variables) }
+      when Attribute
+        input.bind_variables(variables)
+      end
+
+      input
     end
 
     #
@@ -174,6 +182,14 @@ module SpecForge
         end
 
       input == other
+    end
+
+    #
+    # Used to bind variables to self or any sub attributes
+    #
+    # @param variables [Hash] A hash of variable attributes
+    #
+    def bind_variables(_variables)
     end
 
     protected
