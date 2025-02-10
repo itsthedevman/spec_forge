@@ -25,11 +25,11 @@ RSpec.describe SpecForge::HTTP::Request do
       expect(request.http_method).to be_kind_of(SpecForge::HTTP::Verb::Get)
     end
 
-    context "when 'headers' is provided" do
-      let(:headers) { {} }
+    context "when 'headers' are provided" do
+      let(:headers) { {:content_type => 1, "Custom-Header-2" => 2} }
 
-      it "is expected to store it" do
-        expect(request.headers).to eq(headers)
+      it "is expected to normalize if needed" do
+        expect(request.headers).to eq("Content-Type" => 1, "Custom-Header-2" => 2)
       end
     end
 
