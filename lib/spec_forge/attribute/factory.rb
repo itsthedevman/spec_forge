@@ -20,6 +20,11 @@ module SpecForge
         super
 
         @factory_name = invocation_chain.shift&.to_sym
+
+        # Check the arguments before preparing them
+        arguments[:keyword] = Normalizer.normalize_factory_reference!(arguments[:keyword])
+
+        prepare_arguments!
       end
 
       def value
@@ -35,10 +40,8 @@ module SpecForge
       private
 
       def create_factory_object
-        return FactoryBot.create(@factory_name) if arguments.blank?
-
-        attributes = Normalizer.normalize_factory_reference!(arguments[:keyword])
-        attributes = Attribute.from(attributes)
+        attributes = arguments[:keyword]
+        return FactoryBot.create(@factory_name) if attributes.blank?
 
         # Determine build strat
         build_strategy = attributes[:build_strategy].resolve
