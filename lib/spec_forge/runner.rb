@@ -2,15 +2,28 @@
 
 module SpecForge
   class Runner
+    #
+    # Creates a spec runner and defines the spec with RSpec
+    #
+    # @param spec [Spec] The spec to run
+    #
     def initialize(spec)
       define_spec(spec)
     end
 
+    #
+    # Runs any RSpec specs
+    #
     def run
       RSpec::Core::Runner.disable_autorun!
       RSpec::Core::Runner.run([], $stderr, $stdout)
     end
 
+    #
+    # Defines a spec with RSpec
+    #
+    # @param spec_forge [Spec] The spec to define
+    #
     def define_spec(spec_forge)
       runner_forge = self
 
@@ -24,15 +37,27 @@ module SpecForge
       end
     end
 
+    #
+    # Defines any variables as let statements in RSpec
+    #
+    # @param context [RSpec::ExampleGroup] The rspec example group for this spec
+    # @param expectation [Expectation] The expectation that holds the variables
+    #
     def define_variables(context, expectation)
       expectation.variables.each do |variable_name, attribute|
         context.let(variable_name, &attribute.to_proc)
       end
     end
 
+    #
+    # Defines the expectation itself using the constraint
+    #
+    # @param context [RSpec::ExampleGroup] The RSpec example group for this spec
+    # @param expectation [Expectation] The expectation that holds the constraint
+    #
     def define_examples(context, expectation)
       context.instance_exec(expectation) do |expectation|
-        # Ensures the only one API call happens per expectation
+        # Ensures the only one API call occurs per expectation
         before(:all) { @response = expectation.http_client.call }
 
         constraints = expectation.constraints.resolve

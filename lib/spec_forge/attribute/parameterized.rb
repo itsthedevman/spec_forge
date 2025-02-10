@@ -23,6 +23,23 @@ module SpecForge
 
       attr_reader :arguments
 
+      #
+      # Represents any attribute that is written in expanded form.
+      # Expanded form is just a fancy name for a hash.
+      #
+      #   keyword:
+      #     <attribute>:
+      #       <keyword_arg>: <value>
+      #
+      #   positional:
+      #     <attribute>:
+      #     - <positional_arg>
+      #     - <positional_arg>
+      #
+      # @param input [Hash] The key that contains these arguments
+      # @param positional [Array] Any positional arguments
+      # @param keyword [Hash] Any keyword arguments
+      #
       def initialize(input, positional = [], keyword = {})
         super(input.to_s.downcase)
 

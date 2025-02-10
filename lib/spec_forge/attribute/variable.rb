@@ -9,6 +9,11 @@ module SpecForge
 
       attr_reader :variable_name
 
+      #
+      # Represents any attribute that is a variable reference
+      #
+      #   variables.<variable_name>
+      #
       def initialize(...)
         super
 

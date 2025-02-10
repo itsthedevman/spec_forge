@@ -16,6 +16,11 @@ module SpecForge
 
       attr_reader :factory_name
 
+      #
+      # Represents any attribute that is a factory reference
+      #
+      #   factories.<factory_name>
+      #
       def initialize(...)
         super
 

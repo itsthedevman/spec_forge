@@ -29,26 +29,48 @@ require_relative "spec_forge/type"
 require_relative "spec_forge/version"
 
 module SpecForge
-  def self.run(path = forge)
-    factories = Factory.load_and_register(path)
-    puts "Loaded #{factories.size} #{"factory".pluralize(factories.size)}"
-
-    specs = Spec.load_and_run(path)
-    puts "Ran #{specs.size} #{"spec".pluralize(specs.size)}"
+  #
+  # Loads all factories and specs located in "path", then runs all of the specs
+  #
+  # @param path [String] The file path that contains factories and specs
+  #
+  def self.run
+    Factory.load_and_register(path)
+    Spec.load_and_run(path)
   end
 
+  #
+  # Returns the directory root for the working directory
+  #
+  # @return [Pathname]
+  #
   def self.root
     @root ||= Pathname.pwd
   end
 
+  #
+  # Returns SpecForge's working directory
+  #
+  # @return [Pathname]
+  #
   def self.forge
     @forge ||= root.join("spec_forge")
   end
 
+  #
+  # Returns SpecForge's config
+  #
+  # @return [Config]
+  #
   def self.config
     @config ||= Config.new
   end
 
+  #
+  # Returns a backtrace cleaner configured for SpecForge
+  #
+  # @return [ActiveSupport::BacktraceCleaner]
+  #
   def self.backtrace_cleaner
     @backtrace_cleaner ||= begin
       root = "#{SpecForge.root}/"

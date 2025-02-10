@@ -11,6 +11,11 @@ module SpecForge
 
       attr_reader :function
 
+      #
+      # Represents any attribute that is a transform call
+      #
+      #   transform.<function>
+      #
       def initialize(...)
         super
 

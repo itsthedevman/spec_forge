@@ -1,21 +1,36 @@
 # frozen_string_literal: true
 
 module SpecForge
+  #
+  # Represents `config.yml`
+  #
   class Config < Struct.new(:base_url, :authorization, :factories, :environment)
+    #
+    # authorization: {}
+    #
     class Authorization < Struct.new(:header, :value)
       attr_predicate :header, :value
     end
 
+    #
+    # factories: {}
+    #
     class Factories < Struct.new(:paths, :auto_discover)
       attr_predicate :paths, :auto_discover
     end
 
+    #
+    # environment: {}
+    #
     class Environment < Struct.new(:use, :preload, :models_path)
       attr_predicate :use, :preload, :models_path
     end
 
     ############################################################################
 
+    #
+    # Creates a config with the user's config overlaid on the default
+    #
     def initialize
       config = Normalizer.default_config.deep_merge(load_from_file)
       normalized = Normalizer.normalize_config!(config)

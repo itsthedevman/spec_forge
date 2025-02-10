@@ -7,6 +7,10 @@ module SpecForge
 
       attr_reader :value
 
+      #
+      # Represents any attribute that is a literal value.
+      # A literal value can be any value YAML value, except Array and Hash
+      #
       def initialize(input)
         super
 

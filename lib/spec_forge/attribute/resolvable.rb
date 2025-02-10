@@ -2,6 +2,9 @@
 
 module SpecForge
   class Attribute
+    #
+    # Helpers for ResolvableHash and ResolvableArray
+    #
     module Resolvable
       # @private
       def to_proc

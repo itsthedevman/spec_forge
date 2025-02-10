@@ -2,6 +2,9 @@
 
 module SpecForge
   class Attribute
+    #
+    # Represents a hash that may contain Attributes
+    #
     class ResolvableHash < SimpleDelegator
       include Resolvable
 

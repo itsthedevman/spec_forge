@@ -7,6 +7,11 @@ module SpecForge
 
       attr_reader :faker_class, :faker_method
 
+      #
+      # Represents any attribute that is a faker call
+      #
+      #   faker.<faker_class>.<faker_method>
+      #
       def initialize(...)
         super
 

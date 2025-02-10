@@ -7,7 +7,14 @@ module SpecForge
 
       attr_reader :invocation_chain, :base_object
 
-      # <keyword>.<header>.<hash_key | method | index>...
+      #
+      # Represents any attribute that is a series of chained invocations:
+      #
+      #   <keyword>.<header>.<segment(hash_key | method | index)>...
+      #
+      # This module is not used as is, but is included in another class.
+      # Note: There can be any n number of segments.
+      #
       def initialize(...)
         super
 

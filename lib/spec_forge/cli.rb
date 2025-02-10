@@ -12,6 +12,11 @@ module SpecForge
 
     COMMANDS = [Init, New, Run]
 
+    #
+    # Runs the CLI
+    #
+    # @private
+    #
     def run
       program :name, "SpecForge"
       program :version, SpecForge::VERSION
@@ -24,6 +29,11 @@ module SpecForge
       run!
     end
 
+    #
+    # Registers the commands with Commander
+    #
+    # @private
+    #
     def register_commands
       COMMANDS.each do |command_class|
         command_class.register(self)

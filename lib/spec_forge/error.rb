@@ -14,6 +14,9 @@ module SpecForge
 
   class Error < StandardError; end
 
+  #
+  # Raised by Attribute::Faker when a provided classname does not exist in Faker
+  #
   class InvalidFakerClassError < Error
     CLASS_CHECKER = DidYouMean::SpellChecker.new(
       dictionary: Faker::Base.descendants.map { |c| c.to_s.downcase.gsub!("::", ".") }
@@ -31,6 +34,9 @@ module SpecForge
     end
   end
 
+  #
+  # Raised by Attribute::Faker when a provided method for a Faker class does not exist.
+  #
   class InvalidFakerMethodError < Error
     def initialize(input, klass)
       spell_checker = DidYouMean::SpellChecker.new(dictionary: klass.public_methods)
@@ -45,6 +51,9 @@ module SpecForge
     end
   end
 
+  #
+  # Raised by Attribute::Transform when the provided transform function is not valid
+  #
   class InvalidTransformFunctionError < Error
     def initialize(input)
       # TODO: Update link to docs
@@ -57,6 +66,9 @@ module SpecForge
     end
   end
 
+  #
+  # Raised by Attribute::Chainable when an step in the invocation chain is invalid
+  #
   class InvalidInvocationError < Error
     def initialize(step, object)
       valid_operations =
@@ -78,6 +90,9 @@ module SpecForge
     end
   end
 
+  #
+  # An extended version of TypeError to make things easier when reporting invalid types
+  #
   class InvalidTypeError < Error
     def initialize(object, expected_type, **opts)
       if expected_type.instance_of?(Array)
@@ -91,12 +106,18 @@ module SpecForge
     end
   end
 
+  #
+  # Raised by Attribute::Variable when the provided variable name is not defined
+  #
   class MissingVariableError < Error
     def initialize(variable_name)
       super("Undefined variable \"#{variable_name}\" referenced in expectation")
     end
   end
 
+  #
+  # Raised by Normalizer when any errors are returned. Acts like a grouping of errors
+  #
   class InvalidStructureError < Error
     def initialize(errors)
       message = errors.to_a.join_map("\n") do |error|
@@ -111,6 +132,9 @@ module SpecForge
     end
   end
 
+  #
+  # Raised by Attribute::Factory when an unknown build strategy is provided
+  #
   class InvalidBuildStrategy < Error
     def initialize(build_strategy)
       valid_strategies = Attribute::Factory::BUILD_STRATEGIES.to_sentence(**OR_CONNECTOR)

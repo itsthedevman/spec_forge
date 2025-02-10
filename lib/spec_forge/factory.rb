@@ -3,9 +3,9 @@
 module SpecForge
   class Factory
     #
-    # Loads the factories from their yml files and binds the factory with FactoryBot
+    # Loads the factories from their yml files and registers them with FactoryBot
     #
-    # @param path [String, Path] The base path where the factories directory is located
+    # @param path [String, Path] The base path where the factories directory are located
     #
     def self.load_and_register(base_path)
       if (paths = SpecForge.config.factories.paths) && paths.size > 0
@@ -47,6 +47,12 @@ module SpecForge
 
     attr_reader :name, :input, :model_class, :variables, :attributes
 
+    #
+    # Creates a new Factory
+    #
+    # @param name [String] The name of the factory
+    # @param **input [Hash] Attributes to define the factory. See Normalizer::Factory
+    #
     def initialize(name:, **input)
       @name = name
       input = Normalizer.normalize_factory!(input)

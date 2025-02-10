@@ -5,7 +5,7 @@ require_relative "spec/expectation"
 module SpecForge
   class Spec
     #
-    # Loads the specs from their yml files
+    # Loads the specs from their yml files and runs them
     #
     # @param path [String, Path] The base path where the specs directory is located
     #
@@ -42,9 +42,17 @@ module SpecForge
 
     attr_reader :name, :file_path, :expectations
 
-    def initialize(**input)
-      @name = input.delete(:name)
-      @file_path = input.delete(:file_path)
+    #
+    # Creates a Spec based on the input
+    #
+    # @param name [String] The identifier for this spec
+    # @param file_path [String] The path where this spec is defined
+    # @param **input [Hash] Any attributes related to the spec, including expectations
+    #   See Normalizer::Spec
+    #
+    def initialize(name:, file_path:, **input)
+      @name = name
+      @file_path = file_path
 
       input = Normalizer.normalize_spec!(input)
       global_options = input.except(:expectations)
@@ -59,6 +67,9 @@ module SpecForge
         end
     end
 
+    #
+    # Runs the spec
+    #
     def run
       Runner.new(self).run
     end

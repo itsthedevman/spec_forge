@@ -42,6 +42,10 @@ module SpecForge
 
     class << self
       #
+      # Raises any errors collected by the block
+      #
+      # @raises InvalidStructureError
+      #
       # @private
       #
       def raise_errors!(&block)
@@ -60,6 +64,8 @@ module SpecForge
       end
 
       #
+      # Returns a default version of this normalizer
+      #
       # @private
       #
       def default
@@ -69,16 +75,33 @@ module SpecForge
 
     attr_reader :label, :input, :structure
 
+    #
+    # Creates a normalizer for normalizing Hash data based on a structure
+    #
+    # @param label [String] A label that describes the data itself
+    # @param input [Hash] The data to normalize
+    # @param structure [Hash] The structure to normalize the data to
+    #
     def initialize(label, input, structure: self.class::STRUCTURE)
       @label = label
       @input = input
       @structure = structure
     end
 
+    #
+    # Normalizes the data and returns the result
+    #
+    # @return [Hash] The normalized data
+    #
     def normalize
       normalize_to_structure
     end
 
+    #
+    # Returns a hash with the default structure
+    #
+    # @return [Hash]
+    #
     def default
       structure.transform_values do |value|
         if (default = value[:default])

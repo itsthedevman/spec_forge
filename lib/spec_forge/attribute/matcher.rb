@@ -18,6 +18,13 @@ module SpecForge
 
       attr_reader :matcher_method
 
+      #
+      # Represents any attribute that is a matcher call.
+      #
+      #   matcher.<method>
+      #   be.<method>
+      #   kind_of.<method>
+      #
       def initialize(...)
         super
 

@@ -2,6 +2,9 @@
 
 module SpecForge
   class Attribute
+    #
+    # Represents an Array that may contain Attributes
+    #
     class ResolvableArray < SimpleDelegator
       include Resolvable
 
