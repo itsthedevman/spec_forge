@@ -28,7 +28,9 @@ RSpec.describe SpecForge::Spec::Expectation do
           variables: {
             var_2: 3
           },
-          expect: {}
+          expect: {
+            status: 404
+          }
         }
       end
 
@@ -73,6 +75,7 @@ RSpec.describe SpecForge::Spec::Expectation do
         default[:body] = {}
         default[:query] = {}
         default[:variables] = {var_1: "data"}
+        default[:expect][:status] = 404
         default
       end
 

@@ -12,7 +12,8 @@ RSpec.describe SpecForge::Spec do
 
   subject(:spec) do
     described_class.new(
-      name:, url:, method:, content_type:,
+      name:, file_path: "",
+      url:, method:, content_type:,
       variables:, query:, body:, expectations:
     )
   end
