@@ -25,6 +25,7 @@ require_relative "spec_forge/http"
 require_relative "spec_forge/normalizer"
 require_relative "spec_forge/runner"
 require_relative "spec_forge/spec"
+require_relative "spec_forge/type"
 require_relative "spec_forge/version"
 
 module SpecForge
