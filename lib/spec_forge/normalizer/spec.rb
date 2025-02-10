@@ -7,7 +7,7 @@ module SpecForge
         base_url: Normalizer::SHARED_ATTRIBUTES[:base_url],
         url: Normalizer::SHARED_ATTRIBUTES[:url],
         http_method: Normalizer::SHARED_ATTRIBUTES[:http_method],
-        content_type: Normalizer::SHARED_ATTRIBUTES[:content_type],
+        headers: Normalizer::SHARED_ATTRIBUTES[:headers],
         query: Normalizer::SHARED_ATTRIBUTES[:query],
         body: Normalizer::SHARED_ATTRIBUTES[:body],
         variables: Normalizer::SHARED_ATTRIBUTES[:variables],

@@ -17,12 +17,13 @@ module SpecForge
             builder.headers[request.authorization.header] = request.authorization.value
 
             # Content-Type
-            if request.content_type == "application/json"
+            if !request.headers.key?("Content-Type")
               builder.request :json
               builder.response :json
-            else
-              builder.headers["Content-Type"] = request.content_type.to_s
             end
+
+            # Headers / Content Type
+            builder.headers.merge!(request.headers)
 
             # Params
             builder.params.merge!(request.query.resolve)

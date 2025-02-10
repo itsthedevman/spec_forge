@@ -17,10 +17,9 @@ module SpecForge
         aliases: %i[method],
         default: ""
       },
-      content_type: {
-        type: String,
-        aliases: %i[type],
-        default: ""
+      headers: {
+        type: Hash,
+        default: {}
       },
       query: {
         type: Hash,
