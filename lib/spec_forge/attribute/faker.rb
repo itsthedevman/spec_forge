@@ -31,6 +31,8 @@ module SpecForge
         rescue NameError
           raise InvalidFakerMethodError.new(method_name, faker_class)
         end
+
+        prepare_arguments!
       end
 
       def value

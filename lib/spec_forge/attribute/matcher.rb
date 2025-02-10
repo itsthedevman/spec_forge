@@ -32,6 +32,8 @@ module SpecForge
           else
             resolve_matcher(method)
           end
+
+        prepare_arguments!
       end
 
       def value

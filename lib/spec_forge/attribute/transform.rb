@@ -18,6 +18,8 @@ module SpecForge
         @function = @input.sub("transform.", "")
 
         raise InvalidTransformFunctionError, input unless TRANSFORM_METHODS.include?(function)
+
+        prepare_arguments!
       end
 
       def value
