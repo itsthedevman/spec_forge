@@ -100,7 +100,11 @@ module SpecForge
   class InvalidStructureError < Error
     def initialize(errors)
       message = errors.to_a.join_map("\n") do |error|
-        error.message
+        next error if error.is_a?(SpecForge::Error)
+
+        # Normal errors, let's get verbose
+        backtrace = SpecForge.backtrace_cleaner.clean(error.backtrace)
+        "#{error.inspect}\n  # ./#{backtrace.join("\n  # ./")}\n"
       end
 
       super(message)
