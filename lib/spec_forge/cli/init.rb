@@ -12,17 +12,11 @@ module SpecForge
         actions.empty_directory "#{base_path}/factories"
         actions.empty_directory "#{base_path}/specs"
 
-        actions.template(
-          "config.tt",
-          SpecForge.root.join(base_path, "config.yml"),
-          context: binding
-        )
-      end
-
-      def default_authorization_value
-        <<~STRING.chomp
-          Bearer <%= ENV.fetch("API_TOKEN", "") %>
-        STRING
+        # actions.template(
+        #   "config.tt",
+        #   SpecForge.root.join(base_path, "config.yml"),
+        #   context: binding
+        # )
       end
     end
   end

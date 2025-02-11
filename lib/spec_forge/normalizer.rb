@@ -175,7 +175,6 @@ end
 #######################################################################
 # These need to be required after the base class due to them requiring
 # a constant
-require_relative "normalizer/config"
 require_relative "normalizer/constraint"
 require_relative "normalizer/expectation"
 require_relative "normalizer/factory_reference"

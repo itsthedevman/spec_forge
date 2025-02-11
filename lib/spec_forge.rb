@@ -18,7 +18,6 @@ require "yaml"
 require_relative "spec_forge/attribute"
 require_relative "spec_forge/cli"
 require_relative "spec_forge/config"
-require_relative "spec_forge/environment"
 require_relative "spec_forge/error"
 require_relative "spec_forge/factory"
 require_relative "spec_forge/http"
@@ -35,8 +34,6 @@ module SpecForge
   # @param path [String] The file path that contains factories and specs
   #
   def self.run(path = SpecForge.forge)
-    SpecForge.environment.load
-
     Factory.load_and_register(path)
     Spec.load_and_run(path)
   end
@@ -82,9 +79,5 @@ module SpecForge
       cleaner.add_silencer { |line| /rubygems|backtrace_cleaner/.match?(line) }
       cleaner
     end
-  end
-
-  def self.environment
-    @environment ||= Environment.new
   end
 end
