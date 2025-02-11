@@ -35,6 +35,9 @@ module SpecForge
   # @param path [String] The file path that contains factories and specs
   #
   def self.run(path = SpecForge.forge)
+    forge_helper = path.join("forge_helper.rb")
+    require_relative forge_helper if File.exist?(forge_helper)
+
     configuration.validate
 
     Factory.load_and_register(path)
