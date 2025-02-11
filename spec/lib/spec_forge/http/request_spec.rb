@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 RSpec.describe SpecForge::HTTP::Request do
-  let(:base_url) {}
+  let(:base_url) { "http://localhost:3000" }
   let(:url) { "/users" }
   let(:method) {}
   let(:headers) {}
@@ -34,16 +34,8 @@ RSpec.describe SpecForge::HTTP::Request do
     end
 
     context "when 'base_url' is provided" do
-      let(:base_url) { "http://example.com" }
-
       it "is expected to use it" do
         expect(request.base_url).to eq(base_url)
-      end
-    end
-
-    context "when 'base_url' is not provided" do
-      it "is expected to use the global default" do
-        expect(request.base_url).to eq(SpecForge.config.base_url)
       end
     end
 
@@ -72,24 +64,6 @@ RSpec.describe SpecForge::HTTP::Request do
 
       it "works because it is case insensitive" do
         expect(request.http_method).to eq("DELETE")
-      end
-    end
-
-    context "when 'authorization' is provided" do
-      let(:authorization) { :not_supported_yet }
-
-      it "uses the default config" do
-        expect(request.authorization).to have_attributes(
-          header: be_kind_of(String), value: be_kind_of(String)
-        )
-      end
-    end
-
-    context "when 'authorization' is not provided" do
-      it "uses the default config" do
-        expect(request.authorization).to have_attributes(
-          header: be_kind_of(String), value: be_kind_of(String)
-        )
       end
     end
   end

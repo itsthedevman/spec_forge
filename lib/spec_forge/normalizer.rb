@@ -172,11 +172,8 @@ module SpecForge
   end
 end
 
-#######################################################################
-# These need to be required after the base class due to them requiring
-# a constant
-require_relative "normalizer/constraint"
-require_relative "normalizer/expectation"
-require_relative "normalizer/factory_reference"
-require_relative "normalizer/factory"
-require_relative "normalizer/spec"
+####################################################################################################
+# These need to be required after the base class due to them requiring constants on Normalizer
+Dir[File.expand_path("lib/spec_forge/normalizer/*.rb")].sort.each do |path|
+  require path
+end

@@ -55,7 +55,7 @@ module SpecForge
       @file_path = file_path
 
       input = Normalizer.normalize_spec!(input)
-      global_options = input.except(:expectations)
+      global_options = normalize_global_options(input)
 
       @expectations =
         input[:expectations].map.with_index do |expectation_input, index|
@@ -72,6 +72,19 @@ module SpecForge
     #
     def run
       Runner.new(self).run
+    end
+
+    private
+
+    def normalize_global_options(input)
+      config = SpecForge.configuration
+      options = input.except(:expectations)
+
+      {
+        base_url: config.base_url,
+        headers: config.headers,
+        query: config.query
+      }.deep_merge(options)
     end
   end
 end

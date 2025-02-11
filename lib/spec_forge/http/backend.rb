@@ -13,16 +13,13 @@ module SpecForge
       def initialize(request)
         @connection =
           Faraday.new(url: request.base_url) do |builder|
-            # Authorization
-            builder.headers[request.authorization.header] = request.authorization.value
-
             # Content-Type
             if !request.headers.key?("Content-Type")
               builder.request :json
               builder.response :json
             end
 
-            # Headers / Content Type
+            # Headers
             builder.headers.merge!(request.headers)
 
             # Params

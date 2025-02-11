@@ -59,7 +59,7 @@ RSpec.describe SpecForge::Factory do
       end
     end
 
-    context "when 'auto_discovery' is enabled and specs exist" do
+    context "when 'auto_discovery' is enabled and factories exist" do
       it "loads them" do
         factories # Call load_and_register
 
@@ -73,7 +73,7 @@ RSpec.describe SpecForge::Factory do
       let!(:paths_before) { FactoryBot.definition_file_paths }
 
       before do
-        SpecForge.config.factories.paths = ["test"]
+        SpecForge.configuration.factories.paths = ["test"]
       end
 
       after do

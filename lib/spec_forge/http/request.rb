@@ -2,9 +2,7 @@
 
 module SpecForge
   module HTTP
-    attributes = [:base_url, :url, :http_method, :headers, :query, :body, :authorization]
-
-    class Request < Data.define(*attributes)
+    class Request < Data.define(:base_url, :url, :http_method, :headers, :query, :body)
       HEADER = /^[A-Z][A-Za-z0-9!-]*$/
 
       #
@@ -29,9 +27,8 @@ module SpecForge
         http_method = normalize_http_method(options)
         query = normalize_query(options)
         body = normalize_body(options)
-        authorization = extract_authorization(options)
 
-        super(base_url:, url:, http_method:, headers:, query:, body:, authorization:)
+        super(base_url:, url:, http_method:, headers:, query:, body:)
       end
 
       def http_verb
@@ -41,7 +38,7 @@ module SpecForge
       private
 
       def extract_base_url(options)
-        options[:base_url]&.value&.presence || SpecForge.config.base_url
+        options[:base_url].value
       end
 
       def extract_url(options)
@@ -83,10 +80,6 @@ module SpecForge
       def normalize_body(options)
         body = Attribute.bind_variables(options[:body], options[:variables])
         Attribute::ResolvableHash.new(body)
-      end
-
-      def extract_authorization(options)
-        SpecForge.config.authorization.default
       end
     end
   end

@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "logger"
+
 require "active_support"
 require "active_support/core_ext"
 require "commander"
@@ -17,7 +18,7 @@ require "yaml"
 
 require_relative "spec_forge/attribute"
 require_relative "spec_forge/cli"
-require_relative "spec_forge/config"
+require_relative "spec_forge/configuration"
 require_relative "spec_forge/error"
 require_relative "spec_forge/factory"
 require_relative "spec_forge/http"
@@ -34,6 +35,8 @@ module SpecForge
   # @param path [String] The file path that contains factories and specs
   #
   def self.run(path = SpecForge.forge)
+    configuration.validate
+
     Factory.load_and_register(path)
     Spec.load_and_run(path)
   end
@@ -57,12 +60,20 @@ module SpecForge
   end
 
   #
-  # Returns SpecForge's config
+  # Returns SpecForge's configuration
   #
   # @return [Config]
   #
-  def self.config
-    @config ||= Config.new
+  def self.configuration
+    @configuration ||= Configuration.new
+  end
+
+  #
+  # Yields SpecForge's configuration to a block
+  #
+  def self.configure(&block)
+    block&.call(configuration)
+    configuration
   end
 
   #
