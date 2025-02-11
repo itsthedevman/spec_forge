@@ -34,7 +34,9 @@ module SpecForge
   #
   # @param path [String] The file path that contains factories and specs
   #
-  def self.run
+  def self.run(path = SpecForge.forge)
+    SpecForge.environment.load
+
     Factory.load_and_register(path)
     Spec.load_and_run(path)
   end
@@ -86,5 +88,3 @@ module SpecForge
     @environment ||= Environment.new
   end
 end
-
-SpecForge.environment.load

@@ -2,7 +2,7 @@
 
 RSpec.describe SpecForge::Environment do
   context "when 'rails' is used for the environment" do
-    let(:path) { SpecForge.root.join("config", "application") }
+    let(:path) { SpecForge.root.join("config", "environment.rb") }
 
     subject(:environment) { described_class.new }
 

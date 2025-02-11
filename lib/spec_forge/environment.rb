@@ -36,7 +36,7 @@ module SpecForge
     end
 
     def load_rails
-      path = SpecForge.root.join("config", "application")
+      path = SpecForge.root.join("config", "environment.rb")
 
       if File.exist?(path)
         require path
