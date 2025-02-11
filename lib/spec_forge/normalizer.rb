@@ -174,6 +174,6 @@ end
 
 ####################################################################################################
 # These need to be required after the base class due to them requiring constants on Normalizer
-Dir[File.expand_path("lib/spec_forge/normalizer/*.rb")].sort.each do |path|
+Dir[File.expand_path("normalizer/*.rb", __dir__)].sort.each do |path|
   require path
 end
