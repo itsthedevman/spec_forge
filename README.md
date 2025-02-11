@@ -1,9 +1,15 @@
 # SpecForge
 
-Ever notice how much time you spend writing code for API tests? Skip the boilerplate and write your tests in YAML - simple, clean, and powerful.
+**Please note: This gem is under active development and isn't quite ready for use**
+
+I have 98% of the first release done, but I still have a lot of testing and polishing to ensure it works as expected.
+
+---
+
+Write API tests in YAML that read like documentation:
 
 ```yaml
-get_user:
+user_profile:
   path: /users/1
   expect:
     status: 200
@@ -12,7 +18,9 @@ get_user:
       email: /@/
 ```
 
-That's it. No Ruby classes, no setup code, no HTTP client configuration. Just describe what you want to test, and SpecForge handles the rest. Need test data? We've got Faker built in. Want to reuse objects? Factories are ready to go. All the power of RSpec's matchers without writing a single line of Ruby.
+That's a complete test. No Ruby code, no configuration files, no HTTP client setup - just a clear description of what you're testing. Under the hood, you get all the power of RSpec's matchers, Faker's data generation, and FactoryBot's test objects.
+
+But that's just scratching the surface.
 
 ## Table of Contents
 
