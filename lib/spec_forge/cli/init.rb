@@ -12,11 +12,10 @@ module SpecForge
         actions.empty_directory "#{base_path}/factories"
         actions.empty_directory "#{base_path}/specs"
 
-        # actions.template(
-        #   "config.tt",
-        #   SpecForge.root.join(base_path, "config.yml"),
-        #   context: binding
-        # )
+        actions.template(
+          "forge_helper.tt",
+          SpecForge.root.join(base_path, "forge_helper.rb")
+        )
       end
     end
   end
