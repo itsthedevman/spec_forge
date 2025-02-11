@@ -9,7 +9,7 @@ Gem::Specification.new do |spec|
   spec.email = ["bryan@itsthedevman.com"]
 
   spec.summary = "Write expressive API tests in YAML with the power of RSpec matchers"
-  spec.description = "SpecForge lets you write API tests using a clean YAML syntax while leveraging RSpec's powerful matcher system. It supports dynamic test data generation through Faker, deep variable access, factory integration, and intuitive request/response validation. Reduce boilerplate and focus on what matters - testing your API's behavior."
+  spec.description = "Write API tests in YAML without sacrificing power. SpecForge combines RSpec's matcher system, Faker's data generation, and factory patterns into a clean, declarative syntax that eliminates boilerplate while preserving control over your test suite."
   spec.homepage = "https://github.com/itsthedevman/spec_forge"
   spec.license = "MIT"
   spec.required_ruby_version = ">= 3.0.0"
