@@ -77,14 +77,8 @@ module SpecForge
     private
 
     def normalize_global_options(input)
-      config = SpecForge.configuration
-      options = input.except(:expectations)
-
-      {
-        base_url: config.base_url,
-        headers: config.headers,
-        query: config.query
-      }.deep_merge(options)
+      config = SpecForge.configuration.to_h.slice(:base_url, :headers, :query)
+      Configuration.overlay_options(config, input.except(:expectations))
     end
   end
 end

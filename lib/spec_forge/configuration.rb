@@ -12,6 +12,21 @@ module SpecForge
 
     ############################################################################
 
+    def self.overlay_options(source, overlay)
+      source.deep_merge(overlay) do |key, source_value, overlay_value|
+        # If overlay has a populated value, use it
+        if overlay_value.present? || overlay_value == false
+          overlay_value
+        # If source is nil and overlay exists (but wasn't "present"), use overlay
+        elsif source_value.nil? && !overlay_value.nil?
+          overlay_value
+        # Otherwise keep source value
+        else
+          source_value
+        end
+      end
+    end
+
     def initialize
       config = Normalizer.default_configuration
 
@@ -26,10 +41,9 @@ module SpecForge
       output = Normalizer.normalize_configuration!(to_h)
 
       # In case any value was set to `nil`
-      self.base_url = output[:base_url]
-      self.query = output[:query]
-      self.headers = output[:headers]
-      self.factories = Factories.new(**output[:factories])
+      self.base_url = output[:base_url] if base_url.blank?
+      self.query = output[:query] if query.blank?
+      self.headers = output[:headers] if headers.blank?
 
       self
     end

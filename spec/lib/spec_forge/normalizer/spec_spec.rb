@@ -151,7 +151,7 @@ RSpec.describe SpecForge::Normalizer do
         end
 
         it "is expected to default to an empty string" do
-          expect(normalized[:http_method]).to eq("")
+          expect(normalized[:http_method]).to eq("GET")
 
           # Ensure the value is disconnected from the default
           default_value = described_class::Spec::STRUCTURE[:http_method][:default]
@@ -314,7 +314,7 @@ RSpec.describe SpecForge::Normalizer do
         end
 
         it "is expected to default to an empty string" do
-          expect(normalized_expectation[:http_method]).to eq("")
+          expect(normalized_expectation[:http_method]).to eq("GET")
 
           # Ensure the value is disconnected from the default
           default_value = described_class::Expectation::STRUCTURE[:http_method][:default]

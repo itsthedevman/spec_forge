@@ -24,8 +24,8 @@ module SpecForge
         @adapter.public_send(
           request.http_verb,
           request.url,
-          query: request.query.transform_values(&:resolve),
-          body: request.body.transform_values(&:resolve)
+          query: request.query.resolve,
+          body: request.body.resolve
         )
       end
     end

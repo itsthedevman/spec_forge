@@ -46,7 +46,7 @@ module SpecForge
       end
 
       def normalize_http_method(options)
-        method = options[:http_method].value.presence || "GET"
+        method = options[:http_method].value
 
         if method.is_a?(String)
           Verb.from(method)

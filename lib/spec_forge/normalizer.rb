@@ -15,7 +15,7 @@ module SpecForge
       http_method: {
         type: String,
         aliases: %i[method],
-        default: ""
+        default: "GET"
       },
       headers: {
         type: Hash,

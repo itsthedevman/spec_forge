@@ -17,7 +17,7 @@ module SpecForge
         load_name(name, input)
 
         # This allows defining spec level attributes that can be overwritten by the expectation
-        input = Attribute.from(overlay_options(global_options, input))
+        input = Attribute.from(Configuration.overlay_options(global_options, input))
 
         load_variables(input)
 
@@ -29,12 +29,6 @@ module SpecForge
       end
 
       private
-
-      def overlay_options(source, overlay)
-        # Remove any blank values to avoid overwriting anything from source
-        overlay = overlay.delete_if { |_k, v| v.blank? }
-        source.deep_merge(overlay)
-      end
 
       def load_name(name, input)
         @name = input[:name].presence || name
