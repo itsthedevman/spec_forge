@@ -138,8 +138,6 @@ module SpecForge
 
     #
     # Returns the fully evaluated result, recursively resolving any nested attributes
-    # Note: This method can only be called once to ensure data is correct across the board
-    # You can still call #value if you need a new value
     #
     # @return [Object] The resolved value
     #
@@ -152,8 +150,7 @@ module SpecForge
     #   attr.resolve # => [42, ["Jane"]]
     #
     def resolve
-      # Past test for the variable
-      @resolved ||= __resolve(value)
+      __resolve(value)
     end
 
     #
