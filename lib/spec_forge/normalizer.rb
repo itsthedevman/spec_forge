@@ -34,6 +34,11 @@ module SpecForge
       variables: {
         type: Hash,
         default: {}
+      },
+      debug: {
+        type: [TrueClass, FalseClass],
+        default: false,
+        aliases: %i[pry breakpoint]
       }
     }.freeze
 

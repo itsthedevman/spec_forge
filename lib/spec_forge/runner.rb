@@ -28,6 +28,10 @@ module SpecForge
       runner_forge = self
 
       RSpec.describe(spec_forge.name) do
+        before do
+          binding.pry if spec_forge.debug? # standard:disable Lint/Debugger
+        end
+
         spec_forge.expectations.each do |expectation_forge|
           describe(expectation_forge.name) do
             runner_forge.define_variables(self, expectation_forge)
@@ -45,7 +49,7 @@ module SpecForge
     #
     def define_variables(context, expectation)
       expectation.variables.each do |variable_name, attribute|
-        context.let(variable_name, &attribute.to_proc)
+        context.let!(variable_name, &attribute.to_proc)
       end
     end
 
@@ -57,15 +61,21 @@ module SpecForge
     #
     def define_examples(context, expectation)
       context.instance_exec(expectation) do |expectation|
-        # Ensures the only one API call occurs per expectation
-        before(:all) { @response = expectation.http_client.call }
-
         constraints = expectation.constraints.resolve
         request = expectation.http_client.request
 
+        # Ensures the only one API call occurs per expectation
+        before(:all) do
+          @response = expectation.http_client.call
+        end
+
+        subject(:response) { @response }
+
         # Define the example group
         context "#{request.http_method} #{request.url}" do
-          subject(:response) { @response }
+          before do
+            binding.pry if expectation.debug? # standard:disable Lint/Debugger
+          end
 
           # Status check
           expected_status = constraints[:status]

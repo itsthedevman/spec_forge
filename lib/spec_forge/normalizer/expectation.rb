@@ -12,6 +12,7 @@ module SpecForge
         query: Normalizer::SHARED_ATTRIBUTES[:query],
         body: Normalizer::SHARED_ATTRIBUTES[:body],
         variables: Normalizer::SHARED_ATTRIBUTES[:variables],
+        debug: Normalizer::SHARED_ATTRIBUTES[:debug],
         expect: {type: Hash}
       }.freeze
     end

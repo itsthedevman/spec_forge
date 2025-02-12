@@ -40,6 +40,8 @@ module SpecForge
 
     ############################################################################
 
+    attr_predicate :debug
+
     attr_reader :name, :file_path, :expectations
 
     #
@@ -55,6 +57,10 @@ module SpecForge
       @file_path = file_path
 
       input = Normalizer.normalize_spec!(input)
+
+      # Don't pass this down to the expectations
+      @debug = input.delete(:debug) || false
+
       global_options = normalize_global_options(input)
 
       @expectations =
