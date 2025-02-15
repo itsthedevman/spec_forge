@@ -7,15 +7,17 @@ index_users:
 show_user:
   url: /users/{id}
   expectations:
-  - expect:
+  - query:
+      id: -1
+    expect:
       status: 404
-  - expect:
+  - query:
+      id: 1
+    expect:
       status: 200
       json:
         name: kind_of.string
         email: /\w+@example\.com/i
-    query:
-      id: 1
 
 create_user:
   url: /users

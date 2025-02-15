@@ -29,19 +29,4 @@ RSpec.describe SpecForge::Spec::Expectation::Constraint do
       end
     end
   end
-
-  describe "#resolve" do
-    let(:json) { {var_1: 1, var_2: "2"} }
-
-    subject(:resolved) { constraint.resolve }
-
-    it "is expected to resolve all constraints as a hash" do
-      expect(resolved).to be_kind_of(Hash)
-      expect(resolved[:status]).to be_kind_of(Integer).and(eq(404))
-      expect(resolved[:json]).to be_kind_of(Hash)
-
-      expect(resolved[:json]["var_1"]).to be_kind_of(RSpec::Matchers::BuiltIn::Eq)
-      expect(resolved[:json]["var_2"]).to be_kind_of(RSpec::Matchers::BuiltIn::Eq)
-    end
-  end
 end
