@@ -50,8 +50,8 @@ module SpecForge
         context "#{request.http_method} #{request.url}" do
           constraints = expectation.constraints
 
-          let(:expected_status) { constraints.status.resolve }
-          let(:expected_json) { constraints.json.resolve }
+          let!(:expected_status) { constraints.status.resolve }
+          let!(:expected_json) { constraints.json.resolve }
 
           subject(:response) { expectation.http_client.call }
 
