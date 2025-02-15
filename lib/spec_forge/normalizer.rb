@@ -15,7 +15,7 @@ module SpecForge
       http_method: {
         type: String,
         aliases: %i[method],
-        default: "GET"
+        default: ""
       },
       headers: {
         type: Hash,
@@ -112,6 +112,8 @@ module SpecForge
           value[:default].dup
         elsif value[:type] == Integer # Can't call new on int
           0
+        elsif value[:type] == Proc # Sameeee
+          -> {}
         else
           value[:type].new
         end

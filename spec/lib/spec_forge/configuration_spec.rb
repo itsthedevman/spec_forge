@@ -94,12 +94,17 @@ RSpec.describe SpecForge::Configuration do
       }
     end
 
+    let(:on_debug) do
+      -> {}
+    end
+
     let(:config) do
       SpecForge.configure do |config|
         config.base_url = base_url
         config.headers = headers
         config.query = query
         config.factories = factories
+        config.on_debug = on_debug
       end
     end
 
@@ -111,6 +116,7 @@ RSpec.describe SpecForge::Configuration do
       expect(config.base_url).to eq(base_url)
       expect(config.headers).to eq(headers)
       expect(config.query).to eq(query)
+      expect(config.on_debug).to eq(on_debug)
     end
 
     context "when 'base_url' is nil" do
@@ -171,6 +177,28 @@ RSpec.describe SpecForge::Configuration do
         expect { validated }.to raise_error(
           SpecForge::InvalidStructureError,
           "Expected Hash, got Integer for \"query\" on configuration"
+        )
+      end
+    end
+
+    context "when 'on_debug' is nil" do
+      let(:on_debug) { nil }
+
+      it do
+        expect { validated }.to raise_error(
+          SpecForge::InvalidStructureError,
+          "Expected Proc, got NilClass for \"on_debug\" on configuration"
+        )
+      end
+    end
+
+    context "when 'on_debug' is not a proc" do
+      let(:on_debug) { 1 }
+
+      it do
+        expect { validated }.to raise_error(
+          SpecForge::InvalidStructureError,
+          "Expected Proc, got Integer for \"on_debug\" on configuration"
         )
       end
     end

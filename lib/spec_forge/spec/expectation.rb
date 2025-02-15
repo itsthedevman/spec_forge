@@ -33,6 +33,16 @@ module SpecForge
         )
       end
 
+      def to_h
+        {
+          name:,
+          debug: debug?,
+          variables: variables.resolve,
+          request: http_client.request.to_h,
+          constraints: constraints.to_h
+        }
+      end
+
       private
 
       def load_name(name, input)

@@ -20,6 +20,9 @@ module SpecForge
               default: []
             }
           }
+        },
+        on_debug: {
+          type: Proc
         }
       }.freeze
     end

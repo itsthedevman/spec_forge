@@ -35,6 +35,10 @@ module SpecForge
         http_method.name.downcase
       end
 
+      def to_h
+        super.transform_values { |v| v.respond_to?(:resolve) ? v.resolve : v }
+      end
+
       private
 
       def extract_base_url(options)
@@ -46,7 +50,7 @@ module SpecForge
       end
 
       def normalize_http_method(options)
-        method = options[:http_method].resolve
+        method = options[:http_method].resolve.presence || "GET"
 
         if method.is_a?(String)
           Verb.from(method)

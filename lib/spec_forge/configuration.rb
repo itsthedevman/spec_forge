@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module SpecForge
-  class Configuration < Struct.new(:base_url, :headers, :query, :factories, :specs)
+  class Configuration < Struct.new(:base_url, :headers, :query, :factories, :specs, :on_debug)
     ############################################################################
 
     class Factories < Struct.new(:auto_discover, :paths)
@@ -33,6 +33,7 @@ module SpecForge
       config[:base_url] = "http://localhost:3000"
       config[:factories] = Factories.new
       config[:specs] = RSpec.configuration
+      config[:on_debug] = Runner::DebugProxy.default
 
       super(**config)
     end

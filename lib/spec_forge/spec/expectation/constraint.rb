@@ -17,6 +17,10 @@ module SpecForge
           super(status:, json: normalize_hash(json))
         end
 
+        def to_h
+          super.transform_values(&:resolve)
+        end
+
         private
 
         def normalize_hash(hash)
