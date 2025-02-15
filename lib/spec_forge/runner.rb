@@ -44,33 +44,24 @@ module SpecForge
     #
     def define_examples(context, expectation)
       context.instance_exec(expectation) do |expectation|
-        before(:all) do
-          # Ensures the only one API call occurs per expectation
-          @response = expectation.http_client.call
-        end
-
-        subject(:response) { @response }
-
         # Define the example group
         request = expectation.http_client.request
+
         context "#{request.http_method} #{request.url}" do
           constraints = expectation.constraints
 
           let(:expected_status) { constraints.status.resolve }
           let(:expected_json) { constraints.json.resolve }
 
-          # Status check
+          subject(:response) { expectation.http_client.call }
+
           it do
+            # Status check
             expect(response.status).to eq(expected_status)
-          end
 
-          # JSON check
-          if constraints.json.size > 0
-            it do
+            # JSON check
+            if constraints.json.size > 0
               expect(response.body).to be_kind_of(Hash)
-            end
-
-            it do
               expect(response.body).to include(expected_json)
             end
           end
