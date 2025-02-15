@@ -4,8 +4,6 @@ module SpecForge
   module HTTP
     class Request < Data.define(:base_url, :url, :http_method, :headers, :query, :body)
       HEADER = /^[A-Z][A-Za-z0-9!-]*$/
-      CURLY_PLACEHOLDER = /\{(\w+)\}/
-      COLON_PLACEHOLDER = /:(\w+)/
 
       #
       # Initializes a new Request instance with the given options
@@ -23,14 +21,12 @@ module SpecForge
       # @option options [Hash] :body The request body (defaults to {})
       #
       def initialize(**options)
-        query = normalize_query(options)
-        body = normalize_body(options)
-
+        url = extract_url(options)
+        base_url = extract_base_url(options)
         http_method = normalize_http_method(options)
         headers = normalize_headers(options)
-
-        base_url = extract_base_url(options)
-        url = normalize_url(options, query)
+        query = normalize_query(options)
+        body = normalize_body(options)
 
         super(base_url:, url:, http_method:, headers:, query:, body:)
       end
@@ -45,38 +41,8 @@ module SpecForge
         options[:base_url].resolve
       end
 
-      def normalize_url(options, query)
-        url = options[:url].resolve
-
-        # /users/<user_id>
-        url = replace_url_placeholder(url, query, CURLY_PLACEHOLDER)
-
-        # /users/:user_id
-        url = replace_url_placeholder(url, query, COLON_PLACEHOLDER)
-
-        # Attempt to validate (the colon style is considered valid apparently)
-        begin
-          URI.parse(url)
-        rescue URI::InvalidURIError
-          raise URI::InvalidURIError,
-            "#{url.inspect} is not a valid URI. If you're using path parameters (like ':id' or '{id}'), ensure they are defined in the 'query' section."
-        end
-
-        url
-      end
-
-      def replace_url_placeholder(url, query, regex)
-        match = url.match(regex)
-        return url if match.nil?
-
-        key = match[1].to_sym
-        return url unless query.key?(key)
-
-        value = query.delete(key)
-        url.gsub(
-          match[0],
-          URI.encode_uri_component(value.resolve.to_s)
-        )
+      def extract_url(options)
+        options[:url].resolve
       end
 
       def normalize_http_method(options)

@@ -66,45 +66,5 @@ RSpec.describe SpecForge::HTTP::Request do
         expect(request.http_method).to eq("DELETE")
       end
     end
-
-    context "when the 'url' has placeholders" do
-      context "and they are curly style" do
-        let(:url) { "/user/{query_1}" }
-        let(:query) { {query_1: "hello"} }
-
-        it "is expected to replace the placeholder" do
-          expect(request.url).to eq("/user/hello")
-        end
-      end
-
-      context "and they are colon style" do
-        let(:url) { "/user/:query_1" }
-        let(:query) { {query_1: "hello"} }
-
-        it "is expected to replace the placeholder" do
-          expect(request.url).to eq("/user/hello")
-        end
-      end
-
-      context "and the query attribute isn't defined" do
-        let(:url) { "/user/{query_1}" }
-
-        it do
-          expect { request }.to raise_error(
-            URI::InvalidURIError,
-            "#{url.inspect} is not a valid URI. If you're using path parameters (like ':id' or '{id}'), ensure they are defined in the 'query' section."
-          )
-        end
-      end
-
-      context "and the query contains invalid URI content" do
-        let(:url) { "/user/:query_1" }
-        let(:query) { {query_1: "hello world"} }
-
-        it "is expected to replace the placeholder with URI encoded value" do
-          expect(request.url).to eq("/user/hello%20world")
-        end
-      end
-    end
   end
 end

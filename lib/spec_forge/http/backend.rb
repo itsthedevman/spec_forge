@@ -3,6 +3,9 @@
 module SpecForge
   module HTTP
     class Backend
+      CURLY_PLACEHOLDER = /\{(\w+)\}/
+      COLON_PLACEHOLDER = /:(\w+)/
+
       attr_reader :connection
 
       #
@@ -37,6 +40,7 @@ module SpecForge
       # @return [Hash] The response
       #
       def delete(url, query: {}, body: {})
+        url = normalize_url(url, query)
         connection.delete(url) { |request| update_request(request, query, body) }
       end
 
@@ -50,6 +54,7 @@ module SpecForge
       # @return [Hash] The response
       #
       def get(url, query: {}, body: {})
+        url = normalize_url(url, query)
         connection.get(url) { |request| update_request(request, query, body) }
       end
 
@@ -63,6 +68,7 @@ module SpecForge
       # @return [Hash] The response
       #
       def patch(url, query: {}, body: {})
+        url = normalize_url(url, query)
         connection.patch(url) { |request| update_request(request, query, body) }
       end
 
@@ -76,6 +82,7 @@ module SpecForge
       # @return [Hash] The response
       #
       def post(url, query: {}, body: {})
+        url = normalize_url(url, query)
         connection.post(url) { |request| update_request(request, query, body) }
       end
 
@@ -89,6 +96,7 @@ module SpecForge
       # @return [Hash] The response
       #
       def put(url, query: {}, body: {})
+        url = normalize_url(url, query)
         connection.put(url) { |request| update_request(request, query, body) }
       end
 
@@ -97,6 +105,38 @@ module SpecForge
       def update_request(request, query, body)
         request.params.merge!(query)
         request.body = body.to_json
+      end
+
+      def normalize_url(url, query)
+        # /users/<user_id>
+        url = replace_url_placeholder(url, query, CURLY_PLACEHOLDER)
+
+        # /users/:user_id
+        url = replace_url_placeholder(url, query, COLON_PLACEHOLDER)
+
+        # Attempt to validate (the colon style is considered valid apparently)
+        begin
+          URI.parse(url)
+        rescue URI::InvalidURIError
+          raise URI::InvalidURIError,
+            "#{url.inspect} is not a valid URI. If you're using path parameters (like ':id' or '{id}'), ensure they are defined in the 'query' section."
+        end
+
+        url
+      end
+
+      def replace_url_placeholder(url, query, regex)
+        match = url.match(regex)
+        return url if match.nil?
+
+        key = match[1].to_sym
+        return url unless query.key?(key)
+
+        value = query.delete(key)
+        url.gsub(
+          match[0],
+          URI.encode_uri_component(value.to_s)
+        )
       end
     end
   end
