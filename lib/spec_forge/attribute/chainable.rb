@@ -29,29 +29,32 @@ module SpecForge
         invoke_chain
       end
 
-      #
-      # Custom implementation to ensure the underlying values are resolved
-      # without breaking #value's functionality
-      #
       def resolve
-        @resolved ||= __resolve(invoke_chain(resolve: true))
+        @resolved ||= resolve_chain
       end
 
       private
 
-      def invoke_chain(resolve: false)
-        current_value = base_object
-
-        invocation_chain.each do |step|
-          object = retrieve_value(current_value, resolve:)
-          current_value = invoke(step, object)
-        end
-
-        retrieve_value(current_value, resolve:)
+      def invoke_chain
+        traverse_chain(resolve: false)
       end
 
-      def retrieve_value(object, resolve: false)
-        return object if !object.is_a?(Attribute)
+      def resolve_chain
+        __resolve(traverse_chain(resolve: true))
+      end
+
+      def traverse_chain(resolve:)
+        result = invocation_chain.reduce(base_object) do |current_value, step|
+          next_value = retrieve_value(current_value, resolve:)
+
+          invoke(step, next_value)
+        end
+
+        retrieve_value(result, resolve:)
+      end
+
+      def retrieve_value(object, resolve:)
+        return object unless object.is_a?(Attribute)
 
         resolve ? object.resolve : object.value
       end
