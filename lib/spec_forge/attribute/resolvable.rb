@@ -9,12 +9,16 @@ module SpecForge
       # @private
       def to_proc
         this = self
-        -> { this.resolve }
+        -> { this.resolve_value }
       end
 
       # @private
       def resolvable_proc
         ->(v) { v.respond_to?(:resolve) ? v.resolve : v }
+      end
+
+      def resolvable_value_proc
+        ->(v) { v.respond_to?(:resolve_value) ? v.resolve_value : v }
       end
     end
   end

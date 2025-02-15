@@ -47,13 +47,13 @@ module SpecForge
         return FactoryBot.create(factory_name) if attributes.blank?
 
         # Determine build strat
-        build_strategy = attributes[:build_strategy].resolve
+        build_strategy = attributes[:build_strategy].resolve_value
 
         # stubbed => build_stubbed
         build_strategy.prepend("build_") if build_strategy == "stubbed"
         raise InvalidBuildStrategy, build_strategy unless BUILD_STRATEGIES.include?(build_strategy)
 
-        attributes = attributes[:attributes].resolve
+        attributes = attributes[:attributes].resolve_value
         FactoryBot.public_send(build_strategy, factory_name, **attributes)
       end
     end

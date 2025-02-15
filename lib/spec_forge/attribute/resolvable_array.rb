@@ -16,6 +16,10 @@ module SpecForge
         value.map(&resolvable_proc)
       end
 
+      def resolve_value
+        value.map(&resolvable_value_proc)
+      end
+
       def bind_variables(variables)
         value.each { |v| Attribute.bind_variables(v, variables) }
       end

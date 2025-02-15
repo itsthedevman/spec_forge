@@ -150,7 +150,11 @@ module SpecForge
     #   attr.resolve # => [42, ["Jane"]]
     #
     def resolve
-      @resolved ||= __resolve(value)
+      @resolved ||= resolve_value
+    end
+
+    def resolve_value
+      __resolve(value)
     end
 
     #
@@ -160,7 +164,7 @@ module SpecForge
     #
     def to_proc
       this = self # kek - what are we, javascript?
-      -> { this.resolve }
+      -> { this.resolve_value }
     end
 
     #
