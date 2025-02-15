@@ -17,7 +17,7 @@ RSpec.describe SpecForge::Spec::Expectation do
       let(:input) do
         {
           url: "/users/admin",
-          http_method: "GET",
+          http_method: "POST",
           headers: {
             header_1: 3
           },
@@ -39,7 +39,7 @@ RSpec.describe SpecForge::Spec::Expectation do
       let(:global_options) do
         {
           url: "/users",
-          http_method: "POST",
+          http_method: "GET",
           headers: {
             header_1: 1,
             header_2: 2
