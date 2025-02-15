@@ -4,6 +4,8 @@ module SpecForge
   module HTTP
     class Request < Data.define(:base_url, :url, :http_method, :headers, :query, :body)
       HEADER = /^[A-Z][A-Za-z0-9!-]*$/
+      CURLY_PLACEHOLDER = /\{(\w+)\}/
+      COLON_PLACEHOLDER = /:(\w+)/
 
       #
       # Initializes a new Request instance with the given options
@@ -21,12 +23,14 @@ module SpecForge
       # @option options [Hash] :body The request body (defaults to {})
       #
       def initialize(**options)
-        base_url = extract_base_url(options)
-        url = extract_url(options)
-        headers = normalize_headers(options)
-        http_method = normalize_http_method(options)
         query = normalize_query(options)
         body = normalize_body(options)
+
+        http_method = normalize_http_method(options)
+        headers = normalize_headers(options)
+
+        base_url = extract_base_url(options)
+        url = normalize_url(options, query)
 
         super(base_url:, url:, http_method:, headers:, query:, body:)
       end
@@ -38,15 +42,45 @@ module SpecForge
       private
 
       def extract_base_url(options)
-        options[:base_url].value
+        options[:base_url].resolve
       end
 
-      def extract_url(options)
-        options[:url].value
+      def normalize_url(options, query)
+        url = +options[:url].resolve
+
+        # /users/<user_id>
+        replace_url_placeholder(url, query, CURLY_PLACEHOLDER)
+
+        # /users/:user_id
+        replace_url_placeholder(url, query, COLON_PLACEHOLDER)
+
+        # Attempt to validate (the colon style is considered valid apparently)
+        begin
+          URI.parse(url)
+        rescue URI::InvalidURIError
+          raise URI::InvalidURIError,
+            "#{url.inspect} is not a valid URI. If you're using path parameters (like ':id' or '{id}'), ensure they are defined in the 'query' section."
+        end
+
+        url
+      end
+
+      def replace_url_placeholder(url, query, regex)
+        match = url.match(regex)
+        return if match.nil?
+
+        key = match[1].to_sym
+        return unless query.key?(key)
+
+        value = query.delete(key)
+        url.gsub!(
+          match[0],
+          URI.encode_uri_component(value.resolve.to_s)
+        )
       end
 
       def normalize_http_method(options)
-        method = options[:http_method].value
+        method = options[:http_method].resolve
 
         if method.is_a?(String)
           Verb.from(method)
