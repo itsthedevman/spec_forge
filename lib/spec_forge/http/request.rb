@@ -46,13 +46,13 @@ module SpecForge
       end
 
       def normalize_url(options, query)
-        url = +options[:url].resolve
+        url = options[:url].resolve
 
         # /users/<user_id>
-        replace_url_placeholder(url, query, CURLY_PLACEHOLDER)
+        url = replace_url_placeholder(url, query, CURLY_PLACEHOLDER)
 
         # /users/:user_id
-        replace_url_placeholder(url, query, COLON_PLACEHOLDER)
+        url = replace_url_placeholder(url, query, COLON_PLACEHOLDER)
 
         # Attempt to validate (the colon style is considered valid apparently)
         begin
@@ -67,13 +67,13 @@ module SpecForge
 
       def replace_url_placeholder(url, query, regex)
         match = url.match(regex)
-        return if match.nil?
+        return url if match.nil?
 
         key = match[1].to_sym
-        return unless query.key?(key)
+        return url unless query.key?(key)
 
         value = query.delete(key)
-        url.gsub!(
+        url.gsub(
           match[0],
           URI.encode_uri_component(value.resolve.to_s)
         )
