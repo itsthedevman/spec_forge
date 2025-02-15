@@ -2,7 +2,7 @@
 
 **Please note: This gem is under active development and isn't quite ready for use**
 
-I have 98% of the first release done, but I still have a lot of testing and polishing to ensure it works as expected.
+I have 99% of the first release done, but I still have a lot of testing and polishing to ensure it works as expected.
 
 ---
 
@@ -136,39 +136,102 @@ spec_forge run
 
 ## Configuration
 
-The configuration file (`spec_forge/config.yml`) supports ERB and allows you to set global options for your test suite.
+When you initialize SpecForge, it'll create a `forge_helper.rb` file in your `spec_forge` directory. This is where all your configuration lives:
+
+```ruby
+SpecForge.configure do |config|
+  config.base_url = "http://localhost:3000"
+
+  config.headers = {
+    "Authorization" => "Bearer #{ENV['API_TOKEN']}"
+  }
+end
+```
+
+That's all you need to get started. But there's more you can configure:
 
 ### Base URL
 
-The base URL can be specified at three levels (in order of precedence):
-1. Expectation level
-2. Spec level
-3. Config level (`config.yml`)
+All your test paths get appended to this URL. You can override it at three levels (in order of precedence):
+
+1. In a specific expectation
+2. At the spec level
+3. In your forge helper
 
 ```yaml
-# config.yml
-base_url: https://api.example.com
-
-# specs/users.yml
+# Override at spec level
 get_user:
-  base_url: https://staging.example.com  # Overrides config.yml
+  base_url: https://staging.example.com
   path: /users/1
+
   expectations:
+  # Override for a specific test
   - name: "Production check"
-    base_url: https://prod.example.com  # Overrides spec level
+    base_url: https://prod.example.com
     expect:
       status: 200
 ```
 
-### Authorization
+### Request Headers
 
-SpecForge currently supports header-based authorization. Configure it in your `config.yml`:
+You can configure the default headers from here as well. Just like with the `base_url`, these can be added to or overwritten on the spec/expectation level.
 
-```yaml
-authorization:
-  default:
-    header: Authorization
-    value: Bearer <%= ENV['API_TOKEN'] %>  # ERB is supported!
+```ruby
+SpecForge.configure do |config|
+  config.headers = {
+    "Authorization" => "Bearer #{ENV['API_TOKEN']}",
+    "Accept" => "application/json",
+    "X-API-Version" => "2"
+  }
+end
+```
+
+### Factory Configuration
+
+Using FactoryBot already? SpecForge automatically discovers your factories, but you can customize this:
+
+```ruby
+SpecForge.configure do |config|
+  # Disable auto-discovery if you want
+  config.factories.auto_discover = false
+
+  # Add custom factory paths
+  config.factories.paths += ["custom/factories/path"]
+end
+```
+
+### Using with Rails
+
+Just uncomment the Rails section in your forge helper:
+
+```ruby
+ENV["RAILS_ENV"] ||= "test"
+require_relative "../config/environment"
+```
+
+Want to use your existing RSpec configuration? Uncomment the RSpec line:
+
+```ruby
+require_relative "../spec/spec_helper"
+```
+
+### RSpec Configuration
+
+You can also access RSpec's configuration directly through the `specs` attribute:
+
+```ruby
+SpecForge.configure do |config|
+  config.specs.before(:suite) do
+    DatabaseCleaner.strategy = :truncation
+    DatabaseCleaner.clean_with(:truncation)
+  end
+
+  config.specs.around do |example|
+    DatabaseCleaner.cleaning do
+      example.run
+    end
+  end
+end
 ```
 
 ## The Spec Structure
@@ -228,7 +291,7 @@ show_user:
 
 ### Request Data
 
-For POST/PUT/PATCH requests, you can include query parameters and body data:
+Add query parameters and body data to any request:
 
 ```yaml
 create_user:
@@ -246,6 +309,22 @@ create_user:
       json:
         id: kind_of.integer
         name: John Doe
+```
+
+### Path Parameters
+
+Query parameters aren't just for filtering and search - they're also how you handle dynamic path parameters. Instead of hardcoding IDs in your paths, use placeholders:
+
+```yaml
+show_user:
+  path: /users/{id}  # Use {id} or :id - both work!
+  query:
+    id: 1  # This replaces the placeholder
+  expect:
+    status: 200
+    json:
+      name: kind_of.string
+      email: /@/
 ```
 
 ## Dynamic Features
@@ -311,15 +390,15 @@ SpecForge provides a YAML interface to FactoryBot, making it easy to define and 
 
 1. **Existing FactoryBot Factories**: Out of the box, SpecForge automatically discovers your existing Ruby-defined factories from:
    - Standard paths (`spec/factories` and `test/factories`)
-   - Any custom paths you configure via your `config.yml`:
-     ```yaml
-     factories:
-       # Override default FactoryBot factory paths
-       paths:
-       - custom/factories/path
+   - Any custom paths you configure in your `forge_helper.rb`:
+     ```ruby
+     SpecForge.configure do |config|
+       # Add custom factory paths
+       config.factories.paths += ["custom/factories/path"]
 
        # Disable automatic factory discovery if needed (default: true)
-       auto_discover: false
+       config.factories.auto_discover = false
+     end
      ```
 
 2. **YAML Factory Definitions**: Define factories using YAML in `spec_forge/factories/`:
