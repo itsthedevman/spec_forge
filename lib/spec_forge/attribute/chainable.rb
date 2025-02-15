@@ -40,22 +40,14 @@ module SpecForge
       private
 
       def invoke_chain(resolve: false)
-        steps = []
-        step_chain = header.to_s
         current_value = base_object
 
         invocation_chain.each do |step|
           object = retrieve_value(current_value, resolve:)
-          steps << {step: step_chain, object: object.inspect}
-          step_chain += ".#{step}"
           current_value = invoke(step, object)
         end
 
-        result = retrieve_value(current_value, resolve:)
-        steps << {step: step_chain, object: result.inspect}
-
-        puts steps.join_map("\n") { |o| "#{o[:step]} -> #{o[:object]}" }
-        result
+        retrieve_value(current_value, resolve:)
       end
 
       def retrieve_value(object, resolve: false)
