@@ -150,7 +150,7 @@ module SpecForge
     #   attr.resolve # => [42, ["Jane"]]
     #
     def resolve
-      __resolve(value)
+      @resolved ||= __resolve(value)
     end
 
     #
