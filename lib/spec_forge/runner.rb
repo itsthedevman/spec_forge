@@ -51,7 +51,7 @@ module SpecForge
           constraints = expectation.constraints
 
           let!(:expected_status) { constraints.status.resolve }
-          let!(:expected_json) { constraints.json.resolve }
+          let!(:expected_json) { constraints.json.resolve.deep_stringify_keys }
 
           subject(:response) { expectation.http_client.call }
 
