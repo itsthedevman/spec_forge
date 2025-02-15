@@ -5,13 +5,13 @@ require_relative "spec/expectation"
 module SpecForge
   class Spec
     #
-    # Loads the specs from their yml files and runs them
+    # Loads the specs from their yml files and defines them with the test runner
     #
     # @param path [String, Path] The base path where the specs directory is located
     #
-    def self.load_and_run(base_path)
+    def self.load_and_define(base_path)
       specs = load_from_path(base_path.join("specs", "**/*.yml"))
-      specs.each(&:run)
+      specs.each(&:define)
     end
 
     #
@@ -73,11 +73,8 @@ module SpecForge
         end
     end
 
-    #
-    # Runs the spec
-    #
-    def run
-      Runner.new(self).run
+    def define
+      Runner.define_spec(self)
     end
 
     private

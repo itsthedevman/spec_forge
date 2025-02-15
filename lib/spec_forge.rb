@@ -41,7 +41,9 @@ module SpecForge
     configuration.validate
 
     Factory.load_and_register(path)
-    Spec.load_and_run(path)
+    Spec.load_and_define(path)
+
+    Runner.run
   end
 
   #
