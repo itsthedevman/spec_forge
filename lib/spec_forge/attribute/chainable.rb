@@ -34,7 +34,7 @@ module SpecForge
       # without breaking #value's functionality
       #
       def resolve
-        @resolved ||= __resolve(invoke_chain(resolve: true))
+        __resolve(invoke_chain(resolve: true))
       end
 
       private

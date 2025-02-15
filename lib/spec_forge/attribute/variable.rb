@@ -31,10 +31,6 @@ module SpecForge
 
         self
       end
-
-      def resolve
-        @resolved ||= __resolve(value)
-      end
     end
   end
 end
