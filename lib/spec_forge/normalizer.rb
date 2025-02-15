@@ -108,8 +108,8 @@ module SpecForge
     #
     def default
       structure.transform_values do |value|
-        if (default = value[:default])
-          default.dup
+        if value.key?(:default)
+          value[:default].dup
         elsif value[:type] == Integer # Can't call new on int
           0
         else
