@@ -22,6 +22,10 @@ module SpecForge
             input
           end
       end
+
+      def resolve
+        @value
+      end
     end
   end
 end
