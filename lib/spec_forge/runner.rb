@@ -28,28 +28,11 @@ module SpecForge
       runner_forge = self
 
       RSpec.describe(spec_forge.name) do
-        before do
-          binding.pry if spec_forge.debug? # standard:disable Lint/Debugger
-        end
-
         spec_forge.expectations.each do |expectation_forge|
           describe(expectation_forge.name) do
-            runner_forge.define_variables(self, expectation_forge)
             runner_forge.define_examples(self, expectation_forge)
           end
         end
-      end
-    end
-
-    #
-    # Defines any variables as let statements in RSpec
-    #
-    # @param context [RSpec::ExampleGroup] The rspec example group for this spec
-    # @param expectation [Expectation] The expectation that holds the variables
-    #
-    def define_variables(context, expectation)
-      expectation.variables.each do |variable_name, attribute|
-        context.let!(variable_name, &attribute.to_proc)
       end
     end
 
@@ -61,36 +44,33 @@ module SpecForge
     #
     def define_examples(context, expectation)
       context.instance_exec(expectation) do |expectation|
-        constraints = expectation.constraints.resolve
-        request = expectation.http_client.request
-
-        # Ensures the only one API call occurs per expectation
         before(:all) do
+          # Ensures the only one API call occurs per expectation
           @response = expectation.http_client.call
         end
 
         subject(:response) { @response }
 
         # Define the example group
+        request = expectation.http_client.request
         context "#{request.http_method} #{request.url}" do
-          before do
-            binding.pry if expectation.debug? # standard:disable Lint/Debugger
-          end
+          constraints = expectation.constraints
+
+          let(:expected_status) { constraints.status.resolve }
+          let(:expected_json) { constraints.json.resolve }
 
           # Status check
-          expected_status = constraints[:status]
-          it "expects the response to return a status code of #{expected_status}" do
+          it do
             expect(response.status).to eq(expected_status)
           end
 
           # JSON check
-          expected_json = constraints[:json]
-          if expected_json.size > 0
-            it "expects the body to return valid JSON" do
+          if constraints.json.size > 0
+            it do
               expect(response.body).to be_kind_of(Hash)
             end
 
-            it "expects the body to include values" do
+            it do
               expect(response.body).to include(expected_json)
             end
           end
