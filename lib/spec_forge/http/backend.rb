@@ -24,9 +24,6 @@ module SpecForge
 
             # Headers
             builder.headers.merge!(request.headers.resolve)
-
-            # Params
-            builder.params.merge!(request.query.resolve)
           end
       end
 

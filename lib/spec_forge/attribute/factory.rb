@@ -30,19 +30,9 @@ module SpecForge
         prepare_arguments!
       end
 
-      def value
-        @base_object = create_factory_object
-        super
-      end
-
-      def resolve
-        @base_object = create_factory_object
-        super
-      end
-
       private
 
-      def create_factory_object
+      def base_object
         attributes = arguments[:keyword]
         return FactoryBot.create(factory_name) if attributes.blank?
 
