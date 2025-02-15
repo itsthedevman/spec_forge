@@ -158,16 +158,6 @@ module SpecForge
     end
 
     #
-    # Wraps the call to #resolve in a proc. Used with FactoryBot
-    #
-    # @return [Proc]
-    #
-    def to_proc
-      this = self # kek - what are we, javascript?
-      -> { this.resolve_value }
-    end
-
-    #
     # Compares this attributes input to other
     #
     # @param other [Object, Attribute] If another Attribute, the input will be compared

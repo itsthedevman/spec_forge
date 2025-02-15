@@ -80,7 +80,7 @@ module SpecForge
       factory_forge = self
       dsl.factory(name, options) do
         factory_forge.attributes.each do |name, attribute|
-          add_attribute(name, &attribute.to_proc)
+          add_attribute(name) { attribute.resolve_value }
         end
       end
 
