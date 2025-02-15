@@ -14,7 +14,7 @@ module SpecForge
         build_stubbed
       ].freeze
 
-      attr_reader :factory_name
+      alias_method :factory_name, :header
 
       #
       # Represents any attribute that is a factory reference
@@ -23,8 +23,6 @@ module SpecForge
       #
       def initialize(...)
         super
-
-        @factory_name = invocation_chain.shift&.to_sym
 
         # Check the arguments before preparing them
         arguments[:keyword] = Normalizer.normalize_factory_reference!(arguments[:keyword])
@@ -46,7 +44,7 @@ module SpecForge
 
       def create_factory_object
         attributes = arguments[:keyword]
-        return FactoryBot.create(@factory_name) if attributes.blank?
+        return FactoryBot.create(factory_name) if attributes.blank?
 
         # Determine build strat
         build_strategy = attributes[:build_strategy].resolve
@@ -56,7 +54,7 @@ module SpecForge
         raise InvalidBuildStrategy, build_strategy unless BUILD_STRATEGIES.include?(build_strategy)
 
         attributes = attributes[:attributes].resolve
-        FactoryBot.public_send(build_strategy, @factory_name, **attributes)
+        FactoryBot.public_send(build_strategy, factory_name, **attributes)
       end
     end
   end

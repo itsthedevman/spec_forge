@@ -5,7 +5,7 @@ module SpecForge
     module Chainable
       NUMBER_REGEX = /^\d+$/i
 
-      attr_reader :invocation_chain, :base_object
+      attr_reader :header, :invocation_chain, :base_object
 
       #
       # Represents any attribute that is a series of chained invocations:
@@ -21,8 +21,8 @@ module SpecForge
         # Drop the keyword
         sections = input.split(".")[1..]
 
-        # The "header" is the first element in this array
-        @invocation_chain = sections || []
+        @header = sections.first&.to_sym
+        @invocation_chain = sections[1..] || []
       end
 
       def value
@@ -34,20 +34,28 @@ module SpecForge
       # without breaking #value's functionality
       #
       def resolve
-        __resolve(invoke_chain(resolve: true))
+        @resolved ||= __resolve(invoke_chain(resolve: true))
       end
 
       private
 
       def invoke_chain(resolve: false)
-        current_value = @base_object
+        steps = []
+        step_chain = header.to_s
+        current_value = base_object
 
         invocation_chain.each do |step|
           object = retrieve_value(current_value, resolve:)
+          steps << {step: step_chain, object: object.inspect}
+          step_chain += ".#{step}"
           current_value = invoke(step, object)
         end
 
-        retrieve_value(current_value, resolve:)
+        result = retrieve_value(current_value, resolve:)
+        steps << {step: step_chain, object: result.inspect}
+
+        puts steps.join_map("\n") { |o| "#{o[:step]} -> #{o[:object]}" }
+        result
       end
 
       def retrieve_value(object, resolve: false)

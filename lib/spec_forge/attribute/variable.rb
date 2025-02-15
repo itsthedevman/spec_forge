@@ -2,24 +2,17 @@
 
 module SpecForge
   class Attribute
+    #
+    # Represents any attribute that is a variable reference
+    #
+    #   variables.<variable_name>
+    #
     class Variable < Attribute
       include Chainable
 
       KEYWORD_REGEX = /^variables\./i
 
-      attr_reader :variable_name
-
-      #
-      # Represents any attribute that is a variable reference
-      #
-      #   variables.<variable_name>
-      #
-      def initialize(...)
-        super
-
-        # Remove the variable name from the chain
-        @variable_name = invocation_chain.shift&.to_sym
-      end
+      alias_method :variable_name, :header
 
       def bind_variables(variables)
         raise InvalidTypeError.new(variables, Hash, for: "'variables'") unless Type.hash?(variables)
