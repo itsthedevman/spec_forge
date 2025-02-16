@@ -162,5 +162,24 @@ RSpec.describe SpecForge::Spec::Expectation do
         expect(expectation.variables[:var_2].resolve).to eq(input[:variables][:var_1])
       end
     end
+
+    context "when 'variables' reference themselves out of order" do
+      let(:input) do
+        {
+          expect: {status: 404},
+          variables: {
+            var_4: "variables.var_3",
+            var_1: "variables.var_5",
+            var_3: "variables.var_2",
+            var_2: "variables.var_1",
+            var_5: "test"
+          }
+        }
+      end
+
+      it "is expected to be able to resolve the value" do
+        expect(expectation.variables[:var_4].resolve).to eq("test")
+      end
+    end
   end
 end
