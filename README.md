@@ -99,9 +99,9 @@ bundle exec spec_forge init
 This creates the `spec_forge` directory with the following structure:
 ```
 spec_forge/
-  config.yml      # Global configuration
-  factories/      # Your factory definitions
-  specs/          # Your test specifications
+  factories/        # Your factory definitions
+  specs/            # Your test specifications
+  forge_helper.rb   # Global configuration
 ```
 
 ## Writing Your First Test
@@ -134,104 +134,118 @@ Run your tests with:
 spec_forge run
 ```
 
-## Configuration
+# Configuration
 
-When you initialize SpecForge, it'll create a `forge_helper.rb` file in your `spec_forge` directory. This is where all your configuration lives:
+When you initialize SpecForge, it creates a `forge_helper.rb` file in your `spec_forge` directory. This serves as your central configuration file:
+
+## Basic Configuration
 
 ```ruby
 SpecForge.configure do |config|
+  # Base URL for all requests
   config.base_url = "http://localhost:3000"
 
+  # Default headers sent with every request
   config.headers = {
-    "Authorization" => "Bearer #{ENV['API_TOKEN']}"
+    "Authorization" => "Bearer #{ENV.fetch('API_TOKEN', '')}",
+    "Accept" => "application/json"
+  }
+
+  # Optional: Default query parameters for all requests
+  config.query = {
+    api_key: ENV['API_KEY']
   }
 end
 ```
 
-That's all you need to get started. But there's more you can configure:
+## Framework Integration
 
-### Base URL
+SpecForge works seamlessly with Rails and RSpec. Just uncomment the relevant sections in your forge helper:
 
-All your test paths get appended to this URL. You can override it at three levels (in order of precedence):
+```ruby
+# Rails Integration
+require_relative "../config/environment"
 
-1. In a specific expectation
-2. At the spec level
-3. In your forge helper
+# RSpec Integration (includes your existing configurations)
+require_relative "../spec/spec_helper"
 
-```yaml
-# Override at spec level
-get_user:
-  base_url: https://staging.example.com
-  path: /users/1
-
-  expectations:
-  # Override for a specific test
-  - name: "Production check"
-    base_url: https://prod.example.com
-    expect:
-      status: 200
+# Load custom files (models, libraries, etc)
+Dir[File.join(__dir__, "..", "lib", "**", "*.rb")].sort.each { |f| require f }
 ```
 
-### Request Headers
+## Factory Configuration
 
-You can configure the default headers from here as well. Just like with the `base_url`, these can be added to or overwritten on the spec/expectation level.
+SpecForge automatically discovers your FactoryBot factories, but you can customize this behavior:
 
 ```ruby
 SpecForge.configure do |config|
-  config.headers = {
-    "Authorization" => "Bearer #{ENV['API_TOKEN']}",
-    "Accept" => "application/json",
-    "X-API-Version" => "2"
-  }
-end
-```
-
-### Factory Configuration
-
-Using FactoryBot already? SpecForge automatically discovers your factories, but you can customize this:
-
-```ruby
-SpecForge.configure do |config|
-  # Disable auto-discovery if you want
+  # Disable auto-discovery if needed
   config.factories.auto_discover = false
 
-  # Add custom factory paths
-  config.factories.paths += ["custom/factories/path"]
+  # Add custom factory paths (appends to default paths)
+  config.factories.paths += ["lib/factories"]
 end
 ```
 
-### Using with Rails
+## Debug Configuration
 
-Just uncomment the Rails section in your forge helper:
-
-```ruby
-ENV["RAILS_ENV"] ||= "test"
-require_relative "../config/environment"
-```
-
-Want to use your existing RSpec configuration? Uncomment the RSpec line:
-
-```ruby
-require_relative "../spec/spec_helper"
-```
-
-### RSpec Configuration
-
-You can also access RSpec's configuration directly through the `specs` attribute:
+Need to debug a specific test? Add `debug: true` to any spec and configure how to handle breakpoints:
 
 ```ruby
 SpecForge.configure do |config|
+  # Custom debug handler (defaults to printing state overview)
+  config.on_debug { binding.pry }
+end
+```
+
+Available debug context includes: `expectation`, `variables`, `request`, `response`, `expected_status`, and `expected_json`.
+
+## Test Framework Configuration
+
+You can access RSpec's configuration through the `specs` attribute. This is particularly useful for database cleaners and test setup:
+
+```ruby
+SpecForge.configure do |config|
+  # Setup before all tests
   config.specs.before(:suite) do
     DatabaseCleaner.strategy = :truncation
     DatabaseCleaner.clean_with(:truncation)
   end
 
+  # Wrap each test
   config.specs.around do |example|
     DatabaseCleaner.cleaning do
       example.run
     end
   end
 end
+```
+
+## Configuration Inheritance
+
+All configuration options can be overridden at three levels (in order of precedence):
+
+1. Individual expectation
+2. Spec level
+3. Global configuration (forge_helper.rb)
+
+For example:
+
+```yaml
+# Override at spec level
+get_user:
+  base_url: https://staging.example.com
+  headers:
+    X-Custom-Header: "overridden"
+
+  expectations:
+  # Override for a specific expectation
+  - name: "Production check"
+    base_url: https://prod.example.com
+    headers:
+      X-Custom-Header: "expectation-specific"
+    expect:
+      status: 200
 ```
 
 ## The Spec Structure
@@ -384,40 +398,70 @@ create_user:
     email: faker.internet.email
 ```
 
-### Factory Integration
+### Factory Configuration
 
-SpecForge provides a YAML interface to FactoryBot, making it easy to define and use factories in your tests:
+SpecForge provides flexible configuration options for working with FactoryBot factories. By default, it will automatically discover factories in standard paths (`spec/factories` and `test/factories`).
 
-1. **Existing FactoryBot Factories**: Out of the box, SpecForge automatically discovers your existing Ruby-defined factories from:
-   - Standard paths (`spec/factories` and `test/factories`)
-   - Any custom paths you configure in your `forge_helper.rb`:
-     ```ruby
-     SpecForge.configure do |config|
-       # Add custom factory paths
-       config.factories.paths += ["custom/factories/path"]
+#### Automatic Factory Discovery
 
-       # Disable automatic factory discovery if needed (default: true)
-       config.factories.auto_discover = false
-     end
-     ```
+The `auto_discover` setting controls whether SpecForge searches for factories in the configured paths:
 
-2. **YAML Factory Definitions**: Define factories using YAML in `spec_forge/factories/`:
-   ```yaml
-   # spec_forge/factories/user.yml
-   user:
-     class: User  # Optional model class name
-     attributes:
-       name: faker.name.name
-       email: faker.internet.email
-       role: admin
-   ```
-   SpecForge registers these YAML definitions with FactoryBot, making them work exactly like Ruby-defined factories.
+```ruby
+SpecForge.configure do |config|
+  # Disable automatic factory discovery if needed (default: true)
+  config.factories.auto_discover = false
+end
+```
 
-Use factories in your tests:
+When `auto_discover` is enabled (the default), SpecForge will:
+1. Search all configured factory paths
+2. Load any Ruby factory definitions (`*.rb` files)
+3. Load any YAML factory definitions (`*.yml` files)
+
+Note: FactoryBot will raise an error if you attempt to define a factory name that already exists. Make sure your factory names are unique across both Ruby and YAML definitions.
+
+#### Custom Factory Paths
+
+You can add custom paths to the factory search list:
+
+```ruby
+SpecForge.configure do |config|
+  # Add custom factory paths (appends to default paths)
+  config.factories.paths += ["lib/factories"]
+end
+```
+
+Note: Custom paths are only used when `auto_discover` is enabled. If you disable auto-discovery, you'll need to manually require your factory files:
+
+```ruby
+SpecForge.configure do |config|
+  config.factories.auto_discover = false
+
+  # Manually require factories when auto-discovery is disabled
+  Dir[File.join("lib/factories", "**", "*.rb")].sort.each { |f| require f }
+end
+```
+
+#### YAML Factory Definitions
+
+Regardless of the `auto_discover` setting, SpecForge will always load YAML factory definitions from the `spec_forge/factories/` directory. These files use a simple declarative syntax:
+
 ```yaml
-create_post:
-  variables:
-    author: factories.user  # Works with both YAML and Ruby-defined factories
+# spec_forge/factories/user.yml
+user:
+  class: User  # Optional model class name
+  variables:   # You can use variables here too!
+    department: faker.company.department
+    team_size:
+      faker.number.between:
+        from: 5
+        to: 20
+  attributes:
+    name: faker.name.name
+    email: faker.internet.email
+    role: admin
+    department: variables.department
+    team_count: variables.team_size
 ```
 
 ## RSpec Matchers
