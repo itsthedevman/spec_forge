@@ -1,18 +1,13 @@
 # SpecForge
 
-**Please note: This gem is under active development and isn't quite ready for use**
-
-I have 99% of the first release done, but I still have a lot of testing and polishing to ensure it works as expected.
-
----
-
 Write API tests in YAML that read like documentation:
 
 ```yaml
 user_profile:
   path: /users/1
-  expect:
-    status: 200
+  expectations:
+  - expect:
+      status: 200
     json:
       name: kind_of.string
       email: /@/
@@ -20,7 +15,38 @@ user_profile:
 
 That's a complete test. No Ruby code, no configuration files, no HTTP client setup - just a clear description of what you're testing. Under the hood, you get all the power of RSpec's matchers, Faker's data generation, and FactoryBot's test objects.
 
-But that's just scratching the surface.
+## Why SpecForge?
+
+SpecForge shines when you need:
+
+1. **Accessible API Testing**: Non-developers can write and maintain tests without Ruby knowledge. The YAML syntax reads like documentation.
+2. **Living Documentation**: Tests serve as clear, maintainable documentation of your API's expected behavior.
+3. **Power Without Complexity**: Get the benefits of Ruby-based tests (dynamic data, factories, matchers) without writing Ruby code.
+4. **Quick Setup**: Start testing APIs without configuring HTTP clients or writing boilerplate code.
+5. **Gradual Adoption**: Use alongside your existing test suite. Keep complex tests in RSpec while making simple API tests more accessible.
+
+## When Not to Use SpecForge
+
+Consider alternatives when you need:
+
+1. **Complex Ruby Logic**: If your tests require custom Ruby code for data transformations or validations.
+2. **Complex Test Setup**: When you need intricate database states or specific service mocks.
+3. **Custom Response Validation**: For validation logic beyond what matchers provide.
+4. **Complex Non-JSON Testing**: While SpecForge handles basic XML/HTML responses (coming soon), complex validation might need specialized tools.
+
+## Roadmap
+
+Current development priorities:
+- [ ] Support for running individual specs
+- [ ] Array support for `json` expectations
+- [ ] Negated matchers: `matcher.not`
+- [ ] `create_list/build_list` factory strategies
+- [ ] `transform.map` support
+- [ ] Improved error handling
+- [ ] XML/HTML response handling
+- [ ] OpenAPI generation from tests
+
+Have a feature request? Open an issue on GitHub!
 
 ## Table of Contents
 
@@ -30,32 +56,35 @@ But that's just scratching the surface.
 - [Getting Started](#getting-started)
 - [Writing Your First Test](#writing-your-first-test)
 - [Configuration](#configuration)
-  - [Base URL](#base-url)
-  - [Authorization](#authorization)
-- [The Spec Structure](#the-spec-structure)
+  - [Basic Configuration](#basic-configuration)
+  - [Framework Integration](#framework-integration)
+  - [Factory Configuration](#factory-configuration)
+  - [Debug Configuration](#debug-configuration)
+  - [Test Framework Configuration](#test-framework-configuration)
+  - [Configuration Inheritance](#configuration-inheritance)
+- [Writing Tests](#writing-tests)
   - [Basic Structure](#basic-structure)
   - [Testing Response Data](#testing-response-data)
   - [Multiple Expectations](#multiple-expectations)
   - [Request Data](#request-data)
+  - [Path Parameters](#path-parameters)
 - [Dynamic Features](#dynamic-features)
   - [Variables](#variables)
   - [Transformations](#transformations)
-  - [Factory Integration](#factory-integration)
+  - [Chaining Support](#chaining-support)
+- [Factory Support](#factory-support)
+  - [Automatic Discovery](#automatic-discovery)
+  - [Custom Factory Paths](#custom-factory-paths)
+  - [Build Strategies](#build-strategies)
+  - [YAML Factory Definitions](#yaml-factory-definitions)
 - [RSpec Matchers](#rspec-matchers)
   - ["be" namespace](#be-namespace)
   - ["kind_of" namespace](#kind_of-namespace)
   - ["matchers" namespace](#matchers-namespace)
-- [Roadmap](#roadmap)
+- [How Tests Work](#how-tests-work)
 - [Contributing](#contributing)
 - [License](#license)
 - [Looking for a Software Engineer?](#looking-for-a-software-engineer)
-
-## Features
-
-- **Write Tests in YAML**: Create clear, maintainable API tests using a declarative YAML syntax
-- **RSpec Integration**: Harness RSpec's powerful matcher system and reporting through an intuitive interface
-- **Dynamic Test Data**: Generate realistic test data using Faker, transformations, and a flexible variable system
-- **Factory Integration**: Seamless integration with FactoryBot for test data generation
 
 ## Compatibility
 
@@ -96,13 +125,7 @@ Or with bundle:
 bundle exec spec_forge init
 ```
 
-This creates the `spec_forge` directory with the following structure:
-```
-spec_forge/
-  factories/        # Your factory definitions
-  specs/            # Your test specifications
-  forge_helper.rb   # Global configuration
-```
+This creates the `spec_forge` directory containing factory definitions, test specifications, and global configuration.
 
 ## Writing Your First Test
 
@@ -119,8 +142,7 @@ get_user:
   path: /users/1
   method: GET
   expectations:
-  - name: "Retrieves a user successfully"
-    expect:
+  - expect:
       status: 200
       json:
         id: 1
@@ -134,11 +156,11 @@ Run your tests with:
 spec_forge run
 ```
 
-# Configuration
+## Configuration
+
+### Basic Configuration
 
 When you initialize SpecForge, it creates a `forge_helper.rb` file in your `spec_forge` directory. This serves as your central configuration file:
-
-## Basic Configuration
 
 ```ruby
 SpecForge.configure do |config|
@@ -147,20 +169,20 @@ SpecForge.configure do |config|
 
   # Default headers sent with every request
   config.headers = {
-    "Authorization" => "Bearer #{ENV.fetch('API_TOKEN', '')}",
+    "Authorization" => "Bearer #{ENV.fetch("API_TOKEN", "")}",
     "Accept" => "application/json"
   }
 
   # Optional: Default query parameters for all requests
   config.query = {
-    api_key: ENV['API_KEY']
+    api_key: ENV["API_KEY"]
   }
 end
 ```
 
-## Framework Integration
+### Framework Integration
 
-SpecForge works seamlessly with Rails and RSpec. Just uncomment the relevant sections in your forge helper:
+SpecForge works seamlessly with Rails and RSpec:
 
 ```ruby
 # Rails Integration
@@ -173,13 +195,13 @@ require_relative "../spec/spec_helper"
 Dir[File.join(__dir__, "..", "lib", "**", "*.rb")].sort.each { |f| require f }
 ```
 
-## Factory Configuration
+### Factory Configuration
 
-SpecForge automatically discovers your FactoryBot factories, but you can customize this behavior:
+SpecForge provides flexible configuration options for working with FactoryBot factories:
 
 ```ruby
 SpecForge.configure do |config|
-  # Disable auto-discovery if needed
+  # Disable auto-discovery if needed (default: true)
   config.factories.auto_discover = false
 
   # Add custom factory paths (appends to default paths)
@@ -187,22 +209,44 @@ SpecForge.configure do |config|
 end
 ```
 
-## Debug Configuration
+### Debug Configuration
 
-Need to debug a specific test? Add `debug: true` to any spec and configure how to handle breakpoints:
+Enable debugging by adding `debug: true` (aliases: `breakpoint`, `pry`) at either the spec or expectation level:
 
 ```ruby
 SpecForge.configure do |config|
   # Custom debug handler (defaults to printing state overview)
-  config.on_debug { binding.pry }
+  config.on_debug { binding.pry }  # Requires 'pry' gem
 end
 ```
 
-Available debug context includes: `expectation`, `variables`, `request`, `response`, `expected_status`, and `expected_json`.
+```yaml
+get_users:
+  debug: true  # Debug all expectations in this spec
+  path: /users
+  expectations:
+  - expect:
+      status: 200
+  - debug: true  # Debug just this expectation
+    expect:
+      status: 404
+      json:
+        error: kind_of.string
+```
 
-## Test Framework Configuration
+When debugging, you have access to:
+- `expectation` - Current expectation being validated
+- `variables` - Resolved variables for the current expectation
+- `request` - Request details (url, method, headers, etc.)
+- `response` - Full response including headers, status, and parsed body
+- `expected_status` - Expected HTTP status code
+- `expected_json` - Expected JSON structure with matchers
 
-You can access RSpec's configuration through the `specs` attribute. This is particularly useful for database cleaners and test setup:
+Or call `self` from an interactive session to see everything as a hash
+
+### Test Framework Configuration
+
+Access RSpec's configuration through the `specs` attribute:
 
 ```ruby
 SpecForge.configure do |config|
@@ -221,7 +265,7 @@ SpecForge.configure do |config|
 end
 ```
 
-## Configuration Inheritance
+### Configuration Inheritance
 
 All configuration options can be overridden at three levels (in order of precedence):
 
@@ -240,41 +284,37 @@ get_user:
 
   expectations:
   # Override for a specific expectation
-  - name: "Production check"
-    base_url: https://prod.example.com
+  - base_url: https://prod.example.com
     headers:
       X-Custom-Header: "expectation-specific"
     expect:
       status: 200
 ```
 
-## The Spec Structure
+## Writing Tests
 
 ### Basic Structure
 
-Every spec needs a path, HTTP method, and at least one expectation to be useful:
+Every spec needs a path, HTTP method, and at least one expectation:
 
 ```yaml
 show_user:
   path: /users/1
-  method: GET # Optional for GET requests, can be lowercase too if that's your style
+  method: GET  # Optional for GET requests
   expectations:
-  - name: "Retrieves a User"  # Recommended. May be required in future versions for OpenAPI generation
-    expect:
+  - expect:
       status: 200
 ```
 
 ### Testing Response Data
 
-Let's verify the response JSON:
+Verify the response JSON:
 
 ```yaml
 show_user:
   path: /users/1
-  method: GET
   expectations:
-  - name: "Retrieves a User"
-    expect:
+  - expect:
       status: 200
       json:
         id: 1
@@ -284,74 +324,62 @@ show_user:
 
 ### Multiple Expectations
 
-Each expectation can override any spec-level setting. This is useful for testing different scenarios:
+Each expectation can override any spec-level setting:
 
 ```yaml
 show_user:
   path: /users/1
-  method: GET
   expectations:
-  - name: "Retrieves a User"
-    expect:
+  - expect:
       status: 200
       json:
         id: 1
         role: admin
-  - name: "Invalid User ID"
-    path: /users/999  # Overrides spec-level path
+  - path: /users/999  # Overrides spec-level path
     expect:
       status: 404
 ```
 
 ### Request Data
 
-Add query parameters and body data to any request:
+Add query parameters and body data:
 
 ```yaml
 create_user:
   path: /users
   method: POST
-  query:  # or 'params' if you prefer
+  query:  # or "params" if you prefer
     team_id: 123
-  body:   # or 'data' if you prefer
+  body:   # or "data" if you prefer
     name: John Doe
     email: john@example.com
-    role: admin
   expectations:
   - expect:
       status: 201
-      json:
-        id: kind_of.integer
-        name: John Doe
 ```
 
 ### Path Parameters
 
-Query parameters aren't just for filtering and search - they're also how you handle dynamic path parameters. Instead of hardcoding IDs in your paths, use placeholders:
+Use placeholders for dynamic path parameters:
 
 ```yaml
 show_user:
-  path: /users/{id}  # Use {id} or :id - both work!
+  path: /users/{id}  # Use {id} or :id
   query:
-    id: 1  # This replaces the placeholder
-  expect:
-    status: 200
-    json:
-      name: kind_of.string
-      email: /@/
+    id: 1  # Replaces the placeholder
+  expectations:
+  - expect:
+      status: 200
 ```
 
 ## Dynamic Features
 
-SpecForge provides powerful features for generating and manipulating test data dynamically.
-
 ### Variables
 
-Variables let you define and reuse values across your tests. They support complex chaining and can reference generated data:
+Variables let you define and reuse values:
 
 ```yaml
 list_posts:
-  path: /posts
   variables:
     author: factories.user
     category_name: faker.lorem.word
@@ -359,24 +387,15 @@ list_posts:
     author_id: variables.author.id
     category: variables.category_name
   expectations:
-  - name: "Lists user's posts"
-    expect:
+  - expect:
       status: 200
-      json:
-        posts:
-          matcher.include:
-          - author:
-              id: variables.author.id
-              name: variables.author.name
-            category: variables.category_name
-```
-
-Variables support deep traversal:
-```yaml
-variables:
-  user: factories.user
-  first_post: variables.user.posts.last
-  author: variables.first_post.comments.2.author.name
+    json:
+      posts:
+        matcher.include:
+        - author:
+            id: variables.author.id
+            name: variables.author.name
+          category: variables.category_name
 ```
 
 ### Transformations
@@ -398,13 +417,53 @@ create_user:
     email: faker.internet.email
 ```
 
-### Factory Configuration
+### Chaining
 
-SpecForge provides flexible configuration options for working with FactoryBot factories. By default, it will automatically discover factories in standard paths (`spec/factories` and `test/factories`).
+Access nested attributes and methods through chaining:
 
-#### Automatic Factory Discovery
+```yaml
+list_posts:
+  variables:
+    # Factory chaining examples
+    owner: factories.user              # Creates a user
+    name: factories.user.name          # Gets just the name
+    company: variables.owner.company   # Access factory attributes
 
-The `auto_discover` setting controls whether SpecForge searches for factories in the configured paths:
+    # Variable chaining for relationships
+    first_post: variables.user.posts.first
+
+    # You can use array indices directly
+    comment_author: variables.first_post.comments.2.author.name
+
+    # Faker method chaining
+    lowercase_email: faker.internet.email.downcase
+    title_name: faker.name.first_name.titleize
+```
+
+### Factory Build Strategies
+
+Control how factories create objects and customize their attributes:
+
+```yaml
+create_user:
+  variables:
+    # Default strategy (create)
+    regular_user: factories.user
+
+    # Custom build strategy and attributes
+    custom_user:
+      factory.user:
+        strategy: build    # 'create' (default) or 'build'
+        attributes:
+          name: "Custom Name"
+          email: faker.internet.email
+```
+
+## Factory Support
+
+### Automatic Discovery
+
+SpecForge automatically discovers factories in standard paths:
 
 ```ruby
 SpecForge.configure do |config|
@@ -413,44 +472,46 @@ SpecForge.configure do |config|
 end
 ```
 
-When `auto_discover` is enabled (the default), SpecForge will:
-1. Search all configured factory paths
-2. Load any Ruby factory definitions (`*.rb` files)
-3. Load any YAML factory definitions (`*.yml` files)
+### Custom Factory Paths
 
-Note: FactoryBot will raise an error if you attempt to define a factory name that already exists. Make sure your factory names are unique across both Ruby and YAML definitions.
-
-#### Custom Factory Paths
-
-You can add custom paths to the factory search list:
+Add custom paths to the factory search list:
 
 ```ruby
 SpecForge.configure do |config|
   # Add custom factory paths (appends to default paths)
+  # Ignored if `auto_discovery` is false
   config.factories.paths += ["lib/factories"]
 end
 ```
 
-Note: Custom paths are only used when `auto_discover` is enabled. If you disable auto-discovery, you'll need to manually require your factory files:
+### Factory Build Strategies
 
-```ruby
-SpecForge.configure do |config|
-  config.factories.auto_discover = false
+Control how factories create objects and customize their attributes:
 
-  # Manually require factories when auto-discovery is disabled
-  Dir[File.join("lib/factories", "**", "*.rb")].sort.each { |f| require f }
-end
+```yaml
+create_user:
+  variables:
+    # Default strategy (create)
+    regular_user: factories.user
+
+    # Custom build strategy and attributes
+    custom_user:
+      factory.user:
+        strategy: build    # 'create' (default) or 'build'
+        attributes:
+          name: "Custom Name"
+          email: faker.internet.email
 ```
 
-#### YAML Factory Definitions
+### YAML Factory Definitions
 
-Regardless of the `auto_discover` setting, SpecForge will always load YAML factory definitions from the `spec_forge/factories/` directory. These files use a simple declarative syntax:
+Define factories in YAML with a simple declarative syntax:
 
 ```yaml
 # spec_forge/factories/user.yml
 user:
   class: User  # Optional model class name
-  variables:   # You can use variables here too!
+  variables:
     department: faker.company.department
     team_size:
       faker.number.between:
@@ -466,9 +527,8 @@ user:
 
 ## RSpec Matchers
 
-SpecForge provides access to RSpec's powerful matcher system through an intuitive dot notation syntax. The matcher system dynamically integrates with RSpec's matchers through three main namespaces:
+### "be" namespace
 
-#### "be" namespace
 ```yaml
 expect:
   json:
@@ -479,22 +539,23 @@ expect:
     tags: be.empty
     email: be.present
 
-    # Comparisons (aliases available)
+    # Comparisons
     price:
-      be.greater_than: 18            # be.greater also works
+      be.greater_than: 18
     stock:
-      be.less_than_or_equal: 100     # be.less_or_equal also works
+      be.less_than_or_equal: 100
     rating:
       be.between:
       - 1
       - 5
 
     # Dynamic predicate methods
-    published: be.published          # Maps to be_published
-    admin: be.admin                  # Maps to be_admin
+    published: be.published
+    admin: be.admin
 ```
 
-#### "kind_of" namespace
+### "kind_of" namespace
+
 ```yaml
 expect:
   json:
@@ -504,11 +565,11 @@ expect:
     scores: kind_of.array
 ```
 
-#### "matchers" namespace
+### "matchers" namespace
+
 ```yaml
 expect:
   json:
-    # Direct RSpec matcher usage
     tags:
       matcher.include:
       - featured
@@ -516,19 +577,54 @@ expect:
 
     slug: /^[a-z0-9-]+$/    # Shorthand for matching regexes
 
-    # Any RSpec matcher can be used
     config:
       matcher.have_key: api_version
 ```
 
-Note: Matchers that require Ruby blocks (like `change`) are not supported.
+## How Tests Work
 
-## Roadmap
+When you write a YAML spec, SpecForge converts it into an RSpec test structure. For example, this YAML:
 
-- [ ] Negated matchers
-- [ ] OpenAPI generation from your tests
-- [ ] Support for XML/HTML response handling
-- [ ] Support for running individual specs
+```yaml
+create_user:
+  path: /users
+  method: POST
+  variables:
+    full_name: faker.name.name
+  body:
+    name: variables.full_name
+  expectations:
+  - expect:
+      status: 201
+      json:
+        name: variables.full_name
+```
+
+Becomes this RSpec test:
+
+```ruby
+RSpec.describe "create_user" do
+  describe "POST /users" do
+    let(:full_name) { Faker::Name.name }
+
+    let!(:expected_status) { 201 }
+    let!(:expected_json) do
+      {
+        name: eq(full_name)
+      }
+    end
+
+    subject(:response) do
+      post("/users", body: { name: full_name })
+    end
+
+    it do
+      expect(response.status).to eq(expected_status)
+      expect(response.body).to include(expected_json)
+    end
+  end
+end
+```
 
 ## Contributing
 
