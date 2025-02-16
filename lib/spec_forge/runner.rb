@@ -21,29 +21,32 @@ module SpecForge
 
         RSpec.describe(spec_forge.name) do
           spec_forge.expectations.each do |expectation|
+            # Define the example group
             describe(expectation.name) do
-              # Define the example group
-              request = expectation.http_client.request
+              constraints = expectation.constraints
 
-              context "#{request.http_method} #{request.url}" do
-                constraints = expectation.constraints
+              let!(:expected_status) { constraints.status.resolve }
+              let!(:expected_json) { constraints.json.resolve.deep_stringify_keys }
 
-                let!(:expected_status) { constraints.status.resolve }
-                let!(:expected_json) { constraints.json.resolve.deep_stringify_keys }
+              before do
+                # Ensure all variables are called and resolved, in case they are not referenced
+                expectation.variables.resolve
+              end
 
-                subject(:response) { expectation.http_client.call }
+              subject(:response) { expectation.http_client.call }
 
-                it do
-                  runner_forge.handle_debug(expectation, self) if expectation.debug?
+              it do
+                if spec_forge.debug? || expectation.debug?
+                  runner_forge.handle_debug(expectation, self)
+                end
 
-                  # Status check
-                  expect(response.status).to eq(expected_status)
+                # Status check
+                expect(response.status).to eq(expected_status)
 
-                  # JSON check
-                  if constraints.json.size > 0
-                    expect(response.body).to be_kind_of(Hash)
-                    expect(response.body).to include(expected_json)
-                  end
+                # JSON check
+                if constraints.json.size > 0
+                  expect(response.body).to be_kind_of(Hash)
+                  expect(response.body).to include(expected_json)
                 end
               end
             end
@@ -87,9 +90,9 @@ module SpecForge
           - expectation: Full expectation context
           - variables: Current variable definitions
           - expected_status: Expected HTTP status code (#{expected_status})
-          - expected_json: Expected response body (after resolution)
+          - expected_json: Expected response body
           - request: HTTP request details (method, url, headers, body)
-          - response: HTTP response (if after request)
+          - response: HTTP response
 
           Tip: Type 'self' for a JSON overview of the current state
                Individual methods return full object details for advanced debugging
@@ -99,7 +102,15 @@ module SpecForge
       end
 
       def inspect
-        JSON.pretty_generate(expectation.to_h)
+        hash = expectation.to_h
+
+        hash[:response] = {
+          headers: response.headers,
+          status: response.status,
+          body: response.body
+        }
+
+        JSON.pretty_generate(hash)
       end
     end
   end
