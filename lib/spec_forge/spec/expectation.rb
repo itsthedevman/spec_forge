@@ -15,9 +15,7 @@ module SpecForge
       # @param input [Hash] A hash containing the various attributes to control the expectation
       # @param name [String] The name of the expectation
       #
-      def initialize(name, input, global_options: {})
-        load_name(name, input)
-
+      def initialize(input, global_options: {})
         # This allows defining spec level attributes that can be overwritten by the expectation
         input = Attribute.from(Configuration.overlay_options(global_options, input))
 
@@ -27,10 +25,12 @@ module SpecForge
         # Must be after load_variables
         load_constraints(input)
 
-        # Must be last
         @http_client = HTTP::Client.new(
           variables:, **input.except(:name, :variables, :expect, :debug)
         )
+
+        # Must be after http_client
+        load_name(input)
       end
 
       def to_h
@@ -45,8 +45,14 @@ module SpecForge
 
       private
 
-      def load_name(name, input)
-        @name = input[:name].presence || name
+      def load_name(input)
+        # GET /users
+        @name = "#{http_client.request.http_verb.upcase} #{http_client.request.url}"
+
+        # GET /users - Returns a 404
+        if (name = input[:name].resolve.presence)
+          @name += " - #{name}"
+        end
       end
 
       def load_variables(input)

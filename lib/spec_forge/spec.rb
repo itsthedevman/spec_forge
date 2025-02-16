@@ -65,11 +65,7 @@ module SpecForge
 
       @expectations =
         input[:expectations].map.with_index do |expectation_input, index|
-          Expectation.new(
-            "expectations (item #{index})",
-            expectation_input,
-            global_options:
-          )
+          Expectation.new(expectation_input, global_options:)
         end
     end
 

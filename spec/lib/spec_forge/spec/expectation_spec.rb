@@ -7,7 +7,6 @@ RSpec.describe SpecForge::Spec::Expectation do
 
     subject(:expectation) do
       described_class.new(
-        "expectation_name",
         SpecForge::Normalizer.normalize_expectations([input]).flatten.first,
         global_options: SpecForge::Normalizer.normalize_spec(global_options).first
       )
@@ -114,18 +113,18 @@ RSpec.describe SpecForge::Spec::Expectation do
     end
 
     context "when 'name' is provided" do
-      let(:input) { {expect: {status: 404}, name: Faker::String.random} }
+      let(:input) { {url: "/testing", expect: {status: 404}, name: Faker::String.random} }
 
-      it "is expected to rename the expectation" do
-        expect(expectation.name).to eq(input[:name])
+      it "is expected to append the name" do
+        expect(expectation.name).to eq("GET /testing - #{input[:name]}")
       end
     end
 
     context "when 'name' is not provided" do
-      let(:input) { {expect: {status: 404}} }
+      let(:input) { {url: "/testing", expect: {status: 404}} }
 
       it "is expected to have the same name" do
-        expect(expectation.name).to eq("expectation_name")
+        expect(expectation.name).to eq("GET /testing")
       end
     end
 
