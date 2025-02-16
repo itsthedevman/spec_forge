@@ -3,6 +3,8 @@
 module SpecForge
   class Attribute
     class Faker < Parameterized
+      include Chainable
+
       KEYWORD_REGEX = /^faker\./i
 
       attr_reader :faker_class, :faker_method
@@ -15,32 +17,14 @@ module SpecForge
       def initialize(...)
         super
 
-        # As of right now, Faker only goes 2 sub classes deep. I've added +2 padding just in case
-        # faker.class.method
-        # faker.class.subclass.method
-        sections = input.split(".")[0..5]
-
-        class_name = sections[0..-2].join("::").underscore.classify
-        method_name = sections.last
-
-        # Load the class
-        @faker_class = begin
-          "::#{class_name}".constantize
-        rescue NameError
-          raise InvalidFakerClassError, class_name
-        end
-
-        # Load the method
-        @faker_method = begin
-          faker_class.method(method_name)
-        rescue NameError
-          raise InvalidFakerMethodError.new(method_name, faker_class)
-        end
+        @faker_class, @faker_method = extract_faker_call
 
         prepare_arguments!
       end
 
-      def value
+      private
+
+      def base_object
         if uses_positional_arguments?(faker_method)
           faker_method.call(*arguments[:positional].resolve)
         elsif uses_keyword_arguments?(faker_method)
@@ -48,6 +32,58 @@ module SpecForge
         else
           faker_method.call
         end
+      end
+
+      def extract_faker_call
+        class_name = header.downcase.to_s
+
+        # Simple case: faker.<header>.<method>
+        if invocation_chain.size == 1
+          return resolve_faker_class_and_method(class_name, invocation_chain.shift)
+        end
+
+        # Try each part of the chain as a potential class name
+        # Example: faker.games.zelda.game.underscore
+        namespace = []
+
+        while invocation_chain.any?
+          part = invocation_chain.first.downcase
+          test_class_name = ([class_name] + namespace + [part]).map(&:camelize).join("::")
+
+          begin
+            "::Faker::#{test_class_name}".constantize
+
+            namespace << invocation_chain.shift
+          rescue NameError
+            # This part isn't a valid class, so it must be our method
+            method_name = invocation_chain.shift
+            class_name = ([class_name] + namespace).map(&:camelize).join("::")
+
+            return resolve_faker_class_and_method(class_name, method_name)
+          end
+        end
+
+        # If we get here, we consumed all parts as classes but found no method
+        class_name = ([class_name] + namespace).map(&:camelize).join("::")
+        raise InvalidFakerMethodError.new(nil, "::#{class_name}".constantize)
+      end
+
+      def resolve_faker_class_and_method(class_name, method_name)
+        # Load the class
+        faker_class = begin
+          "::Faker::#{class_name.camelize}".constantize
+        rescue NameError
+          raise InvalidFakerClassError, class_name
+        end
+
+        # Load the method
+        faker_method = begin
+          faker_class.method(method_name)
+        rescue NameError
+          raise InvalidFakerMethodError.new(method_name, faker_class)
+        end
+
+        [faker_class, faker_method]
       end
     end
   end

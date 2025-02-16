@@ -116,4 +116,13 @@ RSpec.describe SpecForge::Attribute::Faker do
       end
     end
   end
+
+  context "when there are method chained" do
+    # Faker::Music::GratefulDead.player
+    let(:path) { "faker.music.grateful_dead.player.upcase" }
+
+    it "is expected to call the chain" do
+      expect(attribute.value).to match(/[AZ ]+/)
+    end
+  end
 end
