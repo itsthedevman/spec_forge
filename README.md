@@ -280,13 +280,13 @@ For example:
 get_user:
   base_url: https://staging.example.com
   headers:
-    X-Custom-Header: "overridden"
+    x_custom_header: "overridden" # Underscore keys automatically convert to "X-Custom-Header"
 
   expectations:
   # Override for a specific expectation
   - base_url: https://prod.example.com
     headers:
-      X-Custom-Header: "expectation-specific"
+      X-Custom-Header: "expectation-specific" # HTTP-style headers used as-is
     expect:
       status: 200
 ```
