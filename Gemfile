@@ -15,5 +15,7 @@ gem "pry"
 
 gem "benchmark-ips", "~> 2.14"
 
-gem "yard"
-gem "kramdown"
+group :development, :documentation do
+  gem "yard"
+  gem "kramdown"
+end
