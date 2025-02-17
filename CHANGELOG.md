@@ -13,6 +13,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+## [0.3.0] - 12025-02-17
+
+### Added
+
+- Ruby version test matrix
+
+### Changed
+
+- Updated `flake.nix` to use Ruby 3.4
+
+### Removed
+
+- Support for Ruby 3.1
+
 ## [0.2.0] - 12025-02-16
 
 ### Added
@@ -50,5 +64,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial commit
 
-[unreleased]: https://github.com/itsthedevman/spec_forge/compare/v0.2.0...HEAD
-[0.1.0]: https://github.com/itsthedevman/spec_forge/compare/a8a991c25dcbd472a5fd975e96aa223b05948618...v0.2.0
+[unreleased]: https://github.com/itsthedevman/spec_forge/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/itsthedevman/spec_forge/compare/v0.2.0...v0.3.0
+[0.2.0]: https://github.com/itsthedevman/spec_forge/compare/v0.1.0...v0.2.0
+[0.1.0]: https://github.com/itsthedevman/spec_forge/compare/a8a991c25dcbd472a5fd975e96aa223b05948618...v0.1.0
