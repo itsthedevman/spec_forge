@@ -14,3 +14,6 @@ gem "standard", "~> 1.3"
 gem "pry"
 
 gem "benchmark-ips", "~> 2.14"
+
+gem "yard"
+gem "kramdown"
