@@ -1,5 +1,9 @@
 # SpecForge
 
+[![Gem Version](https://badge.fury.io/rb/spec_forge.svg)](https://badge.fury.io/rb/spec_forge)
+[![Tests](https://github.com/itsthedevman/spec_forge/actions/workflows/main.yml/badge.svg)](https://github.com/itsthedevman/spec_forge/actions/workflows/main.yml)
+![Ruby Version](https://img.shields.io/badge/ruby-3.3.6-ruby)
+
 Write API tests in YAML that read like documentation:
 
 ```yaml
