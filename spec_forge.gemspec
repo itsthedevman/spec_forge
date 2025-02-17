@@ -12,7 +12,7 @@ Gem::Specification.new do |spec|
   spec.description = "Write API tests in YAML without sacrificing power. SpecForge combines RSpec's matcher system, Faker's data generation, and factory patterns into a clean, declarative syntax that eliminates boilerplate while preserving control over your test suite."
   spec.homepage = "https://github.com/itsthedevman/spec_forge"
   spec.license = "MIT"
-  spec.required_ruby_version = ">= 3.1"
+  spec.required_ruby_version = ">= 3.2"
 
   spec.metadata = {
     "source_code_uri" => "https://github.com/itsthedevman/spec_forge",
