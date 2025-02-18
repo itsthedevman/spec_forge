@@ -1,8 +1,8 @@
 # SpecForge
 
 [![Gem Version](https://badge.fury.io/rb/spec_forge.svg)](https://badge.fury.io/rb/spec_forge)
+![Ruby Version](https://img.shields.io/badge/ruby-3.3.7-ruby)
 [![Tests](https://github.com/itsthedevman/spec_forge/actions/workflows/main.yml/badge.svg)](https://github.com/itsthedevman/spec_forge/actions/workflows/main.yml)
-![Ruby Version](https://img.shields.io/badge/ruby-3.3.6-ruby)
 
 Write API tests in YAML that read like documentation:
 
@@ -52,9 +52,14 @@ Current development priorities:
 
 Have a feature request? Open an issue on GitHub!
 
+## Looking for a Software Engineer?
+
+I'm currently looking for opportunities where I can tackle meaningful problems and help build reliable software while mentoring the next generation of developers. If you're looking for a senior engineer with full-stack Rails expertise and a passion for clean, maintainable code, let's talk!
+
+[bryan@itsthedevman.com](mailto:bryan@itsthedevman.com)
+
 ## Table of Contents
 
-- [Features](#features)
 - [Compatibility](#compatibility)
 - [Installation](#installation)
 - [Getting Started](#getting-started)
@@ -88,12 +93,14 @@ Have a feature request? Open an issue on GitHub!
 - [How Tests Work](#how-tests-work)
 - [Contributing](#contributing)
 - [License](#license)
-- [Looking for a Software Engineer?](#looking-for-a-software-engineer)
+- [Credits](#credits)
+
+Also see: [API Documentation](https://itsthedevman.com/docs/spec_forge)
 
 ## Compatibility
 
 Currently tested on:
-- MRI Ruby 3.0+
+- MRI Ruby 3.2+
 - NixOS (see `flake.nix` for details)
 
 ## Installation
@@ -644,6 +651,10 @@ Please note that this project is released with a [Contributor Code of Conduct](C
 
 The gem is available as open source under the terms of the [MIT License](LICENSE.txt).
 
-## Looking for a Software Engineer?
+## Changelog
 
-I'm looking for work! Please send serious enquiries to bryan@itsthedevman.com
+See [CHANGELOG.md](CHANGELOG.md) for a list of changes.
+
+## Credits
+
+- Author: Bryan "itsthedevman"
