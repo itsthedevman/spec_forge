@@ -24,8 +24,20 @@ RSpec.describe SpecForge::Spec::Expectation::Constraint do
     context "when 'json' is provided" do
       let(:json) { {foo: "faker.string.random"} }
 
-      it "is expected to covert the json attributes" do
+      it "is expected to convert the json attributes" do
         expect(constraint.json[:foo]).to be_kind_of(SpecForge::Attribute::Faker)
+      end
+    end
+
+    context "when 'json' has matchers" do
+      let(:json) do
+        {foo: "/testing/i", bar: "bar", baz: SpecForge::Attribute.from("kind_of.string")}
+      end
+
+      it "is expected to convert the json attributes" do
+        expect(constraint.json[:foo].resolve).to be_kind_of(RSpec::Matchers::BuiltIn::Match)
+        expect(constraint.json[:bar].resolve).to be_kind_of(RSpec::Matchers::BuiltIn::Eq)
+        expect(constraint.json[:baz].resolve).to be_kind_of(RSpec::Matchers::BuiltIn::BeAKindOf)
       end
     end
   end

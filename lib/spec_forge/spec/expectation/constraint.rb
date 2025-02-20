@@ -26,22 +26,17 @@ module SpecForge
         def normalize_hash(hash)
           hash =
             hash.transform_values do |attribute|
-              if attribute.is_a?(Attribute::Literal)
-                normalize_literal(attribute.value)
+              case attribute
+              when Attribute::Regex
+                Attribute.from("matcher.match" => attribute.resolve)
+              when Attribute::Literal
+                Attribute.from("matcher.eq" => attribute.resolve)
               else
                 attribute
               end
             end
 
           Attribute.from(hash)
-        end
-
-        def normalize_literal(value)
-          if value.is_a?(Regexp)
-            Attribute.from("matcher.match" => value)
-          else
-            Attribute.from("matcher.eq" => value)
-          end
         end
       end
     end
