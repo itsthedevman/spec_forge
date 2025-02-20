@@ -12,9 +12,9 @@ user_profile:
   expectations:
   - expect:
       status: 200
-    json:
-      name: kind_of.string
-      email: /@/
+      json:
+        name: kind_of.string
+        email: /@/
 ```
 
 That's a complete test. No Ruby code, no configuration files, no HTTP client setup - just a clear description of what you're testing. Under the hood, you get all the power of RSpec's matchers, Faker's data generation, and FactoryBot's test objects.
@@ -400,13 +400,13 @@ list_posts:
   expectations:
   - expect:
       status: 200
-    json:
-      posts:
-        matcher.include:
-        - author:
-            id: variables.author.id
-            name: variables.author.name
-          category: variables.category_name
+      json:
+        posts:
+          matcher.include:
+          - author:
+              id: variables.author.id
+              name: variables.author.name
+            category: variables.category_name
 ```
 
 ### Transformations
