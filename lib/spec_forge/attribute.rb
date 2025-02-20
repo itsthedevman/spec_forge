@@ -10,6 +10,7 @@ require_relative "attribute/factory"
 require_relative "attribute/faker"
 require_relative "attribute/literal"
 require_relative "attribute/matcher"
+require_relative "attribute/regex"
 require_relative "attribute/resolvable_array"
 require_relative "attribute/resolvable_hash"
 require_relative "attribute/transform"
@@ -81,6 +82,8 @@ module SpecForge
         Matcher.new(string)
       when Factory::KEYWORD_REGEX
         Factory.new(string)
+      when Regex::KEYWORD_REGEX
+        Regex.new(string)
       else
         Literal.new(string)
       end

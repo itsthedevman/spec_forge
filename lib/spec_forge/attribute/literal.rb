@@ -3,8 +3,6 @@
 module SpecForge
   class Attribute
     class Literal < Attribute
-      REGEX_REGEX = /^\/.+\/[mnix\s]*$/i
-
       attr_reader :value
 
       #
@@ -14,18 +12,10 @@ module SpecForge
       def initialize(input)
         super
 
-        @value =
-          case input
-          when REGEX_REGEX
-            Regexp.new(input)
-          else
-            input
-          end
+        @value = input
       end
 
-      def resolve
-        @value
-      end
+      alias_method :resolve, :value
     end
   end
 end

@@ -52,6 +52,12 @@ RSpec.describe SpecForge::Attribute do
         it { is_expected.to be_kind_of(described_class::Factory) }
       end
 
+      context "and it is a valid regex macro" do
+        let(:input) { "/test/i" }
+
+        it { is_expected.to be_kind_of(described_class::Regex) }
+      end
+
       context "and it is literally anything else" do
         let(:input) { "literally anything else" }
 
