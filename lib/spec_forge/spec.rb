@@ -15,7 +15,16 @@ module SpecForge
     #
     def self.load_and_define(file_name: nil, spec_name: nil, expectation_name: nil)
       specs = load_from_files
+
       filter_specs(specs, file_name:, spec_name:, expectation_name:)
+
+      # Announce if we're using a filter
+      if file_name
+        filter = {file_name:, spec_name:, expectation_name:}.delete_if { |k, v| v.blank? }
+        filter.stringify_keys!
+        puts "Using filter: #{filter}"
+      end
+
       specs.each(&:define)
     end
 
