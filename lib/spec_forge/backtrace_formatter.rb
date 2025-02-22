@@ -2,6 +2,14 @@
 
 module SpecForge
   module BacktraceFormatter
+    def self.formatter
+      @formatter ||= RSpec::Core::BacktraceFormatter.new
+    end
+
+    def self.backtrace_line(line)
+      formatter.backtrace_line(line)
+    end
+
     def self.format_backtrace(backtrace, example_metadata)
       backtrace = SpecForge.backtrace_cleaner.clean(backtrace)
 
