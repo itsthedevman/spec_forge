@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
-- Removed support for ActiveSupport 7.1 and earlier
+- Removed support for ActiveSupport 7.0
 
 ## [0.3.2] - 12025-02-20
 
