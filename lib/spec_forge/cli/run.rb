@@ -12,29 +12,40 @@ module SpecForge
       def call
         return SpecForge.run if arguments.blank?
 
-        #
-        # First argument can be:
-        #
-        #   "<file_name>" for a file
-        #     Example: "users"
-        #
-        #   "<file_name>:<spec_name>" for a single spec
-        #     Example: "users:show_user"
-        #
-        #   "<file_name:<spec_name>:'<verb> <path> - <?name>'" for a single expectation
-        #     Example:
-        #       "users:show_user:'GET /users/:id'"
-        #     Example with name:
-        #       "users:show_user:'GET /users/:id - Returns 404 due to missing user'"
-        #
-        spec_filter = arguments.first.gsub("::", ":") # Handles some edge cases
-        file_name, spec_name, expectation_name = spec_filter.split(":").map(&:strip)
-
-        # Remove any quotes
-        expectation_name.gsub!(/['"]+(.+)['"]+/, "\1") if expectation_name.present?
+        # spec_forge users:show_user
+        filter = extract_filter(arguments.first)
 
         # Filter and run the specs
-        SpecForge.run(file_name:, spec_name:, expectation_name:)
+        SpecForge.run(**filter)
+      end
+
+      private
+
+      #
+      # The input can be
+      #
+      #   "<file_name>" for a file
+      #     Example: "users"
+      #
+      #   "<file_name>:<spec_name>" for a single spec
+      #     Example: "users:show_user"
+      #
+      #   "<file_name:<spec_name>:'<verb> <path> - <?name>'" for a single expectation
+      #     Example:
+      #       "users:show_user:'GET /users/:id'"
+      #     Example with name:
+      #       "users:show_user:'GET /users/:id - Returns 404 due to missing user'"
+      #
+      def extract_filter(input)
+        spec_filter = input.gsub("::", ":") # Handles some edge cases
+
+        # Note: Only split 3 because the expectation name can have colons in them.
+        file_name, spec_name, expectation_name = spec_filter.split(":").map(&:strip)
+
+        # Remove the quotes
+        expectation_name.gsub!(/^['"]|['"]$/, "") if expectation_name.present?
+
+        {file_name:, spec_name:, expectation_name:}
       end
     end
   end
