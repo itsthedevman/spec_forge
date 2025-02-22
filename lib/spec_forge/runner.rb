@@ -23,8 +23,10 @@ module SpecForge
           spec_forge.expectations.each do |expectation|
             # Define the example group
             describe(expectation.name) do
-              constraints = expectation.constraints
+              # Set up the metadata for reporting
+              runner_forge.setup_example_metadata(self, spec_forge, expectation)
 
+              constraints = expectation.constraints
               let!(:expected_status) { constraints.status.resolve }
               let!(:expected_json) { constraints.json.resolve.deep_stringify_keys }
 
@@ -56,6 +58,19 @@ module SpecForge
 
       def handle_debug(...)
         DebugProxy.new(...).call
+      end
+
+      # Needed for error reporting
+      def setup_example_metadata(context, spec, expectation)
+        metadata = {
+          file_path: spec.file_path,
+          line_number: 0,
+          location: spec.file_path,
+          rerun_file_path: "#{spec.file_name}:#{spec.name}:\"#{expectation.name}\""
+        }
+
+        context.superclass_metadata.merge!(metadata)
+        context.metadata.merge!(metadata)
       end
     end
 
