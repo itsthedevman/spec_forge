@@ -6,10 +6,34 @@ RSpec.describe SpecForge::CLI::Run do
 
     subject(:filtered) { described_class.new([input], {}).send(:extract_filter, input) }
 
-    context "and the filter is for an expectation" do
+    context "when the filter is for a file" do
+      let(:input) { "people" }
+
+      it "is expected to extract the pieces" do
+        expect(filtered).to eq(
+          file_name: "people",
+          spec_name: nil,
+          expectation_name: nil
+        )
+      end
+    end
+
+    context "when the filter is for a spec" do
+      let(:input) { "people:show" }
+
+      it "is expected to extract the pieces" do
+        expect(filtered).to eq(
+          file_name: "people",
+          spec_name: "show",
+          expectation_name: nil
+        )
+      end
+    end
+
+    context "when the filter is for an expectation" do
       let(:input) { "people:show:'GET /people'" }
 
-      it "is extract to extract the pieces" do
+      it "is expected to extract the pieces" do
         expect(filtered).to eq(
           file_name: "people",
           spec_name: "show",
@@ -18,10 +42,10 @@ RSpec.describe SpecForge::CLI::Run do
       end
     end
 
-    context "and the filter is for an expectation and it includes a colon" do
+    context "when the filter is for an expectation and it includes a colon" do
       let(:input) { "people:show:'GET /people/:id - Get: People'" }
 
-      it "is extract to extract the pieces" do
+      it "is expected to extract the pieces" do
         expect(filtered).to eq(
           file_name: "people",
           spec_name: "show",

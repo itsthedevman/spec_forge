@@ -37,10 +37,8 @@ module SpecForge
       #       "users:show_user:'GET /users/:id - Returns 404 due to missing user'"
       #
       def extract_filter(input)
-        spec_filter = input.gsub("::", ":") # Handles some edge cases
-
         # Note: Only split 3 because the expectation name can have colons in them.
-        file_name, spec_name, expectation_name = spec_filter.split(":", 3).map(&:strip)
+        file_name, spec_name, expectation_name = input.split(":", 3).map(&:strip)
 
         # Remove the quotes
         expectation_name.gsub!(/^['"]|['"]$/, "") if expectation_name.present?
