@@ -383,6 +383,27 @@ show_user:
       status: 200
 ```
 
+### Running Tests
+
+Run your entire test suite:
+
+```bash
+spec_forge run
+```
+
+Focus on specific tests using filters:
+
+```bash
+# Run all tests in a file
+spec_forge run users
+
+# Run a specific spec
+spec_forge run users:show_user
+
+# Run a specific expectation
+spec_forge run users:show_user:'GET /users/:id - Returns 404'
+```
+
 ## Dynamic Features
 
 ### Variables
