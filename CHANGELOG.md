@@ -9,7 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Added support to run an individual file, spec, or expectation
+
 ### Changed
+
+- Updated spec and factory templates
+- Improved error reporting to use spec_forges commands instead of RSpec's
 
 ### Removed
 
