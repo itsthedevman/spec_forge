@@ -15,7 +15,7 @@ module RSpec
 
         def colorized_rerun_commands(colorizer)
           og_colorized_rerun_commands.gsub(/rspec/i, "spec_forge")
-            .gsub(/\[[\d:]+\]/, "") # Removes the [1:1:1] at the end
+            .gsub(/\[[\d:]+\]/, "")
         end
       end
     end
