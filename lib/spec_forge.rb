@@ -17,6 +17,7 @@ require "thor"
 require "yaml"
 
 require_relative "spec_forge/attribute"
+require_relative "spec_forge/backtrace_formatter"
 require_relative "spec_forge/cli"
 require_relative "spec_forge/configuration"
 require_relative "spec_forge/core_ext"

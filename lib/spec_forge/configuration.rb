@@ -30,6 +30,8 @@ module SpecForge
     def initialize
       config = Normalizer.default_configuration
 
+      RSpec.configuration.instance_variable_set(:@backtrace_formatter, BacktraceFormatter)
+
       config[:base_url] = "http://localhost:3000"
       config[:factories] = Factories.new
       config[:specs] = RSpec.configuration
