@@ -13,7 +13,7 @@ RSpec.describe SpecForge::Spec do
   subject(:spec) do
     described_class.new(
       name:,
-      file_path: "", file_name: "",
+      file_path: "", file_name: "", line_number: 0,
       url:, method:, headers:,
       variables:, query:, body:, expectations:
     )
@@ -63,6 +63,7 @@ RSpec.describe SpecForge::Spec do
           name: "spec_1",
           file_path: "",
           file_name: "specs",
+          line_number: 0,
           url: "/specs",
           expectations: [
             {expect: {status: 200}},
@@ -73,6 +74,7 @@ RSpec.describe SpecForge::Spec do
           name: "spec_2",
           file_path: "",
           file_name: "specs",
+          line_number: 0,
           url: "/specs_2",
           expectations: [
             {expect: {status: 200}},
@@ -83,6 +85,7 @@ RSpec.describe SpecForge::Spec do
           name: "other_spec_1",
           file_path: "",
           file_name: "other_specs",
+          line_number: 0,
           url: "/other_specs",
           expectations: [
             {expect: {status: 200}},
@@ -93,6 +96,7 @@ RSpec.describe SpecForge::Spec do
           name: "other_spec_2",
           file_path: "",
           file_name: "other_specs",
+          line_number: 0,
           url: "/other_specs_2",
           expectations: [
             {
