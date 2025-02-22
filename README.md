@@ -41,14 +41,14 @@ Consider alternatives when you need:
 ## Roadmap
 
 Current development priorities:
-- [ ] Support for running individual specs
 - [ ] Array support for `json` expectations
 - [ ] Negated matchers: `matcher.not`
 - [ ] `create_list/build_list` factory strategies
 - [ ] `transform.map` support
-- [ ] Improved error handling
 - [ ] XML/HTML response handling
 - [ ] OpenAPI generation from tests
+- [x] Support for running individual specs
+- [x] Improved error handling
 
 Have a feature request? Open an issue on GitHub!
 
