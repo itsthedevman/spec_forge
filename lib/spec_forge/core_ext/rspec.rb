@@ -14,8 +14,8 @@ module RSpec
         alias_method :og_colorized_rerun_commands, :colorized_rerun_commands
 
         def colorized_rerun_commands(colorizer)
-          og_colorized_rerun_commands.sub(/rspec/i, "spec_forge")
-            .sub(/\[[\d:]+\]/, "") # Removes the [1:1:1] at the end
+          og_colorized_rerun_commands.gsub(/rspec/i, "spec_forge")
+            .gsub(/\[[\d:]+\]/, "") # Removes the [1:1:1] at the end
         end
       end
     end
