@@ -13,10 +13,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Updated everythingrb to 0.2
 - Updated spec and factory templates
-- Improved error reporting to use spec_forges commands instead of RSpec's
+- Improved error reporting to use SpecForge's commands instead of RSpec's
 
 ### Removed
+
+- Removed support for ActiveSupport 7.0
 
 ## [0.3.2] - 12025-02-20
 
