@@ -63,8 +63,7 @@ module SpecForge
       # Needed for error reporting
       def setup_example_metadata(context, spec, expectation)
         metadata = {
-          file_path: spec.file_path,
-          line_number: 0,
+          line_number: spec.line_number,
           location: spec.file_path,
           rerun_file_path: "#{spec.file_name}:#{spec.name}:\"#{expectation.name}\""
         }

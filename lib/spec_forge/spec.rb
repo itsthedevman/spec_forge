@@ -38,12 +38,16 @@ module SpecForge
       specs = []
 
       Dir[path.join("**/*.yml")].each do |file_path|
-        hash = YAML.load_file(file_path).deep_symbolize_keys
+        content = File.read(file_path)
+        hash = YAML.load(content).deep_symbolize_keys
 
         hash.each do |spec_name, spec_hash|
+          line_number = content.lines.index { |line| line.start_with?("#{spec_name}:") }
+
           spec_hash[:name] = spec_name.to_s
           spec_hash[:file_path] = file_path
           spec_hash[:file_name] = file_path.delete_prefix("#{path}/").delete_suffix(".yml")
+          spec_hash[:line_number] = line_number ? line_number + 1 : -1
 
           specs << new(**spec_hash)
         end
@@ -79,7 +83,7 @@ module SpecForge
 
     attr_predicate :debug
 
-    attr_reader :name, :file_path, :file_name, :expectations
+    attr_reader :name, :file_path, :file_name, :line_number, :expectations
 
     #
     # Creates a Spec based on the input
@@ -89,10 +93,11 @@ module SpecForge
     # @param **input [Hash] Any attributes related to the spec, including expectations
     #   See Normalizer::Spec
     #
-    def initialize(name:, file_path:, file_name:, **input)
+    def initialize(name:, file_path:, file_name:, line_number:, **input)
       @name = name
       @file_path = file_path
       @file_name = file_name
+      @line_number = line_number
 
       input = Normalizer.normalize_spec!(input)
 
