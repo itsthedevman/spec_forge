@@ -5,32 +5,30 @@ module SpecForge
     #
     # Loads the factories from their yml files and registers them with FactoryBot
     #
-    # @param path [String, Path] The base path where the factories directory are located
-    #
-    def self.load_and_register(base_path)
+    def self.load_and_register
       if SpecForge.configuration.factories.paths?
         FactoryBot.definition_file_paths = SpecForge.configuration.factories.paths
       end
 
       FactoryBot.find_definitions if SpecForge.configuration.factories.auto_discover?
 
-      factories = load_from_path(base_path.join("factories", "**/*.yml"))
+      factories = load_from_files
       factories.each(&:register)
     end
 
     #
-    # Loads any factories defined in the path. A single file can contain one or more factories
-    #
-    # @param path [String, Path] The path where the factories are located
+    # Loads any factories defined in the factories. A single file can contain one or more factories
     #
     # @return [Array<Factory>] An array of factories that were loaded.
     #   Note: This factories have not been registered with FactoryBot.
     #   See #register
     #
-    def self.load_from_path(path)
+    def self.load_from_files
+      path = SpecForge.forge.join("factories", "**/*.yml")
+
       factories = []
 
-      Dir[path].map do |file_path|
+      Dir[path].each do |file_path|
         hash = YAML.load_file(file_path).deep_symbolize_keys
 
         hash.each do |factory_name, factory_hash|

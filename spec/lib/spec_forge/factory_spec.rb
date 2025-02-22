@@ -10,7 +10,7 @@ RSpec.describe SpecForge::Factory do
       end
     end
 
-    subject(:factories) { described_class.load_and_register(path) }
+    subject(:factories) { described_class.load_and_register }
 
     context "when all factories are valid" do
       it "loads the factories yml as an object and registers it with FactoryBot" do
