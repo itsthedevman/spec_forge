@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated everythingrb to 0.2
 - Updated spec and factory templates
 - Improved error reporting to use SpecForge's commands instead of RSpec's
+- Updated `run` command's CLI documentation
 
 ### Removed
 
