@@ -41,14 +41,14 @@ Consider alternatives when you need:
 ## Roadmap
 
 Current development priorities:
-- [ ] Support for running individual specs
 - [ ] Array support for `json` expectations
 - [ ] Negated matchers: `matcher.not`
 - [ ] `create_list/build_list` factory strategies
 - [ ] `transform.map` support
-- [ ] Improved error handling
 - [ ] XML/HTML response handling
 - [ ] OpenAPI generation from tests
+- [x] Support for running individual specs
+- [x] Improved error handling
 
 Have a feature request? Open an issue on GitHub!
 
@@ -63,7 +63,11 @@ I'm currently looking for opportunities where I can tackle meaningful problems a
 - [Compatibility](#compatibility)
 - [Installation](#installation)
 - [Getting Started](#getting-started)
-- [Writing Your First Test](#writing-your-first-test)
+- [Forging Your First Test](#forging-your-first-test)
+- [Running Tests](#running-tests)
+  - [Targeting Specific Files](#targeting-specific-files)
+  - [Targeting Specific Specs](#targeting-specific-specs)
+  - [Targeting Individual Expectations](#targeting-individual-expectations)
 - [Configuration](#configuration)
   - [Basic Configuration](#basic-configuration)
   - [Framework Integration](#framework-integration)
@@ -138,7 +142,7 @@ bundle exec spec_forge init
 
 This creates the `spec_forge` directory containing factory definitions, test specifications, and global configuration.
 
-## Writing Your First Test
+## Forging Your First Test
 
 Let's write a simple test to verify a user endpoint. Create a new spec file:
 
@@ -166,6 +170,63 @@ Run your tests with:
 ```bash
 spec_forge run
 ```
+
+Since `run` is the default command, you can just use:
+
+```bash
+spec_forge
+```
+
+## Running Tests
+
+As your test suite grows, you'll want more control over which tests to run.
+
+#### Targeting Specific Files
+
+When working on a specific feature, run tests from a single file:
+
+```bash
+spec_forge users # Runs all tests in specs/users.yml
+```
+
+#### Targeting Specific Specs
+
+Focus on a specific endpoint by running a single spec:
+
+```bash
+spec_forge users:destroy_user # Runs all expectations in the destroy_user spec
+```
+
+#### Targeting Individual Expectations
+
+You can also run individual expectations within a spec. The format depends on whether the expectation has a name:
+
+```yaml
+# specs/users.yml
+destroy_user:
+  path: /users/:id
+  method: delete
+  expectations:
+  - expect: # Unnamed expectation
+      status: 200
+  - name: "Destroys a User" # Named expectation
+    expect:
+      status: 200
+```
+
+For named expectations:
+```bash
+# Format: <file>:<spec>:'<verb> <path> - <name>'
+spec_forge users:destroy_user:'DELETE /users/:id - Destroys a User'
+```
+
+For unnamed expectations:
+```bash
+# Format: <file>:<spec>:'<verb> <path>'
+spec_forge users:destroy_user:'DELETE /users/:id'
+```
+
+**Note**: When targeting an unnamed expectation, SpecForge executes all matching expectations within that spec. This means if you have multiple unnamed expectations with the same verb and path, they will all run.
 
 ## Configuration
 

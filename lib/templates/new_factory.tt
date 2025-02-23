@@ -1,0 +1,4 @@
+<%= original_name %>:
+  class: <%= singular_name.titleize %>
+  attributes:
+    active: true

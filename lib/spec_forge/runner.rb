@@ -23,6 +23,9 @@ module SpecForge
           spec_forge.expectations.each do |expectation|
             # Define the example group
             describe(expectation.name) do
+              # Set up the class metadata for error reporting
+              runner_forge.set_group_metadata(self, spec_forge, expectation)
+
               constraints = expectation.constraints
 
               let!(:expected_status) { constraints.status.resolve }
@@ -31,6 +34,9 @@ module SpecForge
               before do
                 # Ensure all variables are called and resolved, in case they are not referenced
                 expectation.variables.resolve
+
+                # Set up the example metadata for error reporting
+                runner_forge.set_example_metadata(spec_forge, expectation)
               end
 
               subject(:response) { expectation.http_client.call }
@@ -54,8 +60,30 @@ module SpecForge
         end
       end
 
+      # @private
       def handle_debug(...)
         DebugProxy.new(...).call
+      end
+
+      # @private
+      def set_group_metadata(context, spec, expectation)
+        metadata = {
+          file_path: spec.file_path,
+          absolute_file_path: spec.file_path,
+          line_number: spec.line_number,
+          location: spec.file_path,
+          rerun_file_path: "#{spec.file_name}:#{spec.name}:\"#{expectation.name}\""
+        }
+
+        context.metadata.merge!(metadata)
+      end
+
+      # @private
+      def set_example_metadata(spec, expectation)
+        # This is needed when an error raises in an example
+        metadata = {location: "#{spec.file_path}:#{spec.line_number}"}
+
+        RSpec.current_example.metadata.merge!(metadata)
       end
     end
 

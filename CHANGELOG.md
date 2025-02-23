@@ -9,9 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Added support to run an individual file, spec, or expectation
+
 ### Changed
 
 - Updated everythingrb to 0.2
+- Updated spec and factory templates
+- Improved error reporting to use SpecForge's commands instead of RSpec's
+- Updated `run` command's CLI documentation
 
 ### Removed
 

@@ -1,0 +1,43 @@
+index_<%= plural_name %>:
+  url: /<%= plural_name %>
+  expectations:
+  - expect:
+      status: 200
+
+show_<%= singular_name %>:
+  url: /<%= plural_name %>/{id}
+  query:
+    id: 1
+  expectations:
+  - expect:
+      status: 200
+
+create_<%= singular_name %>:
+  url: /<%= plural_name %>
+  method: post
+  body:
+    name: faker.name.name
+    email: faker.internet.email
+  expectations:
+  - expect:
+      status: 200
+
+update_<%= singular_name %>:
+  url: /<%= plural_name %>/{id}
+  method: patch
+  query:
+    id: 1
+  body:
+    name:
+  expectations:
+  - expect:
+      status: 200
+
+destroy_<%= singular_name %>:
+  url: /<%= plural_name %>/{id}
+  method: delete
+  query:
+    id: 1
+  expectations:
+  - expect:
+      status: 200

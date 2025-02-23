@@ -38,123 +38,33 @@ module SpecForge
       private
 
       def create_new_spec(name)
-        actions.create_file(
+        actions.template(
+          "new_spec.tt",
           SpecForge.forge.join("specs", "#{name}.yml"),
-          generate_spec(name)
+          context: Proxy.new(name).call
         )
       end
 
       def create_new_factory(name)
-        actions.create_file(
+        actions.template(
+          "new_factory.tt",
           SpecForge.forge.join("factories", "#{name}.yml"),
-          generate_factory(name)
+          context: Proxy.new(name).call
         )
       end
 
-      def generate_spec(name)
-        plural_name = name.pluralize
-        singular_name = name.singularize
+      class Proxy
+        attr_reader :original_name, :singular_name, :plural_name
 
-        base_spec = {url: ""}
-        base_constraint = {expect: {status: 200}}
-
-        hash = {
-          ##################################################
-          "index_#{plural_name}" => base_spec.merge(
-            url: "/#{plural_name}",
-            expectations: [base_constraint]
-          ),
-          ##################################################
-          "show_#{singular_name}" => base_spec.merge(
-            url: "/#{plural_name}/{id}",
-            expectations: [
-              base_constraint.merge(expect: {status: 404}),
-              base_constraint.deep_merge(
-                query: {id: 1},
-                expect: {
-                  json: {
-                    name: "kind_of.string",
-                    email: /\w+@example\.com/i
-                  }
-                }
-              )
-            ]
-          ),
-          ##################################################
-          "create_#{singular_name}" => base_spec.merge(
-            url: "/#{plural_name}",
-            method: "post",
-            expectations: [
-              base_constraint.merge(expect: {status: 400}),
-              base_constraint.deep_merge(
-                variables: {
-                  name: "faker.name.name",
-                  role: "user"
-                },
-                body: {name: "variables.name"},
-                expect: {
-                  json: {name: "variables.name", role: "variables.role"}
-                }
-              )
-            ]
-          ),
-          ##################################################
-          "update_#{singular_name}" => base_spec.merge(
-            url: "/#{plural_name}/{id}",
-            method: "patch",
-            query: {id: 1},
-            variables: {
-              number: {
-                "faker.number.between" => {from: 100_000, to: 999_999}
-              }
-            },
-            expectations: [
-              base_constraint.deep_merge(
-                body: {number: "variables.number"},
-                expect: {
-                  json: {name: "kind_of.string", number: "kind_of.integer"}
-                }
-              )
-            ]
-          ),
-          ##################################################
-          "destroy_#{singular_name}" => base_spec.merge(
-            url: "/#{plural_name}/{id}",
-            method: "delete",
-            query: {id: 1},
-            expectations: [
-              base_constraint
-            ]
-          )
-        }
-
-        generate_yaml(hash)
-      end
-
-      def generate_factory(name)
-        singular_name = name.singularize
-
-        hash = {
-          singular_name => {
-            class: singular_name.titleize,
-            attributes: {
-              attribute: "value"
-            }
-          }
-        }
-
-        generate_yaml(hash)
-      end
-
-      def generate_yaml(hash)
-        result = hash.deep_stringify_keys.join_map("\n") do |key, value|
-          {key => value}.to_yaml
-            .sub!("---\n", "")
-            .gsub("!ruby/regexp ", "")
+        def initialize(name)
+          @original_name = name
+          @plural_name = name.pluralize
+          @singular_name = name.singularize
         end
 
-        result.delete!("\"")
-        result
+        def call
+          binding
+        end
       end
     end
   end
