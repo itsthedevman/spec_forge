@@ -207,11 +207,11 @@ destroy_user:
   path: /users/:id
   method: delete
   expectations:
-    - expect: # Unnamed expectation
-        status: 200
-    - name: "Destroys a User" # Named expectation
-      expect:
-        status: 200
+  - expect: # Unnamed expectation
+      status: 200
+  - name: "Destroys a User" # Named expectation
+    expect:
+      status: 200
 ```
 
 For named expectations:
