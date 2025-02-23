@@ -4,8 +4,25 @@ module SpecForge
   class CLI
     class Run < Command
       command_name "run"
-      syntax "run"
-      summary "Runs all specs"
+      syntax "run [target]"
+
+      summary "Runs specs loaded from spec_forge/specs/"
+      description "Runs specs loaded from spec_forge/specs/. The optional target argument allows running specific files, specs, or expectations."
+
+      example "spec_forge run",
+        "Run all specs in spec_forge/specs/"
+
+      example "spec_forge run users",
+        "Run all specs in users.yml"
+
+      example "spec_forge run users:create_user",
+        "Run all expectations in the create_user spec"
+
+      example "spec_forge run users:create_user:\"POST /users\"",
+        "Run expectations matching POST /users"
+
+      example "spec_forge run users:create_user:\"POST /users - Create Admin\"",
+        "Run the specific expectation named \"Create Admin\""
 
       # option "-n", "--no-docs", "Do not generate OpenAPI documentation on completion"
 
