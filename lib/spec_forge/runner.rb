@@ -7,6 +7,9 @@ module SpecForge
       # Runs any specs
       #
       def run
+        # Allows me to modify the error backtrace reporting within rspec
+        RSpec.configuration.instance_variable_set(:@backtrace_formatter, BacktraceFormatter)
+
         RSpec::Core::Runner.disable_autorun!
         RSpec::Core::Runner.run([], $stderr, $stdout)
       end
@@ -52,7 +55,7 @@ module SpecForge
                 # JSON check
                 if constraints.json.size > 0
                   expect(response.body).to be_kind_of(Hash)
-                  expect(response.body).to include(expected_json)
+                  expect(response.body).to expected_json
                 end
               end
             end
