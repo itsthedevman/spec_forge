@@ -2,7 +2,7 @@
 
 source "https://rubygems.org"
 
-gem "rails", "~> 7.1"
+gem "rails", "~> 8.0"
 
 # Specify your gem's dependencies in spec_forge.gemspec
 gemspec
