@@ -27,7 +27,7 @@ RSpec.describe SpecForge::Spec::Expectation::Constraint do
 
         it "is expected to convert to a matcher" do
           expect(constraint.json).to be_kind_of(SpecForge::Attribute::Matcher)
-          expect(constraint.json.input).to eq("matcher.match")
+          expect(constraint.json.input).to eq("matcher.include")
           expect(constraint.json.arguments[:keyword][:foo]).to be_kind_of(
             SpecForge::Attribute::Faker
           )
@@ -75,12 +75,20 @@ RSpec.describe SpecForge::Spec::Expectation::Constraint do
 
             hash_arg = arguments.third
             expect(hash_arg).to be_kind_of(SpecForge::Attribute::Matcher)
-            expect(hash_arg.input).to eq("matcher.match")
+            expect(hash_arg.input).to eq("matcher.include")
 
             expect(hash_arg.arguments[:keyword][:foo]).to be_kind_of(
               SpecForge::Attribute::Faker
             )
           end
+        end
+      end
+
+      context "and the 'json' is blank" do
+        let(:json) { {} }
+
+        it "sets the json value to resolve to nil" do
+          expect(constraint.json.resolve).to be(nil)
         end
       end
     end

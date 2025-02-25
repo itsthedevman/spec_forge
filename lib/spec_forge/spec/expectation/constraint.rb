@@ -24,10 +24,13 @@ module SpecForge
         private
 
         def convert_to_matchers(value)
+          # This makes it easier to check if json was provided
+          return Attribute.from(nil) if value.blank?
+
           case value
           when HashLike
             value = value.transform_values { |i| convert_to_matchers(i) }
-            Attribute.from("matcher.match" => value)
+            Attribute.from("matcher.include" => value)
           when ArrayLike
             value = value.map { |i| convert_to_matchers(i) }
             Attribute.from("matcher.contain_exactly" => value)
