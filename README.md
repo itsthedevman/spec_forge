@@ -313,6 +313,7 @@ When debugging, you have access to:
 - `response` - Full response including headers, status, and parsed body
 - `expected_status` - Expected HTTP status code
 - `expected_json` - Expected JSON structure with matchers
+- `expected_json_class` - Expected JSON class class
 
 Or call `self` from an interactive session to see everything as a hash
 
