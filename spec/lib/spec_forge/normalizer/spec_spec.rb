@@ -407,6 +407,16 @@ RSpec.describe SpecForge::Normalizer do
           expect(normalized_constraint[:json]).to eq({})
         end
       end
+
+      context "when 'json' is an Array" do
+        before do
+          constraint[:json] = []
+        end
+
+        it "is expected to allow it" do
+          expect(normalized_constraint[:json]).to eq([])
+        end
+      end
     end
 
     context "when aliases are used" do
