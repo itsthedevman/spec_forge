@@ -9,7 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Added support for testing array responses via `json`
+- Added check to block RSpec overwrites from running with internal tests
+- Added debugging access to `expected_json_class` variable.
+
 ### Changed
+
+- Updated `Constraint` to use `include` for testing Hashes and `contains_exactly` for testing Arrays
+- Better handling of positional and keyword argument passing for `Matcher` and `Faker` attributes
 
 ### Removed
 

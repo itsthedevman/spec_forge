@@ -313,6 +313,7 @@ When debugging, you have access to:
 - `response` - Full response including headers, status, and parsed body
 - `expected_status` - Expected HTTP status code
 - `expected_json` - Expected JSON structure with matchers
+- `expected_json_class` - Expected JSON class
 
 Or call `self` from an interactive session to see everything as a hash
 
@@ -380,7 +381,7 @@ show_user:
 
 ### Testing Response Data
 
-Verify the response JSON:
+Use the `json` key to test JSON responses, which can be structured as a Hash:
 
 ```yaml
 show_user:
@@ -392,6 +393,71 @@ show_user:
         id: 1
         name: kind_of.string
         role: admin
+```
+
+Or as an Array:
+```yaml
+list_tags:
+  path: /tags
+  expectations:
+  - expect:
+      status: 200
+      json:
+      - id: 1
+        name: "featured"
+      - id: 2
+        name: "new"
+```
+
+#### Array and Hash Matching Behavior
+
+To make tests resilient to API additions while still ensuring the important parts of the structure match exactly, SpecForge uses flexible matching for hashes and strict matching for arrays by default:
+
+```yaml
+get_users:
+  path: /users
+  expectations:
+  - expect:
+      status: 200
+      json:
+        # Hash matching is flexible - specified keys must exist, extra keys are allowed
+        metadata:
+          version: "2.0"
+          status: "ok"
+        # Array matching is strict - exact structure is expected
+        users:
+        - id: kind_of.integer
+          name: kind_of.string
+        - id: kind_of.integer
+          name: kind_of.string
+```
+
+This means:
+- **Hashes**: All specified keys must exist with matching values, but additional keys are allowed (uses the `include` matcher underneath)
+- **Arrays**: The array must contain exactly the specified number of elements (uses the `contain_exactly` matcher underneath)
+
+These rules apply to both top-level responses and nested structures. For example, if your response is a top-level array, you can test it directly:
+
+```yaml
+expect:
+  status: 200
+  json:
+  - id: 1
+    name: "Tag 1"
+  - id: 2
+    name: "Tag 2"
+```
+
+However, if you need strict hash matching, use the explicit `matcher.match` operator:
+
+```yaml
+json:
+  user:
+    matcher.match:
+      id: 1
+      name: "John"
+      role: "admin"
+    # This will fail if the response contains any additional keys
 ```
 
 ### Multiple Expectations

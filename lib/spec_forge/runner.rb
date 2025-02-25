@@ -7,6 +7,9 @@ module SpecForge
       # Runs any specs
       #
       def run
+        # Allows me to modify the error backtrace reporting within rspec
+        RSpec.configuration.instance_variable_set(:@backtrace_formatter, BacktraceFormatter)
+
         RSpec::Core::Runner.disable_autorun!
         RSpec::Core::Runner.run([], $stderr, $stdout)
       end
@@ -29,7 +32,8 @@ module SpecForge
               constraints = expectation.constraints
 
               let!(:expected_status) { constraints.status.resolve }
-              let!(:expected_json) { constraints.json.resolve.deep_stringify_keys }
+              let!(:expected_json) { constraints.json.resolve }
+              let!(:expected_json_class) { expected_json&.expected.class }
 
               before do
                 # Ensure all variables are called and resolved, in case they are not referenced
@@ -50,9 +54,9 @@ module SpecForge
                 expect(response.status).to eq(expected_status)
 
                 # JSON check
-                if constraints.json.size > 0
-                  expect(response.body).to be_kind_of(Hash)
-                  expect(response.body).to include(expected_json)
+                if expected_json
+                  expect(response.body).to be_kind_of(expected_json_class)
+                  expect(response.body).to expected_json
                 end
               end
             end
@@ -119,6 +123,7 @@ module SpecForge
           - variables: Current variable definitions
           - expected_status: Expected HTTP status code (#{expected_status})
           - expected_json: Expected response body
+          - expected_json_class: Expected response body class
           - request: HTTP request details (method, url, headers, body)
           - response: HTTP response
 

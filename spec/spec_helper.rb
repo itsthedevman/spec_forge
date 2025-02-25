@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+# Set a flag to disable some RSpec overwrites
+SPEC_FORGE_INTERNAL_TESTING = true
+
 require "pry"
 require "spec_forge"
 

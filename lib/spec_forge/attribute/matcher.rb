@@ -44,14 +44,14 @@ module SpecForge
       end
 
       def value
-        if uses_positional_arguments?(matcher_method)
-          positional = arguments[:positional].resolve.each do |value|
+        if (positional = arguments[:positional]) && positional.present?
+          positional = positional.resolve.each do |value|
             value.deep_stringify_keys! if value.respond_to?(:deep_stringify_keys!)
           end
 
           matcher_method.call(*positional)
-        elsif uses_keyword_arguments?(matcher_method)
-          matcher_method.call(**arguments[:keyword].resolve.deep_stringify_keys)
+        elsif (keyword = arguments[:keyword]) && keyword.present?
+          matcher_method.call(**keyword.resolve.deep_stringify_keys)
         else
           matcher_method.call
         end

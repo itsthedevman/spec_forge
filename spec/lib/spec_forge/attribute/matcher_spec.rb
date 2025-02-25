@@ -287,4 +287,26 @@ RSpec.describe SpecForge::Attribute::Matcher do
       end
     end
   end
+
+  context "when 'matcher.match' is provided keyword arguments" do
+    let(:input) { "matcher.match" }
+    let(:keyword) { {foo: "bar"} }
+
+    it do
+      resolved = attribute.resolve
+      expect(resolved).to be_kind_of(RSpec::Matchers::BuiltIn::Match)
+      expect(resolved.expected).to eq("foo" => "bar")
+    end
+  end
+
+  context "when 'matcher.match' is provided positional arguments" do
+    let(:input) { "matcher.match" }
+    let(:positional) { ["foo"] }
+
+    it do
+      resolved = attribute.resolve
+      expect(resolved).to be_kind_of(RSpec::Matchers::BuiltIn::Match)
+      expect(resolved.expected).to eq("foo")
+    end
+  end
 end
