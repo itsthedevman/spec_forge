@@ -141,8 +141,9 @@ RSpec.describe SpecForge::Spec::Expectation do
 
       it "is expected to convert into a constraint" do
         expect(expectation.constraints.status).to eq(404)
-        expect(expectation.constraints.json).to be_kind_of(SpecForge::Attribute::ResolvableHash)
-        expect(expectation.constraints.json[:key_1]).to be_kind_of(SpecForge::Attribute::Faker)
+        json = expectation.constraints.json
+        expect(json).to be_kind_of(SpecForge::Attribute::Matcher)
+        expect(json.arguments[:keyword][:key_1]).to be_kind_of(SpecForge::Attribute::Faker)
       end
     end
 

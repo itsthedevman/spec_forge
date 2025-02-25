@@ -11,10 +11,10 @@ module SpecForge
         # Creates a new Constraint
         #
         # @param status [Integer] The expected HTTP status code
-        # @param json [Hash] The expected JSON with matchers
+        # @param json [Hash, Array] The expected JSON with matchers
         #
         def initialize(status:, json:)
-          super(status:, json: normalize_hash(json))
+          super(status:, json: convert_to_matchers(json))
         end
 
         def to_h
@@ -23,20 +23,21 @@ module SpecForge
 
         private
 
-        def normalize_hash(hash)
-          hash =
-            hash.transform_values do |attribute|
-              case attribute
-              when Attribute::Regex
-                Attribute.from("matcher.match" => attribute.resolve)
-              when Attribute::Literal
-                Attribute.from("matcher.eq" => attribute.resolve)
-              else
-                attribute
-              end
-            end
-
-          Attribute.from(hash)
+        def convert_to_matchers(value)
+          case value
+          when HashLike
+            value = value.transform_values { |i| convert_to_matchers(i) }
+            Attribute.from("matcher.match" => value)
+          when ArrayLike
+            value = value.map { |i| convert_to_matchers(i) }
+            Attribute.from("matcher.contain_exactly" => value)
+          when Attribute::Regex
+            Attribute.from("matcher.match" => value)
+          when Attribute::Literal
+            Attribute.from("matcher.eq" => value)
+          else
+            value
+          end
         end
       end
     end

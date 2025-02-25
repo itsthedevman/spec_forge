@@ -8,7 +8,7 @@ module SpecForge
           type: Integer
         },
         json: {
-          type: Hash,
+          type: [Hash, Array],
           default: {}
         }
       }.freeze
