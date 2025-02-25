@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+return if defined?(SPEC_FORGE_INTERNAL_TESTING)
+
 module RSpec
   module Core
     module Notifications
