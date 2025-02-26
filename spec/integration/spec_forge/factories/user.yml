@@ -1,0 +1,7 @@
+user:
+  class: User
+  attributes:
+    name: faker.name.name
+    email: faker.internet.email
+    role: user
+    active: true
