@@ -25,5 +25,5 @@ SpecForge.configure do |config|
 
   config.on_debug = -> { binding.pry }
 
-  config.specs.formatter = :documentation
+  # config.specs.formatter = :documentation
 end
