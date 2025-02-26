@@ -41,12 +41,12 @@ Consider alternatives when you need:
 ## Roadmap
 
 Current development priorities:
-- [ ] Array support for `json` expectations
 - [ ] Negated matchers: `matcher.not`
 - [ ] `create_list/build_list` factory strategies
 - [ ] `transform.map` support
 - [ ] XML/HTML response handling
 - [ ] OpenAPI generation from tests
+- [x] Array support for `json` expectations
 - [x] Support for running individual specs
 - [x] Improved error handling
 
