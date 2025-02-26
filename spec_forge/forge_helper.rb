@@ -1,37 +1,48 @@
 # frozen_string_literal: true
 
-## Using Rails? Uncomment to load your app
-# ENV["RAILS_ENV"] ||= "test"
+##########################################
+# Framework Integration
+##########################################
+
+# Rails Integration
 # require_relative "../config/environment"
 
-## Not using Rails? Load anything you need here
-# Dir[SpecForge.root.join("lib", "my_api", "models", "**/*.rb")].sort.each { |path| require path }
-
-## Using RSpec? Uncomment to use your existing configurations
+# RSpec Integration (includes your existing configurations)
 # require_relative "../spec/spec_helper"
 
+# Custom requires (models, libraries, etc)
+# Dir[File.join(__dir__, "..", "lib", "**", "*.rb")].sort.each { |f| require f }
+
+##########################################
+# Configuration
+##########################################
+
 SpecForge.configure do |config|
-  ## Base URL prefix for all API requests. All test paths will be appended to this URL
+  # Base configuration
   config.base_url = "http://localhost:3000"
 
-  ## Default request headers - commonly used for authentication and content negotiation
-  api_token = ENV.fetch("API_TOKEN", "")
+  # Default request headers
   config.headers = {
-    "Authorization" => "Bearer #{api_token}"
+    "Authorization" => "Bearer #{ENV.fetch("API_TOKEN", "")}"
   }
 
-  ## Default query parameters - useful for API keys or additional request context
-  # config.query = {api_token:}
+  # Optional: Default query parameters
+  # config.query = {api_key: ENV['API_KEY']}
 
-  ## Factory configuration options
-  ##
-  ## Enable/disable automatic factory discovery. When enabled, SpecForge will automatically
-  ## load factories from FactoryBot's default paths. Note: Factories defined in
-  ## "spec_forge/factories" are always loaded regardless of this setting.
-  # config.factories.auto_discover = false  # Default: true
+  # Factory configuration
+  # config.factories.auto_discover = false        # Default: true
+  # config.factories.paths += ["lib/factories"]   # Adds to default paths
 
-  ##
-  ## Additional paths, relative to the project folder, for discovering FactoryBot factories
-  ## By default, FactoryBot looks in "spec/factories" and "test/factories"
-  # config.factories.paths += ["custom/factories/path"]
+  # Debug configuration
+  # Available in specs with debug: true (aliases: breakpoint, pry)
+  # Defaults to printing state overview (-> { puts inspect })
+  # Available context: expectation, variables, request, response,
+  #                   expected_status, expected_json
+  # config.on_debug { binding.pry }
+
+  # Test Framework Configuration
+  # Useful for database cleaners, test data setup, etc
+  # config.specs.before(:suite) { }
+  # config.specs.around { |example| example.run }
+  # config.specs.formatter = :documentation
 end
