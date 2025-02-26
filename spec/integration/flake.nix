@@ -14,7 +14,7 @@
           config.allowUnfree = true;
         };
 
-        db_user = "hearth";
+        db_user = "spec_forge";
         db_pass = "password12345";
       in
       {

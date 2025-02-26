@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+
+# Exit the script if any command fails
+set -e
+
+# Configuration
+RAILS_PID_FILE="tmp/pids/server.pid"
+TIMEOUT=${TIMEOUT:-5}
+SPEC_FORGE_ARGS="$@"
+
+# Function to clean up resources
+cleanup() {
+    echo "Cleaning up resources..."
+
+    # Check if Rails server is running and stop it
+    if [ -f "$RAILS_PID_FILE" ]; then
+        echo "Stopping Rails server..."
+        kill -INT $(cat "$RAILS_PID_FILE") 2>/dev/null || true
+        rm -f "$RAILS_PID_FILE" 2>/dev/null || true
+        echo "Rails server stopped."
+    fi
+
+    echo "Cleanup complete."
+}
+
+# Set up cleanup on script exit
+trap cleanup EXIT INT TERM
+
+# Make sure we're in the Rails root directory
+if [ ! -f "./config/application.rb" ]; then
+    echo "Error: Must be run from the Rails application root directory."
+    exit 1
+fi
+
+# Start Rails server
+echo "Starting Rails server..."
+bin/dev -d 
+if [ $? -ne 0 ]; then
+    echo "Error: Failed to start Rails server."
+    exit 1
+fi
+
+# Give the server a moment to start up
+echo "Waiting for Rails server to start..."
+for i in $(seq 1 $TIMEOUT); do
+    if curl -s http://localhost:$PORT >/dev/null; then
+        echo "Rails server started successfully after $i seconds."
+        break
+    fi
+
+    if [ $i -eq $TIMEOUT ]; then
+        echo "Error: Rails server failed to start within $TIMEOUT seconds."
+        exit 1
+    fi
+
+    sleep 0.5
+done
+
+# Run SpecForge tests
+echo "Running SpecForge tests..."
+if [ -z "$SPEC_FORGE_ARGS" ]; then
+    bundle exec spec_forge
+else
+    bundle exec spec_forge $SPEC_FORGE_ARGS
+fi
+
+SPEC_FORGE_EXIT_CODE=$?
+echo "SpecForge tests completed with exit code: $SPEC_FORGE_EXIT_CODE"
+
+exit $SPEC_FORGE_EXIT_CODE
