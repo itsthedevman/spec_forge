@@ -5,7 +5,7 @@ set -e
 
 # Configuration
 RAILS_PID_FILE="tmp/pids/server.pid"
-TIMEOUT=${TIMEOUT:-5}
+TIMEOUT=${TIMEOUT:-30}
 SPEC_FORGE_ARGS="$@"
 
 # Function to clean up resources
@@ -34,7 +34,7 @@ fi
 
 # Start Rails server
 echo "Starting Rails server..."
-bin/dev -d 
+bin/dev -d
 if [ $? -ne 0 ]; then
     echo "Error: Failed to start Rails server."
     exit 1
