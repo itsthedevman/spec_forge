@@ -44,6 +44,9 @@ jobs:
       run: bin/rspec
     - name: Setup
       run: spec/integration/bin/setup
+      env:
+        RAILS_ENV: development
+        DATABASE_URL: postgres://postgres:postgres@localhost:5432/spec_forge
     - name: Run Integration Tests
       run: spec/integration/bin/test
       env:
