@@ -43,6 +43,12 @@ RSpec.describe SpecForge::Attribute::Factory do
     end
   end
 
+  context "when 'resolve' is called" do
+    it "is expected to work" do
+      expect(factory.resolve).to be_kind_of(User)
+    end
+  end
+
   context "when the expanded form is used" do
     context "and 'attributes' is provided" do
       let(:keyword) do
@@ -88,11 +94,253 @@ RSpec.describe SpecForge::Attribute::Factory do
         expect(factory.value).to respond_to(:persisted?)
       end
     end
+
+    context "and 'strategy' is 'build_list'" do
+      let(:keyword) do
+        {strategy: "build_list", size: 5}
+      end
+
+      it "is expected to build a list of users" do
+        expect_any_instance_of(User).not_to receive(:save!)
+
+        users = factory.resolve
+
+        expect(users.size).to eq(5)
+        expect(users).to be_all(be_kind_of(User))
+      end
+    end
+
+    context "and 'strategy' is 'create_list'" do
+      let(:keyword) do
+        {strategy: "create_list", size: 3}
+      end
+
+      it "is expected to create a list of users" do
+        save_count = 0
+        allow_any_instance_of(User).to receive(:save!) do |instance|
+          save_count += 1
+          true
+        end
+
+        users = factory.resolve
+
+        expect(users.size).to eq(3)
+        expect(save_count).to eq(3)
+        expect(users).to be_all(be_kind_of(User))
+      end
+    end
+
+    context "and 'strategy' is 'attributes_for_list'" do
+      let(:keyword) do
+        {strategy: "attributes_for_list", size: 20}
+      end
+
+      it "is expected to build a list of attributes for a user" do
+        expect_any_instance_of(User).not_to receive(:save!)
+
+        users = factory.resolve
+
+        expect(users.size).to eq(20)
+        expect(users).to be_all(be_kind_of(Hash))
+      end
+    end
+
+    context "and 'strategy' is 'build_stubbed_list'" do
+      let(:keyword) do
+        {strategy: "build_stubbed_list", size: 15}
+      end
+
+      it "is expected to build a list of attributes for a user" do
+        expect_any_instance_of(User).not_to receive(:save!)
+
+        expect(User.instance_methods).not_to include("persisted?")
+
+        users = factory.resolve
+
+        expect(users.size).to eq(15)
+        expect(users).to be_all(be_kind_of(User))
+        expect(users).to be_all(respond_to(:persisted?))
+      end
+    end
+
+    context "and 'strategy' is 'build_pair'" do
+      let(:keyword) do
+        {strategy: "build_pair"}
+      end
+
+      it "is expected to build a pair of users" do
+        expect_any_instance_of(User).not_to receive(:save!)
+
+        users = factory.resolve
+
+        expect(users.size).to eq(2)
+        expect(users).to be_all(be_kind_of(User))
+      end
+    end
+
+    context "and 'strategy' is 'create_pair'" do
+      let(:keyword) do
+        {strategy: "create_pair"}
+      end
+
+      it "is expected to create a pair of users" do
+        save_count = 0
+        allow_any_instance_of(User).to receive(:save!) do |instance|
+          save_count += 1
+          true
+        end
+
+        users = factory.resolve
+
+        expect(users.size).to eq(2)
+        expect(save_count).to eq(2)
+        expect(users).to be_all(be_kind_of(User))
+      end
+    end
   end
 
-  context "when 'resolve' is called" do
-    it "is expected to work" do
-      expect(factory.resolve).to be_kind_of(User)
+  describe "#construct_factory_parameters" do
+    subject(:parameters) do
+      # Private method and all - I don't usually test private methods
+      factory.send(:construct_factory_parameters, factory.arguments[:keyword])
+    end
+
+    context "when the strategy is 'build' and size is not provided" do
+      let(:keyword) do
+        {strategy: "build"}
+      end
+
+      it { is_expected.to eq(["build", :user]) }
+    end
+
+    context "when the strategy is 'create' and size is not provided" do
+      let(:keyword) do
+        {strategy: "create"}
+      end
+
+      it { is_expected.to eq(["create", :user]) }
+    end
+
+    context "when the strategy is 'stubbed' and size is not provided" do
+      let(:keyword) do
+        {strategy: "stubbed"}
+      end
+
+      it { is_expected.to eq(["build_stubbed", :user]) }
+    end
+
+    context "when the strategy is 'build_stubbed' and size is not provided" do
+      let(:keyword) do
+        {strategy: "build_stubbed"}
+      end
+
+      it { is_expected.to eq(["build_stubbed", :user]) }
+    end
+
+    context "when the strategy is 'attributes_for' and size is not provided" do
+      let(:keyword) do
+        {strategy: "attributes_for"}
+      end
+
+      it { is_expected.to eq(["attributes_for", :user]) }
+    end
+
+    context "when the strategy is 'build' and size is provided" do
+      let(:keyword) do
+        {strategy: "build", size: 1}
+      end
+
+      it { is_expected.to eq(["build_list", :user, 1]) }
+    end
+
+    context "when the strategy is 'create' and size is provided" do
+      let(:keyword) do
+        {strategy: "create", size: 2}
+      end
+
+      it { is_expected.to eq(["create_list", :user, 2]) }
+    end
+
+    context "when the strategy is 'stubbed' and size is provided" do
+      let(:keyword) do
+        {strategy: "stubbed", size: 3}
+      end
+
+      it { is_expected.to eq(["build_stubbed_list", :user, 3]) }
+    end
+
+    context "when the strategy is 'build_stubbed' and size is provided" do
+      let(:keyword) do
+        {strategy: "build_stubbed", size: 3}
+      end
+
+      it { is_expected.to eq(["build_stubbed_list", :user, 3]) }
+    end
+
+    context "when the strategy is 'attributes_for' and size is provided" do
+      let(:keyword) do
+        {strategy: "attributes_for", size: 4}
+      end
+
+      it { is_expected.to eq(["attributes_for_list", :user, 4]) }
+    end
+
+    context "when the strategy is 'build_list' and size is provided" do
+      let(:keyword) do
+        {strategy: "build_list", size: 1}
+      end
+
+      it { is_expected.to eq(["build_list", :user, 1]) }
+    end
+
+    context "when the strategy is 'create_list' and size is provided" do
+      let(:keyword) do
+        {strategy: "create_list", size: 1}
+      end
+
+      it { is_expected.to eq(["create_list", :user, 1]) }
+    end
+
+    context "when the strategy is 'stubbed_list' and size is provided" do
+      let(:keyword) do
+        {strategy: "stubbed_list", size: 1}
+      end
+
+      it { is_expected.to eq(["build_stubbed_list", :user, 1]) }
+    end
+
+    context "when the strategy is 'build_stubbed_list' and size is provided" do
+      let(:keyword) do
+        {strategy: "build_stubbed_list", size: 1}
+      end
+
+      it { is_expected.to eq(["build_stubbed_list", :user, 1]) }
+    end
+
+    context "when the strategy is 'attributes_for_list' and size is provided" do
+      let(:keyword) do
+        {strategy: "attributes_for_list", size: 1}
+      end
+
+      it { is_expected.to eq(["attributes_for_list", :user, 1]) }
+    end
+
+    context "when the strategy is 'build_pair' and size is provided" do
+      let(:keyword) do
+        {strategy: "build_pair", size: 2}
+      end
+
+      # Size is ignored
+      it { is_expected.to eq(["build_pair", :user]) }
+    end
+
+    context "when the strategy is 'create_pair' and size is provided" do
+      let(:keyword) do
+        {strategy: "create_pair", size: 2}
+      end
+
+      # Size is ignored
+      it { is_expected.to eq(["create_pair", :user]) }
     end
   end
 end
