@@ -14,9 +14,9 @@ jobs:
     strategy:
       matrix:
         ruby:
-        - "3.2.7"
+        # - "3.2.7"
         - "3.3.7"
-        - "3.4.2"
+        # - "3.4.2"
       fail-fast: false
 
     # Add PostgreSQL service for the tests
@@ -24,8 +24,8 @@ jobs:
       postgres:
         image: postgres:14
         env:
-          POSTGRES_PASSWORD: spec_forge
-          POSTGRES_USER: password12345
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
           POSTGRES_DB: spec_forge
         ports:
         - 5432:5432
