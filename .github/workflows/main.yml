@@ -15,9 +15,9 @@ jobs:
     strategy:
       matrix:
         ruby:
-        # - "3.2.7"
+        - "3.2.7"
         - "3.3.7"
-        # - "3.4.2"
+        - "3.4.2"
       fail-fast: false
 
     ##############################################
@@ -41,9 +41,9 @@ jobs:
     strategy:
       matrix:
         ruby:
-        # - "3.2.7"
+        - "3.2.7"
         - "3.3.7"
-        # - "3.4.2"
+        - "3.4.2"
       fail-fast: false
 
     # Add PostgreSQL service for the tests
