@@ -32,6 +32,9 @@ jobs:
     ######
     - name: Run RSpec
       run: bin/rspec
+    ######
+    - name: Run Standard
+      run: bin/rake standard
     ##############################################
 
   integration:
