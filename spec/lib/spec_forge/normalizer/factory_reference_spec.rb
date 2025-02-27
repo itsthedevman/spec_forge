@@ -8,7 +8,8 @@ RSpec.describe SpecForge::Normalizer do
         build_strategy: "create",
         attributes: {
           name: "faker.name.name"
-        }
+        },
+        size: 1
       }
     end
 
@@ -65,14 +66,39 @@ RSpec.describe SpecForge::Normalizer do
       end
     end
 
+    context "when 'size' is nil" do
+      before do
+        factory[:size] = nil
+      end
+
+      it do
+        expect(normalized[:size]).to eq(0)
+      end
+    end
+
+    context "when 'size' is not an Integer" do
+      before do
+        factory[:size] = 1.0
+      end
+
+      it do
+        expect { normalized }.to raise_error(
+          SpecForge::InvalidStructureError,
+          "Expected Integer, got Float for \"size\" on factory reference"
+        )
+      end
+    end
+
     context "when aliases are used" do
       before do
         factory[:build_strategy] = "build"
         factory[:strategy] = factory.delete(:build_strategy)
+        factory[:count] = factory.delete(:size)
       end
 
       it do
         expect(normalized[:build_strategy]).to eq(factory[:strategy])
+        expect(normalized[:size]).to eq(factory[:count])
       end
     end
   end
