@@ -1,0 +1,85 @@
+index_users:
+  url: /users
+  variables:
+    users:
+    - factories.user
+    - factories.user
+  expectations:
+  - variables:
+      first_user: variables.users.first
+      second_user: variables.users.second
+    expect:
+      status: 200
+      json:
+        users:
+        - active: true
+          name: variables.first_user.name
+          email: variables.first_user.email
+
+        - active: true
+          name: variables.second_user.name
+          email: variables.second_user.email
+
+show_user:
+  url: /users/{id}
+  expectations:
+  - query:
+      id: -1
+    expect:
+      status: 404
+  - variables:
+      user: factories.user
+    query:
+      id: variables.user.id
+    expect:
+      status: 200
+      json:
+        user:
+          name: variables.user.name
+          email: variables.user.email
+
+create_user:
+  url: /users
+  method: post
+  expectations:
+  - expect:
+      status: 422
+  - variables:
+      name: faker.name.name
+      email: faker.internet.email
+      role: user
+    body:
+      name: variables.name
+      email: variables.email
+    expect:
+      status: 200
+      json:
+        user:
+          name: variables.name
+          email: variables.email
+          role: variables.role
+
+update_user:
+  url: /users/:id
+  method: patch
+  variables:
+    user: factories.user
+  query:
+    id: variables.user.id
+  expectations:
+  - body:
+      role: admin
+    expect:
+      status: 200
+      json:
+        user:
+          name: variables.user.name
+
+# destroy_user:
+#   url: /users/{id}
+#   method: delete
+#   query:
+#     id: 1
+#   expectations:
+#   - expect:
+#       status: 200

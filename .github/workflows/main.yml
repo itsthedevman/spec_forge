@@ -8,9 +8,10 @@ on:
 
 
 jobs:
-  build:
+  # Main unit tests
+  unit:
     runs-on: ubuntu-latest
-    name: Ruby ${{ matrix.ruby }}
+    name: Unit Tests (Ruby ${{ matrix.ruby }})
     strategy:
       matrix:
         ruby:
@@ -19,12 +20,70 @@ jobs:
         - "3.4.2"
       fail-fast: false
 
+    ##############################################
     steps:
     - uses: actions/checkout@v4
+    ######
     - name: Set up Ruby
       uses: ruby/setup-ruby@v1
       with:
         ruby-version: ${{ matrix.ruby }}
         bundler-cache: true
+    ######
     - name: Run RSpec
-      run: bundle exec rspec spec
+      run: bin/rspec
+    ##############################################
+
+  integration:
+    # Integration tests
+    runs-on: ubuntu-latest
+    name: Integration Tests (Ruby ${{ matrix.ruby }})
+    strategy:
+      matrix:
+        ruby:
+        - "3.2.7"
+        - "3.3.7"
+        - "3.4.2"
+      fail-fast: false
+
+    # Add PostgreSQL service for the tests
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: spec_forge
+        ports:
+        - 5432:5432
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+
+    defaults:
+      run:
+        working-directory: spec/integration
+
+    ##############################################
+    steps:
+    - uses: actions/checkout@v4
+    ######
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: ${{ matrix.ruby }}
+        bundler-cache: true
+        working-directory: spec/integration
+    ######
+    - name: Setup database
+      run: bin/rails db:setup
+      env:
+        RAILS_ENV: development
+        DATABASE_URL: postgres://postgres:postgres@localhost:5432/spec_forge
+    ######
+    - name: Run integration tests
+      run: bin/test
+      env:
+        RAILS_ENV: development
+        DATABASE_URL: postgres://postgres:postgres@localhost:5432/spec_forge
+    ##############################################
