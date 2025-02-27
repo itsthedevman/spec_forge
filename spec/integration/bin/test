@@ -6,6 +6,7 @@ set -e
 # Configuration
 RAILS_PID_FILE="tmp/pids/server.pid"
 TIMEOUT=${TIMEOUT:-30}
+PORT=${PORT:-3000}
 SPEC_FORGE_ARGS="$@"
 
 # Function to clean up resources
@@ -34,7 +35,10 @@ fi
 
 # Start Rails server
 echo "Starting Rails server..."
-bin/dev -d
+
+# Explicitly set binding to 0.0.0.0 to work in CI
+bin/rails server -p $PORT -b 0.0.0.0 -d
+
 if [ $? -ne 0 ]; then
     echo "Error: Failed to start Rails server."
     exit 1
@@ -43,17 +47,26 @@ fi
 # Give the server a moment to start up
 echo "Waiting for Rails server to start..."
 for i in $(seq 1 $TIMEOUT); do
-    if curl -s http://localhost:$PORT >/dev/null; then
+    if curl -s http://localhost:$PORT/health >/dev/null 2>&1 || curl -s http://localhost:$PORT >/dev/null 2>&1; then
         echo "Rails server started successfully after $i seconds."
         break
     fi
 
+    # Print server logs to help debug in CI
+    if [ $i -eq 10 ] || [ $i -eq 20 ]; then
+        echo "Server still not responding after $i seconds. Checking logs:"
+        cat log/development.log | tail -n 20
+    fi
+
     if [ $i -eq $TIMEOUT ]; then
         echo "Error: Rails server failed to start within $TIMEOUT seconds."
+        echo "Last 50 lines of the server log:"
+        cat log/development.log | tail -n 50
         exit 1
     fi
 
-    sleep 0.5
+    echo "Waiting... ($i/$TIMEOUT)"
+    sleep 1
 done
 
 # Run SpecForge tests
