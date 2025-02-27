@@ -42,13 +42,18 @@ jobs:
         bundler-cache: true
     - name: Run RSpec
       run: bin/rspec
-    - name: Setup
+    - name: Setup integration gems
+      uses: ruby/setup-ruby@v1
       working-directory: spec/integration
-      run: bin/setup
+      with:
+        bundler-cache: true
+    - name: Setup database
+      working-directory: spec/integration
+      run: bin/rails db:setup
       env:
         RAILS_ENV: development
         DATABASE_URL: postgres://postgres:postgres@localhost:5432/spec_forge
-    - name: Run Integration Tests
+    - name: Run integration tests
       working-directory: spec/integration
       run: bin/test
       env:
