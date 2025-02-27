@@ -1,0 +1,26 @@
+version: 2
+updates:
+- package-ecosystem: "bundler"
+  directory: "/"
+  schedule:
+    interval: "weekly"
+  open-pull-requests-limit: 10
+  labels:
+  - "dependencies"
+  versioning-strategy: auto
+  allow:
+  - dependency-type: "development"
+  - dependency-type: "production"
+  commit-message:
+    prefix: "deps"
+    include: "scope"
+
+# Maintain dependencies for GitHub Actions
+- package-ecosystem: "github-actions"
+  directory: "/"
+  schedule:
+    interval: "monthly"
+  open-pull-requests-limit: 5
+  labels:
+  - "dependencies"
+  - "ci"
