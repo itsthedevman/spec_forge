@@ -31,9 +31,9 @@ module SpecForge
 
               constraints = expectation.constraints
 
-              let!(:expected_status) { constraints.status.resolve }
-              let!(:expected_json) { constraints.json.resolve }
-              let!(:expected_json_class) { expected_json&.expected.class }
+              let(:expected_status) { constraints.status.resolve }
+              let(:expected_json) { constraints.json.resolve }
+              let(:expected_json_class) { expected_json&.expected.class }
 
               before do
                 # Ensure all variables are called and resolved, in case they are not referenced
@@ -98,19 +98,17 @@ module SpecForge
         -> { puts inspect }
       end
 
-      attr_reader :expectation, :variables, :expected_status, :expected_json, :request, :response
+      attr_reader :expectation, :variables, :request
+
+      delegate_missing_to :@spec_context
 
       def initialize(expectation, spec_context)
         @callback = SpecForge.configuration.on_debug
+        @spec_context = spec_context
 
-        @expected_status = spec_context.expected_status
-        @expected_json = spec_context.expected_json
-
-        @request = expectation.http_client.request
-        @response = spec_context.response
-
-        @variables = expectation.variables
         @expectation = expectation
+        @request = expectation.http_client.request
+        @variables = expectation.variables
       end
 
       def call
@@ -121,7 +119,7 @@ module SpecForge
           Available methods:
           - expectation: Full expectation context
           - variables: Current variable definitions
-          - expected_status: Expected HTTP status code (#{expected_status})
+          - expected_status: Expected HTTP status code
           - expected_json: Expected response body
           - expected_json_class: Expected response body class
           - request: HTTP request details (method, url, headers, body)
