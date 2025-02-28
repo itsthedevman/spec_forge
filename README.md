@@ -94,14 +94,17 @@ Also see the [API Documentation](https://itsthedevman.com/docs/spec_forge).
 ## Roadmap
 
 Current development priorities:
-- [ ] Negated matchers: `matcher.not`
-- [ ] `create_list/build_list` factory strategies
-- [ ] `transform.map` support
+
+- [ ] Negated matcher: `matcher.not`
+- [ ] Compound matcher: `matcher.and`
+- [ ] Size matcher: `matcher.size`
+- [ ] Map transform: `transform.map`
 - [ ] XML/HTML response handling
 - [ ] OpenAPI generation from tests
-- [x] Array support for `json` expectations
-- [x] Support for running individual specs
-- [x] Improved error handling
+- [x] ~~`create_list/build_list` factory strategies~~ (Released in v0.5.0)
+- [x] ~~Array support for `json` expectations~~ (Released in v0.5.0)
+- [x] ~~Support for running individual specs~~ (Released in v0.4.0)
+- [x] ~~Improved error reporting~~ (Released in v0.4.0)
 
 Have a feature request? Open an issue on GitHub!
 
