@@ -12,6 +12,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added support for testing array responses via `json`
 - Added check to block RSpec overwrites from running with internal tests
 - Added debugging access to `expected_json_class` variable.
+- Added support for FactoryBot list strategies through the new `size` attribute
+  ```yaml
+  variables:
+    users:
+      factory.user:
+        size: 10  # Creates 10 user records
+  ```
+  - All FactoryBot list methods now supported:
+    - `create_list` (default)
+    - `build_list`
+    - `build_stubbed_list`
+    - `attributes_for_list`
+    - `build_pair`
+    - `create_pair`
+  - Comprehensive documentation available in the [Factory Lists wiki](https://github.com/itsthedevman/spec_forge/wiki/Factory-Lists)
 
 ### Changed
 

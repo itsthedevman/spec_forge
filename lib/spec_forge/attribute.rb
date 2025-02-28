@@ -18,6 +18,8 @@ require_relative "attribute/variable"
 
 module SpecForge
   class Attribute
+    include Resolvable
+
     #
     # Binds variables to Attribute objects
     #
@@ -191,9 +193,9 @@ module SpecForge
     def __resolve(value)
       case value
       when ArrayLike
-        value.map(&:resolve)
+        value.map(&resolvable_proc)
       when HashLike
-        value.transform_values(&:resolve)
+        value.transform_values(&resolvable_proc)
       else
         value
       end

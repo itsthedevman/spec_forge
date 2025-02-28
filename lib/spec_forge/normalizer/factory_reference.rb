@@ -12,6 +12,11 @@ module SpecForge
           type: String,
           aliases: %i[strategy],
           default: "create"
+        },
+        size: {
+          type: Integer,
+          aliases: %i[count],
+          default: 0
         }
       }.freeze
     end
