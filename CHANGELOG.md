@@ -5,7 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+<!--
 ## [Unreleased]
+
+### Added
+
+### Changed
+
+### Removed
+-->
+
+## [Unreleased]
+
+### Added
+
+### Changed
+
+### Removed
+
+## [0.5.0] - 12025-02-28
 
 ### Added
 
@@ -32,8 +50,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Updated `Constraint` to use `include` for testing Hashes and `contains_exactly` for testing Arrays
 - Better handling of positional and keyword argument passing for `Matcher` and `Faker` attributes
-
-### Removed
 
 ## [0.4.0] - 12025-02-22
 
@@ -110,7 +126,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial commit
 
-[unreleased]: https://github.com/itsthedevman/spec_forge/compare/v0.4.0...HEAD
+[unreleased]: https://github.com/itsthedevman/spec_forge/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/itsthedevman/spec_forge/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/itsthedevman/spec_forge/compare/v0.3.2...v0.4.0
 [0.3.2]: https://github.com/itsthedevman/spec_forge/compare/v0.3.0...v0.3.2
 [0.3.0]: https://github.com/itsthedevman/spec_forge/compare/v0.2.0...v0.3.0
