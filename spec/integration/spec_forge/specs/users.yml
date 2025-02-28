@@ -2,8 +2,8 @@ index_users:
   url: /users
   variables:
     users:
-    - factories.user
-    - factories.user
+      factories.user:
+        size: 2
   expectations:
   - variables:
       first_user: variables.users.first
