@@ -29,6 +29,13 @@ class UsersController < AuthorizedController
     render json: {user:}
   end
 
+  def destroy
+    user = authorize User.find_by(id: params[:id])
+    user.destroy!
+
+    render json: {user:}
+  end
+
   private
 
   def permit_create_params

@@ -75,11 +75,18 @@ update_user:
         user:
           name: variables.user.name
 
-# destroy_user:
-#   url: /users/{id}
-#   method: delete
-#   query:
-#     id: 1
-#   expectations:
-#   - expect:
-#       status: 200
+destroy_user:
+  url: /users/{id}
+  method: delete
+  variables:
+    users:
+      factories.user:
+        size: 2
+  query:
+    id: variables.users.first.id
+  expectations:
+  - expect:
+      status: 200
+      json:
+        user:
+          name: variables.users.first.name
