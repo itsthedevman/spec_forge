@@ -5,7 +5,7 @@ module SpecForge
     module Chainable
       NUMBER_REGEX = /^\d+$/i
 
-      attr_reader :header, :invocation_chain, :base_object
+      attr_reader :keyword, :header, :invocation_chain, :base_object
 
       #
       # Represents any attribute that is a series of chained invocations:
@@ -18,11 +18,11 @@ module SpecForge
       def initialize(...)
         super
 
-        # Drop the keyword
-        sections = input.split(".")[1..]
+        sections = input.split(".")
 
-        @header = sections.first&.to_sym
-        @invocation_chain = sections[1..] || []
+        @keyword = sections.first.to_sym
+        @header = sections.second&.to_sym
+        @invocation_chain = sections[2..] || []
       end
 
       def value
@@ -44,19 +44,59 @@ module SpecForge
       end
 
       def traverse_chain(resolve:)
-        result = invocation_chain.reduce(base_object) do |current_value, step|
-          next_value = retrieve_value(current_value, resolve:)
+        resolution_path = {}
 
-          invoke(step, next_value)
+        current_path = "#{keyword}.#{header}"
+        current_object = base_object
+
+        invocation_chain.each do |step|
+          next_value = retrieve_value(current_object, resolve:)
+
+          # Store this step's resolution for error reporting
+          resolution_path[current_path] = describe_value(next_value)
+          current_path += ".#{step}"
+
+          # Try to invoke the next step
+          current_object = invoke(step, next_value)
+        rescue InvalidInvocationError => e
+          resolution_path[current_path] = "Error: #{e.message}"
+
+          raise e.with_resolution_path(resolution_path)
         end
 
-        retrieve_value(result, resolve:)
+        # Return final result
+        retrieve_value(current_object, resolve:)
       end
 
       def retrieve_value(object, resolve:)
         return object unless object.is_a?(Attribute)
 
         resolve ? object.resolve : object.value
+      end
+
+      def describe_value(value)
+        case value
+        when ArrayLike
+          # Preview the first 5 value's classes
+          preview = value.take(5).map(&:class)
+          preview << "..." if value.size > 5
+
+          "Array with #{value.size} #{"element".pluralize(value.size)}: #{preview}"
+        when HashLike
+          # Preview the first 5 keys
+          keys = value.keys.take(5)
+
+          preview = keys.join_map(", ") { |key| "\"#{key}\"" }
+          preview += ", ..." if value.keys.size > 5
+
+          "Hash with #{"key".pluralize(keys.size)}: #{preview}"
+        when String
+          "\"#{value.truncate(40)}\""
+        when NilClass
+          "nil"
+        else
+          "#{value.class} - #{value.inspect[0..30]}"
+        end
       end
 
       def invoke(step, object)
