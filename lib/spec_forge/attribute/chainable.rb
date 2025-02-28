@@ -91,11 +91,11 @@ module SpecForge
 
           "Hash with #{"key".pluralize(keys.size)}: #{preview}"
         when String
-          "\"#{value.truncate(40)}\""
+          "\"#{value.truncate(50)}\""
         when NilClass
           "nil"
         else
-          "#{value.class} - #{value.inspect[0..30]}"
+          "#{value.class}: #{value.inspect[0..50]}"
         end
       end
 
