@@ -70,23 +70,33 @@ module SpecForge
   # Raised by Attribute::Chainable when an step in the invocation chain is invalid
   #
   class InvalidInvocationError < Error
-    def initialize(step, object)
-      valid_operations =
-        case object
-        when ArrayLike
-          "Array index (0, 1, 2, etc.) or any Array methods (first, last, size, etc.)"
-        when HashLike
-          "Any Hash key: #{object.keys.join(", ")}"
-        else
-          "Any method available on #{object.class}"
-        end
+    def initialize(step, object, resolution_path = {})
+      @step = step
+      @object = object
+      @resolution_path = resolution_path
 
       super(<<~STRING.chomp
-        Cannot invoke "#{step}" on #{object.class}.
-
-        Valid operations include: #{valid_operations}
+        Cannot invoke "#{step}" on #{object.class}
+        #{resolution_path_message}
       STRING
       )
+    end
+
+    def with_resolution_path(path)
+      self.class.new(@step, @object, path)
+    end
+
+    private
+
+    def resolution_path_message
+      return "" if @resolution_path.empty?
+
+      message =
+        @resolution_path.map.with_index do |(path, description), index|
+          "#{index + 1}. #{path} --> #{description}"
+        end.join("\n")
+
+      "\nResolution path:\n#{message}"
     end
   end
 

@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+# Exit the script if any command fails
+set -e
+
+bundle exec spec_forge "$@"
