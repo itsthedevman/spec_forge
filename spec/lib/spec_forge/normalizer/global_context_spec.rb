@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 RSpec.describe SpecForge::Normalizer do
-  describe ".normalize_global!" do
+  describe ".normalize_global_context!" do
     let(:global) do
       {
         variables: {
@@ -11,7 +11,7 @@ RSpec.describe SpecForge::Normalizer do
       }
     end
 
-    subject(:normalized) { described_class.normalize_global!(global) }
+    subject(:normalized) { described_class.normalize_global_context!(global) }
 
     it "is expected to normalize normally" do
       expect(normalized).to include(
@@ -40,7 +40,7 @@ RSpec.describe SpecForge::Normalizer do
       it do
         expect { normalized }.to raise_error(
           SpecForge::InvalidStructureError,
-          "Expected Hash, got Integer for \"variables\" on global"
+          "Expected Hash, got Integer for \"variables\" on global context"
         )
       end
     end
