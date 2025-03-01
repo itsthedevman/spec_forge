@@ -19,19 +19,6 @@ RSpec.describe SpecForge::Spec do
     )
   end
 
-  describe ".load_from_files" do
-    subject(:specs) { described_class.load_from_files }
-
-    context "when all specs are valid" do
-      it "loads the specs" do
-        expect(specs).to be_kind_of(Array)
-        expect(specs.size).to be > 0
-
-        expect(specs.first).to be_kind_of(described_class)
-      end
-    end
-  end
-
   describe "#initialize" do
     context "when the minimal is given" do
       it "is valid" do

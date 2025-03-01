@@ -117,7 +117,7 @@ RSpec.describe SpecForge::Normalizer do
         it do
           expect { normalized }.to raise_error(
             SpecForge::InvalidStructureError,
-            "Expected String, got Integer for \"base_url\" on spec"
+            "Expected String, got Integer for \"base_url\" in spec"
           )
         end
       end
@@ -140,7 +140,7 @@ RSpec.describe SpecForge::Normalizer do
         it do
           expect { normalized }.to raise_error(
             SpecForge::InvalidStructureError,
-            "Expected String, got Integer for \"url\" on spec"
+            "Expected String, got Integer for \"url\" (aliases \"path\") in spec"
           )
         end
       end
@@ -167,7 +167,7 @@ RSpec.describe SpecForge::Normalizer do
         it do
           expect { normalized }.to raise_error(
             SpecForge::InvalidStructureError,
-            "Expected String, got Integer for \"http_method\" on spec"
+            "Expected String, got Integer for \"http_method\" (aliases \"method\") in spec"
           )
         end
       end
@@ -190,7 +190,7 @@ RSpec.describe SpecForge::Normalizer do
         it do
           expect { normalized }.to raise_error(
             SpecForge::InvalidStructureError,
-            "Expected Hash, got Integer for \"headers\" on spec"
+            "Expected Hash, got Integer for \"headers\" in spec"
           )
         end
       end
@@ -217,7 +217,7 @@ RSpec.describe SpecForge::Normalizer do
         it do
           expect { normalized }.to raise_error(
             SpecForge::InvalidStructureError,
-            "Expected Hash, got Integer for \"query\" on spec"
+            "Expected Hash, got Integer for \"query\" (aliases \"params\") in spec"
           )
         end
       end
@@ -240,7 +240,7 @@ RSpec.describe SpecForge::Normalizer do
         it do
           expect { normalized }.to raise_error(
             SpecForge::InvalidStructureError,
-            "Expected Hash, got Integer for \"body\" on spec"
+            "Expected Hash, got Integer for \"body\" (aliases \"data\") in spec"
           )
         end
       end
@@ -263,7 +263,7 @@ RSpec.describe SpecForge::Normalizer do
         it do
           expect { normalized }.to raise_error(
             SpecForge::InvalidStructureError,
-            "Expected Hash, got Integer for \"variables\" on spec"
+            "Expected Hash, got Integer for \"variables\" in spec"
           )
         end
       end
@@ -276,7 +276,7 @@ RSpec.describe SpecForge::Normalizer do
         it do
           expect { normalized }.to raise_error(
             SpecForge::InvalidStructureError,
-            "Expected Array, got NilClass for \"expectations\" on spec"
+            "Expected Array, got NilClass for \"expectations\" in spec"
           )
         end
       end
@@ -289,7 +289,7 @@ RSpec.describe SpecForge::Normalizer do
         it do
           expect { normalized }.to raise_error(
             SpecForge::InvalidStructureError,
-            "Expected Array, got Integer for \"expectations\" on spec"
+            "Expected Array, got Integer for \"expectations\" in spec"
           )
         end
       end
@@ -374,7 +374,7 @@ RSpec.describe SpecForge::Normalizer do
         it do
           expect { normalized }.to raise_error(
             SpecForge::InvalidStructureError,
-            "Expected Hash, got NilClass for \"expect\" on expectation (item 0)"
+            "Expected Hash, got NilClass for \"expect\" in expectation (item 0)"
           )
         end
       end
@@ -393,7 +393,7 @@ RSpec.describe SpecForge::Normalizer do
         it do
           expect { normalized }.to raise_error(
             SpecForge::InvalidStructureError,
-            "Expected Integer, got NilClass for \"status\" on expect (item 0)"
+            "Expected Integer, got NilClass for \"status\" in expect (item 0)"
           )
         end
       end

@@ -125,7 +125,7 @@ RSpec.describe SpecForge::Configuration do
       it do
         expect { validated }.to raise_error(
           SpecForge::InvalidStructureError,
-          "Expected String, got NilClass for \"base_url\" on configuration"
+          "Expected String, got NilClass for \"base_url\" in configuration"
         )
       end
     end
@@ -136,7 +136,7 @@ RSpec.describe SpecForge::Configuration do
       it do
         expect { validated }.to raise_error(
           SpecForge::InvalidStructureError,
-          "Expected String, got Integer for \"base_url\" on configuration"
+          "Expected String, got Integer for \"base_url\" in configuration"
         )
       end
     end
@@ -156,7 +156,7 @@ RSpec.describe SpecForge::Configuration do
       it do
         expect { validated }.to raise_error(
           SpecForge::InvalidStructureError,
-          "Expected Hash, got Integer for \"headers\" on configuration"
+          "Expected Hash, got Integer for \"headers\" in configuration"
         )
       end
     end
@@ -176,7 +176,7 @@ RSpec.describe SpecForge::Configuration do
       it do
         expect { validated }.to raise_error(
           SpecForge::InvalidStructureError,
-          "Expected Hash, got Integer for \"query\" on configuration"
+          "Expected Hash, got Integer for \"query\" (aliases \"params\") in configuration"
         )
       end
     end
@@ -187,7 +187,7 @@ RSpec.describe SpecForge::Configuration do
       it do
         expect { validated }.to raise_error(
           SpecForge::InvalidStructureError,
-          "Expected Proc, got NilClass for \"on_debug\" on configuration"
+          "Expected Proc, got NilClass for \"on_debug\" in configuration"
         )
       end
     end
@@ -198,7 +198,7 @@ RSpec.describe SpecForge::Configuration do
       it do
         expect { validated }.to raise_error(
           SpecForge::InvalidStructureError,
-          "Expected Proc, got Integer for \"on_debug\" on configuration"
+          "Expected Proc, got Integer for \"on_debug\" in configuration"
         )
       end
     end
