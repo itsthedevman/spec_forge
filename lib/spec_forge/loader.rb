@@ -4,18 +4,26 @@ module SpecForge
   class Loader
     class << self
       def load_from_files
-        # Load yaml files
-        # Normalize globals
-        # Normalize specs
-        # Return
+        load_specs_from_files.map do |global, specs|
+          # Normalize globals
+          # Normalize specs
+        end
       end
 
       # @private
-      def load_spec_files
+      def load_specs_from_files
         path = SpecForge.forge.join("specs")
 
-        Dir[path.join("**/*.yml")].map do |file_path|
-          content = File.read(file_path)
+        files = Dir[path.join("**/*.yml")].map do |file_path|
+          [file_path, File.read(file_path)]
+        end
+
+        parse_and_transform_specs(path, files)
+      end
+
+      # @private
+      def parse_and_transform_specs(base_path, files)
+        files.map do |file_path, content|
           hash = YAML.load(content).deep_symbolize_keys
 
           file_line_numbers = extract_line_numbers(content, hash)
@@ -25,16 +33,16 @@ module SpecForge
 
           specs =
             hash.map do |spec_name, spec_hash|
+              line_number, *expectation_line_numbers = file_line_numbers[spec_name]
+
               spec_hash[:name] = spec_name.to_s
               spec_hash[:file_path] = file_path
-              spec_hash[:file_name] = file_path.delete_prefix("#{path}/").delete_suffix(".yml")
+              spec_hash[:file_name] = file_path.delete_prefix("#{base_path}/").delete_suffix(".yml")
 
               # Store the lines numbers for both the spec and each expectation
-              line_number, expectation_line_numbers = file_line_numbers[spec_name]
-
               spec_hash[:line_number] = line_number
-              spec_hash[:expectations].each_with_index do |expectation, index|
-                expectation[:line_number] = expectation_line_numbers[index]
+              spec_hash[:expectations].zip(expectation_line_numbers) do |expectation, line_number|
+                expectation[:line_number] = line_number
               end
 
               spec_hash

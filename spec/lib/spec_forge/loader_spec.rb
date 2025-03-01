@@ -1,6 +1,63 @@
 # frozen_string_literal: true
 
 RSpec.describe SpecForge::Loader do
+  describe ".parse_and_transform_specs" do
+    let(:files) do
+      [
+        [
+          "file_path_1",
+          <<~YAML
+            global:
+              variables:
+                var_1: true
+
+            spec_1:
+              path: ""
+              expectations:
+              - expect:
+                  status: 202
+          YAML
+        ],
+        [
+          "file_path_2",
+          <<~YAML
+            spec_2:
+              path: ""
+              expectations:
+              - expect:
+                  status: 202
+          YAML
+        ]
+      ]
+    end
+
+    subject(:transformed) { described_class.parse_and_transform_specs("", files) }
+
+    context "when a global context is defined" do
+      let(:file_1) { transformed.first }
+
+      it "is expected to extract out the global config and specs" do
+        global = file_1.first
+        expect(global).to eq(variables: {var_1: true})
+
+        specs = file_1.second
+        expect(specs).to include(include({name: "spec_1", file_path: "file_path_1"}))
+      end
+    end
+
+    context "when a global context is not defined" do
+      let(:file_2) { transformed.second }
+
+      it "is expected to default to an empty hash" do
+        global = file_2.first
+        expect(global).to eq({})
+
+        specs = file_2.second
+        expect(specs).to include(include({name: "spec_2", file_path: "file_path_2"}))
+      end
+    end
+  end
+
   describe ".extract_line_numbers" do
     let(:content) do
       <<~YAML
