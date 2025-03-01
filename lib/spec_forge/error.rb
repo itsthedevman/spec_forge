@@ -157,4 +157,14 @@ module SpecForge
       )
     end
   end
+
+  class SpecLoadError < Error
+    def initialize(error, file_path)
+      super(<<~STRING.chomp
+        Error loading spec file: #{file_path}
+        Cause: #{error}
+      STRING
+      )
+    end
+  end
 end
