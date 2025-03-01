@@ -21,6 +21,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Improved chainable errors to display each step that was taken and a preview of what was returned
+
 ### Removed
 
 ## [0.5.0] - 12025-02-28
