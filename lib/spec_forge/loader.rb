@@ -14,7 +14,7 @@ module SpecForge
 
           specs =
             specs.map do |spec|
-              Normalizer.normalize_spec!(spec)
+              Normalizer.normalize_spec!(spec, label: "spec \"#{spec[:name]}\"")
             rescue => e
               raise SpecLoadError.new(e, relative_path)
             end
@@ -62,8 +62,12 @@ module SpecForge
 
               # Store the lines numbers for both the spec and each expectation
               spec_hash[:line_number] = line_number
-              spec_hash[:expectations].zip(expectation_line_numbers) do |expectation, line_number|
-                expectation[:line_number] = line_number
+
+              # Check for expectations instead of defaulting. I want it to error
+              if (expectations = spec_hash[:expectations])
+                expectations.zip(expectation_line_numbers) do |expectation, line_number|
+                  expectation[:line_number] = line_number
+                end
               end
 
               spec_hash

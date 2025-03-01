@@ -63,7 +63,32 @@ RSpec.describe SpecForge::Loader do
       end
     end
 
-    context "when the spec is not valid"
+    context "when a spec is not valid" do
+      let(:files) do
+        [
+          [
+            file_path_2,
+            <<~YAML
+              spec_1:
+                path: 1
+            YAML
+          ]
+        ]
+      end
+
+      it do
+        expect { specs }.to raise_error(SpecForge::SpecLoadError) do |e|
+          expect(e.message).to include("Error loading spec file: spec_2.yml")
+          expect(e.message).to include("Causes:")
+          expect(e.message).to include(
+            %{Expected String, got Integer for "url" (aliases "path") in spec "spec_1" (line 1)}
+          )
+          expect(e.message).to include(
+            %{Expected Array, got NilClass for "expectations" in spec "spec_1" (line 1)}
+          )
+        end
+      end
+    end
   end
 
   ##############################################################################
