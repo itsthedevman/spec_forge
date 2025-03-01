@@ -4,26 +4,47 @@ module SpecForge
   class Loader
     class << self
       def load_from_files
-        load_specs_from_files.map do |global, specs|
-          # Normalize globals
-          # Normalize specs
+        load_specs_from_files.map do |relative_path, global, specs|
+          global =
+            begin
+              Normalizer.normalize_global_context!(global)
+            rescue => e
+              raise SpecLoadError.new(e, relative_path)
+            end
+
+          specs =
+            specs.map do |spec|
+              Normalizer.normalize_spec!(spec)
+            rescue => e
+              raise SpecLoadError.new(e, relative_path)
+            end
+
+          [global, specs]
         end
       end
 
       # @private
       def load_specs_from_files
-        path = SpecForge.forge.join("specs")
-
-        files = Dir[path.join("**/*.yml")].map do |file_path|
-          [file_path, File.read(file_path)]
-        end
-
-        parse_and_transform_specs(path, files)
+        files = read_from_files
+        parse_and_transform_specs(files)
       end
 
       # @private
-      def parse_and_transform_specs(base_path, files)
+      def read_from_files
+        path = SpecForge.forge.join("specs")
+
+        Dir[path.join("**/*.yml")].map do |file_path|
+          [file_path, File.read(file_path)]
+        end
+      end
+
+      # @private
+      def parse_and_transform_specs(files)
+        base_path = SpecForge.forge.join("specs")
+
         files.map do |file_path, content|
+          relative_path = Pathname.new(file_path).relative_path_from(base_path)
+
           hash = YAML.load(content).deep_symbolize_keys
 
           file_line_numbers = extract_line_numbers(content, hash)
@@ -37,7 +58,7 @@ module SpecForge
 
               spec_hash[:name] = spec_name.to_s
               spec_hash[:file_path] = file_path
-              spec_hash[:file_name] = file_path.delete_prefix("#{base_path}/").delete_suffix(".yml")
+              spec_hash[:file_name] = relative_path.basename(".yml").to_s
 
               # Store the lines numbers for both the spec and each expectation
               spec_hash[:line_number] = line_number
@@ -48,7 +69,7 @@ module SpecForge
               spec_hash
             end
 
-          [global, specs]
+          [relative_path, global, specs]
         end
       end
 

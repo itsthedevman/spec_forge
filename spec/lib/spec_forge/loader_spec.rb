@@ -1,11 +1,78 @@
 # frozen_string_literal: true
 
 RSpec.describe SpecForge::Loader do
+  let(:file_path_1) { SpecForge.forge.join("specs", "spec_1.yml") }
+  let(:file_path_2) { SpecForge.forge.join("specs", "spec_2.yml") }
+
+  describe ".load_from_files" do
+    subject(:specs) { described_class.load_from_files }
+
+    before do
+      expect(described_class).to receive("read_from_files").and_return(files)
+    end
+
+    context "when everything is valid" do
+      let(:files) do
+        [
+          [
+            file_path_1,
+            <<~YAML
+              spec_1:
+                path: ""
+                expectations:
+                - expect:
+                    status: 202
+            YAML
+          ]
+        ]
+      end
+
+      it "is expected to return the normalized specs" do
+        global = specs.first.first
+        spec = specs.first.second.first
+
+        expect(global).to have_key(:variables)
+        expect(spec).to include(query: {}, body: {}, debug: false)
+      end
+    end
+
+    context "when the global context is not valid" do
+      let(:files) do
+        [
+          [
+            file_path_1,
+            <<~YAML
+              global:
+                variables: 1
+
+              spec_1:
+                path: ""
+                expectations:
+                - expect:
+                    status: 202
+            YAML
+          ]
+        ]
+      end
+
+      it do
+        expect { specs }.to raise_error(SpecForge::SpecLoadError) do |e|
+          expect(e.message).to include("Error loading spec file: spec_1.yml")
+          expect(e.message).to include("Cause: Expected Hash, got Integer")
+        end
+      end
+    end
+
+    context "when the spec is not valid"
+  end
+
+  ##############################################################################
+
   describe ".parse_and_transform_specs" do
     let(:files) do
       [
         [
-          "file_path_1",
+          file_path_1,
           <<~YAML
             global:
               variables:
@@ -19,7 +86,7 @@ RSpec.describe SpecForge::Loader do
           YAML
         ],
         [
-          "file_path_2",
+          file_path_2,
           <<~YAML
             spec_2:
               path: ""
@@ -31,17 +98,20 @@ RSpec.describe SpecForge::Loader do
       ]
     end
 
-    subject(:transformed) { described_class.parse_and_transform_specs("", files) }
+    subject(:transformed) { described_class.parse_and_transform_specs(files) }
 
     context "when a global context is defined" do
       let(:file_1) { transformed.first }
 
       it "is expected to extract out the global config and specs" do
-        global = file_1.first
+        file_name = file_1.first
+        expect(file_name).to eq(Pathname.new("spec_1.yml"))
+
+        global = file_1.second
         expect(global).to eq(variables: {var_1: true})
 
-        specs = file_1.second
-        expect(specs).to include(include({name: "spec_1", file_path: "file_path_1"}))
+        specs = file_1.third
+        expect(specs).to include(include({name: "spec_1", file_path: file_path_1}))
       end
     end
 
@@ -49,14 +119,19 @@ RSpec.describe SpecForge::Loader do
       let(:file_2) { transformed.second }
 
       it "is expected to default to an empty hash" do
-        global = file_2.first
+        file_name = file_2.first
+        expect(file_name).to eq(Pathname.new("spec_2.yml"))
+
+        global = file_2.second
         expect(global).to eq({})
 
-        specs = file_2.second
-        expect(specs).to include(include({name: "spec_2", file_path: "file_path_2"}))
+        specs = file_2.third
+        expect(specs).to include(include({name: "spec_2", file_path: file_path_2}))
       end
     end
   end
+
+  ##############################################################################
 
   describe ".extract_line_numbers" do
     let(:content) do
