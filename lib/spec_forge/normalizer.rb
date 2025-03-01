@@ -140,7 +140,20 @@ module SpecForge
 
         # Type + existence check
         if !valid_class?(value, type_class)
-          raise InvalidTypeError.new(value, type_class, for: "\"#{key}\" on #{label}")
+          for_context = "\"#{key}\""
+
+          if aliases.size > 0
+            aliases = aliases.join_map(", ") { |a| a.to_s.in_quotes }
+            for_context += " (aliases #{aliases})"
+          end
+
+          for_context += " in #{label}"
+
+          if (line_number = input[:line_number])
+            for_context += " (line #{line_number})"
+          end
+
+          raise InvalidTypeError.new(value, type_class, for: for_context)
         end
 
         value =
