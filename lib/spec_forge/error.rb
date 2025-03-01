@@ -160,11 +160,17 @@ module SpecForge
 
   class SpecLoadError < Error
     def initialize(error, file_path)
-      super(<<~STRING.chomp
-        Error loading spec file: #{file_path}
-        Cause: #{error}
-      STRING
-      )
+      message = "Error loading spec file: #{file_path}\n"
+      causes = error.message.split("\n").map(&:strip).reject(&:empty?)
+
+      message +=
+        if causes.size > 1
+          "Causes:\n  - #{causes.join_map("\n  - ")}"
+        else
+          "Cause: #{error}"
+        end
+
+      super(message)
     end
   end
 end
