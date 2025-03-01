@@ -36,9 +36,9 @@ module SpecForge
       #
       # @return [Hash] A normalized hash as a new instance
       #
-      def normalize_spec!(input)
+      def normalize_spec!(input, label: "spec")
         raise_errors! do
-          output, errors = normalize_spec(input)
+          output, errors = normalize_spec(input, label:)
 
           # Process expectations
           if (expectations = input[:expectations]) && Type.array?(expectations)
@@ -64,10 +64,10 @@ module SpecForge
       #
       # @private
       #
-      def normalize_spec(spec)
-        raise InvalidTypeError.new(spec, Hash, for: "spec") unless Type.hash?(spec)
+      def normalize_spec(spec, label: "spec")
+        raise InvalidTypeError.new(spec, Hash, for: label) unless Type.hash?(spec)
 
-        Normalizer::Spec.new("spec", spec).normalize
+        Normalizer::Spec.new(label, spec).normalize
       end
     end
   end
