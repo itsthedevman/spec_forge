@@ -102,7 +102,7 @@ GEM
     diff-lcs (1.6.0)
     drb (2.2.1)
     erubi (1.13.1)
-    everythingrb (0.2.0)
+    everythingrb (0.2.1)
       json (~> 2.9)
       ostruct (~> 0.6)
     factory_bot (6.5.1)
