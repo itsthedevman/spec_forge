@@ -1,7 +1,18 @@
 # frozen_string_literal: true
 
 module SpecForge
-  module Context
+  class Context
+    def clear
+      raise "not implemented"
+    end
+
+    def store(value)
+      raise "not implemented"
+    end
+
+    def retrieve(value)
+      raise "not implemented"
+    end
   end
 end
 
