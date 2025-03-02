@@ -3,24 +3,26 @@
 module SpecForge
   class Runner
     class << self
-      #
-      # Runs any specs
-      #
+      def define(forges)
+        forges.each do |forge|
+          define_forge(forge)
+        end
+      end
+
       def run
         # Allows me to modify the error backtrace reporting within rspec
         RSpec.configuration.instance_variable_set(:@backtrace_formatter, BacktraceFormatter)
-
-        RSpec::Core::Runner.disable_autorun!
-        RSpec::Core::Runner.run([], $stderr, $stdout)
+        RSpec::Core::Runner.invoke!
       end
 
-      #
-      # Defines a spec with RSpec
-      #
-      # @param spec_forge [Spec] The spec to define
-      #
+      def define_forge(forge)
+        runner = self
+
+        RSpec.describe()
+      end
+
       def define_spec(spec_forge)
-        runner_forge = self
+
 
         RSpec.describe(spec_forge.name) do
           spec_forge.expectations.each do |expectation|
@@ -90,59 +92,7 @@ module SpecForge
         RSpec.current_example.metadata.merge!(metadata)
       end
     end
-
-    ################################################################################################
-
-    class DebugProxy
-      def self.default
-        -> { puts inspect }
-      end
-
-      attr_reader :expectation, :variables, :request
-
-      delegate_missing_to :@spec_context
-
-      def initialize(expectation, spec_context)
-        @callback = SpecForge.configuration.on_debug
-        @spec_context = spec_context
-
-        @expectation = expectation
-        @request = expectation.http_client.request
-        @variables = expectation.variables
-      end
-
-      def call
-        puts <<~STRING
-
-          Debug triggered for: #{expectation.name}
-
-          Available methods:
-          - expectation: Full expectation context
-          - variables: Current variable definitions
-          - expected_status: Expected HTTP status code
-          - expected_json: Expected response body
-          - expected_json_class: Expected response body class
-          - request: HTTP request details (method, url, headers, body)
-          - response: HTTP response
-
-          Tip: Type 'self' for a JSON overview of the current state
-               Individual methods return full object details for advanced debugging
-        STRING
-
-        instance_exec(&@callback)
-      end
-
-      def inspect
-        hash = expectation.to_h
-
-        hash[:response] = {
-          headers: response.headers,
-          status: response.status,
-          body: response.body
-        }
-
-        JSON.pretty_generate(hash)
-      end
-    end
   end
 end
+
+require_relative "runner/debug_proxy"
