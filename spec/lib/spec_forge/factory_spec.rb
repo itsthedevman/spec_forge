@@ -2,7 +2,7 @@
 
 RSpec.describe SpecForge::Factory do
   describe ".load_and_register" do
-    let(:path) { SpecForge.forge }
+    let(:path) { SpecForge.forge_path }
 
     subject(:factories) { described_class.load_and_register }
 

@@ -8,7 +8,7 @@ module SpecForge
       summary "Initializes directory structure and configuration files"
 
       def call
-        base_path = SpecForge.forge
+        base_path = SpecForge.forge_path
         actions.empty_directory "#{base_path}/factories"
         actions.empty_directory "#{base_path}/specs"
 

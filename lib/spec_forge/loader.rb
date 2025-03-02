@@ -31,7 +31,7 @@ module SpecForge
 
       # @private
       def read_from_files
-        path = SpecForge.forge.join("specs")
+        path = SpecForge.forge_path.join("specs")
 
         Dir[path.join("**/*.yml")].map do |file_path|
           [file_path, File.read(file_path)]
@@ -40,7 +40,7 @@ module SpecForge
 
       # @private
       def parse_and_transform_specs(files)
-        base_path = SpecForge.forge.join("specs")
+        base_path = SpecForge.forge_path.join("specs")
 
         files.map do |file_path, content|
           relative_path = Pathname.new(file_path).relative_path_from(base_path)

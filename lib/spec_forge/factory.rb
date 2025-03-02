@@ -24,7 +24,7 @@ module SpecForge
     #   See #register
     #
     def self.load_from_files
-      path = SpecForge.forge.join("factories", "**/*.yml")
+      path = SpecForge.forge_path.join("factories", "**/*.yml")
 
       factories = []
 
