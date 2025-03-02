@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 RSpec.describe SpecForge::Loader do
-  let(:file_path_1) { SpecForge.forge.join("specs", "spec_1.yml") }
-  let(:file_path_2) { SpecForge.forge.join("specs", "spec_2.yml") }
+  let(:file_path_1) { SpecForge.forge_path.join("specs", "spec_1.yml") }
+  let(:file_path_2) { SpecForge.forge_path.join("specs", "spec_2.yml") }
 
   describe ".load_from_files" do
     subject(:specs) { described_class.load_from_files }
