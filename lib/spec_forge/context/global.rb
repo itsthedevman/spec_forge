@@ -3,8 +3,8 @@
 module SpecForge
   class Context
     class Global < Context
-      def initialize
-        @variables = Variables.new
+      def initialize(variables: {})
+        @variables = Variables.new(variables)
       end
 
       def clear

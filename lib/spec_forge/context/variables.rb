@@ -3,8 +3,8 @@
 module SpecForge
   class Context
     class Variables < Context
-      def initialize
-        clear
+      def initialize(variables = {})
+        store(variables)
       end
 
       def clear
