@@ -14,7 +14,10 @@ module SpecForge
         # @param json [Hash, Array] The expected JSON with matchers
         #
         def initialize(status:, json:)
-          super(status:, json: convert_to_matchers(json))
+          super(
+            status: Attribute.from(status),
+            json: convert_to_matchers(json)
+          )
         end
 
         def to_h
@@ -26,6 +29,8 @@ module SpecForge
         def convert_to_matchers(value)
           # This makes it easier to check if json was provided
           return Attribute.from(nil) if value.blank?
+
+          value = Attribute.from(value)
 
           case value
           when HashLike
