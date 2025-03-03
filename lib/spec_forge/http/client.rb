@@ -3,15 +3,12 @@
 module SpecForge
   module HTTP
     class Client
-      attr_reader :request
-
       #
       # Creates a new HTTP client to middleman between the tests and the backend
       #
       # @param ** [Hash] Request attributes
       #
       def initialize(**)
-        @request = Request.new(**)
         @adapter = Backend.new(request)
       end
 
@@ -20,7 +17,7 @@ module SpecForge
       #
       # @return [Hash] The response
       #
-      def call
+      def call(request)
         @adapter.public_send(
           request.http_verb,
           request.url,
