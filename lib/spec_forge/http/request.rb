@@ -5,15 +5,13 @@ module SpecForge
     class Request < Data.define(:base_url, :url, :http_method, :headers, :query, :body)
       HEADER = /^[A-Z][A-Za-z0-9!-]*$/
 
-      def initialize(**input)
-        url = extract_url(input)
-        base_url = extract_base_url(input)
-        http_method = normalize_http_method(input)
-        headers = normalize_headers(input)
-        query = normalize_query(input)
-        body = normalize_body(input)
+      def initialize(base_url:, url:, http_method:, headers:, query:, body:)
+        http_method = normalize_http_method(http_method)
+        headers = normalize_headers(headers)
+        query = normalize_query(query)
+        body = normalize_body(body)
 
-        super(base_url:, url:, http_method:, headers:, query:, body:)
+        super
       end
 
       def http_verb
@@ -26,16 +24,8 @@ module SpecForge
 
       private
 
-      def extract_base_url(input)
-        input[:base_url]
-      end
-
-      def extract_url(input)
-        input[:url]
-      end
-
-      def normalize_http_method(input)
-        method = input[:http_method].presence || "GET"
+      def normalize_http_method(http_method)
+        method = http_method.presence || "GET"
 
         if method.is_a?(String)
           Verb.from(method)
@@ -44,28 +34,29 @@ module SpecForge
         end
       end
 
-      def normalize_headers(input)
-        headers = input[:headers].transform_keys do |key|
-          key = key.to_s
+      def normalize_headers(headers)
+        headers =
+          headers.transform_keys do |key|
+            key = key.to_s
 
-          # If the key is already like a header, don't change it
-          if key.match?(HEADER)
-            key
-          else
-            # content_type => Content-Type
-            key.downcase.titleize.gsub(/\s+/, "-")
+            # If the key is already like a header, don't change it
+            if key.match?(HEADER)
+              key
+            else
+              # content_type => Content-Type
+              key.downcase.titleize.gsub(/\s+/, "-")
+            end
           end
-        end
 
         Attribute.from(headers)
       end
 
-      def normalize_query(input)
-        Attribute.from(input[:query])
+      def normalize_query(query)
+        Attribute.from(query)
       end
 
-      def normalize_body(input)
-        Attribute.from(input[:body])
+      def normalize_body(body)
+        Attribute.from(body)
       end
     end
   end
