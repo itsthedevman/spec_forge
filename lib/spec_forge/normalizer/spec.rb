@@ -5,6 +5,7 @@ module SpecForge
     class Spec < Normalizer
       STRUCTURE = {
         # Internal
+        id: Normalizer::SHARED_ATTRIBUTES[:id],
         name: {type: String},
         file_name: {type: String},
         file_path: {type: String},

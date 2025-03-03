@@ -5,6 +5,7 @@ module SpecForge
     class Expectation < Normalizer
       STRUCTURE = {
         # Internal
+        id: Normalizer::SHARED_ATTRIBUTES[:id],
         line_number: Normalizer::SHARED_ATTRIBUTES[:line_number],
 
         # User defined
