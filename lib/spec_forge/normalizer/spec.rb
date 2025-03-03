@@ -4,6 +4,13 @@ module SpecForge
   class Normalizer
     class Spec < Normalizer
       STRUCTURE = {
+        # Internal
+        name: {type: String},
+        file_name: {type: String},
+        file_path: {type: String},
+        line_number: Normalizer::SHARED_ATTRIBUTES[:line_number],
+
+        # User defined
         base_url: Normalizer::SHARED_ATTRIBUTES[:base_url],
         url: Normalizer::SHARED_ATTRIBUTES[:url],
         http_method: Normalizer::SHARED_ATTRIBUTES[:http_method],

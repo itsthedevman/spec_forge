@@ -3,6 +3,7 @@
 module SpecForge
   class Normalizer
     SHARED_ATTRIBUTES = {
+      line_number: {type: Integer},
       base_url: {
         type: String,
         default: ""

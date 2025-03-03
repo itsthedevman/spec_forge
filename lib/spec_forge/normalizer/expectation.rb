@@ -4,6 +4,10 @@ module SpecForge
   class Normalizer
     class Expectation < Normalizer
       STRUCTURE = {
+        # Internal
+        line_number: Normalizer::SHARED_ATTRIBUTES[:line_number],
+
+        # User defined
         name: {type: String, default: ""},
         base_url: Normalizer::SHARED_ATTRIBUTES[:base_url],
         url: Normalizer::SHARED_ATTRIBUTES[:url],
