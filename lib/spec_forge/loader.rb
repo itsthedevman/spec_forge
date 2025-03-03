@@ -4,22 +4,23 @@ module SpecForge
   class Loader
     class << self
       def load_from_files
-        load_specs_from_files.map do |relative_path, global, specs|
+        # metadata is not normalized because its not user managed
+        load_specs_from_files.map do |global, metadata, specs|
           global =
             begin
               Normalizer.normalize_global_context!(global)
             rescue => e
-              raise SpecLoadError.new(e, relative_path)
+              raise SpecLoadError.new(e, metadata[:relative_path])
             end
 
           specs =
             specs.map do |spec|
               Normalizer.normalize_spec!(spec, label: "spec \"#{spec[:name]}\"")
             rescue => e
-              raise SpecLoadError.new(e, relative_path)
+              raise SpecLoadError.new(e, metadata[:relative_path])
             end
 
-          [global, specs]
+          [global, metadata, specs]
         end
       end
 
@@ -52,13 +53,19 @@ module SpecForge
           # Currently, only holds onto global variables
           global = hash.delete(:global) || {}
 
+          metadata = {
+            file_name: relative_path.basename(".yml").to_s,
+            relative_path: relative_path.to_s,
+            file_path:
+          }
+
           specs =
             hash.map do |spec_name, spec_hash|
               line_number, *expectation_line_numbers = file_line_numbers[spec_name]
 
               spec_hash[:name] = spec_name.to_s
-              spec_hash[:file_path] = file_path
-              spec_hash[:file_name] = relative_path.basename(".yml").to_s
+              spec_hash[:file_path] = metadata[:file_path]
+              spec_hash[:file_name] = metadata[:file_name]
 
               # Store the lines numbers for both the spec and each expectation
               spec_hash[:line_number] = line_number
@@ -73,7 +80,7 @@ module SpecForge
               spec_hash
             end
 
-          [relative_path, global, specs]
+          [global, metadata, specs]
         end
       end
 

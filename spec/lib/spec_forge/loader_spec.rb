@@ -29,9 +29,11 @@ RSpec.describe SpecForge::Loader do
 
       it "is expected to return the normalized specs" do
         global = specs.first.first
-        spec = specs.first.second.first
+        metadata = specs.first.second
+        spec = specs.first.third.first
 
         expect(global).to have_key(:variables)
+        expect(metadata).to include(file_name: "spec_1", file_path: file_path_1)
         expect(spec).to include(query: {}, body: {}, debug: false)
       end
     end
@@ -129,11 +131,11 @@ RSpec.describe SpecForge::Loader do
       let(:file_1) { transformed.first }
 
       it "is expected to extract out the global config and specs" do
-        file_name = file_1.first
-        expect(file_name).to eq(Pathname.new("spec_1.yml"))
-
-        global = file_1.second
+        global = file_1.first
         expect(global).to eq(variables: {var_1: true})
+
+        metadata = file_1.second
+        expect(metadata).to include(file_name: "spec_1", file_path: file_path_1)
 
         specs = file_1.third
         expect(specs).to include(include({name: "spec_1", file_path: file_path_1}))
@@ -144,11 +146,11 @@ RSpec.describe SpecForge::Loader do
       let(:file_2) { transformed.second }
 
       it "is expected to default to an empty hash" do
-        file_name = file_2.first
-        expect(file_name).to eq(Pathname.new("spec_2.yml"))
-
-        global = file_2.second
+        global = file_2.first
         expect(global).to eq({})
+
+        metadata = file_2.second
+        expect(metadata).to include(file_name: "spec_2", file_path: file_path_2)
 
         specs = file_2.third
         expect(specs).to include(include({name: "spec_2", file_path: file_path_2}))
