@@ -16,7 +16,7 @@ RSpec.describe SpecForge::Spec::Expectation do
       let(:input) do
         {
           url: "/users/admin",
-          http_method: "POST",
+          http_verb: "POST",
           headers: {
             header_1: 3
           },
@@ -38,7 +38,7 @@ RSpec.describe SpecForge::Spec::Expectation do
       let(:global_options) do
         {
           url: "/users",
-          http_method: "GET",
+          http_verb: "GET",
           headers: {
             header_1: 1,
             header_2: 2
@@ -64,7 +64,7 @@ RSpec.describe SpecForge::Spec::Expectation do
         expect(expectation.variables).to eq(var_1: 1, var_2: 3)
 
         expect(request.url).to eq(input[:url])
-        expect(request.http_method).to eq(input[:http_method])
+        expect(request.http_verb).to eq(input[:http_verb])
         expect(request.headers).to eq("Header-1" => 3, "Header-2" => 2) # Request modifies these
         expect(request.query).to eq(query_1: 1, query_2: 3)
         expect(request.body).to eq(body_1: 3, body_2: 2)
@@ -97,7 +97,7 @@ RSpec.describe SpecForge::Spec::Expectation do
         expect(expectation.variables).to eq(var_1: "data")
 
         expect(request.url).to eq(input[:url])
-        expect(request.http_method).to eq("GET")
+        expect(request.http_verb).to eq("GET")
         expect(request.headers).to eq("Header-1" => "data")
         expect(request.query).to eq(query_1: "data")
         expect(request.body).to eq(body_1: "data")

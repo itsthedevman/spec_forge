@@ -21,8 +21,8 @@ RSpec.describe SpecForge::HTTP::Request do
   subject(:request) { described_class.new(**options) }
 
   describe "#initialize" do
-    it "defaults http_method to GET" do
-      expect(request.http_method).to be_kind_of(SpecForge::HTTP::Verb::Get)
+    it "defaults http_verb to GET" do
+      expect(request.http_verb).to be_kind_of(SpecForge::HTTP::Verb::Get)
     end
 
     context "when 'headers' are provided" do
@@ -59,11 +59,11 @@ RSpec.describe SpecForge::HTTP::Request do
       end
     end
 
-    context "when 'http_method' is mixed case" do
+    context "when 'http_verb' is mixed case" do
       let(:method) { "DeLeTe" }
 
       it "works because it is case insensitive" do
-        expect(request.http_method).to eq("DELETE")
+        expect(request.http_verb).to eq("DELETE")
       end
     end
   end

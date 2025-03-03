@@ -14,9 +14,9 @@ module SpecForge
         aliases: %i[path],
         default: ""
       },
-      http_method: {
+      http_verb: {
         type: String,
-        aliases: %i[method],
+        aliases: %i[method http_method],
         default: ""
       },
       headers: {

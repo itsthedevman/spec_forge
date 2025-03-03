@@ -14,7 +14,7 @@ module SpecForge
         # User defined
         base_url: Normalizer::SHARED_ATTRIBUTES[:base_url],
         url: Normalizer::SHARED_ATTRIBUTES[:url],
-        http_method: Normalizer::SHARED_ATTRIBUTES[:http_method],
+        http_verb: Normalizer::SHARED_ATTRIBUTES[:http_verb],
         headers: Normalizer::SHARED_ATTRIBUTES[:headers],
         query: Normalizer::SHARED_ATTRIBUTES[:query],
         body: Normalizer::SHARED_ATTRIBUTES[:body],

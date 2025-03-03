@@ -2,11 +2,11 @@
 
 module SpecForge
   module HTTP
-    class Request < Data.define(:base_url, :url, :http_method, :headers, :query, :body)
+    class Request < Data.define(:base_url, :url, :http_verb, :headers, :query, :body)
       HEADER = /^[A-Z][A-Za-z0-9!-]*$/
 
-      def initialize(base_url:, url:, http_method:, headers:, query:, body:)
-        http_method = normalize_http_method(http_method)
+      def initialize(base_url:, url:, http_verb:, headers:, query:, body:)
+        http_verb = normalize_http_verb(http_verb)
         headers = normalize_headers(headers)
         query = normalize_query(query)
         body = normalize_body(body)
@@ -15,7 +15,7 @@ module SpecForge
       end
 
       def http_verb
-        http_method.name.downcase
+        http_verb.name.downcase
       end
 
       def to_h
@@ -24,8 +24,8 @@ module SpecForge
 
       private
 
-      def normalize_http_method(http_method)
-        method = http_method.presence || "GET"
+      def normalize_http_verb(http_verb)
+        method = http_verb.presence || "GET"
 
         if method.is_a?(String)
           Verb.from(method)
