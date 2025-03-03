@@ -13,7 +13,7 @@ module SpecForge
         # @param status [Integer] The expected HTTP status code
         # @param json [Hash, Array] The expected JSON with matchers
         #
-        def initialize(status:, json:)
+        def initialize(status:, json: {})
           super(
             status: Attribute.from(status),
             json: convert_to_matchers(json)
