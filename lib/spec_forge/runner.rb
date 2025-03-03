@@ -18,47 +18,41 @@ module SpecForge
       def define_forge(forge)
         runner = self
 
-        RSpec.describe()
-      end
+        RSpec.describe(forge.name) do
+          forge.specs.each do |forge_spec|
+            describe(forge_spec.name) do
+              forge_spec.expectations do |expectation|
+                # Set up the class metadata for error reporting
+                runner.set_group_metadata(self, forge_spec, expectation)
 
-      def define_spec(spec_forge)
+                # constraints = expectation.constraints
 
+                # let(:expected_status) { constraints.status.resolve }
+                # let(:expected_json) { constraints.json.resolve }
+                # let(:expected_json_class) { expected_json&.expected.class }
 
-        RSpec.describe(spec_forge.name) do
-          spec_forge.expectations.each do |expectation|
-            # Define the example group
-            describe(expectation.name) do
-              # Set up the class metadata for error reporting
-              runner_forge.set_group_metadata(self, spec_forge, expectation)
+                before do
+                  # Ensure all variables are called and resolved, in case they are not referenced
 
-              constraints = expectation.constraints
-
-              let(:expected_status) { constraints.status.resolve }
-              let(:expected_json) { constraints.json.resolve }
-              let(:expected_json_class) { expected_json&.expected.class }
-
-              before do
-                # Ensure all variables are called and resolved, in case they are not referenced
-                expectation.variables.resolve
-
-                # Set up the example metadata for error reporting
-                runner_forge.set_example_metadata(spec_forge, expectation)
-              end
-
-              subject(:response) { expectation.http_client.call }
-
-              it do
-                if spec_forge.debug? || expectation.debug?
-                  runner_forge.handle_debug(expectation, self)
+                  # Set up the example metadata for error reporting
+                  runner.set_example_metadata(forge_spec, expectation)
                 end
 
-                # Status check
-                expect(response.status).to eq(expected_status)
+                subject(:response) { expectation.http_client.call }
 
-                # JSON check
-                if expected_json
-                  expect(response.body).to be_kind_of(expected_json_class)
-                  expect(response.body).to expected_json
+                it do
+                  if forge_spec.debug? || expectation.debug?
+                    runner.handle_debug(expectation, self)
+                  end
+
+                  # # Status check
+                  # expect(response.status).to eq(expected_status)
+
+                  # # JSON check
+                  # if expected_json
+                  #   expect(response.body).to be_kind_of(expected_json_class)
+                  #   expect(response.body).to expected_json
+                  # end
                 end
               end
             end
