@@ -25,12 +25,10 @@ module SpecForge
       private
 
       def normalize_http_verb(http_verb)
-        method = http_verb.presence || "GET"
-
-        if method.is_a?(String)
-          Verb.from(method)
+        if http_verb.is_a?(String)
+          Verb.from(http_verb)
         else
-          method
+          http_verb
         end
       end
 
