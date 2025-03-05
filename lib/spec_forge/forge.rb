@@ -3,6 +3,7 @@
 module SpecForge
   class Forge
     attr_reader :name, :global, :metadata, :specs, :variables, :request
+    attr_writer :specs
 
     def initialize(global, metadata, specs)
       @name = metadata[:relative_path]
@@ -65,7 +66,10 @@ module SpecForge
 
         overlay.reject! { |_k, v| v.blank? }
 
-        hash[spec[:id]] = {base: spec.extract!(*request_attributes), overlay:}
+        base = spec.extract!(*request_attributes)
+        base[:http_verb] = "GET" if base[:http_verb].blank?
+
+        hash[spec[:id]] = {base:, overlay:}
       end
     end
 
