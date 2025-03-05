@@ -13,19 +13,25 @@ module SpecForge
           raise ArgumentError, "The spec's filename is required when filtering by a spec's name"
         end
 
-        forges.select do |forge|
-          specs = forge.specs
+        forges.filter_map do |forge|
+          specs = forge.specs.filter_map do |spec|
+            next if file_name && spec.file_name != file_name  # File filter
+            next if spec_name && spec.name != spec_name       # Name filter
 
-          specs.select! { |spec| spec.file_name == file_name } if file_name
-          specs.select! { |spec| spec.name == spec_name } if spec_name
+            # Expectation filter
+            next spec unless expectation_name
 
-          if expectation_name
-            specs.each do |spec|
-              spec.expectations.select! { |expectation| expectation.name == expectation_name }
-            end
+            expectations = spec.expectations.select { |e| e.name == expectation_name }
+            next if expectations.empty?
+
+            spec.expectations = expectations
+            spec
           end
 
-          forge.specs.size > 0 && forge.specs.count(&:expectations) > 0
+          next if specs.empty?
+
+          forge.specs = specs
+          forge
         end
       end
     end
