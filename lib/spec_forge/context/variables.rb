@@ -2,24 +2,29 @@
 
 module SpecForge
   class Context
-    class Variables < Context
-      def initialize(variables = {})
-        store(variables)
+    class Variables
+      def initialize(base: {}, overlay: {})
+        update(base:, overlay:)
       end
 
-      def clear
-        @inner = {}
+      def [](name)
+        @active[name]
       end
 
-      def store(variables)
-        @inner = variables.symbolize_keys
+      def update(base:, overlay: {})
+        @base = base
+        @overlay = overlay
+        @active = base
+
+        self
       end
 
-      def retrieve(key)
-        @inner[key.to_sym]
-      end
+      def use_overlay(id)
+        overlay = @overlay[id]
+        return if overlay.blank?
 
-      alias_method :[], :retrieve
+        @active = @base.merge(overlay)
+      end
     end
   end
 end

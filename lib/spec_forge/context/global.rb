@@ -2,32 +2,17 @@
 
 module SpecForge
   class Context
-    class Global < Context
+    class Global
+      attr_reader :variables
+
       def initialize(variables: {})
-        @variables = Variables.new(variables)
+        @variables = Variables.new(base: variables)
       end
 
-      def clear
-        @variables.clear
-      end
+      def update(context)
+        @variables.update(base: context.variables)
 
-      def store(hash)
-        @variables.store(hash[:variables]) if hash.key?(:variables)
-      end
-
-      def retrieve(*path)
-        namespace = path.first
-
-        object =
-          case namespace
-          when "variables"
-            @variables
-          else
-            raise ArgumentError,
-              "Invalid namespace for Global context. Expected \"variables\", got #{namespace}"
-          end
-
-        object.retrieve(path.second)
+        self
       end
     end
   end

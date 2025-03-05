@@ -2,44 +2,14 @@
 
 module SpecForge
   class Context
-    class Manager < Context
+    class Manager < Data.define(:global, :metadata, :store, :variables)
       def initialize
-        @global = Global.new
-        @metadata = Metadata.new
-        @store = Store.new
-        @variables = Variables.new
-      end
-
-      def clear
-        @global.clear
-        @metadata.clear
-        @store.clear
-        @variables.clear
-      end
-
-      def store(context, data)
-        context = retrieve_context(context)
-        context.store(data)
-      end
-
-      def retrieve(context, *path)
-        context = retrieve_context(context)
-        context.retrieve(path)
-      end
-
-      private
-
-      def retrieve_context(name)
-        case name.to_sym
-        when :global
-          @global
-        when :metadata
-          @metadata
-        when :store
-          @store
-        when :variables
-          @variables
-        end
+        super(
+          global: Global.new,
+          metadata: Metadata.new,
+          store: Store.new,
+          variables: Variables.new
+        )
       end
     end
   end
