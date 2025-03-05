@@ -14,7 +14,7 @@ module SpecForge
       def update(base:, overlay: {})
         @base = base
         @overlay = overlay
-        @active = base
+        @active = Attribute.from(base)
 
         self
       end

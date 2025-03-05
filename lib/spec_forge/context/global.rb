@@ -9,8 +9,8 @@ module SpecForge
         @variables = Variables.new(base: variables)
       end
 
-      def update(context)
-        @variables.update(base: context.variables)
+      def update(variables:)
+        @variables.update(base: variables)
 
         self
       end
