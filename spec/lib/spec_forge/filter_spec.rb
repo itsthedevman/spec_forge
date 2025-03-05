@@ -9,25 +9,43 @@ RSpec.describe SpecForge::Filter do
           {}, # Metadata
           [
             {
+              id: SecureRandom.uuid,
               name: "spec_1",
               file_path: "",
               file_name: "specs",
               line_number: 0,
               url: "/specs",
               expectations: [
-                {line_number: 0, expect: {status: 200}},
-                {line_number: 0, expect: {status: 200}}
+                {
+                  id: SecureRandom.uuid,
+                  line_number: 0,
+                  expect: {status: 200}
+                },
+                {
+                  id: SecureRandom.uuid,
+                  line_number: 0,
+                  expect: {status: 200}
+                }
               ]
             },
             {
+              id: SecureRandom.uuid,
               name: "spec_2",
               file_path: "",
               file_name: "specs",
               line_number: 0,
               url: "/specs_2",
               expectations: [
-                {line_number: 0, expect: {status: 200}},
-                {line_number: 0, expect: {status: 200}}
+                {
+                  id: SecureRandom.uuid,
+                  line_number: 0,
+                  expect: {status: 200}
+                },
+                {
+                  id: SecureRandom.uuid,
+                  line_number: 0,
+                  expect: {status: 200}
+                }
               ]
             }
           ]
@@ -37,17 +55,27 @@ RSpec.describe SpecForge::Filter do
           {}, # Metadata
           [
             {
+              id: SecureRandom.uuid,
               name: "other_spec_1",
               file_path: "",
               file_name: "other_specs",
               line_number: 0,
               url: "/other_specs",
               expectations: [
-                {line_number: 0, expect: {status: 200}},
-                {line_number: 0, expect: {status: 200}}
+                {
+                  id: SecureRandom.uuid,
+                  line_number: 0,
+                  expect: {status: 200}
+                },
+                {
+                  id: SecureRandom.uuid,
+                  line_number: 0,
+                  expect: {status: 200}
+                }
               ]
             },
             {
+              id: SecureRandom.uuid,
               name: "other_spec_2",
               file_path: "",
               file_name: "other_specs",
@@ -55,11 +83,16 @@ RSpec.describe SpecForge::Filter do
               url: "/other_specs_2",
               expectations: [
                 {
+                  id: SecureRandom.uuid,
                   name: "named_expectation",
                   line_number: 0,
                   expect: {status: 200}
                 },
-                {line_number: 0, expect: {status: 200}}
+                {
+                  id: SecureRandom.uuid,
+                  line_number: 0,
+                  expect: {status: 200}
+                }
               ]
             }
           ]

@@ -38,7 +38,7 @@ module SpecForge
                   runner.set_example_metadata(forge_spec, expectation)
                 end
 
-                subject(:response) { expectation.http_client.call }
+                # subject(:response) { expectation.http_client.call }
 
                 it do
                   if forge_spec.debug? || expectation.debug?
