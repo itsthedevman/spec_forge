@@ -23,7 +23,11 @@ module SpecForge
         overlay = @overlay[id]
         return if overlay.blank?
 
-        @active = @base.merge(overlay)
+        @active = Attribute.from(@base.merge(overlay))
+      end
+
+      def resolve
+        @active.resolve
       end
     end
   end

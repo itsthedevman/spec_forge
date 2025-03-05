@@ -95,8 +95,8 @@ module SpecForge
       # @private
       #
       def prepare_context(forge, spec)
-        context.global.update(forge.global)
-        context.metadata.update(forge.metadata)
+        context.global.update(**forge.global)
+        context.metadata.update(**forge.metadata)
         context.variables.update(**forge.variables_for_spec(spec))
       end
 
@@ -108,7 +108,12 @@ module SpecForge
       # @private
       #
       def prepare_variables(expectation)
+        # Load the overlay
         context.variables.use_overlay(expectation.id)
+
+        # Resolve everything
+        context.global.variables.resolve
+        context.variables.resolve
       end
 
       #
