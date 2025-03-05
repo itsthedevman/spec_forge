@@ -63,7 +63,7 @@ module SpecForge
             hash.map do |spec_name, spec_hash|
               line_number, *expectation_line_numbers = file_line_numbers[spec_name]
 
-              spec_hash[:id] = generate_id(spec_hash)
+              spec_hash[:id] = "spec_#{generate_id(spec_hash)}"
               spec_hash[:name] = spec_name.to_s
               spec_hash[:file_path] = metadata[:file_path]
               spec_hash[:file_name] = metadata[:file_name]
@@ -74,7 +74,7 @@ module SpecForge
               # Check for expectations instead of defaulting. I want it to error
               if (expectations = spec_hash[:expectations])
                 expectations.zip(expectation_line_numbers) do |expectation, line_number|
-                  expectation[:id] = generate_id(expectation)
+                  expectation[:id] = "expect_#{generate_id(expectation)}"
                   expectation[:line_number] = line_number
                 end
               end
