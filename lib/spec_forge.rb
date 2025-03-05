@@ -16,24 +16,6 @@ require "singleton"
 require "thor"
 require "yaml"
 
-require_relative "spec_forge/attribute"
-require_relative "spec_forge/backtrace_formatter"
-require_relative "spec_forge/cli"
-require_relative "spec_forge/configuration"
-require_relative "spec_forge/context"
-require_relative "spec_forge/core_ext"
-require_relative "spec_forge/error"
-require_relative "spec_forge/factory"
-require_relative "spec_forge/filter"
-require_relative "spec_forge/forge"
-require_relative "spec_forge/http"
-require_relative "spec_forge/loader"
-require_relative "spec_forge/normalizer"
-require_relative "spec_forge/runner"
-require_relative "spec_forge/spec"
-require_relative "spec_forge/type"
-require_relative "spec_forge/version"
-
 module SpecForge
   #
   # Loads all factories and specs located in "path", then runs all of the specs
@@ -117,3 +99,21 @@ module SpecForge
     end
   end
 end
+
+require_relative "spec_forge/attribute"
+require_relative "spec_forge/backtrace_formatter"
+require_relative "spec_forge/cli"
+require_relative "spec_forge/configuration"
+require_relative "spec_forge/context"
+require_relative "spec_forge/core_ext"
+require_relative "spec_forge/error"
+require_relative "spec_forge/factory"
+require_relative "spec_forge/filter"
+require_relative "spec_forge/forge"
+require_relative "spec_forge/http"
+require_relative "spec_forge/loader"
+require_relative "spec_forge/normalizer"
+require_relative "spec_forge/runner"
+require_relative "spec_forge/spec"
+require_relative "spec_forge/type"
+require_relative "spec_forge/version"
