@@ -3,6 +3,10 @@
 module SpecForge
   class Runner
     class << self
+      def context
+        @context ||= Context::Manager.new
+      end
+
       def define(forges)
         forges.each do |forge|
           define_forge(forge)
@@ -10,49 +14,60 @@ module SpecForge
       end
 
       def run
-        # Allows me to modify the error backtrace reporting within rspec
-        RSpec.configuration.instance_variable_set(:@backtrace_formatter, BacktraceFormatter)
-        RSpec::Core::Runner.invoke!
+        prepare_for_run
+        RSpec::Core::Runner.invoke
       end
 
       def define_forge(forge)
         runner = self
 
         RSpec.describe(forge.name) do
-          forge.specs.each do |forge_spec|
-            describe(forge_spec.name) do
-              forge_spec.expectations do |expectation|
-                # Set up the class metadata for error reporting
-                runner.set_group_metadata(self, forge_spec, expectation)
+          # Specs
+          forge.specs.each do |spec|
+            before :context do
+              # Update the various contexts (global, variables, etc.) for the current spec
+              runner.prepare_context(forge, spec)
+            end
 
-                # constraints = expectation.constraints
-
-                # let(:expected_status) { constraints.status.resolve }
-                # let(:expected_json) { constraints.json.resolve }
-                # let(:expected_json_class) { expected_json&.expected.class }
-
+            # Spec
+            describe(spec.name) do
+              # Expectations
+              spec.expectations.each do |expectation|
                 before do
-                  # Ensure all variables are called and resolved, in case they are not referenced
-
-                  # Set up the example metadata for error reporting
-                  runner.set_example_metadata(forge_spec, expectation)
+                  runner.prepare_variables(expectation)
+                  runner.set_example_metadata(spec, expectation)
                 end
 
-                # subject(:response) { expectation.http_client.call }
+                after do
+                  # store if set
+                end
 
-                it do
-                  if forge_spec.debug? || expectation.debug?
-                    runner.handle_debug(expectation, self)
+                # Expectation
+                describe(expectation.name) do
+                  runner.set_group_metadata(self, spec, expectation)
+
+                  # Define the constraints
+                  let(:expected_status) { expectation.constraints.status.resolve }
+                  let(:expected_json) { expectation.constraints.json.resolve }
+                  let(:expected_json_class) { expected_json&.expected.class }
+                  let(:request) { HTTP::Request.new }
+
+                  # subject(:response) { expectation.http_client.call }
+
+                  it do
+                    if spec.debug? || expectation.debug?
+                      runner.handle_debug(expectation, self)
+                    end
+
+                    # # Status check
+                    # expect(response.status).to eq(expected_status)
+
+                    # # JSON check
+                    # if expected_json
+                    #   expect(response.body).to be_kind_of(expected_json_class)
+                    #   expect(response.body).to expected_json
+                    # end
                   end
-
-                  # # Status check
-                  # expect(response.status).to eq(expected_status)
-
-                  # # JSON check
-                  # if expected_json
-                  #   expect(response.body).to be_kind_of(expected_json_class)
-                  #   expect(response.body).to expected_json
-                  # end
                 end
               end
             end
@@ -60,13 +75,53 @@ module SpecForge
         end
       end
 
+      #
+      # Handles debugging an example
+      #
+      # @param expectation [SpecForge::Spec::Expectation]
+      # @param spec_context [RSpec::Core::Example]
+      #
       # @private
-      def handle_debug(...)
-        DebugProxy.new(...).call
+      #
+      def handle_debug(expectation, spec_context)
+        DebugProxy.new(expectation, spec_context).call
       end
 
+      #
+      # Prepares the various contexts for the provided forge
+      #
+      # @param forge [SpecForge::Forge]
+      #
       # @private
-      def set_group_metadata(context, spec, expectation)
+      #
+      def prepare_context(forge, spec)
+        context.global.update(forge.global)
+        context.metadata.update(forge.metadata)
+        context.variables.update(**forge.variables_for_spec(spec))
+      end
+
+      #
+      # Overlays any expectation level variables over the spec level variables
+      #
+      # @param expectation [SpecForge::Spec::Expectation]
+      #
+      # @private
+      #
+      def prepare_variables(expectation)
+        context.variables.use_overlay(expectation.id)
+      end
+
+      #
+      # Updates the example group metadata
+      # Used for error reporting by RSpec
+      #
+      # @param context [RSpec::Core::ExampleGroup]
+      # @param spec [SpecForge::Spec]
+      # @param expectation [SpecForge::Spec::Expectation]
+      #
+      # @private
+      #
+      def set_group_metadata(example_group, spec, expectation)
         metadata = {
           file_path: spec.file_path,
           absolute_file_path: spec.file_path,
@@ -75,15 +130,30 @@ module SpecForge
           rerun_file_path: "#{spec.file_name}:#{spec.name}:\"#{expectation.name}\""
         }
 
-        context.metadata.merge!(metadata)
+        example_group.metadata.merge!(metadata)
       end
 
+      #
+      # Updates the current example's metadata
+      # Used for error reporting by RSpec
+      #
+      # @param spec [SpecForge::Spec]
+      # @param expectation [SpecForge::Spec::Expectation]
+      #
       # @private
+      #
       def set_example_metadata(spec, expectation)
         # This is needed when an error raises in an example
         metadata = {location: "#{spec.file_path}:#{spec.line_number}"}
 
         RSpec.current_example.metadata.merge!(metadata)
+      end
+
+      private
+
+      def prepare_for_run
+        # Allows modifying the error backtrace reporting within rspec
+        RSpec.configuration.instance_variable_set(:@backtrace_formatter, BacktraceFormatter)
       end
     end
   end

@@ -16,6 +16,10 @@ module SpecForge
       @specs = load_specs(specs)
     end
 
+    def variables_for_spec(spec)
+      @variables[spec.id]
+    end
+
     private
 
     def extract_variables!(specs)
