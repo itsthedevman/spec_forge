@@ -13,6 +13,24 @@ module SpecForge
     def retrieve(value)
       raise "not implemented"
     end
+
+    #
+    # Makes getting/setting easier
+    # @private
+    #
+    class Settable
+      def initialize(inner)
+        set(inner)
+      end
+
+      def set(inner)
+        @inner = inner
+      end
+
+      def get
+        @inner
+      end
+    end
   end
 end
 

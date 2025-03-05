@@ -3,36 +3,19 @@
 module SpecForge
   class Context
     class Metadata < Context
-      #
-      # Makes getting/setting easier
-      # @private
-      #
-      class Settable
-        def initialize(inner)
-          set(inner)
-        end
-
-        def set(inner)
-          @inner = inner
-        end
-
-        def get
-          @inner
-        end
-      end
-
-      def initialize
+      def initialize(**metadata)
         clear
+        metadata.each { |k, v| store(k, v) }
       end
 
       def clear
-        @base_url = Settable.new("")
-        @url = Settable.new("")
-        @http_method = Settable.new("")
-        @headers = Settable.new({})
-        @query = Settable.new({})
-        @body = Settable.new({})
-        @debug = Settable.new(false)
+        @inner = {
+          file_name: "",
+          file_path: "",
+          relative_path: ""
+        }
+
+        @inner.transform_values { |v| Settable.new(v) }
       end
 
       def store(namespace, *value)
@@ -40,34 +23,26 @@ module SpecForge
         namespace.set(value)
       end
 
-      def retrieve(*path)
-        namespace = retrieve_namespace(path.first)
+      def retrieve(namespace, key = nil)
+        namespace = retrieve_namespace(namespace)
         return namespace unless namespace.is_a?(Hash)
 
-        namespace[path.second]
+        namespace[key]
       end
 
       private
 
       def retrieve_namespace(name)
-        case name.to_sym
-        when :base_url
-          @base_url
-        when :url
-          @url
-        when :http_method
-          @http_method
-        when :debug
-          @debug
-        when :headers
-          @headers
-        when :query
-          @query
-        when :body
-          @body
-        else
-          raise ArgumentError, "Invalid namespace for Metadata context. Got #{name}"
+        namespace = @inner[name.to_sym]
+
+        if namespace.nil?
+          namespaces = @inner.keys.join_map(", ", &:in_quotes)
+
+          raise ArgumentError,
+            "Invalid namespace for Metadata context. Expected one of #{namespaces}. Got #{name}"
         end
+
+        namespace
       end
     end
   end
