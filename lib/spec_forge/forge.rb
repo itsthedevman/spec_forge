@@ -8,8 +8,8 @@ module SpecForge
     def initialize(global, metadata, specs)
       @name = metadata[:relative_path]
 
-      @global = Context::Global.new(**global)
-      @metadata = Context::Metadata.new(**metadata)
+      @global = global
+      @metadata = metadata
 
       @variables = extract_variables!(specs)
       @request = extract_request!(specs)
