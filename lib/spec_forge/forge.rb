@@ -55,6 +55,7 @@ module SpecForge
       # }
       #
       request_attributes = [:base_url, :url, :http_verb, :headers, :query, :body]
+      config = SpecForge.configuration.to_h.slice(:base_url, :headers, :query)
 
       specs.each_with_object({}) do |spec, hash|
         overlay = spec[:expectations].to_h do |expectation|
@@ -67,7 +68,7 @@ module SpecForge
         overlay.reject! { |_k, v| v.blank? }
 
         base = spec.extract!(*request_attributes)
-        base[:http_verb] = "GET" if base[:http_verb].blank?
+        base = Configuration.overlay_options({http_verb: "GET", **config}, base)
 
         hash[spec[:id]] = {base:, overlay:}
       end

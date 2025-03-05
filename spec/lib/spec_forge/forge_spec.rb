@@ -45,9 +45,9 @@ RSpec.describe SpecForge::Forge do
           file_name: "spec_2",
           file_path: "spec_2.yml",
           line_number: 1,
-          base_url: "https://example.com",
+          base_url: "",
           url: "/example",
-          http_verb: "GET",
+          http_verb: "",
           headers: {
             header_1: true
           },
@@ -134,6 +134,10 @@ RSpec.describe SpecForge::Forge do
     context "when request data is defined" do
       subject(:request) { forge.request }
 
+      before do
+        SpecForge.configuration.base_url = "http://localhost"
+      end
+
       it "is expected to extract them out" do
         spec_ids = specs.key_map(:id)
         expectation_ids = specs.second[:expectations].key_map(:id)
@@ -152,9 +156,9 @@ RSpec.describe SpecForge::Forge do
           },
           spec_ids.second => {
             base: {
-              base_url: "https://example.com",
+              base_url: "http://localhost", # This uses the default
               url: "/example",
-              http_verb: "GET",
+              http_verb: "GET", # This uses the default
               headers: {header_1: true},
               query: {query_1: true},
               body: {body_1: true}
