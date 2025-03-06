@@ -11,6 +11,10 @@ module SpecForge
         @active[name]
       end
 
+      def to_h
+        @active
+      end
+
       def update(base:, overlay: {})
         @base = base
         @overlay = overlay
