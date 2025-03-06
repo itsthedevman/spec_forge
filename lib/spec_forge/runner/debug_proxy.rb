@@ -11,7 +11,7 @@ module SpecForge
 
       delegate_missing_to :@spec_context
 
-      def initialize(expectation, spec_context)
+      def initialize(spec_context, expectation)
         @callback = SpecForge.configuration.on_debug
         @spec_context = spec_context
 

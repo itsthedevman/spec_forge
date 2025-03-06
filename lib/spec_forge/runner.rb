@@ -66,7 +66,7 @@ module SpecForge
 
                   it do
                     if spec.debug? || expectation.debug?
-                      runner.handle_debug(expectation, self)
+                      runner.handle_debug(self, expectation)
                     end
 
                     # Status check
@@ -88,13 +88,13 @@ module SpecForge
       #
       # Handles debugging an example
       #
-      # @param expectation [SpecForge::Spec::Expectation]
       # @param spec_context [RSpec::Core::Example]
+      # @param expectation [SpecForge::Spec::Expectation]
       #
       # @private
       #
-      def handle_debug(expectation, spec_context)
-        DebugProxy.new(expectation, spec_context).call
+      def handle_debug(spec_context, expectation)
+        DebugProxy.new(spec_context, expectation).call
       end
 
       #
