@@ -20,9 +20,11 @@ module SpecForge
         # Don't nil check here.
         raise MissingVariableError, variable_name unless variables.key?(variable_name)
 
-        @base_object = variables[variable_name]
+        @variable = variables[variable_name]
+      end
 
-        self
+      def base_object
+        @variable || bind_variables(SpecForge.context.variables.to_h)
       end
     end
   end
