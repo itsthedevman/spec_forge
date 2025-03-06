@@ -96,6 +96,10 @@ module SpecForge
       cleaner
     end
   end
+
+  def self.context
+    @context ||= Context.new
+  end
 end
 
 require_relative "spec_forge/attribute"

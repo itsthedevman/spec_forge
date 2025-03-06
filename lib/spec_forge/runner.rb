@@ -3,10 +3,6 @@
 module SpecForge
   class Runner
     class << self
-      def context
-        @context ||= Context::Manager.new
-      end
-
       def define(forges)
         forges.each do |forge|
           define_forge(forge)
@@ -95,9 +91,9 @@ module SpecForge
       # @private
       #
       def prepare_context(forge, spec)
-        context.global.update(**forge.global)
-        context.metadata.update(**forge.metadata)
-        context.variables.update(**forge.variables_for_spec(spec))
+        SpecForge.context.global.update(**forge.global)
+        SpecForge.context.metadata.update(**forge.metadata)
+        SpecForge.context.variables.update(**forge.variables_for_spec(spec))
       end
 
       #
@@ -109,11 +105,11 @@ module SpecForge
       #
       def prepare_variables(expectation)
         # Load the overlay
-        context.variables.use_overlay(expectation.id)
+        SpecForge.context.variables.use_overlay(expectation.id)
 
         # Resolve everything
-        context.global.variables.resolve
-        context.variables.resolve
+        SpecForge.context.global.variables.resolve
+        SpecForge.context.variables.resolve
       end
 
       #
