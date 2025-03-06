@@ -11,6 +11,8 @@ module SpecForge
 
       def run
         prepare_for_run
+
+        ARGV.clear
         RSpec::Core::Runner.invoke
       end
 
@@ -20,13 +22,13 @@ module SpecForge
         RSpec.describe(forge.name) do
           # Specs
           forge.specs.each do |spec|
-            before :context do
-              # Update the various contexts (global, variables, etc.) for the current spec
-              runner.prepare_context(forge, spec)
-            end
-
             # Spec
             describe(spec.name) do
+              before :context do
+                # Update the various contexts (global, variables, etc.) for the current spec
+                runner.prepare_context(forge, spec)
+              end
+
               # Expectations
               spec.expectations.each do |expectation|
                 before do
