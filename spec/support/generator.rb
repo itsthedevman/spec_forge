@@ -6,7 +6,7 @@ module Generator
       {base_url: "", url: "", http_verb: "", headers: {}, query: {}, body: {}}
     end
 
-    def empty_expectation
+    def empty_expectation_hash
       SpecForge::Normalizer.default_expectation.except(:variables, *empty_request_hash.keys)
     end
   end
