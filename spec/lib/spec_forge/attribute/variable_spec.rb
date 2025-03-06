@@ -4,7 +4,11 @@ RSpec.describe SpecForge::Attribute::Variable do
   let(:input) {}
   let(:variables) { {} }
 
-  subject(:variable) { described_class.new(input).bind_variables(variables) }
+  subject(:variable) do
+    variable = described_class.new(input)
+    variable.bind_variables(variables)
+    variable
+  end
 
   context "when just the variable name is referenced" do
     let(:input) { "variable.id" }

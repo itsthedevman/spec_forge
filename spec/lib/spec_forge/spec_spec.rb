@@ -13,9 +13,9 @@ RSpec.describe SpecForge::Spec do
   subject(:spec) do
     described_class.new(
       name:,
-      file_path: "", file_name: "", line_number: 0,
-      url:, method:, headers:,
-      variables:, query:, body:, expectations:
+      expectations:,
+      id: "", debug: false,
+      file_path: "", file_name: "", line_number: 0
     )
   end
 
@@ -29,8 +29,8 @@ RSpec.describe SpecForge::Spec do
     context "when 'expectations' are given" do
       let(:expectations) do
         [
-          {expect: {status: 200}},
-          {expect: {status: 400}}
+          Generator.empty_expectation_hash.merge(expect: {status: 200}),
+          Generator.empty_expectation_hash.merge(expect: {status: 400})
         ]
       end
 
