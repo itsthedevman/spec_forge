@@ -24,6 +24,9 @@ module SpecForge
           forge.specs.each do |spec|
             # Spec
             describe(spec.name) do
+              let!(:request_data) { forge.request[spec.id] }
+              let!(:http_client) { HTTP::Client.new(**request_data[:base]) }
+
               before :context do
                 # Update the various contexts (global, variables, etc.) for the current spec
                 runner.prepare_context(forge, spec)
@@ -48,23 +51,32 @@ module SpecForge
                   let(:expected_status) { expectation.constraints.status.resolve }
                   let(:expected_json) { expectation.constraints.json.resolve }
                   let(:expected_json_class) { expected_json&.expected.class }
-                  let(:request) { HTTP::Request.new }
 
-                  # subject(:response) { expectation.http_client.call }
+                  let(:request) do
+                    request = request_data[:base]
+
+                    if (overlay = request_data[:overlay][expectation.id])
+                      request = request.merge(overlay)
+                    end
+
+                    HTTP::Request.new(**request)
+                  end
+
+                  subject(:response) { http_client.call(request) }
 
                   it do
                     if spec.debug? || expectation.debug?
                       runner.handle_debug(expectation, self)
                     end
 
-                    # # Status check
-                    # expect(response.status).to eq(expected_status)
+                    # Status check
+                    expect(response.status).to eq(expected_status)
 
-                    # # JSON check
-                    # if expected_json
-                    #   expect(response.body).to be_kind_of(expected_json_class)
-                    #   expect(response.body).to expected_json
-                    # end
+                    # JSON check
+                    if expected_json
+                      expect(response.body).to be_kind_of(expected_json_class)
+                      expect(response.body).to expected_json
+                    end
                   end
                 end
               end

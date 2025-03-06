@@ -14,21 +14,17 @@ module SpecForge
         super
       end
 
-      def http_verb
-        http_verb.name.downcase
-      end
-
       def to_h
         super.transform_values { |v| v.respond_to?(:resolve) ? v.resolve : v }
       end
 
       private
 
-      def normalize_http_verb(http_verb)
-        if http_verb.is_a?(String)
-          Verb.from(http_verb)
+      def normalize_http_verb(verb)
+        if verb.is_a?(String)
+          Verb.from(verb)
         else
-          http_verb
+          verb
         end
       end
 
