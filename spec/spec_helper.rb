@@ -6,6 +6,8 @@ SPEC_FORGE_INTERNAL_TESTING = true
 require "pry"
 require "spec_forge"
 
+Dir[SpecForge.root.join("spec/support/**/*.rb")].sort.each { |path| require path }
+
 # See https://rubydoc.info/gems/rspec-core/RSpec/Core/Configuration
 RSpec.configure do |config|
   config.expect_with :rspec do |expectations|
