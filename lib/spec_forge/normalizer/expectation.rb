@@ -9,7 +9,7 @@ module SpecForge
         line_number: Normalizer::SHARED_ATTRIBUTES[:line_number],
 
         # User defined
-        name: {type: String, default: ""},
+        name: Normalizer::SHARED_ATTRIBUTES[:name],
         base_url: Normalizer::SHARED_ATTRIBUTES[:base_url],
         url: Normalizer::SHARED_ATTRIBUTES[:url],
         http_verb: Normalizer::SHARED_ATTRIBUTES[:http_verb],

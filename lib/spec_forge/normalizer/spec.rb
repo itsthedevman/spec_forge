@@ -6,7 +6,7 @@ module SpecForge
       STRUCTURE = {
         # Internal
         id: Normalizer::SHARED_ATTRIBUTES[:id],
-        name: {type: String},
+        name: Normalizer::SHARED_ATTRIBUTES[:name],
         file_name: {type: String},
         file_path: {type: String},
         line_number: Normalizer::SHARED_ATTRIBUTES[:line_number],
