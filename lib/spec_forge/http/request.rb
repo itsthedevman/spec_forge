@@ -23,11 +23,7 @@ module SpecForge
       private
 
       def normalize_http_verb(verb)
-        if verb.is_a?(String)
-          Verb.from(verb)
-        else
-          verb
-        end
+        Verb.from(verb)
       end
 
       def normalize_headers(headers)
