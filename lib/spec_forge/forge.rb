@@ -13,7 +13,7 @@ module SpecForge
 
       @variables = extract_variables!(specs)
       @request = extract_request!(specs)
-      @specs = load_specs(specs)
+      @specs = specs.map { |spec| Spec.new(**spec) }
     end
 
     def variables_for_spec(spec)
@@ -58,55 +58,23 @@ module SpecForge
       #   spec_2: ...
       # }
       #
-      request_attributes = [:base_url, :url, :http_verb, :headers, :query, :body]
       config = SpecForge.configuration.to_h.slice(:base_url, :headers, :query)
 
       specs.each_with_object({}) do |spec, hash|
         overlay = spec[:expectations].to_h do |expectation|
           [
             expectation[:id],
-            expectation.extract!(*request_attributes).reject { |_k, v| v.blank? }
+            expectation.extract!(*HTTP::REQUEST_ATTRIBUTES).reject { |_k, v| v.blank? }
           ]
         end
 
         overlay.reject! { |_k, v| v.blank? }
 
-        base = spec.extract!(*request_attributes)
+        base = spec.extract!(*HTTP::REQUEST_ATTRIBUTES)
         base = Configuration.overlay_options({http_verb: "GET", **config}, base)
 
         hash[spec[:id]] = {base:, overlay:}
       end
-    end
-
-    def load_specs(specs)
-      specs.map do |spec|
-        request = @request[spec[:id]]
-        base_request_data = request[:base].slice(:http_verb, :url)
-
-        # Generate the name to each expectation
-        spec[:expectations].each do |expectation|
-          # If the expectation has an overlay, use it.
-          request_data = request.dig(:overlay, expectation[:id])
-            &.slice(:http_verb, :url)
-            .presence
-
-          # Overwise, default to the base request
-          request_data ||= base_request_data
-
-          expectation[:name] = generate_expectation_name(
-            name: expectation[:name],
-            **request_data
-          )
-        end
-
-        Spec.new(**spec)
-      end
-    end
-
-    def generate_expectation_name(http_verb:, url:, name: nil)
-      base = "#{http_verb.upcase} #{url}"   # GET /users
-      base += " - #{name}" if name.present? # GET /users - Returns 404 because y not?
-      base
     end
   end
 end

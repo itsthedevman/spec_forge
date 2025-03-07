@@ -73,9 +73,10 @@ module SpecForge
 
               # Check for expectations instead of defaulting. I want it to error
               if (expectations = spec_hash[:expectations])
-                expectations.zip(expectation_line_numbers) do |expectation, line_number|
-                  expectation[:id] = "expect_#{generate_id(expectation)}"
-                  expectation[:line_number] = line_number
+                expectations.zip(expectation_line_numbers) do |expectation_hash, line_number|
+                  expectation_hash[:id] = "expect_#{generate_id(expectation_hash)}"
+                  expectation_hash[:name] = build_expectation_name(spec_hash, expectation_hash)
+                  expectation_hash[:line_number] = line_number
                 end
               end
 
@@ -133,17 +134,45 @@ module SpecForge
         keys
       end
 
+      # @private
+      def generate_id(object)
+        "#{object.hash.abs.to_s(36)}_#{object.object_id.to_s(36)}"
+      end
+
       #
-      # Generates a unique identifier for an object
-      #
-      # @param object [Object] The object to generate an ID for
-      #
-      # @return [String] A unique identifier combining hash and object_id
+      # @note This was easier _after_ normalization, but it makes more sense to be done here
+      #       so there's a bit more work that has to be done to do this correctly
       #
       # @private
       #
-      def generate_id(object)
-        "#{object.hash.abs.to_s(36)}_#{object.object_id.to_s(36)}"
+      def build_expectation_name(spec_hash, expectation_hash)
+        verb_keys = Normalizer::SHARED_ATTRIBUTES[:http_verb][:aliases] + [:http_verb]
+        url_keys = Normalizer::SHARED_ATTRIBUTES[:url][:aliases] + [:url]
+
+        # Get the http_verb and url keys from both spec and expectation
+        request_data = spec_hash.slice(*verb_keys, *url_keys)
+        request_data.merge!(expectation_hash.slice(*verb_keys, *url_keys))
+
+        # Extract the http_verb
+        http_verb = request_data.slice(*verb_keys)
+          .filter_map(&:presence)
+          .join
+          .presence || "GET"
+
+        # Extract the url
+        url = request_data.slice(*url_keys).filter_map(&:presence).join
+
+        # Finally generate the name
+        generate_expectation_name(http_verb:, url:, name: expectation_hash[:name])
+      end
+
+      #
+      # @private
+      #
+      def generate_expectation_name(http_verb:, url:, name: nil)
+        base = "#{http_verb.upcase} #{url}"   # GET /users
+        base += " - #{name}" if name.present? # GET /users - Returns 404 because y not?
+        base
       end
     end
   end
