@@ -18,7 +18,13 @@ module SpecForge
       http_verb: {
         type: String,
         aliases: %i[method http_method],
-        default: ""
+        default: "GET",
+        validator: lambda do |value|
+          valid_verbs = HTTP::Verb::VERBS.values
+          return if valid_verbs.include?(value.to_s.upcase)
+
+          raise Error, "Invalid HTTP verb: #{value}. Valid values are: #{valid_verbs.join(", ")}"
+        end
       },
       headers: {
         type: Hash,
@@ -159,6 +165,10 @@ module SpecForge
           raise InvalidTypeError.new(value, type_class, for: for_context)
         end
 
+        # Call the validator if it has one
+        attribute[:validator]&.call(value)
+
+        # Validate any sub structures
         value =
           case [value.class, sub_structure.class]
           when [Hash, Hash]
