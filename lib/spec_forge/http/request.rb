@@ -8,10 +8,10 @@ module SpecForge
       HEADER = /^[A-Z][A-Za-z0-9!-]*$/
 
       def initialize(base_url:, url:, http_verb:, headers:, query:, body:)
-        http_verb = normalize_http_verb(http_verb)
+        http_verb = Verb.from(http_verb)
+        query = Attribute.from(query)
+        body = Attribute.from(body)
         headers = normalize_headers(headers)
-        query = normalize_query(query)
-        body = normalize_body(body)
 
         super
       end
@@ -21,10 +21,6 @@ module SpecForge
       end
 
       private
-
-      def normalize_http_verb(verb)
-        Verb.from(verb)
-      end
 
       def normalize_headers(headers)
         headers =
@@ -41,14 +37,6 @@ module SpecForge
           end
 
         Attribute.from(headers)
-      end
-
-      def normalize_query(query)
-        Attribute.from(query)
-      end
-
-      def normalize_body(body)
-        Attribute.from(body)
       end
     end
   end
