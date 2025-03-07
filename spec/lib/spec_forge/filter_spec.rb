@@ -18,11 +18,13 @@ RSpec.describe SpecForge::Filter do
               expectations: [
                 {
                   id: SecureRandom.uuid,
+                  name: "GET /specs",
                   line_number: 0,
                   expect: {status: 200}
                 },
                 {
                   id: SecureRandom.uuid,
+                  name: "GET /specs",
                   line_number: 0,
                   expect: {status: 200}
                 }
@@ -38,11 +40,13 @@ RSpec.describe SpecForge::Filter do
               expectations: [
                 {
                   id: SecureRandom.uuid,
+                  name: "GET /specs_2",
                   line_number: 0,
                   expect: {status: 200}
                 },
                 {
                   id: SecureRandom.uuid,
+                  name: "GET /specs_2",
                   line_number: 0,
                   expect: {status: 200}
                 }
@@ -64,11 +68,13 @@ RSpec.describe SpecForge::Filter do
               expectations: [
                 {
                   id: SecureRandom.uuid,
+                  name: "GET /other_specs",
                   line_number: 0,
                   expect: {status: 200}
                 },
                 {
                   id: SecureRandom.uuid,
+                  name: "GET /other_specs",
                   line_number: 0,
                   expect: {status: 200}
                 }
@@ -84,12 +90,13 @@ RSpec.describe SpecForge::Filter do
               expectations: [
                 {
                   id: SecureRandom.uuid,
-                  name: "named_expectation",
+                  name: "GET /other_specs_2 - named_expectation",
                   line_number: 0,
                   expect: {status: 200}
                 },
                 {
                   id: SecureRandom.uuid,
+                  name: "GET /other_specs_2",
                   line_number: 0,
                   expect: {status: 200}
                 }

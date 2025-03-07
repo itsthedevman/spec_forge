@@ -32,7 +32,7 @@ RSpec.describe SpecForge::Forge do
           expectations: [
             {
               id: SecureRandom.uuid,
-              name: "expectation_1",
+              name: "GET /example - expectation_1",
               line_number: 1,
               debug: false,
               expect: {status: 404, json: {}}
@@ -64,6 +64,7 @@ RSpec.describe SpecForge::Forge do
           expectations: [
             {
               id: SecureRandom.uuid,
+              name: "POST /example1",
               line_number: 1,
               base_url: "https://example1.com",
               url: "/example1",
@@ -90,6 +91,7 @@ RSpec.describe SpecForge::Forge do
             {
               id: SecureRandom.uuid,
               line_number: 1,
+              name: "GET /example",
               base_url: "",
               url: "",
               http_verb: "",
