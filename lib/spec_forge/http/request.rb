@@ -2,7 +2,9 @@
 
 module SpecForge
   module HTTP
-    class Request < Data.define(:base_url, :url, :http_verb, :headers, :query, :body)
+    REQUEST_ATTRIBUTES = [:base_url, :url, :http_verb, :headers, :query, :body].freeze
+
+    class Request < Data.define(*REQUEST_ATTRIBUTES)
       HEADER = /^[A-Z][A-Za-z0-9!-]*$/
 
       def initialize(base_url:, url:, http_verb:, headers:, query:, body:)
