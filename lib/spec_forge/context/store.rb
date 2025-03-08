@@ -2,6 +2,7 @@
 
 module SpecForge
   class Context
+    # Not used yet
     class Store
       def initialize
       end

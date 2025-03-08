@@ -2,15 +2,57 @@
 
 module SpecForge
   class Runner
+    #
+    # Creates a debugging environment during test execution.
+    # When a breakpoint is triggered, this provides an interface to inspect
+    # the current test state including the request, response, variables, and expectations.
+    #
+    # By default, this outputs a JSON representation of the current testing context,
+    # but it can be customized by configuring {SpecForge.configuration.on_debug}
+    # to use any Ruby debugger (like pry or debug).
+    #
+    # @example Basic usage in a spec with `debug: true`
+    #   # In your YAML test:
+    #   get_users:
+    #     debug: true
+    #     path: /users
+    #     expectations:
+    #     - expect:
+    #         status: 200
+    #
+    # @example Custom debug handler in forge_helper.rb
+    #   SpecForge.configure do |config|
+    #     config.on_debug { binding.pry } # Requires 'pry' gem
+    #   end
+    #
     class DebugProxy
+      #
+      # @return [Proc] The default debugging handler that outputs JSON state information
+      #
       def self.default
         -> { puts inspect }
       end
 
-      attr_reader :rspec_example, :spec, :expectation
+      # @return [RSpec::Example] The current RSpec example that is running
+      attr_reader :rspec_example
+
+      # @return [SpecForge::Spec] The current Spec that is being tested
+      attr_reader :spec
+
+      # @return [SpecForge::Spec::Expectation] The current expectation that is being tested
+      attr_reader :expectation
 
       delegate_missing_to :@rspec_example
 
+      #
+      # Creates a new DebugProxy instance
+      #
+      # @param rspec_example [RSpec::Example] The current RSpec example being executed
+      # @param spec [SpecForge::Spec] The spec being tested
+      # @param expectation [SpecForge::Spec::Expectation] The expectation being evaluated
+      #
+      # @return [SpecForge::Runner::DebugProxy]
+      #
       def initialize(rspec_example, spec, expectation)
         @callback = SpecForge.configuration.on_debug
 
@@ -19,6 +61,14 @@ module SpecForge
         @expectation = expectation
       end
 
+      #
+      # Triggers the debugging environment
+      #
+      # Displays available debugging contexts and executes the configured debug callback.
+      # The callback runs in the context of this proxy, giving it access to all helper methods.
+      #
+      # @return [void]
+      #
       def call
         puts <<~STRING
 
@@ -55,6 +105,11 @@ module SpecForge
 
       ##########################################################################
 
+      #
+      # Returns a hash representation of the global context
+      #
+      # @return [Hash] The global context with resolved variables
+      #
       def global
         @global ||= begin
           hash = SpecForge.context.global.to_h
@@ -63,12 +118,28 @@ module SpecForge
         end
       end
 
+      #
+      # Returns a hash representation of the variables in the current context
+      #
+      # Includes both spec-level and expectation-level variables combined
+      # with values fully resolved.
+      #
+      # @return [Hash]
+      #
       def variables
         @variables ||= SpecForge.context.variables.to_h.transform_values(&:resolve)
       end
 
       ##########################################################################
 
+      #
+      # Returns a hash representation of the test state
+      #
+      # Includes the spec, expectation, request, response, variables and global context.
+      # RSpec matchers are converted to human-readable descriptions.
+      #
+      # @return [Hash]
+      #
       def to_h
         spec_hash = spec.to_h
         spec_hash[:expectations].map! do |exp|
@@ -93,6 +164,11 @@ module SpecForge
         }
       end
 
+      #
+      # Returns a formatted JSON representation of the test state
+      #
+      # @return [String] Pretty-printed JSON of the test state
+      #
       def inspect
         JSON.pretty_generate(to_h)
       end
