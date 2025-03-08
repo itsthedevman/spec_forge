@@ -16,6 +16,17 @@ module SpecForge
       @line_number = line_number
       @expectations = expectations.map { |e| Expectation.new(**e) }
     end
+
+    def to_h
+      {
+        name:,
+        file_path:,
+        file_name:,
+        debug:,
+        line_number:,
+        expectations: expectations.map(&:to_h)
+      }
+    end
   end
 end
 

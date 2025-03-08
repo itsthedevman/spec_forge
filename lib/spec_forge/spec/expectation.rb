@@ -10,6 +10,15 @@ module SpecForge
 
         super(id:, name:, line_number:, debug:, constraints:)
       end
+
+      def to_h
+        {
+          name:,
+          line_number:,
+          debug:,
+          expect: constraints.to_h
+        }
+      end
     end
   end
 end

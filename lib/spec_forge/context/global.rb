@@ -14,6 +14,12 @@ module SpecForge
 
         self
       end
+
+      def to_h
+        {
+          variables: variables.to_h
+        }
+      end
     end
   end
 end
