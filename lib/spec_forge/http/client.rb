@@ -9,7 +9,7 @@ module SpecForge
       # @param ** [Hash] Request attributes
       #
       def initialize(**)
-        @adapter = Backend.new(HTTP::Request.new(**))
+        @backend = Backend.new(HTTP::Request.new(**))
       end
 
       #
@@ -18,7 +18,7 @@ module SpecForge
       # @return [Hash] The response
       #
       def call(request)
-        @adapter.public_send(
+        @backend.public_send(
           request.http_verb.to_s.downcase,
           request.url,
           query: request.query.resolve,
