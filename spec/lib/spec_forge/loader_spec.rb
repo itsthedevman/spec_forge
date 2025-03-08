@@ -261,4 +261,63 @@ RSpec.describe SpecForge::Loader do
       end
     end
   end
+
+  describe ".build_expectation_name" do
+    let(:spec) do
+      {
+        url: "/some_url",
+        method: "PATCH"
+      }
+    end
+
+    let(:expectation) { {} }
+
+    subject(:name) { described_class.build_expectation_name(spec, expectation) }
+
+    context "when the expectation has a name defined" do
+      let(:expectation) do
+        {name: Faker::String.random}
+      end
+
+      it "is expected to return a name from the spec's url, verb, and expectation's name" do
+        is_expected.to eq("PATCH /some_url - #{expectation[:name]}")
+      end
+    end
+
+    context "when the expectation has a verb defined" do
+      let(:expectation) do
+        {http_verb: "DELETE"}
+      end
+
+      it "is expected to return a name from the expectations's verb, and the spec's url" do
+        is_expected.to eq("DELETE /some_url")
+      end
+    end
+
+    context "when the expectation has a url defined" do
+      let(:expectation) do
+        {path: "/url_some"}
+      end
+
+      it "is expected to return a name from the expectations's url, and the spec's verb" do
+        is_expected.to eq("PATCH /url_some")
+      end
+    end
+
+    context "when the expectation has a url and verb defined" do
+      let(:expectation) do
+        {path: "/url_some", http_verb: "GET"}
+      end
+
+      it "is expected to return a name from the expectations's url, and verb" do
+        is_expected.to eq("GET /url_some")
+      end
+    end
+
+    context "when the expectation does not have a name, url, or verb" do
+      it "is expected to return a name from the spec's data" do
+        is_expected.to eq("PATCH /some_url")
+      end
+    end
+  end
 end

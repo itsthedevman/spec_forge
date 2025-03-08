@@ -146,21 +146,19 @@ module SpecForge
       # @private
       #
       def build_expectation_name(spec_hash, expectation_hash)
-        verb_keys = Normalizer::SHARED_ATTRIBUTES[:http_verb][:aliases] + [:http_verb]
-        url_keys = Normalizer::SHARED_ATTRIBUTES[:url][:aliases] + [:url]
+        # Create a structure for these two attributes
+        # Removing the defaults and validators to avoid issues
+        structure = Normalizer::SHARED_ATTRIBUTES.slice(:http_verb, :url)
+          .transform_values { |v| v.except(:default, :validator) }
 
-        # Get the http_verb and url keys from both spec and expectation
-        request_data = spec_hash.slice(*verb_keys, *url_keys)
-        request_data.merge!(expectation_hash.slice(*verb_keys, *url_keys))
+        # Ignore any errors. It'll be caught above anyway
+        normalized_spec, _errors = Normalizer.new("", spec_hash, structure:).normalize
+        normalized_expectation, _errors = Normalizer.new("", expectation_hash, structure:).normalize
 
-        # Extract the http_verb
-        http_verb = request_data.slice(*verb_keys)
-          .filter_map(&:presence)
-          .join
-          .presence || "GET"
+        request_data = Configuration.overlay_options(normalized_spec, normalized_expectation)
 
-        # Extract the url
-        url = request_data.slice(*url_keys).filter_map(&:presence).join
+        url = request_data[:url]
+        http_verb = request_data[:http_verb].presence || "GET"
 
         # Finally generate the name
         generate_expectation_name(http_verb:, url:, name: expectation_hash[:name])
