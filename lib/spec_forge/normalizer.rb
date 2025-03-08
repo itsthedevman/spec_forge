@@ -18,10 +18,10 @@ module SpecForge
       http_verb: {
         type: String,
         aliases: %i[method http_method],
-        default: "GET",
+        default: "", # Do not default this to "GET". Leave it blank. Seriously.
         validator: lambda do |value|
           valid_verbs = HTTP::Verb::VERBS.values
-          return if valid_verbs.include?(value.to_s.upcase)
+          return if value.blank? || valid_verbs.include?(value.to_s.upcase)
 
           raise Error, "Invalid HTTP verb: #{value}. Valid values are: #{valid_verbs.join(", ")}"
         end

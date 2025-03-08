@@ -8,7 +8,7 @@ module SpecForge
       HEADER = /^[A-Z][A-Za-z0-9!-]*$/
 
       def initialize(base_url:, url:, http_verb:, headers:, query:, body:)
-        http_verb = Verb.from(http_verb)
+        http_verb = Verb.from(http_verb.presence || "GET")
         query = Attribute.from(query)
         body = Attribute.from(body)
         headers = normalize_headers(headers)

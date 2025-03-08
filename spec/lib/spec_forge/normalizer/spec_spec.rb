@@ -158,8 +158,8 @@ RSpec.describe SpecForge::Normalizer do
           spec[:http_verb] = nil
         end
 
-        it "is expected to default to 'GET'" do
-          expect(normalized[:http_verb]).to eq("GET")
+        it "is expected to default to an empty string" do
+          expect(normalized[:http_verb]).to eq("")
         end
       end
 
@@ -324,8 +324,8 @@ RSpec.describe SpecForge::Normalizer do
           expectation[:http_verb] = nil
         end
 
-        it "is expected to default to 'GET'" do
-          expect(normalized_expectation[:http_verb]).to eq("GET")
+        it "is expected to default to an empty string" do
+          expect(normalized_expectation[:http_verb]).to eq("")
         end
       end
 
