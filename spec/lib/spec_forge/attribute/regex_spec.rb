@@ -5,6 +5,10 @@ RSpec.describe SpecForge::Attribute::Regex do
 
   subject(:attribute) { described_class.new(input) }
 
+  include_examples "from_input_to_attribute" do
+    let(:input) { "/my_regex/i" }
+  end
+
   describe "#value" do
     subject(:value) { attribute.value }
 

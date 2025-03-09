@@ -1,14 +1,18 @@
 # frozen_string_literal: true
 
 RSpec.describe SpecForge::Attribute::Faker do
-  let(:path) { "" }
+  let(:input) { "" }
   let(:positional) { [] }
   let(:keyword) { {} }
 
-  subject(:attribute) { described_class.new(path, positional, keyword) }
+  subject(:attribute) { described_class.new(input, positional, keyword) }
 
-  context "when the faker path is valid" do
-    let(:path) { "faker.number.positive" }
+  include_examples "from_input_to_attribute" do
+    let(:input) { "faker.string.random" }
+  end
+
+  context "when the faker input is valid" do
+    let(:input) { "faker.number.positive" }
 
     it "parses the faker class and method" do
       expect(attribute.faker_class).to eq(Faker::Number)
@@ -16,8 +20,8 @@ RSpec.describe SpecForge::Attribute::Faker do
     end
   end
 
-  context "when the faker path has subclasses" do
-    let(:path) { "faker.games.zelda.game" }
+  context "when the faker input has subclasses" do
+    let(:input) { "faker.games.zelda.game" }
 
     it "parses the faker class and method" do
       expect(attribute.faker_class).to eq(Faker::Games::Zelda)
@@ -25,9 +29,9 @@ RSpec.describe SpecForge::Attribute::Faker do
     end
   end
 
-  context "when the faker path is not valid" do
+  context "when the faker input is not valid" do
     context "due to the class not being valid" do
-      let(:path) { "faker.noop.does_not_exist" }
+      let(:input) { "faker.noop.does_not_exist" }
 
       it "is expected to raise" do
         expect { attribute }.to raise_error(SpecForge::InvalidFakerClassError)
@@ -35,7 +39,7 @@ RSpec.describe SpecForge::Attribute::Faker do
     end
 
     context "due to the method not being valid" do
-      let(:path) { "faker.string.does_not_exist" }
+      let(:input) { "faker.string.does_not_exist" }
 
       it "is expected to raise" do
         expect { attribute }.to raise_error(SpecForge::InvalidFakerMethodError)
@@ -44,7 +48,7 @@ RSpec.describe SpecForge::Attribute::Faker do
   end
 
   context "when the Faker method takes positional arguments" do
-    let(:path) { "faker.testing.positional" }
+    let(:input) { "faker.testing.positional" }
 
     before do
       # Apparently, Faker is good at always having a default lol
@@ -81,7 +85,7 @@ RSpec.describe SpecForge::Attribute::Faker do
   end
 
   context "when the Faker method takes keyword arguments" do
-    let(:path) { "faker.testing.keyword" }
+    let(:input) { "faker.testing.keyword" }
 
     before do
       # Apparently, Faker is good at always having a default lol
@@ -119,7 +123,7 @@ RSpec.describe SpecForge::Attribute::Faker do
 
   context "when there are method chained" do
     # Faker::Music::GratefulDead.player
-    let(:path) { "faker.music.grateful_dead.player.upcase" }
+    let(:input) { "faker.music.grateful_dead.player.upcase" }
 
     it "is expected to call the chain" do
       expect(attribute.value).to match(/[AZ ]+/)
