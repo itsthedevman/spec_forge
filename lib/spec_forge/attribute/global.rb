@@ -30,40 +30,52 @@ module SpecForge
       KEYWORD_REGEX = /^global\./i
 
       #
-      # The underlying attribute that will be resolved
-      # For variables, this will be a Variable attribute instance
+      # An array of valid namespaces that can be access on global
       #
-      # @return [Attribute] The wrapped attribute instance
+      # @return [Array<String>]
       #
-      attr_reader :value
+      VALID_NAMESPACES = %w[
+        variables
+      ].freeze
 
       #
       # Creates a new global attribute from the input string
       #
-      # Parses the input string to extract the namespace and path,
-      # then creates the appropriate attribute type to handle the resolution.
+      # Parses the input string to extract the namespace to validate it
+      # Conversion happens when `#value` is called
       #
       # @raise [InvalidGlobalNamespaceError] If an unsupported namespace is referenced
       #
       def initialize(...)
         super
 
+        # Check to make sure the namespace is valid
+        namespace = input.split(".").second
+        raise InvalidGlobalNamespaceError, namespace unless VALID_NAMESPACES.include?(namespace)
+      end
+
+      #
+      # Converts the global reference into an underlying attribute
+      #
+      # Parses the input and returns the corresponding attribute based on the namespace.
+      # Currently supports extracting variables from the global context.
+      #
+      # @return [Attribute] An attribute representing the referenced global value
+      #
+      def value
         # Skip the "global" prefix
         components = input.split(".")[1..]
         namespace = components.first
 
         global_context = SpecForge.context.global
 
-        @value =
-          case namespace
-          when "variables"
-            variable_input = components.join(".")
-            variable = Attribute::Variable.new(variable_input)
-            variable.bind_variables(global_context.variables.to_h)
-            variable
-          else
-            raise InvalidGlobalNamespaceError, namespace
-          end
+        case namespace
+        when "variables"
+          variable_input = components.join(".")
+          variable = Attribute::Variable.new(variable_input)
+          variable.bind_variables(global_context.variables.to_h)
+          variable
+        end
       end
 
       #
@@ -74,7 +86,7 @@ module SpecForge
       # @return [Object] The fully resolved value from the global context
       #
       def resolve
-        @resolved ||= @value.resolve
+        @resolved ||= value.resolve
       end
     end
   end
