@@ -28,6 +28,9 @@ module SpecForge
 
       aliases :generate, :g
 
+      #
+      # Creates a new spec or factory file in the corresponding directory using templates
+      #
       def call
         type = arguments.first.downcase
         name = arguments.second

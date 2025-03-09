@@ -63,12 +63,51 @@ module SpecForge
         def initialize = super(name: "PUT")
       end
 
+      #
+      # A predefined DELETE verb instance for HTTP method usage
+      #
+      # @return [Verb::Delete] A singleton instance representing the HTTP DELETE method
+      # @see Verb
+      #
       DELETE = Delete.new
+
+      #
+      # A predefined GET verb instance for HTTP method usage
+      #
+      # @return [Verb::Get] A singleton instance representing the HTTP GET method
+      # @see Verb
+      #
       GET = Get.new
+
+      #
+      # A predefined PATCH verb instance for HTTP method usage
+      #
+      # @return [Verb::Patch] A singleton instance representing the HTTP PATCH method
+      # @see Verb
+      #
       PATCH = Patch.new
+
+      #
+      # A predefined POST verb instance for HTTP method usage
+      #
+      # @return [Verb::Post] A singleton instance representing the HTTP POST method
+      # @see Verb
+      #
       POST = Post.new
+
+      #
+      # A predefined PUT verb instance for HTTP method usage
+      #
+      # @return [Verb::Put] A singleton instance representing the HTTP PUT method
+      # @see Verb
+      #
       PUT = Put.new
 
+      #
+      # All HTTP verbs as a lookup hash
+      #
+      # @return [Hash<Symbol, Verb>]
+      #
       VERBS = {
         delete: DELETE,
         get: GET,

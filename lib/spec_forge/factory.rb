@@ -66,7 +66,7 @@ module SpecForge
     # Creates a new Factory instance
     #
     # @param name [String, Symbol] The name of the factory
-    # @param **input [Hash] The attributes defining the factory
+    # @param input [Hash] The attributes defining the factory
     #
     # @return [Factory] A new factory instance
     #

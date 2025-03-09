@@ -13,6 +13,10 @@ module SpecForge
       syntax "init"
       summary "Initializes directory structure and configuration files"
 
+      #
+      # Creates the "spec_forge", "spec_forge/factories", and "spec_forge/specs" directories
+      # Also creates the "spec_forge.rb" initialization file
+      #
       def call
         base_path = SpecForge.forge_path
         actions.empty_directory "#{base_path}/factories"

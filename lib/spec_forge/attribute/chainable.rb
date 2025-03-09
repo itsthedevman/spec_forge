@@ -19,14 +19,44 @@ module SpecForge
     #   faker.resolve #=> BENDING UNIT 22
     #
     module Chainable
+      #
+      # Regular expression that matches pure numeric strings
+      # Used for detecting potential array index operations
+      #
+      # @return [Regexp] A case-insensitive regex matching strings containing only digits
+      #
       NUMBER_REGEX = /^\d+$/i
 
-      attr_reader :keyword, :header, :invocation_chain, :base_object
+      #
+      # The first part of the chained attribute
+      #
+      # @return [Symbol] The first component of the chained attribute
+      #
+      attr_reader :keyword
+
+      #
+      # The second part of the chained attribute
+      #
+      # @return [Symbol] The second component of the chained attribute
+      #
+      attr_reader :header
+
+      #
+      # The remaining parts of the attribute chain after the header
+      #
+      # @return [Array<Symbol>] The remaining method/key invocations in the chain
+      #
+      attr_reader :invocation_chain
+
+      #
+      # The initial object from which the chain will start traversing
+      #
+      # @return [Object] The base object that starts the method/attribute chain
+      #
+      attr_reader :base_object
 
       #
       # Initializes a new chainable attribute by parsing the input into components
-      #
-      # @param ... [Object] Arguments passed from the parent class
       #
       def initialize(...)
         super

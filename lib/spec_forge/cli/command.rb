@@ -24,13 +24,30 @@ module SpecForge
       include CLI::Actions
 
       class << self
-        attr_writer(*%i[
-          command_name
-          syntax
-          description
-          summary
-          options
-        ])
+        #
+        # Sets the command's name
+        #
+        attr_writer :command_name
+
+        #
+        # Sets the command's syntax string
+        #
+        attr_writer :syntax
+
+        #
+        # Sets the command's detailed description
+        #
+        attr_writer :description
+
+        #
+        # Sets a brief summary of the command
+        #
+        attr_writer :summary
+
+        #
+        # Sets the command's available options
+        #
+        attr_writer :options
 
         #
         # Sets the command's name
@@ -84,7 +101,7 @@ module SpecForge
         #
         # Adds a command line option
         #
-        # @param *args [Array<String>] The option flags (e.g., "-f", "--force")
+        # @param args [Array<String>] The option flags (e.g., "-f", "--force")
         # @yield [value] Block to handle the option value
         #
         def option(*args, &block)
@@ -96,7 +113,7 @@ module SpecForge
         #
         # Adds command aliases
         #
-        # @param *aliases [Array<String>] Alias names for this command
+        # @param aliases [Array<String>] Alias names for this command
         #
         def aliases(*aliases)
           @aliases ||= []

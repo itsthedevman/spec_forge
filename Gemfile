@@ -18,4 +18,5 @@ gem "benchmark-ips", "~> 2.14"
 group :development, :documentation do
   gem "yard"
   gem "kramdown"
+  gem "puma"
 end

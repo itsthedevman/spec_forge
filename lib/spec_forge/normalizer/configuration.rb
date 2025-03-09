@@ -9,6 +9,16 @@ module SpecForge
     # and default values for all required settings.
     #
     class Configuration < Normalizer
+      #
+      # Defines the normalized structure for configuration validation
+      #
+      # Specifies validation rules for configuration attributes:
+      # - Enforces specific data types
+      # - Provides default values
+      # - Supports alternative key names
+      #
+      # @return [Hash] Configuration attribute validation rules
+      #
       STRUCTURE = {
         base_url: SHARED_ATTRIBUTES[:base_url].except(:default), # Make it required
         headers: SHARED_ATTRIBUTES[:headers],

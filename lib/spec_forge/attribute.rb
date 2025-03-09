@@ -227,7 +227,7 @@ module SpecForge
     #
     # @param variables [Hash] A hash of variable attributes
     #
-    def bind_variables(_variables)
+    def bind_variables(variables)
     end
 
     protected

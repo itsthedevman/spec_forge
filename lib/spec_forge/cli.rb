@@ -20,7 +20,10 @@ module SpecForge
   class CLI
     include Commander::Methods
 
-    COMMANDS = [Init, New, Run]
+    #
+    # @return [Array<SpecForge::CLI::Command>] All available commands
+    #
+    COMMANDS = [Init, New, Run].freeze
 
     #
     # Runs the CLI application, setting up program information and registering commands

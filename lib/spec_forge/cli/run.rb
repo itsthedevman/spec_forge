@@ -41,6 +41,9 @@ module SpecForge
 
       # option "-n", "--no-docs", "Do not generate OpenAPI documentation on completion"
 
+      #
+      # Loads and runs all specs, or a subset of specs based on the provided arguments
+      #
       def call
         return SpecForge.run if arguments.blank?
 

@@ -62,8 +62,6 @@ module SpecForge
       #
       # Creates a new matcher attribute with the specified matcher and arguments
       #
-      # @param ... [Object] Arguments passed from the parent class
-      #
       def initialize(...)
         super
 

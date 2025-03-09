@@ -14,7 +14,7 @@ module SpecForge
     #
     class Backend
       #
-      # Regular expression to match {placeholder} style URL parameters
+      # Regular expression to match { placeholder } style URL parameters
       #
       # @return [Regexp]
       #

@@ -39,8 +39,6 @@ module SpecForge
       #
       # Creates a new transform attribute with the specified function and arguments
       #
-      # @param ... [Object] Arguments passed from the parent class
-      #
       def initialize(...)
         super
 

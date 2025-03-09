@@ -16,8 +16,6 @@ module SpecForge
       #
       # Creates a new HTTP client with configured backend
       #
-      # @param ** [Hash] HTTP request configuration attributes
-      #
       # @return [Client] A new HTTP client instance
       #
       def initialize(**)

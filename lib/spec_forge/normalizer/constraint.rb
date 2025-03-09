@@ -9,6 +9,16 @@ module SpecForge
     # have the correct structure and defaults.
     #
     class Constraint < Normalizer
+      #
+      # Defines the normalized structure for configuration validation
+      #
+      # Specifies validation rules for configuration attributes:
+      # - Enforces specific data types
+      # - Provides default values
+      # - Supports alternative key names
+      #
+      # @return [Hash] Configuration attribute validation rules
+      #
       STRUCTURE = {
         status: {
           type: Integer

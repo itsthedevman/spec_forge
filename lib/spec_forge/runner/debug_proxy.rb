@@ -8,7 +8,7 @@ module SpecForge
     # the current test state including the request, response, variables, and expectations.
     #
     # By default, this outputs a JSON representation of the current testing context,
-    # but it can be customized by configuring {SpecForge.configuration.on_debug}
+    # but it can be customized by configuring SpecForge.configuration.on_debug
     # to use any Ruby debugger (like pry or debug).
     #
     # @example Basic usage in a spec with `debug: true`

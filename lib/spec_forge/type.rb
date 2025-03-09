@@ -41,6 +41,13 @@ end
 #   end
 #
 class HashLike
+  #
+  # Provides custom type matching for use in case statements
+  #
+  # @param object [Object] The object to check against the type
+  #
+  # @return [Boolean] Whether the object matches the type
+  #
   def self.===(object)
     SpecForge::Type.hash?(object)
   end
@@ -57,6 +64,13 @@ end
 #   end
 #
 class ArrayLike
+  #
+  # Provides custom type matching for use in case statements
+  #
+  # @param object [Object] The object to check against the type
+  #
+  # @return [Boolean] Whether the object matches the type
+  #
   def self.===(object)
     SpecForge::Type.array?(object)
   end

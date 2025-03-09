@@ -10,6 +10,11 @@ module SpecForge
     #   actions.template("my_template.tt", "destination/path.rb")
     #
     module Actions
+      #
+      # Internal Ruby hook, called when the module is included in another file
+      #
+      # @param base [Class] The class that included this module
+      #
       def self.included(base)
         #
         # Returns an ActionContext instance for performing file operations
@@ -32,8 +37,6 @@ module SpecForge
 
       #
       # Creates a new action context with SpecForge template paths configured
-      #
-      # @param ... [Array] Arguments passed to Thor
       #
       # @return [ActionContext] A new context for Thor actions
       #

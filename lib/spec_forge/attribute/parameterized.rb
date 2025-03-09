@@ -91,7 +91,7 @@ module SpecForge
       #   This is to allow inheriting classes to normalize their arguments before
       #   they are converted to Attributes
       #
-      # @protected
+      # @private
       #
       def prepare_arguments!
         @arguments = Attribute.from(arguments)

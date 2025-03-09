@@ -9,6 +9,16 @@ module SpecForge
     # and default values for all required settings.
     #
     class GlobalContext < Normalizer
+      #
+      # Defines the normalized structure for configuration validation
+      #
+      # Specifies validation rules for configuration attributes:
+      # - Enforces specific data types
+      # - Provides default values
+      # - Supports alternative key names
+      #
+      # @return [Hash] Configuration attribute validation rules
+      #
       STRUCTURE = {
         variables: Normalizer::SHARED_ATTRIBUTES[:variables]
       }.freeze

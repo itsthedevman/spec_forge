@@ -2,6 +2,11 @@
 
 module SpecForge
   module HTTP
+    #
+    # The attributes used to build a Request
+    #
+    # @return [Array<Symbol>]
+    #
     REQUEST_ATTRIBUTES = [:base_url, :url, :http_verb, :headers, :query, :body].freeze
 
     #
@@ -21,6 +26,11 @@ module SpecForge
     #   )
     #
     class Request < Data.define(*REQUEST_ATTRIBUTES)
+      #
+      # Regex that attempts to match a valid header
+      #
+      # @return [Regexp]
+      #
       HEADER = /^[A-Z][A-Za-z0-9!-]*$/
 
       #

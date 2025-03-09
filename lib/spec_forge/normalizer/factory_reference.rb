@@ -9,6 +9,16 @@ module SpecForge
     # and default values for all required settings.
     #
     class FactoryReference < Normalizer
+      #
+      # Defines the normalized structure for configuration validation
+      #
+      # Specifies validation rules for configuration attributes:
+      # - Enforces specific data types
+      # - Provides default values
+      # - Supports alternative key names
+      #
+      # @return [Hash] Configuration attribute validation rules
+      #
       STRUCTURE = {
         attributes: {
           type: Hash,
@@ -42,7 +52,6 @@ module SpecForge
       # Normalizes a factory reference hash with validation
       #
       # @param input [Hash] The hash to normalize
-      # @param ** [Hash] Additional options
       #
       # @return [Hash] A normalized hash with defaults applied
       #

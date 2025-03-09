@@ -13,6 +13,11 @@ module SpecForge
   #   output, errors = normalizer.normalize
   #
   class Normalizer
+    #
+    # Shared attributes used by the various normalizers
+    #
+    # @return [Hash<Symbol, Hash>]
+    #
     SHARED_ATTRIBUTES = {
       id: {type: String},
       name: {type: String},
@@ -62,6 +67,34 @@ module SpecForge
       }
     }.freeze
 
+    #
+    # Defines the normalized structure for validating and parsing input data
+    #
+    # Each key represents an attribute with its validation and transformation rules.
+    # The structure supports defining:
+    # - Expected data type(s)
+    # - Default values
+    # - Aliases for alternative key names
+    # - Optional validation logic
+    # - Nested sub-structures
+    #
+    # @return [Hash] A configuration hash defining attribute validation rules
+    #
+    # @example Basic structure definition
+    #   STRUCTURE = {
+    #     name: {
+    #       type: String,              # Must be a String
+    #       default: "",               # Default to empty string if not provided
+    #       aliases: [:title]          # Allows using 'title' as an alternative key
+    #     },
+    #     age: {
+    #       type: Integer,             # Must be an Integer
+    #       default: 0                 # Default to 0 if not provided
+    #     }
+    #   }
+    #
+    # @see Normalizer
+    #
     STRUCTURE = {}
 
     class << self

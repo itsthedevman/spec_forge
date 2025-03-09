@@ -26,6 +26,11 @@ module SpecForge
   #   # => InvalidFakerClassError: Undefined Faker class "invalid". Did you mean? name, games, ...
   #
   class InvalidFakerClassError < Error
+    #
+    # A spell checker for Faker classes
+    #
+    # @return [DidYouMean::SpellChecker]
+    #
     CLASS_CHECKER = DidYouMean::SpellChecker.new(
       dictionary: Faker::Base.descendants.map { |c| c.to_s.downcase.gsub!("::", ".") }
     )
@@ -103,6 +108,11 @@ module SpecForge
       )
     end
 
+    #
+    # Creates a new InvalidInvocationError with a new resolution path
+    #
+    # @param path [Hash] The steps taken up until this point
+    #
     def with_resolution_path(path)
       self.class.new(@step, @object, path)
     end

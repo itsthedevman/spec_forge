@@ -76,8 +76,6 @@ module SpecForge
       #
       # Creates a new factory attribute with the specified name and arguments
       #
-      # @param ... [Object] Arguments passed from the parent class
-      #
       def initialize(...)
         super
 

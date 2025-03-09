@@ -41,8 +41,6 @@ module SpecForge
       #
       # Creates a new faker attribute with the specified name and arguments
       #
-      # @param ... [Object] Arguments passed from the parent class
-      #
       def initialize(...)
         super
 
