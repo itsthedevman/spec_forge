@@ -2,6 +2,12 @@
 
 module SpecForge
   class Normalizer
+    #
+    # Normalizes expectation hash structure
+    #
+    # Ensures that expectation definitions have the correct structure
+    # and default values for all required settings.
+    #
     class Expectation < Normalizer
       STRUCTURE = {
         # Internal
@@ -27,7 +33,7 @@ module SpecForge
       #
       # Generates an empty expectation hash
       #
-      # @return [Hash]
+      # @return [Hash] Default expectation hash
       #
       def default_expectation
         Expectation.default
@@ -36,11 +42,11 @@ module SpecForge
       #
       # Normalize an array of expectation hashes
       #
-      # @raises InvalidStructureError if anything is missing/invalid type
+      # @param input [Array<Hash>] The array to normalize
       #
-      # @param input [Hash] The hash to normalize
+      # @return [Array<Hash>] Normalized array of expectation hashes
       #
-      # @return [Hash] A normalized hash as a new instance
+      # @raise [InvalidStructureError] If validation fails
       #
       def normalize_expectations!(input)
         raise_errors! do
@@ -50,13 +56,10 @@ module SpecForge
 
       #
       # Normalize an array of expectation hashes
-      # Used internally by .normalize_spec, but is available for utility
       #
-      # @param expectations [Array<Hash>] An array of expectation hashes
+      # @param expectations [Array<Hash>] Array of expectation hashes
       #
-      # @return [Array] Two item array
-      #   First - The normalized Array<Hash>
-      #   Second - Array of errors, if any
+      # @return [Array] [normalized_array, errors]
       #
       # @private
       #

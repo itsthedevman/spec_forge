@@ -2,6 +2,12 @@
 
 module SpecForge
   class Normalizer
+    #
+    # Normalizes spec hash structure
+    #
+    # Ensures that spec definitions have the correct structure
+    # and default values for all required settings.
+    #
     class Spec < Normalizer
       STRUCTURE = {
         # Internal
@@ -29,20 +35,21 @@ module SpecForge
       #
       # Generates an empty spec hash
       #
-      # @return [Hash]
+      # @return [Hash] Default spec hash
       #
       def default_spec
         Spec.default
       end
 
       #
-      # Normalizes a complete spec hash by standardizing its keys while ensuring the required data
-      # is provided or defaulted.
-      # Raises InvalidStructureError if anything is missing/invalid type
+      # Normalizes a spec hash with validation and processes expectations
       #
       # @param input [Hash] The hash to normalize
+      # @param label [String] Label for error messages
       #
-      # @return [Hash] A normalized hash as a new instance
+      # @return [Hash] A normalized hash with defaults applied
+      #
+      # @raise [InvalidStructureError] If validation fails
       #
       def normalize_spec!(input, label: "spec")
         raise_errors! do
@@ -62,13 +69,11 @@ module SpecForge
 
       #
       # Normalize a spec hash
-      # Used internally by .normalize_spec, but is available for utility
       #
-      # @param spec [Hash] Spec representation as a Hash
+      # @param spec [Hash] Spec hash
+      # @param label [String] Label for error messages
       #
-      # @return [Array] Two item array
-      #   First - The normalized hash
-      #   Second - Array of errors, if any
+      # @return [Array] [normalized_hash, errors]
       #
       # @private
       #

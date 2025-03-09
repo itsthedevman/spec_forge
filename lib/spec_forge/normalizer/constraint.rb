@@ -2,6 +2,12 @@
 
 module SpecForge
   class Normalizer
+    #
+    # Normalizes constraint hash structure for expectations
+    #
+    # Ensures that expectation constraints (status, json, etc.)
+    # have the correct structure and defaults.
+    #
     class Constraint < Normalizer
       STRUCTURE = {
         status: {
@@ -19,7 +25,7 @@ module SpecForge
       #
       # Generates an empty constraint hash
       #
-      # @return [Hash]
+      # @return [Hash] Default constraint hash
       #
       def default_constraint
         Constraint.default
@@ -27,13 +33,10 @@ module SpecForge
 
       #
       # Normalize a constraint hash
-      # Used internally by .normalize_spec, but is available for utility
       #
-      # @param constraint [Hash] Constraint representation as a Hash
+      # @param constraint [Hash] Constraint hash
       #
-      # @return [Array] Two item array
-      #   First - The normalized hash
-      #   Second - Array of errors, if any
+      # @return [Array] [normalized_hash, errors]
       #
       # @private
       #

@@ -2,6 +2,12 @@
 
 module SpecForge
   class Normalizer
+    #
+    # Normalizes global context hash structure
+    #
+    # Ensures that global context definitions have the correct structure
+    # and default values for all required settings.
+    #
     class GlobalContext < Normalizer
       STRUCTURE = {
         variables: Normalizer::SHARED_ATTRIBUTES[:variables]
@@ -13,20 +19,20 @@ module SpecForge
       #
       # Generates an empty global context hash
       #
-      # @return [Hash]
+      # @return [Hash] Default global context hash
       #
       def default_global_context
         GlobalContext.default
       end
 
       #
-      # Normalizes a global context hash by standardizing its keys while ensuring the required data
-      # is provided or defaulted.
-      # Raises InvalidStructureError if anything is missing/invalid type
+      # Normalizes a global context hash with validation
       #
       # @param input [Hash] The hash to normalize
       #
-      # @return [Hash] A normalized hash as a new instance
+      # @return [Hash] A normalized hash with defaults applied
+      #
+      # @raise [InvalidStructureError] If validation fails
       #
       def normalize_global_context!(input)
         raise_errors! do
@@ -36,13 +42,10 @@ module SpecForge
 
       #
       # Normalize a global context hash
-      # Used internally by .normalize_global_context!, but is available for utility
       #
-      # @param global [Hash] Global context representation as a Hash
+      # @param global [Hash] Global context hash
       #
-      # @return [Array] Two item array
-      #   First - The normalized hash
-      #   Second - Array of errors, if any
+      # @return [Array] [normalized_hash, errors]
       #
       # @private
       #

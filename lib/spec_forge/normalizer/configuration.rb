@@ -2,6 +2,12 @@
 
 module SpecForge
   class Normalizer
+    #
+    # Normalizes configuration hash structure for SpecForge
+    #
+    # Ensures that the global configuration has the correct structure
+    # and default values for all required settings.
+    #
     class Configuration < Normalizer
       STRUCTURE = {
         base_url: SHARED_ATTRIBUTES[:base_url].except(:default), # Make it required
@@ -32,20 +38,20 @@ module SpecForge
       #
       # Generates an empty configuration hash
       #
-      # @return [Hash]
+      # @return [Hash] Default configuration hash
       #
       def default_configuration
         Configuration.default
       end
 
       #
-      # Normalizes a configuration hash by standardizing its keys while ensuring the required data
-      # is provided or defaulted.
-      # Raises InvalidStructureError if anything is missing/invalid type
+      # Normalizes a configuration hash with validation
       #
       # @param input [Hash] The hash to normalize
       #
-      # @return [Hash] A normalized hash as a new instance
+      # @return [Hash] A normalized hash with defaults applied
+      #
+      # @raise [InvalidStructureError] If validation fails
       #
       def normalize_configuration!(input)
         raise_errors! do
@@ -55,13 +61,10 @@ module SpecForge
 
       #
       # Normalize a configuration hash
-      # Used internally by .normalize_configuration!, but is available for utility
       #
-      # @param configuration [Hash] Configuration representation as a Hash
+      # @param configuration [Hash] Configuration hash
       #
-      # @return [Array] Two item array
-      #   First - The normalized hash
-      #   Second - Array of errors, if any
+      # @return [Array] [normalized_hash, errors]
       #
       # @private
       #
