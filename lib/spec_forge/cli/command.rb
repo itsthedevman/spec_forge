@@ -2,6 +2,24 @@
 
 module SpecForge
   class CLI
+    #
+    # Base class for CLI commands that provides common functionality and
+    # defines the DSL for declaring command properties.
+    #
+    # @example Defining a simple command
+    #   class MyCommand < Command
+    #     command_name "my_command"
+    #     syntax "my_command [options]"
+    #     summary "Does something awesome"
+    #     description "A longer description of what this command does"
+    #
+    #     option "-f", "--force", "Force the operation"
+    #
+    #     def call
+    #       # Command implementation
+    #     end
+    #   end
+    #
     class Command
       include CLI::Actions
 
@@ -15,7 +33,7 @@ module SpecForge
         ])
 
         #
-        # The command's name
+        # Sets the command's name
         #
         # @param name [String] The name of the command
         #
@@ -24,37 +42,37 @@ module SpecForge
         end
 
         #
-        # The command's syntax
+        # Sets the command's syntax
         #
-        # @param syntax [String]
+        # @param syntax [String] The command syntax to display in help
         #
         def syntax(syntax)
           self.syntax = syntax
         end
 
         #
-        # The command's description, long form
+        # Sets the command's description, displayed in detailed help
         #
-        # @param description [String]
+        # @param description [String] The detailed command description
         #
         def description(description)
           self.description = description
         end
 
         #
-        # The command's summary, short form
+        # Sets the command's summary, displayed in command list
         #
-        # @param summary [String]
+        # @param summary [String] The short command summary
         #
         def summary(summary)
           self.summary = summary
         end
 
         #
-        # Defines an example on how to use the command
+        # Adds an example of how to use the command
         #
-        # @param command [String] The example
-        # @param description [String] Description of the example
+        # @param command [String] The example command
+        # @param description [String] Description of what the example does
         #
         def example(command, description)
           @examples ||= []
@@ -64,7 +82,10 @@ module SpecForge
         end
 
         #
-        # Defines a command flag (-f, --force)
+        # Adds a command line option
+        #
+        # @param *args [Array<String>] The option flags (e.g., "-f", "--force")
+        # @yield [value] Block to handle the option value
         #
         def option(*args, &block)
           @options ||= []
@@ -73,9 +94,9 @@ module SpecForge
         end
 
         #
-        # Defines any aliases for this command
+        # Adds command aliases
         #
-        # @param *aliases [Array<String>]
+        # @param *aliases [Array<String>] Alias names for this command
         #
         def aliases(*aliases)
           @aliases ||= []
@@ -86,7 +107,7 @@ module SpecForge
         #
         # Registers the command with Commander
         #
-        # @param context [Commander::Command]
+        # @param context [Commander::Command] The Commander context
         #
         # @private
         #
@@ -112,11 +133,27 @@ module SpecForge
         end
       end
 
-      attr_reader :arguments, :options
+      #
+      # Command arguments passed from the command line
+      #
+      # @return [Array] The positional arguments
+      #
+      attr_reader :arguments
 
       #
-      # @param arguments [Array] Any positional arguments
-      # @param options [Hash] Any flag arguments
+      # Command options passed from the command line
+      #
+      # @return [Hash] The flag arguments
+      #
+      attr_reader :options
+
+      #
+      # Creates a new command instance
+      #
+      # @param arguments [Array] Any positional arguments from the command line
+      # @param options [Hash] Any flag arguments from the command line
+      #
+      # @return [Command] A new command instance
       #
       def initialize(arguments, options)
         @arguments = arguments

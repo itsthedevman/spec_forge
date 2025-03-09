@@ -2,6 +2,12 @@
 
 module SpecForge
   class CLI
+    #
+    # Command for initializing a new SpecForge project structure
+    #
+    # @example Creating a new SpecForge project
+    #   spec_forge init
+    #
     class Init < Command
       command_name "init"
       syntax "init"
