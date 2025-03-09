@@ -2,15 +2,47 @@
 
 module SpecForge
   class Spec
+    #
+    # Represents a single test expectation within a spec
+    #
+    # An Expectation defines what should be tested for a specific API request,
+    # including the expected status code and response structure.
+    #
+    # @example YAML representation
+    #   - name: "Get user successfully"
+    #     expect:
+    #       status: 200
+    #       json:
+    #         name: kind_of.string
+    #
     class Expectation < Data.define(:id, :name, :line_number, :debug, :constraints)
+      #
+      # @return [Boolean] True if debugging is enabled
+      #
       attr_predicate :debug
 
+      #
+      # Creates a new expectation with constraints
+      #
+      # @param id [String] Unique identifier
+      # @param name [String] Human-readable name
+      # @param line_number [Integer] Line number in source
+      # @param debug [Boolean] Whether to enable debugging
+      # @param expect [Hash] Expected constraints
+      #
+      # @return [Expectation] A new expectation instance
+      #
       def initialize(id:, name:, line_number:, debug:, expect:)
         constraints = Constraint.new(**expect)
 
         super(id:, name:, line_number:, debug:, constraints:)
       end
 
+      #
+      # Converts the expectation to a hash representation
+      #
+      # @return [Hash] Hash representation
+      #
       def to_h
         {
           name:,
