@@ -21,7 +21,7 @@ module SpecForge
       #
       STRUCTURE = {
         status: {
-          type: Integer
+          type: [Integer, String]
         },
         json: {
           type: [Hash, Array],
