@@ -26,7 +26,10 @@ RSpec.configure do |config|
 
   config.before :each do
     # Reset the config
-    SpecForge.instance_variable_set(:@configuration, SpecForge::Configuration.new)
+    SpecForge.instance_variable_set(:@configuration, nil)
+
+    # Reset the context
+    SpecForge.instance_variable_set(:@context, nil)
 
     # Remove any factories that were registered
     FactoryBot::Internal.configuration.factories.clear
