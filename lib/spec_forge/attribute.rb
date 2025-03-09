@@ -5,17 +5,6 @@ require_relative "attribute/parameterized"
 require_relative "attribute/chainable"
 require_relative "attribute/resolvable"
 
-# Doesn't matter
-require_relative "attribute/factory"
-require_relative "attribute/faker"
-require_relative "attribute/literal"
-require_relative "attribute/matcher"
-require_relative "attribute/regex"
-require_relative "attribute/resolvable_array"
-require_relative "attribute/resolvable_hash"
-require_relative "attribute/transform"
-require_relative "attribute/variable"
-
 module SpecForge
   #
   # Base class for all attribute types in SpecForge.
@@ -253,3 +242,15 @@ module SpecForge
     end
   end
 end
+
+# Order doesn't matter
+require_relative "attribute/factory"
+require_relative "attribute/faker"
+require_relative "attribute/global"
+require_relative "attribute/literal"
+require_relative "attribute/matcher"
+require_relative "attribute/regex"
+require_relative "attribute/resolvable_array"
+require_relative "attribute/resolvable_hash"
+require_relative "attribute/transform"
+require_relative "attribute/variable"
