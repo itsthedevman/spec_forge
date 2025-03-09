@@ -2,16 +2,44 @@
 
 module SpecForge
   module HTTP
+    #
+    # Handles the low-level HTTP operations using Faraday
+    #
+    # This class is responsible for creating and configuring the Faraday connection,
+    # executing the actual HTTP requests, and handling URL path parameter substitution.
+    #
+    # @example Basic usage
+    #   backend = Backend.new(request)
+    #   response = backend.get("/users")
+    #
     class Backend
+      #
+      # Regular expression to match {placeholder} style URL parameters
+      #
+      # @return [Regexp]
+      #
       CURLY_PLACEHOLDER = /\{(\w+)\}/
+
+      #
+      # Regular expression to match :placeholder style URL parameters
+      #
+      # @return [Regexp]
+      #
       COLON_PLACEHOLDER = /:(\w+)/
 
+      #
+      # The configured Faraday connection
+      #
+      # @return [Faraday::Connection]
+      #
       attr_reader :connection
 
       #
-      # Configures Faraday with the config values
+      # Configures a new Faraday connection based on the request configuration
       #
-      # @param request [HTTP::Request]
+      # @param request [HTTP::Request] The request configuration to use
+      #
+      # @return [Backend] A new backend instance with a configured connection
       #
       def initialize(request)
         @connection =
@@ -31,10 +59,10 @@ module SpecForge
       # Executes a DELETE request to <base_url>/<provided_url>
       #
       # @param url [String] The URL path to DELETE
-      # @param query [Hash] Any query attributes to send
-      # @param body [Hash]  Any body data to send
+      # @param query [Hash] Any query parameters to send
+      # @param body [Hash] Any body data to send
       #
-      # @return [Hash] The response
+      # @return [Faraday::Response] The HTTP response
       #
       def delete(url, query: {}, body: {})
         url = normalize_url(url, query)
@@ -45,10 +73,10 @@ module SpecForge
       # Executes a GET request to <base_url>/<provided_url>
       #
       # @param url [String] The URL path to GET
-      # @param query [Hash] Any query attributes to send
-      # @param body [Hash]  Any body data to send
+      # @param query [Hash] Any query parameters to send
+      # @param body [Hash] Any body data to send
       #
-      # @return [Hash] The response
+      # @return [Faraday::Response] The HTTP response
       #
       def get(url, query: {}, body: {})
         url = normalize_url(url, query)
@@ -59,10 +87,10 @@ module SpecForge
       # Executes a PATCH request to <base_url>/<provided_url>
       #
       # @param url [String] The URL path to PATCH
-      # @param query [Hash] Any query attributes to send
-      # @param body [Hash]  Any body data to send
+      # @param query [Hash] Any query parameters to send
+      # @param body [Hash] Any body data to send
       #
-      # @return [Hash] The response
+      # @return [Faraday::Response] The HTTP response
       #
       def patch(url, query: {}, body: {})
         url = normalize_url(url, query)
@@ -73,10 +101,10 @@ module SpecForge
       # Executes a POST request to <base_url>/<provided_url>
       #
       # @param url [String] The URL path to POST
-      # @param query [Hash] Any query attributes to send
-      # @param body [Hash]  Any body data to send
+      # @param query [Hash] Any query parameters to send
+      # @param body [Hash] Any body data to send
       #
-      # @return [Hash] The response
+      # @return [Faraday::Response] The HTTP response
       #
       def post(url, query: {}, body: {})
         url = normalize_url(url, query)
@@ -87,10 +115,10 @@ module SpecForge
       # Executes a PUT request to <base_url>/<provided_url>
       #
       # @param url [String] The URL path to PUT
-      # @param query [Hash] Any query attributes to send
-      # @param body [Hash]  Any body data to send
+      # @param query [Hash] Any query parameters to send
+      # @param body [Hash] Any body data to send
       #
-      # @return [Hash] The response
+      # @return [Faraday::Response] The HTTP response
       #
       def put(url, query: {}, body: {})
         url = normalize_url(url, query)
@@ -99,11 +127,35 @@ module SpecForge
 
       private
 
+      #
+      # Updates the request with query parameters and body
+      #
+      # @param request [Faraday::Request] The request to update
+      # @param query [Hash] Query parameters to add
+      # @param body [Hash] Body data to add
+      #
+      # @private
+      #
       def update_request(request, query, body)
         request.params.merge!(query)
         request.body = body.to_json
       end
 
+      #
+      # Normalizes a URL by replacing path parameters with their values
+      #
+      # Handles both curly brace style {param} and colon style :param
+      # Parameters are extracted from the query hash and removed after substitution
+      #
+      # @param url [String] The URL pattern with potential placeholders
+      # @param query [Hash] Query parameters that may contain values for placeholders
+      #
+      # @return [String] The URL with placeholders replaced by actual values
+      #
+      # @raise [URI::InvalidURIError] If the resulting URL is invalid
+      #
+      # @private
+      #
       def normalize_url(url, query)
         # /users/<user_id>
         url = replace_url_placeholder(url, query, CURLY_PLACEHOLDER)
@@ -122,6 +174,17 @@ module SpecForge
         url
       end
 
+      #
+      # Replaces URL placeholders with values from the query hash
+      #
+      # @param url [String] The URL with placeholders
+      # @param query [Hash] The query parameters containing values
+      # @param regex [Regexp] The pattern to match (curly or colon style)
+      #
+      # @return [String] The URL with placeholders replaced
+      #
+      # @private
+      #
       def replace_url_placeholder(url, query, regex)
         match = url.match(regex)
         return url if match.nil?

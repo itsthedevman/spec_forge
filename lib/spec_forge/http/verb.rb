@@ -2,23 +2,63 @@
 
 module SpecForge
   module HTTP
+    #
+    # Represents an HTTP verb (method)
+    #
+    # This class provides a type-safe way to work with HTTP methods,
+    # with predefined constants for common verbs like GET, POST, etc.
+    #
+    # @example Using predefined verbs
+    #   HTTP::Verb::GET    # => #<HTTP::Verb::Get @name="GET">
+    #   HTTP::Verb::POST   # => #<HTTP::Verb::Post @name="POST">
+    #
+    # @example Checking verb types
+    #   verb = HTTP::Verb::POST
+    #   verb.post?   # => true
+    #   verb.get?    # => false
+    #
     class Verb < Data.define(:name)
+      #
+      # Represents the HTTP DELETE method
+      #
+      # @return [Delete] A DELETE verb instance
+      #
       class Delete < Verb
         def initialize = super(name: "DELETE")
       end
 
+      #
+      # Represents the HTTP GET method
+      #
+      # @return [Get] A GET verb instance
+      #
       class Get < Verb
         def initialize = super(name: "GET")
       end
 
+      #
+      # Represents the HTTP PATCH method
+      #
+      # @return [Patch] A PATCH verb instance
+      #
       class Patch < Verb
         def initialize = super(name: "PATCH")
       end
 
+      #
+      # Represents the HTTP POST method
+      #
+      # @return [Post] A POST verb instance
+      #
       class Post < Verb
         def initialize = super(name: "POST")
       end
 
+      #
+      # Represents the HTTP PUT method
+      #
+      # @return [Put] A PUT verb instance
+      #
       class Put < Verb
         def initialize = super(name: "PUT")
       end
