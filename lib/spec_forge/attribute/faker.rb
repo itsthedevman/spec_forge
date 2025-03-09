@@ -2,17 +2,44 @@
 
 module SpecForge
   class Attribute
+    #
+    # Represents an attribute that generates fake data using the Faker gem
+    #
+    # This class allows SpecForge to integrate with the Faker library to generate realistic
+    # test data like names, emails, addresses, etc.
+    #
+    # @example Basic usage in YAML
+    #   name: faker.name.name
+    #   email: faker.internet.email
+    #
+    # @example With method arguments
+    #   age:
+    #     faker.number.between:
+    #       from: 18
+    #       to: 65
+    #
+    # @example Handles nested faker classes
+    #   character: faker.games.zelda.character
+    #
     class Faker < Parameterized
       include Chainable
 
+      #
+      # Regular expression pattern that matches attribute keywords with this prefix
+      # Used for identifying this attribute type during parsing
+      #
+      # @return [Regexp]
+      #
       KEYWORD_REGEX = /^faker\./i
 
-      attr_reader :faker_class, :faker_method
+      # @return [Class] The Faker class
+      attr_reader :faker_class
+
+      # @return [Method] The Faker class method
+      attr_reader :faker_method
 
       #
-      # Represents any attribute that is a faker call
-      #
-      #   faker.<faker_class>.<faker_method>
+      # Creates a new faker attribute with the specified name and arguments
       #
       def initialize(...)
         super
@@ -22,8 +49,11 @@ module SpecForge
         prepare_arguments!
       end
 
-      private
-
+      #
+      # Returns the base object for the variable chain
+      #
+      # @return [Object] The result of the Faker call
+      #
       def base_object
         if (positional = arguments[:positional]) && positional.present?
           faker_method.call(*positional.resolve)
@@ -34,6 +64,22 @@ module SpecForge
         end
       end
 
+      private
+
+      #
+      # Extracts the Faker class and method from the input string
+      # Handles both simple cases like "faker.name.first_name" and complex
+      # nested namespaces like "faker.games.zelda.game"
+      #
+      # @return [Array<Class, Method>] A two-element array containing:
+      #   1. The resolved Faker class (e.g., Faker::Name)
+      #   2. The method object to call on that class (e.g., #first_name)
+      #
+      # @raise [InvalidFakerClassError] If the specified Faker class doesn't exist
+      # @raise [InvalidFakerMethodError] If the specified method doesn't exist on the class
+      #
+      # @private
+      #
       def extract_faker_call
         class_name = header.downcase.to_s
 
@@ -42,10 +88,10 @@ module SpecForge
           return resolve_faker_class_and_method(class_name, invocation_chain.shift)
         end
 
-        # Try each part of the chain as a potential class name
-        # Example: faker.games.zelda.game.underscore
         namespace = []
 
+        # Try each part of the chain as a potential class name
+        # Example: faker.games.zelda.game.underscore
         while invocation_chain.any?
           part = invocation_chain.first.downcase
           test_class_name = ([class_name] + namespace + [part]).map(&:camelize).join("::")
@@ -68,6 +114,9 @@ module SpecForge
         raise InvalidFakerMethodError.new(nil, "::#{class_name}".constantize)
       end
 
+      #
+      # @private
+      #
       def resolve_faker_class_and_method(class_name, method_name)
         # Load the class
         faker_class = begin

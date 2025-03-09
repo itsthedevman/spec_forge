@@ -3,26 +3,55 @@
 module SpecForge
   class Attribute
     #
-    # Represents any attribute that is a variable reference
+    # Represents an attribute that references a variable
     #
-    #   variables.<variable_name>
+    # This class allows referencing variables defined in the test context.
+    # It supports chained access to methods and properties of variable values.
+    #
+    # @example Basic usage in YAML
+    #   user_id: variables.user.id
+    #   company_name: variables.company.name
+    #
+    # @example Nested access in YAML
+    #   post_author: variables.post.comments.first.author.name
     #
     class Variable < Attribute
       include Chainable
 
+      #
+      # Regular expression pattern that matches attribute keywords with this prefix
+      # Used for identifying this attribute type during parsing
+      #
+      # @return [Regexp]
+      #
       KEYWORD_REGEX = /^variables\./i
 
       alias_method :variable_name, :header
 
+      #
+      # Binds the referenced variable to this attribute
+      #
+      # @param variables [Hash] A hash of variables to look up in
+      #
+      # @raise [MissingVariableError] If the variable is not found
+      # @raise [InvalidTypeError] If variables is not a hash
+      #
       def bind_variables(variables)
         raise InvalidTypeError.new(variables, Hash, for: "'variables'") unless Type.hash?(variables)
 
         # Don't nil check here.
         raise MissingVariableError, variable_name unless variables.key?(variable_name)
 
-        @base_object = variables[variable_name]
+        @variable = variables[variable_name]
+      end
 
-        self
+      #
+      # Returns the base object for the variable chain
+      #
+      # @return [Object] The variable value
+      #
+      def base_object
+        @variable || bind_variables(SpecForge.context.variables.to_h)
       end
     end
   end

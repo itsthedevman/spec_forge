@@ -1,126 +1,113 @@
 # frozen_string_literal: true
 
-require_relative "spec/expectation"
-
 module SpecForge
+  #
+  # Represents a test specification in SpecForge
+  #
+  # A Spec contains one or more Expectations and defines the base configuration
+  # for those expectations. It maps directly to a test defined in YAML.
+  #
+  # @example YAML representation
+  #   get_users:
+  #     path: /users
+  #     expectations:
+  #     - expect:
+  #         status: 200
+  #
   class Spec
     #
-    # Loads and defines specs with the runner. Specs can be filtered using the optional parameters
+    # @return [Boolean] True if debugging is enabled
     #
-    # @param file_name [String, nil] The name of the file without the extension.
-    # @param spec_name [String, nil] The name of the spec in a yaml file
-    # @param expectation_name [String, nil] The name of the expectation for a spec.
-    #
-    # @return [Array<Spec>]
-    #
-    def self.load_and_define(file_name: nil, spec_name: nil, expectation_name: nil)
-      specs = load_from_files
-
-      filter_specs(specs, file_name:, spec_name:, expectation_name:)
-
-      # Announce if we're using a filter
-      if file_name
-        filter = {file_name:, spec_name:, expectation_name:}.delete_if { |k, v| v.blank? }
-        filter.stringify_keys!
-        puts "Using filter: #{filter}"
-      end
-
-      specs.each(&:define)
-    end
-
-    #
-    # Loads any specs defined in the spec files. A single file can contain one or more specs
-    #
-    # @return [Array<Spec>] An array of specs that were loaded.
-    #
-    def self.load_from_files
-      path = SpecForge.forge.join("specs")
-      specs = []
-
-      Dir[path.join("**/*.yml")].each do |file_path|
-        content = File.read(file_path)
-        hash = YAML.load(content).deep_symbolize_keys
-
-        hash.each do |spec_name, spec_hash|
-          line_number = content.lines.index { |line| line.start_with?("#{spec_name}:") }
-
-          spec_hash[:name] = spec_name.to_s
-          spec_hash[:file_path] = file_path
-          spec_hash[:file_name] = file_path.delete_prefix("#{path}/").delete_suffix(".yml")
-          spec_hash[:line_number] = line_number ? line_number + 1 : -1
-
-          specs << new(**spec_hash)
-        end
-      end
-
-      specs
-    end
-
-    # @private
-    def self.filter_specs(specs, file_name: nil, spec_name: nil, expectation_name: nil)
-      # Guard against invalid partial filters
-      if expectation_name && spec_name.blank?
-        raise ArgumentError, "The spec's name is required when filtering by an expectation's name"
-      end
-
-      if spec_name && file_name.blank?
-        raise ArgumentError, "The spec's filename is required when filtering by a spec's name"
-      end
-
-      specs.select! { |spec| spec.file_name == file_name } if file_name
-      specs.select! { |spec| spec.name == spec_name } if spec_name
-
-      if expectation_name
-        specs.each do |spec|
-          spec.expectations.select! { |expectation| expectation.name == expectation_name }
-        end
-      end
-
-      specs
-    end
-
-    ############################################################################
-
     attr_predicate :debug
 
-    attr_reader :name, :file_path, :file_name, :line_number, :expectations
+    #
+    # Unique identifier for this spec
+    #
+    # @return [String] The spec ID
+    #
+    attr_reader :id
 
     #
-    # Creates a Spec based on the input
+    # Human-readable name for this spec
     #
-    # @param name [String] The identifier for this spec
-    # @param file_path [String] The path where this spec is defined
-    # @param **input [Hash] Any attributes related to the spec, including expectations
-    #   See Normalizer::Spec
+    # @return [String] The spec name
     #
-    def initialize(name:, file_path:, file_name:, line_number:, **input)
+    attr_reader :name
+
+    #
+    # Absolute path to the file containing this spec
+    #
+    # @return [String] The file path
+    #
+    attr_reader :file_path
+
+    #
+    # Base name of the file without path or extension
+    #
+    # @return [String] The file name
+    #
+    attr_reader :file_name
+
+    #
+    # Whether to enable debugging for this spec
+    #
+    # @return [Boolean] Debug flag
+    #
+    attr_reader :debug
+
+    #
+    # Line number in the source file where this spec is defined
+    #
+    # @return [Integer] The line number
+    #
+    attr_reader :line_number
+
+    #
+    # The expectations to test for this spec
+    #
+    # @return [Array<Expectation>] The expectations
+    #
+    attr_accessor :expectations
+
+    #
+    # Creates a new spec instance
+    #
+    # @param id [String] Unique identifier
+    # @param name [String] Human-readable name
+    # @param file_path [String] Absolute path to source file
+    # @param file_name [String] Base name of file
+    # @param debug [Boolean] Whether to enable debugging
+    # @param line_number [Integer] Line number in source
+    # @param expectations [Array<Hash>] Expectation configurations
+    #
+    # @return [Spec] A new spec instance
+    #
+    def initialize(id:, name:, file_path:, file_name:, debug:, line_number:, expectations:)
+      @id = id
       @name = name
       @file_path = file_path
       @file_name = file_name
+      @debug = debug
       @line_number = line_number
-
-      input = Normalizer.normalize_spec!(input)
-
-      # Don't pass this down to the expectations
-      @debug = input.delete(:debug) || false
-
-      global_options = normalize_global_options(input)
-
-      @expectations =
-        input[:expectations].map.with_index do |expectation_input, index|
-          Expectation.new(expectation_input, global_options:)
-        end
+      @expectations = expectations.map { |e| Expectation.new(**e) }
     end
 
-    def define
-      Runner.define_spec(self)
-    end
-
-    private
-
-    def normalize_global_options(input)
-      config = SpecForge.configuration.to_h.slice(:base_url, :headers, :query)
-      Configuration.overlay_options(config, input.except(:expectations))
+    #
+    # Converts the spec to a hash representation
+    #
+    # @return [Hash] Hash representation
+    #
+    def to_h
+      {
+        name:,
+        file_path:,
+        file_name:,
+        debug:,
+        line_number:,
+        expectations: expectations.map(&:to_h)
+      }
     end
   end
 end
+
+require_relative "spec/expectation"

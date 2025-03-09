@@ -3,26 +3,20 @@
 RSpec.describe SpecForge::HTTP::Request do
   let(:base_url) { "http://localhost:3000" }
   let(:url) { "/users" }
-  let(:method) {}
-  let(:headers) {}
-  let(:query) {}
-  let(:body) {}
-  let(:authorization) {}
-  let(:variables) {}
+  let(:http_verb) { "GET" }
+  let(:headers) { {} }
+  let(:query) { {} }
+  let(:body) { {} }
 
   let(:options) do
-    result = SpecForge::Normalizer.normalize_expectations!(
-      [{url:, method:, headers:, query:, body:, expect: {status: 404}}]
-    )
-
-    SpecForge::Attribute.from(result.first.merge(base_url:, authorization:, variables:))
+    {base_url:, url:, http_verb:, headers:, query:, body:}
   end
 
   subject(:request) { described_class.new(**options) }
 
   describe "#initialize" do
-    it "defaults http_method to GET" do
-      expect(request.http_method).to be_kind_of(SpecForge::HTTP::Verb::Get)
+    it "defaults http_verb to GET" do
+      expect(request.http_verb).to be_kind_of(SpecForge::HTTP::Verb::Get)
     end
 
     context "when 'headers' are provided" do
@@ -40,30 +34,28 @@ RSpec.describe SpecForge::HTTP::Request do
     end
 
     context "when 'query' is provided" do
-      let(:variables) { {id: 1} }
-      let(:query) { {id: "variables.id", filter: "faker.string.random"} }
+      let(:query) { {filter: "faker.string.random"} }
 
-      it "is expected to update any referenced variables" do
-        expect(request.query[:id]).to be_kind_of(SpecForge::Attribute::Variable)
-        expect(request.query[:id].value).to eq(variables[:id])
+      it "is expected to convert to Attribute" do
+        expect(request.query[:filter]).to be_kind_of(SpecForge::Attribute::Faker)
+        expect(request.query[:filter].value).to be_kind_of(String)
       end
     end
 
     context "when 'body' is provided" do
-      let(:variables) { {id: 1} }
-      let(:body) { {id: "variables.id", filter: "faker.string.random"} }
+      let(:body) { {filter: "faker.string.random"} }
 
-      it "is expected to update any referenced variables" do
-        expect(request.body[:id]).to be_kind_of(SpecForge::Attribute::Variable)
-        expect(request.body[:id].value).to eq(variables[:id])
+      it "is expected to convert to Attribute" do
+        expect(request.body[:filter]).to be_kind_of(SpecForge::Attribute::Faker)
+        expect(request.body[:filter].value).to be_kind_of(String)
       end
     end
 
-    context "when 'http_method' is mixed case" do
-      let(:method) { "DeLeTe" }
+    context "when 'http_verb' is mixed case" do
+      let(:http_verb) { "DeLeTe" }
 
       it "works because it is case insensitive" do
-        expect(request.http_method).to eq("DELETE")
+        expect(request.http_verb).to eq("DELETE")
       end
     end
   end

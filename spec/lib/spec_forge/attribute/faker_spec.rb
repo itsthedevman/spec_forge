@@ -44,12 +44,12 @@ RSpec.describe SpecForge::Attribute::Faker do
   end
 
   context "when the Faker method takes positional arguments" do
-    let(:path) { "faker.forge.positional" }
+    let(:path) { "faker.testing.positional" }
 
     before do
       # Apparently, Faker is good at always having a default lol
       stub_const(
-        "Faker::Forge", Class.new do
+        "Faker::Testing", Class.new do
           def self.positional(required, optional = [])
             [required, optional]
           end
@@ -81,12 +81,12 @@ RSpec.describe SpecForge::Attribute::Faker do
   end
 
   context "when the Faker method takes keyword arguments" do
-    let(:path) { "faker.forge.keyword" }
+    let(:path) { "faker.testing.keyword" }
 
     before do
       # Apparently, Faker is good at always having a default lol
       stub_const(
-        "Faker::Forge", Class.new do
+        "Faker::Testing", Class.new do
           def self.keyword(required:, optional: [])
             [required, optional]
           end

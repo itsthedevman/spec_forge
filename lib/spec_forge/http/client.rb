@@ -2,27 +2,36 @@
 
 module SpecForge
   module HTTP
+    #
+    # HTTP client that executes requests and returns responses
+    #
+    # This class serves as a mediator between the test expectations
+    # and the actual HTTP backend implementation.
+    #
+    # @example Basic usage
+    #   client = HTTP::Client.new(base_url: "https://api.example.com")
+    #   response = client.call(request)
+    #
     class Client
-      attr_reader :request
-
       #
-      # Creates a new HTTP client to middleman between the tests and the backend
+      # Creates a new HTTP client with configured backend
       #
-      # @param ** [Hash] Request attributes
+      # @return [Client] A new HTTP client instance
       #
       def initialize(**)
-        @request = Request.new(**)
-        @adapter = Backend.new(request)
+        @backend = Backend.new(HTTP::Request.new(**))
       end
 
       #
-      # Triggers an HTTP request to the URL
+      # Executes an HTTP request and returns the response
       #
-      # @return [Hash] The response
+      # @param request [HTTP::Request] The request to execute
       #
-      def call
-        @adapter.public_send(
-          request.http_verb,
+      # @return [Faraday::Response] The HTTP response
+      #
+      def call(request)
+        @backend.public_send(
+          request.http_verb.to_s.downcase,
           request.url,
           query: request.query.resolve,
           body: request.body.resolve

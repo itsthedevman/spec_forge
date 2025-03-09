@@ -4,7 +4,11 @@ RSpec.describe SpecForge::Attribute::Variable do
   let(:input) {}
   let(:variables) { {} }
 
-  subject(:variable) { described_class.new(input).bind_variables(variables) }
+  subject(:variable) do
+    variable = described_class.new(input)
+    variable.bind_variables(variables)
+    variable
+  end
 
   context "when just the variable name is referenced" do
     let(:input) { "variable.id" }
@@ -260,17 +264,20 @@ RSpec.describe SpecForge::Attribute::Variable do
     context "and the variable is defined out of order" do
       let(:variables) do
         variables = SpecForge::Attribute.from({
-          var_1: "variables.var_2",
-          var_2: "1"
+          var_4: "variables.var_3",
+          var_1: "variables.var_5",
+          var_3: "variables.var_2",
+          var_2: "variables.var_1",
+          var_5: "test"
         })
 
         SpecForge::Attribute.bind_variables(variables, variables)
       end
 
-      let(:input) { "variables.var_1" }
+      let(:input) { "variables.var_4" }
 
       it "is expected to be able to resolve the value" do
-        expect(variable.resolve).to eq("1")
+        expect(variable.resolve).to eq("test")
       end
     end
 

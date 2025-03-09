@@ -2,7 +2,23 @@
 
 module SpecForge
   class Normalizer
+    #
+    # Normalizes factory reference hash structure
+    #
+    # Ensures that factory references have the correct structure
+    # and default values for all required settings.
+    #
     class FactoryReference < Normalizer
+      #
+      # Defines the normalized structure for configuration validation
+      #
+      # Specifies validation rules for configuration attributes:
+      # - Enforces specific data types
+      # - Provides default values
+      # - Supports alternative key names
+      #
+      # @return [Hash] Configuration attribute validation rules
+      #
       STRUCTURE = {
         attributes: {
           type: Hash,
@@ -24,22 +40,22 @@ module SpecForge
     # On Normalizer
     class << self
       #
-      # Generates an empty Attribute::Factory hash
+      # Generates an empty factory reference hash
       #
-      # @return [Hash]
+      # @return [Hash] Default factory reference hash
       #
       def default_factory_reference
         FactoryReference.default
       end
 
       #
-      # Normalizes a Attribute::Factory hash by standardizing
-      # its keys while ensuring the required data is provided or defaulted.
-      # Raises InvalidStructureError if anything is missing/invalid type
+      # Normalizes a factory reference hash with validation
       #
       # @param input [Hash] The hash to normalize
       #
-      # @return [Hash] A normalized hash as a new instance
+      # @return [Hash] A normalized hash with defaults applied
+      #
+      # @raise [InvalidStructureError] If validation fails
       #
       def normalize_factory_reference!(input, **)
         raise_errors! do
@@ -48,14 +64,12 @@ module SpecForge
       end
 
       #
-      # Normalize a factory hash
-      # Used internally by .normalize_factory_reference, but is available for utility
+      # Normalize a factory reference hash
       #
-      # @param factory [Hash] Attribute::Factory representation as a Hash
+      # @param factory [Hash] Factory reference hash
+      # @param label [String] Label for error messages
       #
-      # @return [Array] Two item array
-      #   First - The normalized hash
-      #   Second - Array of errors, if any
+      # @return [Array] [normalized_hash, errors]
       #
       # @private
       #

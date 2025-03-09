@@ -2,62 +2,9 @@
 
 RSpec.describe SpecForge::Factory do
   describe ".load_and_register" do
-    let(:path) { SpecForge.forge }
-
-    let(:factory_names) do
-      Dir[path.join("factories", "**/*.yml")].flat_map do |file_path|
-        YAML.load_file(file_path).keys
-      end
-    end
+    let(:path) { SpecForge.forge_path }
 
     subject(:factories) { described_class.load_and_register }
-
-    context "when all factories are valid" do
-      it "loads the factories yml as an object and registers it with FactoryBot" do
-        expect(factories).to be_kind_of(Array)
-        expect(factories.size).to be > 0
-
-        factory_names.each do |name|
-          bot_factory = FactoryBot::Internal.factory_by_name(name)
-          expect(bot_factory).not_to be(nil),
-            "Factory #{name} was defined but failed to register with FactoryBot"
-        end
-      end
-    end
-
-    context "when there is a duplicated factory" do
-      let!(:factory) { SpecForge::Factory.new(name: "user").register }
-
-      it "is expected to raise" do
-        expect { factories }.to raise_error(FactoryBot::DuplicateDefinitionError)
-      end
-    end
-
-    context "when the factory has a valid model class" do
-      let(:attributes) { {name: Faker::String.random} }
-      let(:name) { "user" }
-
-      subject(:factory) { SpecForge::Factory.new(name:, model_class: "User", attributes:) }
-
-      before do
-        stub_const(
-          "User", Class.new do
-            attr_accessor :name
-          end
-        )
-      end
-
-      it "register successfully and can be built by FactoryBot" do
-        factory.register
-
-        bot_factory = FactoryBot::Internal.factory_by_name(name)
-        expect(bot_factory).not_to be(nil)
-
-        user = FactoryBot.build(:user)
-        expect(user).not_to be(nil)
-        expect(user.name).to eq(attributes[:name])
-      end
-    end
 
     context "when 'auto_discovery' is enabled and factories exist" do
       it "loads them" do
@@ -125,6 +72,53 @@ RSpec.describe SpecForge::Factory do
 
       it "is expected to be able to be resolved" do
         expect(factory.variables[:var_2].resolve).to eq(input[:variables][:var_1])
+      end
+    end
+  end
+
+  describe "#register" do
+    context "when the factory is valid" do
+      let!(:factory) { SpecForge::Factory.new(name: "user").register }
+
+      it "is expected register it with FactoryBot" do
+        bot_factory = FactoryBot::Internal.factory_by_name("user")
+        expect(bot_factory).not_to be(nil),
+          "Factory \"user\" was defined but failed to register with FactoryBot"
+      end
+    end
+
+    context "when there is a duplicated factory" do
+      let!(:factory) { SpecForge::Factory.new(name: "user").register }
+      let(:factory_2) { SpecForge::Factory.new(name: "user").register }
+
+      it "is expected to raise" do
+        expect { factory_2 }.to raise_error(FactoryBot::DuplicateDefinitionError)
+      end
+    end
+
+    context "when the factory has a valid model class" do
+      let(:attributes) { {name: Faker::String.random} }
+      let(:name) { "user" }
+
+      subject(:factory) { SpecForge::Factory.new(name:, model_class: "User", attributes:) }
+
+      before do
+        stub_const(
+          "User", Class.new do
+            attr_accessor :name
+          end
+        )
+      end
+
+      it "register successfully and can be built by FactoryBot" do
+        factory.register
+
+        bot_factory = FactoryBot::Internal.factory_by_name(name)
+        expect(bot_factory).not_to be(nil)
+
+        user = FactoryBot.build(:user)
+        expect(user).not_to be(nil)
+        expect(user.name).to eq(attributes[:name])
       end
     end
   end

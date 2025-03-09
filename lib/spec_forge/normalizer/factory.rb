@@ -2,7 +2,23 @@
 
 module SpecForge
   class Normalizer
+    #
+    # Normalizes factory hash structure
+    #
+    # Ensures that factory definitions have the correct structure
+    # and default values for all required settings.
+    #
     class Factory < Normalizer
+      #
+      # Defines the normalized structure for configuration validation
+      #
+      # Specifies validation rules for configuration attributes:
+      # - Enforces specific data types
+      # - Provides default values
+      # - Supports alternative key names
+      #
+      # @return [Hash] Configuration attribute validation rules
+      #
       STRUCTURE = {
         model_class: {
           type: String,
@@ -22,20 +38,20 @@ module SpecForge
       #
       # Generates an empty factory hash
       #
-      # @return [Hash]
+      # @return [Hash] Default factory hash
       #
       def default_factory
         Factory.default
       end
 
       #
-      # Normalizes a factory hash by standardizing its keys while ensuring the required data
-      # is provided or defaulted.
-      # Raises InvalidStructureError if anything is missing/invalid type
+      # Normalizes a factory hash with validation
       #
       # @param input [Hash] The hash to normalize
       #
-      # @return [Hash] A normalized hash as a new instance
+      # @return [Hash] A normalized hash with defaults applied
+      #
+      # @raise [InvalidStructureError] If validation fails
       #
       def normalize_factory!(input)
         raise_errors! do
@@ -45,13 +61,10 @@ module SpecForge
 
       #
       # Normalize a factory hash
-      # Used internally by .normalize_factory, but is available for utility
       #
-      # @param factory [Hash] Factory representation as a Hash
+      # @param factory [Hash] Factory hash
       #
-      # @return [Array] Two item array
-      #   First - The normalized hash
-      #   Second - Array of errors, if any
+      # @return [Array] [normalized_hash, errors]
       #
       # @private
       #

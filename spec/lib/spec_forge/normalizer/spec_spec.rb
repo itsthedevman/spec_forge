@@ -6,8 +6,11 @@ RSpec.describe SpecForge::Normalizer do
   describe ".normalize_spec!" do
     let(:expectation) do
       {
+        id: SecureRandom.uuid,
+        name: Faker::String.random,
+        line_number: 5,
         url: Faker::String.random,
-        http_method: SpecForge::HTTP::Verb::VERBS.keys.sample.to_s,
+        http_verb: SpecForge::HTTP::Verb::VERBS.keys.sample.to_s,
         headers: {
           some_header: Faker::String.random
         },
@@ -35,8 +38,13 @@ RSpec.describe SpecForge::Normalizer do
 
     let(:spec) do
       {
+        id: SecureRandom.uuid,
+        name: Faker::String.random,
+        file_name: "",
+        file_path: "",
+        line_number: 1,
         url: Faker::String.random,
-        http_method: Faker::String.random,
+        http_verb: SpecForge::HTTP::Verb::VERBS.keys.sample.to_s,
         headers: {
           some_header: Faker::String.random
         },
@@ -60,7 +68,7 @@ RSpec.describe SpecForge::Normalizer do
 
     it "is expected to normalize fully" do
       expect(normalized[:url]).to be_kind_of(String)
-      expect(normalized[:http_method]).to be_kind_of(String)
+      expect(normalized[:http_verb]).to be_kind_of(String)
       expect(normalized[:headers]).to be_kind_of(Hash)
       expect(normalized[:headers][:some_header]).to be_kind_of(String)
       expect(normalized[:query]).to be_kind_of(Hash)
@@ -77,7 +85,7 @@ RSpec.describe SpecForge::Normalizer do
       expectation = normalized[:expectations].first
       expect(expectation[:name]).to be_kind_of(String)
       expect(expectation[:url]).to be_kind_of(String)
-      expect(expectation[:http_method]).to be_kind_of(String)
+      expect(expectation[:http_verb]).to be_kind_of(String)
       expect(expectation[:headers]).to be_kind_of(Hash)
       expect(expectation[:headers][:some_header]).to be_kind_of(String)
       expect(expectation[:query]).to be_kind_of(Hash)
@@ -117,7 +125,7 @@ RSpec.describe SpecForge::Normalizer do
         it do
           expect { normalized }.to raise_error(
             SpecForge::InvalidStructureError,
-            "Expected String, got Integer for \"base_url\" on spec"
+            "Expected String, got Integer for \"base_url\" in spec (line 1)"
           )
         end
       end
@@ -140,34 +148,30 @@ RSpec.describe SpecForge::Normalizer do
         it do
           expect { normalized }.to raise_error(
             SpecForge::InvalidStructureError,
-            "Expected String, got Integer for \"url\" on spec"
+            "Expected String, got Integer for \"url\" (aliases \"path\") in spec (line 1)"
           )
         end
       end
 
-      context "when 'http_method' is nil" do
+      context "when 'http_verb' is nil" do
         before do
-          spec[:http_method] = nil
+          spec[:http_verb] = nil
         end
 
         it "is expected to default to an empty string" do
-          expect(normalized[:http_method]).to eq("")
-
-          # Ensure the value is disconnected from the default
-          default_value = described_class::Spec::STRUCTURE[:http_method][:default]
-          expect(default_value).not_to eq(normalized[:http_method].object_id)
+          expect(normalized[:http_verb]).to eq("")
         end
       end
 
-      context "when 'http_method' is not a String" do
+      context "when 'http_verb' is not a String" do
         before do
-          spec[:http_method] = 1
+          spec[:http_verb] = 1
         end
 
         it do
           expect { normalized }.to raise_error(
             SpecForge::InvalidStructureError,
-            "Expected String, got Integer for \"http_method\" on spec"
+            "Expected String, got Integer for \"http_verb\" (aliases \"method\", \"http_method\") in spec (line 1)"
           )
         end
       end
@@ -190,7 +194,7 @@ RSpec.describe SpecForge::Normalizer do
         it do
           expect { normalized }.to raise_error(
             SpecForge::InvalidStructureError,
-            "Expected Hash, got Integer for \"headers\" on spec"
+            "Expected Hash, got Integer for \"headers\" in spec (line 1)"
           )
         end
       end
@@ -217,7 +221,7 @@ RSpec.describe SpecForge::Normalizer do
         it do
           expect { normalized }.to raise_error(
             SpecForge::InvalidStructureError,
-            "Expected Hash, got Integer for \"query\" on spec"
+            "Expected Hash, got Integer for \"query\" (aliases \"params\") in spec (line 1)"
           )
         end
       end
@@ -240,7 +244,7 @@ RSpec.describe SpecForge::Normalizer do
         it do
           expect { normalized }.to raise_error(
             SpecForge::InvalidStructureError,
-            "Expected Hash, got Integer for \"body\" on spec"
+            "Expected Hash, got Integer for \"body\" (aliases \"data\") in spec (line 1)"
           )
         end
       end
@@ -263,7 +267,7 @@ RSpec.describe SpecForge::Normalizer do
         it do
           expect { normalized }.to raise_error(
             SpecForge::InvalidStructureError,
-            "Expected Hash, got Integer for \"variables\" on spec"
+            "Expected Hash, got Integer for \"variables\" in spec (line 1)"
           )
         end
       end
@@ -276,7 +280,7 @@ RSpec.describe SpecForge::Normalizer do
         it do
           expect { normalized }.to raise_error(
             SpecForge::InvalidStructureError,
-            "Expected Array, got NilClass for \"expectations\" on spec"
+            "Expected Array, got NilClass for \"expectations\" in spec (line 1)"
           )
         end
       end
@@ -289,7 +293,7 @@ RSpec.describe SpecForge::Normalizer do
         it do
           expect { normalized }.to raise_error(
             SpecForge::InvalidStructureError,
-            "Expected Array, got Integer for \"expectations\" on spec"
+            "Expected Array, got Integer for \"expectations\" in spec (line 1)"
           )
         end
       end
@@ -297,6 +301,13 @@ RSpec.describe SpecForge::Normalizer do
 
     context "Normalizing Expectations" do
       subject(:normalized_expectation) { normalized[:expectations].first }
+
+      context "when a value is defaulted" do
+        it "is expected to be a duplicated object" do
+          default_value = described_class::Expectation::STRUCTURE[:http_verb][:default]
+          expect(default_value).not_to eq(normalized_expectation[:http_verb].object_id)
+        end
+      end
 
       context "when 'url' is not a String" do
         before do
@@ -308,17 +319,39 @@ RSpec.describe SpecForge::Normalizer do
         end
       end
 
-      context "when 'http_method' is not a String" do
+      context "when 'http_verb' is nil" do
         before do
-          expectation[:http_method] = nil
+          expectation[:http_verb] = nil
         end
 
         it "is expected to default to an empty string" do
-          expect(normalized_expectation[:http_method]).to eq("")
+          expect(normalized_expectation[:http_verb]).to eq("")
+        end
+      end
 
-          # Ensure the value is disconnected from the default
-          default_value = described_class::Expectation::STRUCTURE[:http_method][:default]
-          expect(default_value).not_to eq(normalized_expectation[:http_method].object_id)
+      context "when 'http_verb' is not a String" do
+        before do
+          expectation[:http_verb] = 1
+        end
+
+        it do
+          expect { normalized }.to raise_error(
+            SpecForge::InvalidStructureError,
+            "Expected String, got Integer for \"http_verb\" (aliases \"method\", \"http_method\") in expectation (item 0) (line 5)"
+          )
+        end
+      end
+
+      context "when 'http_verb' is not a valid verb" do
+        before do
+          expectation[:http_verb] = "TEG"
+        end
+
+        it do
+          expect { normalized }.to raise_error(
+            SpecForge::InvalidStructureError,
+            "Invalid HTTP verb: TEG. Valid values are: DELETE, GET, PATCH, POST, PUT"
+          )
         end
       end
 
@@ -374,7 +407,7 @@ RSpec.describe SpecForge::Normalizer do
         it do
           expect { normalized }.to raise_error(
             SpecForge::InvalidStructureError,
-            "Expected Hash, got NilClass for \"expect\" on expectation (item 0)"
+            "Expected Hash, got NilClass for \"expect\" in expectation (item 0) (line 5)"
           )
         end
       end
@@ -393,7 +426,7 @@ RSpec.describe SpecForge::Normalizer do
         it do
           expect { normalized }.to raise_error(
             SpecForge::InvalidStructureError,
-            "Expected Integer, got NilClass for \"status\" on expect (item 0)"
+            "Expected Integer, got NilClass for \"status\" in expect (item 0)"
           )
         end
       end
@@ -422,12 +455,12 @@ RSpec.describe SpecForge::Normalizer do
     context "when aliases are used" do
       before do
         spec[:path] = spec.delete(:url)
-        spec[:method] = spec.delete(:http_method)
+        spec[:method] = spec.delete(:http_verb)
         spec[:params] = spec.delete(:query)
         spec[:data] = spec.delete(:body)
 
         expectation[:path] = expectation.delete(:url)
-        expectation[:method] = expectation.delete(:http_method)
+        expectation[:method] = expectation.delete(:http_verb)
         expectation[:params] = expectation.delete(:query)
         expectation[:data] = expectation.delete(:body)
       end
@@ -435,14 +468,14 @@ RSpec.describe SpecForge::Normalizer do
       it "normalizes them" do
         expect(normalized).to include(
           url: spec[:path],
-          http_method: spec[:method],
+          http_verb: spec[:method],
           query: spec[:params],
           body: spec[:data],
           variables: spec[:variables],
           expectations: [
             include(
               url: expectation[:path],
-              http_method: expectation[:method],
+              http_verb: expectation[:method],
               query: expectation[:params],
               body: expectation[:data],
               variables: expectation[:variables],

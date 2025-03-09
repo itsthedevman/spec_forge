@@ -2,12 +2,33 @@
 
 module SpecForge
   class Normalizer
+    #
+    # Normalizes expectation hash structure
+    #
+    # Ensures that expectation definitions have the correct structure
+    # and default values for all required settings.
+    #
     class Expectation < Normalizer
+      #
+      # Defines the normalized structure for configuration validation
+      #
+      # Specifies validation rules for configuration attributes:
+      # - Enforces specific data types
+      # - Provides default values
+      # - Supports alternative key names
+      #
+      # @return [Hash] Configuration attribute validation rules
+      #
       STRUCTURE = {
-        name: {type: String, default: ""},
+        # Internal
+        id: Normalizer::SHARED_ATTRIBUTES[:id],
+        line_number: Normalizer::SHARED_ATTRIBUTES[:line_number],
+
+        # User defined
+        name: Normalizer::SHARED_ATTRIBUTES[:name],
         base_url: Normalizer::SHARED_ATTRIBUTES[:base_url],
         url: Normalizer::SHARED_ATTRIBUTES[:url],
-        http_method: Normalizer::SHARED_ATTRIBUTES[:http_method],
+        http_verb: Normalizer::SHARED_ATTRIBUTES[:http_verb],
         headers: Normalizer::SHARED_ATTRIBUTES[:headers],
         query: Normalizer::SHARED_ATTRIBUTES[:query],
         body: Normalizer::SHARED_ATTRIBUTES[:body],
@@ -22,7 +43,7 @@ module SpecForge
       #
       # Generates an empty expectation hash
       #
-      # @return [Hash]
+      # @return [Hash] Default expectation hash
       #
       def default_expectation
         Expectation.default
@@ -31,11 +52,11 @@ module SpecForge
       #
       # Normalize an array of expectation hashes
       #
-      # @raises InvalidStructureError if anything is missing/invalid type
+      # @param input [Array<Hash>] The array to normalize
       #
-      # @param input [Hash] The hash to normalize
+      # @return [Array<Hash>] Normalized array of expectation hashes
       #
-      # @return [Hash] A normalized hash as a new instance
+      # @raise [InvalidStructureError] If validation fails
       #
       def normalize_expectations!(input)
         raise_errors! do
@@ -45,13 +66,10 @@ module SpecForge
 
       #
       # Normalize an array of expectation hashes
-      # Used internally by .normalize_spec, but is available for utility
       #
-      # @param expectations [Array<Hash>] An array of expectation hashes
+      # @param expectations [Array<Hash>] Array of expectation hashes
       #
-      # @return [Array] Two item array
-      #   First - The normalized Array<Hash>
-      #   Second - Array of errors, if any
+      # @return [Array] [normalized_array, errors]
       #
       # @private
       #

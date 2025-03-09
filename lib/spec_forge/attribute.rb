@@ -17,6 +17,20 @@ require_relative "attribute/transform"
 require_relative "attribute/variable"
 
 module SpecForge
+  #
+  # Base class for all attribute types in SpecForge.
+  # Attributes represent values that can be transformed, resolved, or have special meaning
+  # in the context of specs and expectations.
+  #
+  # The Attribute system handles dynamic data generation, variable references,
+  # matchers, transformations and other special values in YAML specs.
+  #
+  # @example Basic usage in YAML
+  #   username: faker.internet.username    # A dynamic faker attribute
+  #   email: /\w+@\w+\.\w+/                # A regex attribute
+  #   status: kind_of.integer              # A matcher attribute
+  #   user_id: variables.user.id           # A variable reference
+  #
   class Attribute
     include Resolvable
 
@@ -118,46 +132,74 @@ module SpecForge
       end
     end
 
+    #
+    # The original input value
+    #
+    # @return [Object]
+    #
     attr_reader :input
 
     #
-    # @param input [Object] Anything
+    # Creates a new attribute
+    #
+    # @param input [Object] The original input value
     #
     def initialize(input)
       @input = input
     end
 
     #
-    # Returns the processed value of the input
+    # Returns the processed value of this attribute.
+    # Recursively calls #value on underlying attributes, but does NOT resolve
+    # all nested structures completely.
     #
-    # For literals, this is the input itself.
-    # For generated values (Faker, Transform), this is the result of their operations.
+    # This returns an intermediate representation - for fully resolved values, use #resolve instead.
     #
     # @return [Object] The processed value of this attribute
     #
     # @raise [RuntimeError] if not implemented by subclass
+    #
+    # @example
+    #   variable_attr = Attribute::Variable.new("variables.user")
+    #   variable_attr.value # => User instance, but any attributes of User remain
+    #   as Attribute objects
     #
     def value
       raise "not implemented"
     end
 
     #
-    # Returns the fully evaluated result, recursively resolving any nested attributes
+    # Returns the fully evaluated result with complete recursive resolution.
+    # Calls #value internally and then resolves all nested attributes, caching the result.
     #
-    # @return [Object] The resolved value
+    # Use this when you need the final, fully-resolved value with all nested attributes
+    # fully evaluated to their primitive values.
     #
-    # @example Simple literal
-    #   attr = Attribute::Literal.new("hello")
-    #   attr.resolve # => "hello"
+    # @return [Object] The completely resolved value with cached results
     #
-    # @example Nested array with faker
-    #   attr = Attribute::Literal.new(["faker.number.positive", ["faker.name.first_name"]])
-    #   attr.resolve # => [42, ["Jane"]]
+    # @example
+    #   faker_attr = Attribute::Faker.new("faker.name.first_name")
+    #   faker_attr.resolve # => "Jane" (result is cached in @resolved)
+    #   faker_attr.resolve # => "Jane" (returns same cached value)
     #
     def resolve
       @resolved ||= resolve_value
     end
 
+    #
+    # Similar to #resolve but doesn't cache the result, allowing for re-resolution.
+    # Recursively calls #resolve on all nested attributes without storing results.
+    #
+    # Use this when you need to ensure fresh values each time, particularly with
+    # factories or other attributes that should generate new values on each call.
+    #
+    # @return [Object] The completely resolved value without caching
+    #
+    # @example
+    #   factory_attr = Attribute::Factory.new("factories.user")
+    #   factory_attr.resolve_value # => User#1 (a new user)
+    #   factory_attr.resolve_value # => User#2 (another new user)
+    #
     def resolve_value
       __resolve(value)
     end
@@ -185,11 +227,20 @@ module SpecForge
     #
     # @param variables [Hash] A hash of variable attributes
     #
-    def bind_variables(_variables)
+    def bind_variables(variables)
     end
 
     protected
 
+    #
+    # Helper method to recursively resolve nested values
+    #
+    # @param value [Object] The value to resolve
+    #
+    # @return [Object] The resolved value with any nested attributes resolved
+    #
+    # @private
+    #
     def __resolve(value)
       case value
       when ArrayLike

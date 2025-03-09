@@ -4,6 +4,8 @@
 ![Ruby Version](https://img.shields.io/badge/ruby-3.3.7-ruby)
 [![Tests](https://github.com/itsthedevman/spec_forge/actions/workflows/main.yml/badge.svg)](https://github.com/itsthedevman/spec_forge/actions/workflows/main.yml)
 
+> Note: The code in this repository represents the latest development version with new features and improvements that are being prepared for future releases. For the current stable version, check out [v0.5.0](https://github.com/itsthedevman/spec_forge/releases/tag/v0.5.0) on GitHub releases.
+
 Write API tests in YAML that read like documentation:
 
 ```yaml

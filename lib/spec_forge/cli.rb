@@ -7,15 +7,26 @@ require_relative "cli/new"
 require_relative "cli/run"
 
 module SpecForge
+  #
+  # Command-line interface for SpecForge that provides the overall command structure
+  # and entry point for the CLI functionality.
+  #
+  # @example Running the default command
+  #   SpecForge::CLI.new.run
+  #
+  # @example Running a specific command
+  #   # From command line: spec_forge init
+  #
   class CLI
     include Commander::Methods
 
-    COMMANDS = [Init, New, Run]
+    #
+    # @return [Array<SpecForge::CLI::Command>] All available commands
+    #
+    COMMANDS = [Init, New, Run].freeze
 
     #
-    # Runs the CLI
-    #
-    # @private
+    # Runs the CLI application, setting up program information and registering commands
     #
     def run
       program :name, "SpecForge"
@@ -30,7 +41,7 @@ module SpecForge
     end
 
     #
-    # Registers the commands with Commander
+    # Registers the command classes with Commander
     #
     # @private
     #

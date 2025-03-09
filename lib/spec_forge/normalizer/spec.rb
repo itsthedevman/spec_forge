@@ -2,11 +2,35 @@
 
 module SpecForge
   class Normalizer
+    #
+    # Normalizes spec hash structure
+    #
+    # Ensures that spec definitions have the correct structure
+    # and default values for all required settings.
+    #
     class Spec < Normalizer
+      #
+      # Defines the normalized structure for configuration validation
+      #
+      # Specifies validation rules for configuration attributes:
+      # - Enforces specific data types
+      # - Provides default values
+      # - Supports alternative key names
+      #
+      # @return [Hash] Configuration attribute validation rules
+      #
       STRUCTURE = {
+        # Internal
+        id: Normalizer::SHARED_ATTRIBUTES[:id],
+        name: Normalizer::SHARED_ATTRIBUTES[:name],
+        file_name: {type: String},
+        file_path: {type: String},
+        line_number: Normalizer::SHARED_ATTRIBUTES[:line_number],
+
+        # User defined
         base_url: Normalizer::SHARED_ATTRIBUTES[:base_url],
         url: Normalizer::SHARED_ATTRIBUTES[:url],
-        http_method: Normalizer::SHARED_ATTRIBUTES[:http_method],
+        http_verb: Normalizer::SHARED_ATTRIBUTES[:http_verb],
         headers: Normalizer::SHARED_ATTRIBUTES[:headers],
         query: Normalizer::SHARED_ATTRIBUTES[:query],
         body: Normalizer::SHARED_ATTRIBUTES[:body],
@@ -21,24 +45,25 @@ module SpecForge
       #
       # Generates an empty spec hash
       #
-      # @return [Hash]
+      # @return [Hash] Default spec hash
       #
       def default_spec
         Spec.default
       end
 
       #
-      # Normalizes a complete spec hash by standardizing its keys while ensuring the required data
-      # is provided or defaulted.
-      # Raises InvalidStructureError if anything is missing/invalid type
+      # Normalizes a spec hash with validation and processes expectations
       #
       # @param input [Hash] The hash to normalize
+      # @param label [String] Label for error messages
       #
-      # @return [Hash] A normalized hash as a new instance
+      # @return [Hash] A normalized hash with defaults applied
       #
-      def normalize_spec!(input)
+      # @raise [InvalidStructureError] If validation fails
+      #
+      def normalize_spec!(input, label: "spec")
         raise_errors! do
-          output, errors = normalize_spec(input)
+          output, errors = normalize_spec(input, label:)
 
           # Process expectations
           if (expectations = input[:expectations]) && Type.array?(expectations)
@@ -54,20 +79,18 @@ module SpecForge
 
       #
       # Normalize a spec hash
-      # Used internally by .normalize_spec, but is available for utility
       #
-      # @param spec [Hash] Spec representation as a Hash
+      # @param spec [Hash] Spec hash
+      # @param label [String] Label for error messages
       #
-      # @return [Array] Two item array
-      #   First - The normalized hash
-      #   Second - Array of errors, if any
+      # @return [Array] [normalized_hash, errors]
       #
       # @private
       #
-      def normalize_spec(spec)
-        raise InvalidTypeError.new(spec, Hash, for: "spec") unless Type.hash?(spec)
+      def normalize_spec(spec, label: "spec")
+        raise InvalidTypeError.new(spec, Hash, for: label) unless Type.hash?(spec)
 
-        Normalizer::Spec.new("spec", spec).normalize
+        Normalizer::Spec.new(label, spec).normalize
       end
     end
   end

@@ -2,7 +2,33 @@
 
 module SpecForge
   class Attribute
+    #
+    # Base class for attributes that support positional and keyword arguments
+    #
+    # This class provides the foundation for attributes that need to accept
+    # arguments, such as Faker, Matcher, and Factory. It handles both positional
+    # (array-style) and keyword (hash-style) arguments.
+    #
+    # @example With keyword arguments in YAML
+    #   example:
+    #     keyword:
+    #       arg1: value1
+    #       arg2: value2
+    #
+    # @example With positional arguments in YAML
+    #   example:
+    #     keyword:
+    #     - arg1
+    #     - arg2
+    #
     class Parameterized < Attribute
+      #
+      # Creates a new attribute instance from a hash representation
+      #
+      # @param hash [Hash] A hash containing the attribute name and arguments
+      #
+      # @return [Parameterized] A new parameterized attribute instance
+      #
       def self.from_hash(hash)
         metadata = hash.first
 
@@ -21,22 +47,22 @@ module SpecForge
         end
       end
 
+      #
+      # A hash containing both positional and keyword arguments for this attribute
+      # The hash has two keys: :positional (Array) and :keyword (Hash)
+      #
+      # @return [Hash{Symbol => Object}] The arguments hash with structure:
+      #   {
+      #     positional: Array - Contains positional arguments in order
+      #     keyword: Hash - Contains keyword arguments as key-value pairs
+      #   }
+      #
       attr_reader :arguments
 
       #
-      # Represents any attribute that is written in expanded form.
-      # Expanded form is just a fancy name for a hash.
+      # Creates a new parameterized attribute with the specified arguments
       #
-      #   keyword:
-      #     <attribute>:
-      #       <keyword_arg>: <value>
-      #
-      #   positional:
-      #     <attribute>:
-      #     - <positional_arg>
-      #     - <positional_arg>
-      #
-      # @param input [Hash] The key that contains these arguments
+      # @param input [String, Symbol] The key that contains these arguments
       # @param positional [Array] Any positional arguments
       # @param keyword [Hash] Any keyword arguments
       #
@@ -46,6 +72,11 @@ module SpecForge
         @arguments = {positional:, keyword:}
       end
 
+      #
+      # Binds variables to any nested attributes in the arguments
+      #
+      # @param variables [Hash] A hash of variable attributes
+      #
       def bind_variables(variables)
         arguments[:positional].each { |v| Attribute.bind_variables(v, variables) }
         arguments[:keyword].each_value { |v| Attribute.bind_variables(v, variables) }
@@ -59,6 +90,8 @@ module SpecForge
       # @note This needs to be called by the inheriting class.
       #   This is to allow inheriting classes to normalize their arguments before
       #   they are converted to Attributes
+      #
+      # @private
       #
       def prepare_arguments!
         @arguments = Attribute.from(arguments)

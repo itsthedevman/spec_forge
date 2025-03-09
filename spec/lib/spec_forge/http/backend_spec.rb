@@ -6,9 +6,7 @@ RSpec.describe SpecForge::HTTP::Backend do
     let(:query) { {} }
 
     let(:request) do
-      SpecForge::HTTP::Request.new(
-        **SpecForge::Attribute.from(SpecForge::Normalizer.default_expectation)
-      )
+      SpecForge::HTTP::Request.new(**Generator.empty_request_hash)
     end
 
     subject(:result) { described_class.new(request).send(:normalize_url, url, query) }

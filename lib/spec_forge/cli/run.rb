@@ -2,6 +2,21 @@
 
 module SpecForge
   class CLI
+    #
+    # Command for running SpecForge tests with filtering options
+    #
+    # @example Running all specs
+    #   spec_forge run
+    #
+    # @example Running specific file
+    #   spec_forge run users
+    #
+    # @example Running specific spec
+    #   spec_forge run users:create_user
+    #
+    # @example Running specific expectation
+    #   spec_forge run users:create_user:"POST /users"
+    #
     class Run < Command
       command_name "run"
       syntax "run [target]"
@@ -26,6 +41,9 @@ module SpecForge
 
       # option "-n", "--no-docs", "Do not generate OpenAPI documentation on completion"
 
+      #
+      # Loads and runs all specs, or a subset of specs based on the provided arguments
+      #
       def call
         return SpecForge.run if arguments.blank?
 
@@ -52,6 +70,8 @@ module SpecForge
       #       "users:show_user:'GET /users/:id'"
       #     Example with name:
       #       "users:show_user:'GET /users/:id - Returns 404 due to missing user'"
+      #
+      # @private
       #
       def extract_filter(input)
         # Note: Only split 3 because the expectation name can have colons in them.

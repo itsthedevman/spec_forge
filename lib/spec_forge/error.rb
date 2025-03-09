@@ -12,12 +12,25 @@ module SpecForge
 
   private_constant :OR_CONNECTOR
 
+  #
+  # Base error class for all SpecForge-specific exceptions
+  #
   class Error < StandardError; end
 
   #
-  # Raised by Attribute::Faker when a provided classname does not exist in Faker
+  # Raised when a provided Faker class name doesn't exist
+  # Provides helpful suggestions for similar class names
+  #
+  # @example
+  #   Attribute::Faker.new("faker.invalid.method")
+  #   # => InvalidFakerClassError: Undefined Faker class "invalid". Did you mean? name, games, ...
   #
   class InvalidFakerClassError < Error
+    #
+    # A spell checker for Faker classes
+    #
+    # @return [DidYouMean::SpellChecker]
+    #
     CLASS_CHECKER = DidYouMean::SpellChecker.new(
       dictionary: Faker::Base.descendants.map { |c| c.to_s.downcase.gsub!("::", ".") }
     )
@@ -35,7 +48,13 @@ module SpecForge
   end
 
   #
-  # Raised by Attribute::Faker when a provided method for a Faker class does not exist.
+  # Raised when a provided method for a Faker class doesn't exist
+  # Provides helpful suggestions for similar method names
+  #
+  # @example
+  #   Attribute::Faker.new("faker.name.invlaid")
+  #   # => InvalidFakerMethodError: Undefined Faker method "invlaid" for "Faker::Name".
+  #                                 Did you mean? first_name, last_name, ...
   #
   class InvalidFakerMethodError < Error
     def initialize(input, klass)
@@ -52,7 +71,8 @@ module SpecForge
   end
 
   #
-  # Raised by Attribute::Transform when the provided transform function is not valid
+  # Raised when an unknown transform function is referenced
+  # Indicates when a transform name isn't supported
   #
   class InvalidTransformFunctionError < Error
     def initialize(input)
@@ -67,7 +87,13 @@ module SpecForge
   end
 
   #
-  # Raised by Attribute::Chainable when an step in the invocation chain is invalid
+  # Raised when a step in an invocation chain is invalid
+  # Provides detailed information about where in the chain the error occurred
+  #
+  # @example
+  #   variable_attr = Attribute::Variable.new("variables.user.invalid_method")
+  #   variable_attr.resolve
+  #   # => InvalidInvocationError: Cannot invoke "invalid_method" on User
   #
   class InvalidInvocationError < Error
     def initialize(step, object, resolution_path = {})
@@ -82,6 +108,11 @@ module SpecForge
       )
     end
 
+    #
+    # Creates a new InvalidInvocationError with a new resolution path
+    #
+    # @param path [Hash] The steps taken up until this point
+    #
     def with_resolution_path(path)
       self.class.new(@step, @object, path)
     end
@@ -101,7 +132,12 @@ module SpecForge
   end
 
   #
-  # An extended version of TypeError to make things easier when reporting invalid types
+  # An extended version of TypeError with better error messages
+  # Makes it easier to understand type mismatches in the codebase
+  #
+  # @example
+  #   raise InvalidTypeError.new(123, String, for: "name parameter")
+  #   # => Expected String, got Integer for name parameter
   #
   class InvalidTypeError < Error
     def initialize(object, expected_type, **opts)
@@ -117,7 +153,8 @@ module SpecForge
   end
 
   #
-  # Raised by Attribute::Variable when the provided variable name is not defined
+  # Raised when a variable reference cannot be resolved
+  # Indicates when a spec or expectation references an undefined variable
   #
   class MissingVariableError < Error
     def initialize(variable_name)
@@ -126,7 +163,8 @@ module SpecForge
   end
 
   #
-  # Raised by Normalizer when any errors are returned. Acts like a grouping of errors
+  # Raised when a YAML structure doesn't match expectations
+  # Acts as a container for multiple validation errors
   #
   class InvalidStructureError < Error
     def initialize(errors)
@@ -143,7 +181,8 @@ module SpecForge
   end
 
   #
-  # Raised by Attribute::Factory when an unknown build strategy is provided
+  # Raised when an unknown factory build strategy is provided
+  # Indicates when a strategy string doesn't match supported options
   #
   class InvalidBuildStrategy < Error
     def initialize(build_strategy)
@@ -155,6 +194,26 @@ module SpecForge
         Valid strategies include: #{valid_strategies}
       STRING
       )
+    end
+  end
+
+  #
+  # Raised when a spec file cannot be loaded
+  # Provides detailed information about the cause of the loading error
+  #
+  class SpecLoadError < Error
+    def initialize(error, file_path)
+      message = "Error loading spec file: #{file_path}\n"
+      causes = error.message.split("\n").map(&:strip).reject(&:empty?)
+
+      message +=
+        if causes.size > 1
+          "Causes:\n  - #{causes.join_map("\n  - ")}"
+        else
+          "Cause: #{error}"
+        end
+
+      super(message)
     end
   end
 end

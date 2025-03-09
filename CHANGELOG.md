@@ -19,11 +19,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Added new context system for managing shared state between tests
+  - Introduced `SpecForge.context` global accessor for accessing test context
+  - Created `Context` class with modular components:
+    - `Context::Global` for file-level shared variables
+    - `Context::Variables` for managing variables with overlay support
+    - `Context::Metadata` for file and location tracking
+    - `Context::Store` for future extensibility
+- Added support for defining global variables at the YAML file level
+  > _(Note: global variables cannot be referenced yet - this functionality is coming in a future update)_
+  ```yaml
+  global:
+    variables:
+      api_version: "v2"
+      environment: "test"
+  ```
+- Added new `Loader` class for improved spec file processing
+- Added new `Filter` class for more flexible test filtering
+- Added normalizer for global context validation
+- Added line number tracking for specs and expectations
+
 ### Changed
 
-- Improved chainable errors to display each step that was taken and a preview of what was returned
+- Renamed `SpecForge.forge` to `SpecForge.forge_path`
+- Renamed attribute `http_method` to `http_verb`. `http_method` is now an alias.
+- Refactored variable resolution to use the new context system
+- Updated `Runner` to properly initialize and manage context between tests
+- Improved error messages with more context about the execution environment
+- Updated YARD comments with better API descriptions and examples
+- Restructured internal architecture for better separation of concerns
 
 ### Removed
+
 
 ## [0.5.0] - 12025-02-28
 
