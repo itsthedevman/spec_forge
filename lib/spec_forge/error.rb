@@ -216,4 +216,13 @@ module SpecForge
       super(message)
     end
   end
+
+  #
+  # Raised when the provided namespace is not defined on the global context
+  #
+  class InvalidGlobalNamespaceError < Error
+    def initialize(provided_namespace)
+      super("Invalid global namespace #{provided_namespace.in_quotes}. Currently supported namespaces are: \"variables\"")
+    end
+  end
 end
