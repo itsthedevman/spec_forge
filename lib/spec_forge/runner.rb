@@ -1,14 +1,28 @@
 # frozen_string_literal: true
 
 module SpecForge
+  #
+  # Handles the execution of specs through RSpec
+  # Converts SpecForge specs into RSpec examples and runs them
+  #
   class Runner
     class << self
+      #
+      # Defines RSpec examples for a collection of forges
+      # Creates the test structure that will be executed
+      #
+      # @param forges [Array<Forge>] The forges to define as RSpec examples
+      #
       def define(forges)
         forges.each do |forge|
           define_forge(forge)
         end
       end
 
+      #
+      # Runs the defined RSpec examples
+      # Executes the tests after they've been defined
+      #
       def run
         prepare_for_run
 
@@ -16,17 +30,28 @@ module SpecForge
         RSpec::Core::Runner.invoke
       end
 
+      #
+      # Defines RSpec examples for a specific forge
+      # Creates the test structure for a single forge file
+      #
+      # @param forge [Forge] The forge to define
+      #
       def define_forge(forge)
         runner = self
 
+        # This is just like writing a normal RSpec test
         RSpec.describe(forge.name) do
           # Specs
           forge.specs.each do |spec|
-            # Spec
+            # Describe the spec
             describe(spec.name) do
+              # Request data is for the spec and contains the base and overlays
               let!(:request_data) { forge.request[spec.id] }
+
+              # The HTTP client for the spec
               let!(:http_client) { HTTP::Client.new(**request_data[:base]) }
 
+              # This only happens once for the entire file
               before :context do
                 # Update the various contexts (global, variables, etc.) for the current spec
                 runner.prepare_context(forge, spec)
@@ -34,6 +59,7 @@ module SpecForge
 
               # Expectations
               spec.expectations.each do |expectation|
+                # Setup the variables and metadata
                 before do
                   runner.prepare_variables(expectation)
                   runner.set_example_metadata(spec, expectation)
@@ -43,15 +69,17 @@ module SpecForge
                   # store if set
                 end
 
-                # Expectation
+                # Onto the actual expectation itself
                 describe(expectation.name) do
+                  # More metadata definition
                   runner.set_group_metadata(self, spec, expectation)
 
-                  # Define the constraints
+                  # Lazily load the constraints
                   let(:expected_status) { expectation.constraints.status.resolve }
                   let(:expected_json) { expectation.constraints.json.resolve }
                   let(:expected_json_class) { expected_json&.expected.class }
 
+                  # The request for the test itself. Overlays the expectation's data if it exists
                   let(:request) do
                     request = request_data[:base]
 
@@ -62,8 +90,10 @@ module SpecForge
                     HTTP::Request.new(**request)
                   end
 
+                  # The Faraday response
                   subject(:response) { http_client.call(request) }
 
+                  # The test itself. Went with no name so RSpec would handle it
                   it do
                     if spec.debug? || expectation.debug?
                       runner.handle_debug(self, spec, expectation)
@@ -86,11 +116,12 @@ module SpecForge
       end
 
       #
-      # Handles debugging an example
+      # Handles debugging an example during execution
+      # Provides access to test state for debugging
       #
-      # @param example [RSpec::Core::Example]
-      # @param spec [SpecForge::Spec]
-      # @param expectation [SpecForge::Spec::Expectation]
+      # @param example [RSpec::Core::Example] The current example
+      # @param spec [SpecForge::Spec] The spec being tested
+      # @param expectation [SpecForge::Spec::Expectation] The expectation being evaluated
       #
       # @private
       #
@@ -100,8 +131,10 @@ module SpecForge
 
       #
       # Prepares the various contexts for the provided forge
+      # Sets up global, metadata, and variable contexts
       #
-      # @param forge [SpecForge::Forge]
+      # @param forge [SpecForge::Forge] The forge to prepare context for
+      # @param spec [SpecForge::Spec] The spec to prepare
       #
       # @private
       #
@@ -112,9 +145,10 @@ module SpecForge
       end
 
       #
-      # Overlays any expectation level variables over the spec level variables
+      # Overlays expectation level variables over spec level variables
+      # Sets up the variable context for an expectation
       #
-      # @param expectation [SpecForge::Spec::Expectation]
+      # @param expectation [SpecForge::Spec::Expectation] The expectation to prepare
       #
       # @private
       #
@@ -128,12 +162,12 @@ module SpecForge
       end
 
       #
-      # Updates the example group metadata
-      # Used for error reporting by RSpec
+      # Updates the example group metadata for error reporting
+      # Used by RSpec for formatting error messages
       #
-      # @param context [RSpec::Core::ExampleGroup]
-      # @param spec [SpecForge::Spec]
-      # @param expectation [SpecForge::Spec::Expectation]
+      # @param example_group [RSpec::Core::ExampleGroup] The example group
+      # @param spec [SpecForge::Spec] The spec being tested
+      # @param expectation [SpecForge::Spec::Expectation] The expectation being evaluated
       #
       # @private
       #
@@ -150,11 +184,11 @@ module SpecForge
       end
 
       #
-      # Updates the current example's metadata
-      # Used for error reporting by RSpec
+      # Updates the current example's metadata for error reporting
+      # Used by RSpec for formatting error messages
       #
-      # @param spec [SpecForge::Spec]
-      # @param expectation [SpecForge::Spec::Expectation]
+      # @param spec [SpecForge::Spec] The spec being tested
+      # @param expectation [SpecForge::Spec::Expectation] The expectation being evaluated
       #
       # @private
       #

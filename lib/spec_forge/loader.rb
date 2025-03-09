@@ -1,8 +1,23 @@
 # frozen_string_literal: true
 
 module SpecForge
+  #
+  # Responsible for loading specs from YAML files and converting them to testable objects
+  #
+  # The Loader reads spec files, parses them as YAML, and transforms them into
+  # a structure that can be used to create Forge objects. It also extracts
+  # metadata like line numbers for error reporting.
+  #
+  # @example Loading all specs
+  #   specs = Loader.load_from_files
+  #
   class Loader
     class << self
+      #
+      # Loads all spec YAML files and transforms them into normalized structures
+      #
+      # @return [Array<Array>] Array of [global, metadata, specs] for each loaded file
+      #
       def load_from_files
         # metadata is not normalized because its not user managed
         load_specs_from_files.map do |global, metadata, specs|
@@ -24,13 +39,30 @@ module SpecForge
         end
       end
 
+      #
+      # Internal method that handles loading specs from files
+      #
+      # This method coordinates the entire spec loading process by:
+      # 1. Reading files from the specs directory
+      # 2. Parsing them as YAML
+      # 3. Transforming them into the proper structure
+      #
+      # @return [Array<Array>] Array of [global, metadata, specs] for each loaded file
+      #
       # @private
+      #
       def load_specs_from_files
         files = read_from_files
         parse_and_transform_specs(files)
       end
 
+      #
+      # Reads spec files from the spec_forge/specs directory
+      #
+      # @return [Array<Array<String, String>>] Array of [file_path, file_content] pairs
+      #
       # @private
+      #
       def read_from_files
         path = SpecForge.forge_path.join("specs")
 
@@ -39,7 +71,15 @@ module SpecForge
         end
       end
 
+      #
+      # Parses YAML content and extracts line numbers for error reporting
+      #
+      # @param files [Array<Array<String, String>>] Array of [file_path, file_content] pairs
+      #
+      # @return [Array<Array>] Array of [global, metadata, specs] for each file
+      #
       # @private
+      #
       def parse_and_transform_specs(files)
         base_path = SpecForge.forge_path.join("specs")
 
@@ -67,8 +107,6 @@ module SpecForge
               spec_hash[:name] = spec_name.to_s
               spec_hash[:file_path] = metadata[:file_path]
               spec_hash[:file_name] = metadata[:file_name]
-
-              # Store the lines numbers for both the spec and each expectation
               spec_hash[:line_number] = line_number
 
               # Check for expectations instead of defaulting. I want it to error
@@ -87,7 +125,16 @@ module SpecForge
         end
       end
 
+      #
+      # Extracts line numbers from each YAML section for error reporting
+      #
+      # @param content [String] The raw file content
+      # @param input_hash [Hash] The parsed YAML structure
+      #
+      # @return [Hash] A mapping of spec names to line numbers
+      #
       # @private
+      #
       def extract_line_numbers(content, input_hash)
         spec_names = input_hash.keys
         keys = {}
@@ -134,14 +181,26 @@ module SpecForge
         keys
       end
 
+      #
+      # Generates a unique ID for an object based on hash and object_id
+      #
+      # @param object [Object] The object to generate an ID for
+      #
+      # @return [String] A unique ID string
+      #
       # @private
+      #
       def generate_id(object)
         "#{object.hash.abs.to_s(36)}_#{object.object_id.to_s(36)}"
       end
 
       #
-      # @note This was easier _after_ normalization, but it makes more sense to be done here
-      #       so there's a bit more work that has to be done to do this correctly
+      # Builds a name for an expectation based on HTTP verb, URL, and optional name
+      #
+      # @param spec_hash [Hash] The spec configuration
+      # @param expectation_hash [Hash] The expectation configuration
+      #
+      # @return [String] A formatted expectation name (e.g., "GET /users - Find User")
       #
       # @private
       #
@@ -164,6 +223,14 @@ module SpecForge
         generate_expectation_name(http_verb:, url:, name: expectation_hash[:name])
       end
 
+      #
+      # Generates an expectation name from its components
+      #
+      # @param http_verb [String] The HTTP verb (GET, POST, etc.)
+      # @param url [String] The URL path
+      # @param name [String, nil] Optional descriptive name
+      #
+      # @return [String] A formatted expectation name
       #
       # @private
       #

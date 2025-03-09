@@ -1,9 +1,14 @@
 # frozen_string_literal: true
 
 module SpecForge
+  #
+  # Manages factory definitions and registration with FactoryBot
+  # Provides methods for loading factories from YAML files
+  #
   class Factory
     #
-    # Loads the factories from their yml files and registers them with FactoryBot
+    # Loads factories from files and registers them with FactoryBot
+    # Sets up paths and loads definitions based on configuration
     #
     def self.load_and_register
       if SpecForge.configuration.factories.paths?
@@ -17,11 +22,10 @@ module SpecForge
     end
 
     #
-    # Loads any factories defined in the factories. A single file can contain one or more factories
+    # Loads factory definitions from YAML files
+    # Creates Factory instances but doesn't register them with FactoryBot
     #
-    # @return [Array<Factory>] An array of factories that were loaded.
-    #   Note: This factories have not been registered with FactoryBot.
-    #   See #register
+    # @return [Array<Factory>] Array of loaded factory instances
     #
     def self.load_from_files
       path = SpecForge.forge_path.join("factories", "**/*.yml")
@@ -43,13 +47,28 @@ module SpecForge
 
     ############################################################################
 
-    attr_reader :name, :input, :model_class, :variables, :attributes
+    # @return [Symbol, String] The name of the factory
+    attr_reader :name
+
+    # @return [Hash] The raw input that defined this factory
+    attr_reader :input
+
+    # @return [String, nil] The model class name this factory represents, if specified
+    attr_reader :model_class
+
+    # @return [Hash<Symbol, Attribute>] Variables defined for this factory
+    attr_reader :variables
+
+    # @return [Hash<Symbol, Attribute>] The attributes that define this factory
+    attr_reader :attributes
 
     #
-    # Creates a new Factory
+    # Creates a new Factory instance
     #
-    # @param name [String] The name of the factory
-    # @param **input [Hash] Attributes to define the factory. See Normalizer::Factory
+    # @param name [String, Symbol] The name of the factory
+    # @param **input [Hash] The attributes defining the factory
+    #
+    # @return [Factory] A new factory instance
     #
     def initialize(name:, **input)
       @name = name
@@ -63,10 +82,10 @@ module SpecForge
     end
 
     #
-    # Registers this factory with FactoryBot.
-    # Once registered, you can call FactoryBot.build and other methods
+    # Registers this factory with FactoryBot
+    # Makes the factory available for use in specs
     #
-    # @return [Self]
+    # @return [self] Returns self for method chaining
     #
     def register
       dsl = FactoryBot::Syntax::Default::DSL.new

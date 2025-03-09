@@ -16,11 +16,44 @@ require "singleton"
 require "thor"
 require "yaml"
 
+#
+# SpecForge: Write expressive API tests in YAML with the power of RSpec matchers
+#
+# SpecForge is a testing framework that allows writing API tests in a YAML format
+# that reads like documentation. It combines the readability of YAML with the
+# power of RSpec matchers, Faker data generation, and FactoryBot test objects.
+#
+# @example Basic spec in YAML
+#   get_user:
+#     path: /users/1
+#     expectations:
+#     - expect:
+#         status: 200
+#         json:
+#           name: kind_of.string
+#           email: /@/
+#
+# @example Running specs
+#   # Run all specs
+#   SpecForge.run
+#
+#   # Run specific file
+#   SpecForge.run(file_name: "users")
+#
+#   # Run specific spec
+#   SpecForge.run(file_name: "users", spec_name: "create_user")
+#
 module SpecForge
   #
-  # Loads all factories and specs located in "path", then runs all of the specs
+  # Loads all factories and specs and runs the tests with optional filtering
   #
-  # @param path [String] The file path that contains factories and specs
+  # This is the main entry point for running SpecForge tests. It loads the
+  # forge_helper.rb file if it exists, configures the environment, loads
+  # factories and specs, and runs the tests through RSpec.
+  #
+  # @param file_name [String, nil] Optional name of spec file to run
+  # @param spec_name [String, nil] Optional name of spec to run
+  # @param expectation_name [String, nil] Optional name of expectation to run
   #
   def self.run(file_name: nil, spec_name: nil, expectation_name: nil)
     path = SpecForge.forge_path
@@ -49,7 +82,7 @@ module SpecForge
   #
   # Returns the directory root for the working directory
   #
-  # @return [Pathname]
+  # @return [Pathname] The root directory path
   #
   def self.root
     @root ||= Pathname.pwd
@@ -58,7 +91,7 @@ module SpecForge
   #
   # Returns SpecForge's working directory
   #
-  # @return [Pathname]
+  # @return [Pathname] The spec_forge directory path
   #
   def self.forge_path
     @forge_path ||= root.join("spec_forge")
@@ -67,14 +100,19 @@ module SpecForge
   #
   # Returns SpecForge's configuration
   #
-  # @return [Config]
+  # @return [Configuration] The current configuration
   #
   def self.configuration
     @configuration ||= Configuration.new
   end
 
   #
-  # Yields SpecForge's configuration to a block
+  # Yields SpecForge's configuration to a block for modification
+  #
+  # @yield [config] Block that receives the configuration object
+  # @yieldparam config [Configuration] The configuration to modify
+  #
+  # @return [Configuration] The updated configuration
   #
   def self.configure(&block)
     block&.call(configuration)
@@ -84,7 +122,10 @@ module SpecForge
   #
   # Returns a backtrace cleaner configured for SpecForge
   #
-  # @return [ActiveSupport::BacktraceCleaner]
+  # Creates and configures an ActiveSupport::BacktraceCleaner to improve
+  # error messages by removing unnecessary lines and root paths.
+  #
+  # @return [ActiveSupport::BacktraceCleaner] The configured backtrace cleaner
   #
   def self.backtrace_cleaner
     @backtrace_cleaner ||= begin
@@ -97,6 +138,11 @@ module SpecForge
     end
   end
 
+  #
+  # Returns the current execution context
+  #
+  # @return [Context] The current context object
+  #
   def self.context
     @context ||= Context.new
   end
