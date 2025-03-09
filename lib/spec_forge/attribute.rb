@@ -79,6 +79,8 @@ module SpecForge
     #
     def self.from_string(string)
       case string
+      when Global::KEYWORD_REGEX
+        Global.new(string)
       when Faker::KEYWORD_REGEX
         Faker.new(string)
       when Variable::KEYWORD_REGEX

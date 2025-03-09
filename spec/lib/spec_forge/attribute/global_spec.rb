@@ -29,4 +29,12 @@ RSpec.describe SpecForge::Attribute::Global do
       )
     end
   end
+
+  include_examples "from_input_to_attribute" do
+    let(:input) { "global.variables.var" }
+
+    before do
+      SpecForge.context.global.update(variables: {var: 1})
+    end
+  end
 end
