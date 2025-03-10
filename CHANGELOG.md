@@ -52,6 +52,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improved error messages with more context about the execution environment
 - Updated YARD comments with better API descriptions and examples
 - Restructured internal architecture for better separation of concerns
+- Moved all error classes under `SpecForge::Error`
 
 ### Removed
 
