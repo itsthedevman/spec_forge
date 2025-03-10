@@ -62,10 +62,9 @@ RSpec.describe SpecForge::Context::Variables do
     let(:base) { {var_2: Faker::String.random} }
     let(:overlay) { {my_other_overlay: {var_1: "Hello"}} }
 
-    subject(:overlay) { variables.use_overlay(:my_other_overlay) }
-
     it "is expected to return the overlaid variables" do
-      expect(overlay).to eq(var_1: "Hello", var_2: base[:var_2])
+      variables.use_overlay(:my_other_overlay)
+      expect(variables.to_h).to eq(var_1: "Hello", var_2: base[:var_2])
     end
   end
 end
