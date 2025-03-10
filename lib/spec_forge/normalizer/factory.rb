@@ -51,7 +51,7 @@ module SpecForge
       #
       # @return [Hash] A normalized hash with defaults applied
       #
-      # @raise [InvalidStructureError] If validation fails
+      # @raise [Error::InvalidStructureError] If validation fails
       #
       def normalize_factory!(input)
         raise_errors! do
@@ -69,7 +69,7 @@ module SpecForge
       # @private
       #
       def normalize_factory(factory)
-        raise InvalidTypeError.new(factory, Hash, for: "factory") unless Type.hash?(factory)
+        raise Error::InvalidTypeError.new(factory, Hash, for: "factory") unless Type.hash?(factory)
 
         Normalizer::Factory.new("factory", factory).normalize
       end

@@ -24,7 +24,7 @@ RSpec.describe SpecForge::Attribute::Global do
 
     it do
       expect { attribute }.to raise_error(
-        SpecForge::InvalidGlobalNamespaceError,
+        SpecForge::Error::InvalidGlobalNamespaceError,
         "Invalid global namespace \"not_defined\". Currently supported namespaces are: \"variables\""
       )
     end

@@ -34,7 +34,7 @@ RSpec.describe SpecForge::Attribute::Chainable do
     let(:input) { "key.header.key_1.foo" }
 
     it "is expected to provide a helpful error message" do
-      expect { attribute.value }.to raise_error(SpecForge::InvalidInvocationError) do |e|
+      expect { attribute.value }.to raise_error(SpecForge::Error::InvalidInvocationError) do |e|
         expect(e.message).to eq <<~STRING
           Cannot invoke "foo" on Integer
 
@@ -67,7 +67,7 @@ RSpec.describe SpecForge::Attribute::Chainable do
     let(:input) { "key.header.items.invalid" }
 
     it "is expected to provide a helpful error" do
-      expect { attribute.value }.to raise_error(SpecForge::InvalidInvocationError) do |e|
+      expect { attribute.value }.to raise_error(SpecForge::Error::InvalidInvocationError) do |e|
         expect(e.message).to eq <<~STRING
           Cannot invoke "invalid" on Array
 
@@ -84,7 +84,7 @@ RSpec.describe SpecForge::Attribute::Chainable do
     let(:input) { "key.header.missing.property" }
 
     it "is expected to provide a helpful error about nil" do
-      expect { attribute.value }.to raise_error(SpecForge::InvalidInvocationError) do |e|
+      expect { attribute.value }.to raise_error(SpecForge::Error::InvalidInvocationError) do |e|
         expect(e.message).to eq <<~STRING
           Cannot invoke "missing" on Hash
 
@@ -108,7 +108,7 @@ RSpec.describe SpecForge::Attribute::Chainable do
     let(:input) { "key.header.methods.hello.upcase" }
 
     it "is expected to provide a helpful error" do
-      expect { attribute.value }.to raise_error(SpecForge::InvalidInvocationError) do |e|
+      expect { attribute.value }.to raise_error(SpecForge::Error::InvalidInvocationError) do |e|
         expect(e.message).to match <<~STRING
           Cannot invoke "upcase" on Proc
 

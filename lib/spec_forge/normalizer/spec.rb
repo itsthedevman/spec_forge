@@ -59,7 +59,7 @@ module SpecForge
       #
       # @return [Hash] A normalized hash with defaults applied
       #
-      # @raise [InvalidStructureError] If validation fails
+      # @raise [Error::InvalidStructureError] If validation fails
       #
       def normalize_spec!(input, label: "spec")
         raise_errors! do
@@ -88,7 +88,7 @@ module SpecForge
       # @private
       #
       def normalize_spec(spec, label: "spec")
-        raise InvalidTypeError.new(spec, Hash, for: label) unless Type.hash?(spec)
+        raise Error::InvalidTypeError.new(spec, Hash, for: label) unless Type.hash?(spec)
 
         Normalizer::Spec.new(label, spec).normalize
       end

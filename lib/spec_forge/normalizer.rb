@@ -106,7 +106,7 @@ module SpecForge
       #
       # @return [Object] The normalized output if successful
       #
-      # @raise [InvalidStructureError] If any errors were encountered
+      # @raise [Error::InvalidStructureError] If any errors were encountered
       #
       # @private
       #
@@ -120,7 +120,7 @@ module SpecForge
           errors << e
         end
 
-        raise InvalidStructureError.new(errors) if errors.size > 0
+        raise Error::InvalidStructureError.new(errors) if errors.size > 0
 
         output
       end
@@ -229,7 +229,7 @@ module SpecForge
             for_context += " (line #{line_number})"
           end
 
-          raise InvalidTypeError.new(value, type_class, for: for_context)
+          raise Error::InvalidTypeError.new(value, type_class, for: for_context)
         end
 
         # Call the validator if it has one

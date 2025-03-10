@@ -59,7 +59,7 @@ RSpec.describe SpecForge::Normalizer do
 
       it do
         expect { normalized }.to raise_error(
-          SpecForge::InvalidStructureError,
+          SpecForge::Error::InvalidStructureError,
           "Expected String, got Integer for \"model_class\" (aliases \"class\") in factory"
         )
       end
@@ -82,7 +82,7 @@ RSpec.describe SpecForge::Normalizer do
 
       it do
         expect { normalized }.to raise_error(
-          SpecForge::InvalidStructureError,
+          SpecForge::Error::InvalidStructureError,
           "Expected Hash, got Integer for \"variables\" in factory"
         )
       end
@@ -105,7 +105,7 @@ RSpec.describe SpecForge::Normalizer do
 
       it do
         expect { normalized }.to raise_error(
-          SpecForge::InvalidStructureError,
+          SpecForge::Error::InvalidStructureError,
           "Expected Hash, got Integer for \"attributes\" in factory"
         )
       end

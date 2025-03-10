@@ -44,14 +44,17 @@ module SpecForge
       # Parses the input string to extract the namespace to validate it
       # Conversion happens when `#value` is called
       #
-      # @raise [InvalidGlobalNamespaceError] If an unsupported namespace is referenced
+      # @raise [Error::InvalidGlobalNamespaceError] If an unsupported namespace is referenced
       #
       def initialize(...)
         super
 
         # Check to make sure the namespace is valid
         namespace = input.split(".").second
-        raise InvalidGlobalNamespaceError, namespace unless VALID_NAMESPACES.include?(namespace)
+
+        if !VALID_NAMESPACES.include?(namespace)
+          raise Error::InvalidGlobalNamespaceError, namespace
+        end
       end
 
       #

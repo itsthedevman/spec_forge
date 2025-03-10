@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 RSpec.describe SpecForge::Error do
-  describe SpecForge::InvalidFakerClassError do
+  describe SpecForge::Error::InvalidFakerClassError do
     let(:input) { "faker.nuumbre" }
 
     subject(:error) { described_class.new(input) }
@@ -11,7 +11,7 @@ RSpec.describe SpecForge::Error do
     end
   end
 
-  describe SpecForge::InvalidFakerMethodError do
+  describe SpecForge::Error::InvalidFakerMethodError do
     let(:input) { "psoitive" }
 
     subject(:error) { described_class.new(input, Faker::Number) }
@@ -21,7 +21,7 @@ RSpec.describe SpecForge::Error do
     end
   end
 
-  describe SpecForge::InvalidTypeError do
+  describe SpecForge::Error::InvalidTypeError do
     let(:input) { nil }
     let(:expected_type) {}
     let(:for_thing) {}

@@ -33,14 +33,16 @@ module SpecForge
       #
       # @param variables [Hash] A hash of variables to look up in
       #
-      # @raise [MissingVariableError] If the variable is not found
-      # @raise [InvalidTypeError] If variables is not a hash
+      # @raise [Error::MissingVariableError] If the variable is not found
+      # @raise [Error::InvalidTypeError] If variables is not a hash
       #
       def bind_variables(variables)
-        raise InvalidTypeError.new(variables, Hash, for: "'variables'") unless Type.hash?(variables)
+        if !Type.hash?(variables)
+          raise Error::InvalidTypeError.new(variables, Hash, for: "'variables'")
+        end
 
         # Don't nil check here.
-        raise MissingVariableError, variable_name unless variables.key?(variable_name)
+        raise Error::MissingVariableError, variable_name unless variables.key?(variable_name)
 
         @variable = variables[variable_name]
       end

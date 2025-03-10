@@ -124,7 +124,7 @@ RSpec.describe SpecForge::Configuration do
 
       it do
         expect { validated }.to raise_error(
-          SpecForge::InvalidStructureError,
+          SpecForge::Error::InvalidStructureError,
           "Expected String, got NilClass for \"base_url\" in configuration"
         )
       end
@@ -135,7 +135,7 @@ RSpec.describe SpecForge::Configuration do
 
       it do
         expect { validated }.to raise_error(
-          SpecForge::InvalidStructureError,
+          SpecForge::Error::InvalidStructureError,
           "Expected String, got Integer for \"base_url\" in configuration"
         )
       end
@@ -155,7 +155,7 @@ RSpec.describe SpecForge::Configuration do
 
       it do
         expect { validated }.to raise_error(
-          SpecForge::InvalidStructureError,
+          SpecForge::Error::InvalidStructureError,
           "Expected Hash, got Integer for \"headers\" in configuration"
         )
       end
@@ -175,7 +175,7 @@ RSpec.describe SpecForge::Configuration do
 
       it do
         expect { validated }.to raise_error(
-          SpecForge::InvalidStructureError,
+          SpecForge::Error::InvalidStructureError,
           "Expected Hash, got Integer for \"query\" (aliases \"params\") in configuration"
         )
       end
@@ -186,7 +186,7 @@ RSpec.describe SpecForge::Configuration do
 
       it do
         expect { validated }.to raise_error(
-          SpecForge::InvalidStructureError,
+          SpecForge::Error::InvalidStructureError,
           "Expected Proc, got NilClass for \"on_debug\" in configuration"
         )
       end
@@ -197,7 +197,7 @@ RSpec.describe SpecForge::Configuration do
 
       it do
         expect { validated }.to raise_error(
-          SpecForge::InvalidStructureError,
+          SpecForge::Error::InvalidStructureError,
           "Expected Proc, got Integer for \"on_debug\" in configuration"
         )
       end

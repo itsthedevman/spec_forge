@@ -42,7 +42,7 @@ module SpecForge
       #
       # @return [Hash] A normalized hash with defaults applied
       #
-      # @raise [InvalidStructureError] If validation fails
+      # @raise [Error::InvalidStructureError] If validation fails
       #
       def normalize_global_context!(input)
         raise_errors! do
@@ -61,7 +61,7 @@ module SpecForge
       #
       def normalize_global_context(global)
         if !Type.hash?(global)
-          raise InvalidTypeError.new(global, Hash, for: "global context")
+          raise Error::InvalidTypeError.new(global, Hash, for: "global context")
         end
 
         Normalizer::GlobalContext.new("global context", global).normalize

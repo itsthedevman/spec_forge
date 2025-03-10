@@ -144,7 +144,9 @@ module SpecForge
           build_strategy += "_list"
         end
 
-        raise InvalidBuildStrategy, build_strategy unless BUILD_STRATEGIES.include?(build_strategy)
+        if !BUILD_STRATEGIES.include?(build_strategy)
+          raise Error::InvalidBuildStrategy, build_strategy
+        end
 
         [build_strategy, list_size]
       end

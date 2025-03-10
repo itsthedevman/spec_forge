@@ -58,7 +58,7 @@ RSpec.describe SpecForge::Attribute::Variable do
         expect(variable.variable_name).to eq(:hash)
         expect(variable.invocation_chain).to eq(["1"])
 
-        expect { variable.value }.to raise_error(SpecForge::InvalidInvocationError)
+        expect { variable.value }.to raise_error(SpecForge::Error::InvalidInvocationError)
       end
     end
   end
@@ -73,7 +73,7 @@ RSpec.describe SpecForge::Attribute::Variable do
         expect(variable.variable_name).to eq(:array)
         expect(variable.invocation_chain).to eq(["key_1"])
 
-        expect { variable.value }.to raise_error(SpecForge::InvalidInvocationError)
+        expect { variable.value }.to raise_error(SpecForge::Error::InvalidInvocationError)
       end
     end
 
@@ -127,7 +127,7 @@ RSpec.describe SpecForge::Attribute::Variable do
         expect(variable.variable_name).to eq(:object)
         expect(variable.invocation_chain).to eq(["key_1"])
 
-        expect { variable.value }.to raise_error(SpecForge::InvalidInvocationError)
+        expect { variable.value }.to raise_error(SpecForge::Error::InvalidInvocationError)
       end
     end
 
@@ -149,7 +149,7 @@ RSpec.describe SpecForge::Attribute::Variable do
         expect(variable.variable_name).to eq(:object)
         expect(variable.invocation_chain).to eq(["0"])
 
-        expect { variable.value }.to raise_error(SpecForge::InvalidInvocationError)
+        expect { variable.value }.to raise_error(SpecForge::Error::InvalidInvocationError)
       end
     end
   end
@@ -159,7 +159,7 @@ RSpec.describe SpecForge::Attribute::Variable do
     let(:variables) { {object: Data.define.new} }
 
     it do
-      expect { variable.value }.to raise_error(SpecForge::InvalidInvocationError)
+      expect { variable.value }.to raise_error(SpecForge::Error::InvalidInvocationError)
     end
   end
 
@@ -167,7 +167,7 @@ RSpec.describe SpecForge::Attribute::Variable do
     let(:input) { "variables." }
 
     it do
-      expect { variable.value }.to raise_error(SpecForge::MissingVariableError)
+      expect { variable.value }.to raise_error(SpecForge::Error::MissingVariableError)
     end
   end
 
@@ -196,7 +196,7 @@ RSpec.describe SpecForge::Attribute::Variable do
 
     it do
       expect { variable }.to raise_error(
-        SpecForge::InvalidTypeError,
+        SpecForge::Error::InvalidTypeError,
         "Expected Hash, got NilClass for 'variables'"
       )
     end
