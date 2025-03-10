@@ -28,6 +28,7 @@ module SpecForge
       # @param name [String] Human-readable name
       # @param line_number [Integer] Line number in source
       # @param debug [Boolean] Whether to enable debugging
+      # @param store_as [String] Unique Context::Store identifier
       # @param expect [Hash] Expected constraints
       #
       # @return [Expectation] A new expectation instance
