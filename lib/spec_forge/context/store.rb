@@ -5,9 +5,9 @@ module SpecForge
     class Store
       class Entry < Data.define(:scope, :request, :variables, :response)
         def initialize(request:, variables:, response:, scope: :file)
-          request = request.to_istruct
-          variables = variables.to_istruct
-          response = response.to_istruct
+          request = request.deep_freeze
+          variables = variables.deep_freeze
+          response = response.deep_freeze
 
           super
         end
@@ -21,6 +21,10 @@ module SpecForge
 
       def initialize
         @inner = {}
+      end
+
+      def [](id)
+        @inner[id]
       end
 
       def store(id, **)

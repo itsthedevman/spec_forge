@@ -66,7 +66,8 @@ module SpecForge
                 end
 
                 after do
-                  # store if set
+                  # Store the result if requested
+                  runner.store_result(expectation, request, response) if expectation.store_as?
                 end
 
                 # Onto the actual expectation itself
@@ -197,6 +198,43 @@ module SpecForge
         metadata = {location: "#{spec.file_path}:#{spec.line_number}"}
 
         RSpec.current_example.metadata.merge!(metadata)
+      end
+
+      #
+      # Stores the result of an expectation for later reference
+      #
+      # This method processes and stores test execution data into the context store.
+      # It handles scope determination (file vs. spec) based on prefixes in the ID,
+      # and normalizes the ID by removing scope prefixes.
+      #
+      # @param expectation [SpecForge::Spec::Expectation] The expectation that is being stored
+      # @param request [SpecForge::HTTP::Request] The HTTP request that was executed
+      # @param response [Faraday::Response] The HTTP response received
+      #
+      def store_result(expectation, request, response)
+        id = expectation.store_as
+        scope = :file
+
+        # Remove the file prefix if it was explicitly provided
+        id = id.delete_prefix("file.") if id.start_with?("file.")
+
+        # Change scope to spec if desired
+        if id.start_with?("spec.")
+          id = id.delete_prefix("spec.")
+          scope = :spec
+        end
+
+        SpecForge.context.store.store(
+          id,
+          scope:,
+          request: request.to_h,
+          variables: SpecForge.context.variables.resolve,
+          response: {
+            headers: response.headers,
+            status: response.status,
+            body: response.body
+          }
+        )
       end
 
       private
