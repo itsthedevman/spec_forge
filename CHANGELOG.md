@@ -26,13 +26,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - `Context::Variables` for managing variables with overlay support
     - `Context::Metadata` for file and location tracking
     - `Context::Store` for future extensibility
-- Added support for defining global variables at the YAML file level
-  > _(Note: global variables cannot be referenced yet - this functionality is coming in a future update)_
+- Added support for defining and referencing global variables
   ```yaml
   global:
     variables:
       api_version: "v2"
       environment: "test"
+
+  index_user:
+    path: "/{api_version}/users"
+    query:
+      api_version: "global.variables.api_version"
   ```
 - Added new `Loader` class for improved spec file processing
 - Added new `Filter` class for more flexible test filtering
