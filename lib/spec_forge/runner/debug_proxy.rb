@@ -113,7 +113,7 @@ module SpecForge
       def global
         @global ||= begin
           hash = SpecForge.context.global.to_h
-          hash[:variables].transform_values!(&:resolve)
+          hash[:variables].resolve
           hash
         end
       end
@@ -127,7 +127,7 @@ module SpecForge
       # @return [Hash]
       #
       def variables
-        @variables ||= SpecForge.context.variables.to_h.transform_values(&:resolve)
+        @variables ||= SpecForge.context.variables.resolve
       end
 
       ##########################################################################
