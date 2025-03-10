@@ -1,3 +1,7 @@
+global:
+  variables:
+    status_ok: 200
+
 index_users:
   url: /users
   variables:
@@ -9,7 +13,7 @@ index_users:
       first_user: variables.users.first
       second_user: variables.users.second
     expect:
-      status: 200
+      status: global.variables.status_ok
       json:
         users:
         - active: true
@@ -32,7 +36,7 @@ show_user:
     query:
       id: variables.user.id
     expect:
-      status: 200
+      status: global.variables.status_ok
       json:
         user:
           name: variables.user.name
@@ -52,7 +56,7 @@ create_user:
       name: variables.name
       email: variables.email
     expect:
-      status: 200
+      status: global.variables.status_ok
       json:
         user:
           name: variables.name
@@ -70,7 +74,7 @@ update_user:
   - body:
       role: admin
     expect:
-      status: 200
+      status: global.variables.status_ok
       json:
         user:
           name: variables.user.name
@@ -86,7 +90,7 @@ destroy_user:
     id: variables.users.first.id
   expectations:
   - expect:
-      status: 200
+      status: global.variables.status_ok
       json:
         user:
           name: variables.users.first.name

@@ -27,6 +27,10 @@ RSpec.describe SpecForge::Attribute::Factory do
     SpecForge::Factory.new(name: :user, model_class: "User", attributes: {name: "Bob"}).register
   end
 
+  include_examples "from_input_to_attribute" do
+    let(:input) { "factories.user" }
+  end
+
   context "when just the factory name is referenced" do
     it "is expected to load the factory" do
       expect(factory.factory_name).to eq(:user)

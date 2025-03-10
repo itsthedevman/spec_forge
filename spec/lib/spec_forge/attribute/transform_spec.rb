@@ -1,20 +1,27 @@
 # frozen_string_literal: true
 
 RSpec.describe SpecForge::Attribute::Transform do
-  let(:function) { "" }
+  let(:input) { "" }
   let(:positional) { [] }
   let(:keyword) { {} }
 
-  subject(:attribute) { described_class.new(function, positional, keyword) }
+  subject(:attribute) { described_class.new(input, positional, keyword) }
 
-  context "when the function is not defined" do
+  include_examples "from_input_to_attribute" do
+    # Transforms are only detected when defined as a hash
+    let(:input) { {"transform.join": []} }
+  end
+
+  context "when the input is not defined" do
+    let(:input) { "" }
+
     it "is expected to raise" do
       expect { attribute }.to raise_error(SpecForge::InvalidTransformFunctionError)
     end
   end
 
   describe "transform.join" do
-    let(:function) { "transform.join" }
+    let(:input) { "transform.join" }
 
     context "when the joining items are literals" do
       let(:positional) { ["foo", " ", "bar"] }

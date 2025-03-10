@@ -426,8 +426,18 @@ RSpec.describe SpecForge::Normalizer do
         it do
           expect { normalized }.to raise_error(
             SpecForge::InvalidStructureError,
-            "Expected Integer, got NilClass for \"status\" in expect (item 0)"
+            "Expected Integer or String, got NilClass for \"status\" in expect (item 0)"
           )
+        end
+      end
+
+      context "when 'status' is a String" do
+        before do
+          constraint[:status] = "global.variables.status"
+        end
+
+        it do
+          expect(normalized_constraint[:status]).to eq("global.variables.status")
         end
       end
 

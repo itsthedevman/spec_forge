@@ -12,12 +12,25 @@ RSpec.describe SpecForge::Spec::Expectation::Constraint do
   end
 
   describe "#initialize" do
-    context "when 'status' is provided" do
+    context "when 'status' is an Integer" do
       let(:status) { 404 }
 
       it "is expected to store the status as an integer" do
         expect(constraint.status).to eq(404)
         expect(constraint.status).to be_kind_of(SpecForge::Attribute::Literal)
+      end
+    end
+
+    context "when 'status' is resolvable as an attribute" do
+      let(:status) { "global.variables.status" }
+
+      before do
+        SpecForge.context.global.update(variables: {status: 404})
+      end
+
+      it "is expected to store the status as an integer" do
+        expect(constraint.status).to be_kind_of(SpecForge::Attribute::Global)
+        expect(constraint.status.resolve).to eq(404)
       end
     end
 

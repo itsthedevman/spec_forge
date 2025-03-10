@@ -7,6 +7,18 @@ RSpec.describe SpecForge::Attribute::Matcher do
 
   subject(:attribute) { described_class.new(input, positional, keyword) }
 
+  include_examples "from_input_to_attribute" do
+    let(:input) { "kind_of.string" }
+  end
+
+  include_examples "from_input_to_attribute" do
+    let(:input) { "be.nil" }
+  end
+
+  include_examples "from_input_to_attribute" do
+    let(:input) { "matcher.include" }
+  end
+
   describe "KEYWORD_REGEX" do
     subject(:regex) { described_class::KEYWORD_REGEX }
 

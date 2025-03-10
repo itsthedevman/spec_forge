@@ -10,6 +10,10 @@ RSpec.describe SpecForge::Attribute::Variable do
     variable
   end
 
+  include_examples "from_input_to_attribute" do
+    let(:input) { "variables.foobar" }
+  end
+
   context "when just the variable name is referenced" do
     let(:input) { "variable.id" }
     let(:variables) { {id: Faker::String.random} }

@@ -19,7 +19,7 @@ module SpecForge
         #
         # Creates a new constraint
         #
-        # @param status [Integer] The expected HTTP status code
+        # @param status [Integer, String] The expected HTTP status code, or reference to one
         # @param json [Hash, Array] The expected JSON with matchers
         #
         # @return [Constraint] A new constraint instance
