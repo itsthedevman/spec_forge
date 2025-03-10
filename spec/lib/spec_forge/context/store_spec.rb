@@ -51,7 +51,7 @@ RSpec.describe SpecForge::Context::Store do
 
     context "when the scope is neither" do
       it do
-        expect { scope.clear_scope(:noop) }.to raise_error(ArgumentError)
+        expect { store.clear_scope(:noop) }.to raise_error(ArgumentError)
       end
     end
   end
