@@ -16,7 +16,7 @@ RSpec.describe SpecForge::Attribute::Transform do
     let(:input) { "" }
 
     it "is expected to raise" do
-      expect { attribute }.to raise_error(SpecForge::InvalidTransformFunctionError)
+      expect { attribute }.to raise_error(SpecForge::Error::InvalidTransformFunctionError)
     end
   end
 

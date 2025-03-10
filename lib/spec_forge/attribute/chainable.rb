@@ -137,7 +137,7 @@ module SpecForge
 
           # Try to invoke the next step
           current_object = invoke(step, next_value)
-        rescue InvalidInvocationError => e
+        rescue Error::InvalidInvocationError => e
           resolution_path[current_path] = "Error: #{e.message}"
 
           raise e.with_resolution_path(resolution_path)
@@ -205,7 +205,7 @@ module SpecForge
       #
       # @return [Object] The result of the invocation
       #
-      # @raise [InvalidInvocationError] If the step cannot be invoked on the object
+      # @raise [Error::InvalidInvocationError] If the step cannot be invoked on the object
       #
       # @private
       #
@@ -217,7 +217,7 @@ module SpecForge
         elsif method?(object, step)
           object.public_send(step)
         else
-          raise InvalidInvocationError.new(step, object)
+          raise Error::InvalidInvocationError.new(step, object)
         end
       end
 

@@ -61,7 +61,7 @@ module SpecForge
       #
       # @return [Hash] A normalized hash with defaults applied
       #
-      # @raise [InvalidStructureError] If validation fails
+      # @raise [Error::InvalidStructureError] If validation fails
       #
       def normalize_configuration!(input)
         raise_errors! do
@@ -80,7 +80,7 @@ module SpecForge
       #
       def normalize_configuration(configuration)
         if !Type.hash?(configuration)
-          raise InvalidTypeError.new(configuration, Hash, for: "configuration")
+          raise Error::InvalidTypeError.new(configuration, Hash, for: "configuration")
         end
 
         Normalizer::Configuration.new("configuration", configuration).normalize

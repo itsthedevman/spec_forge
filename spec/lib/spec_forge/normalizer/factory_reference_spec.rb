@@ -37,7 +37,7 @@ RSpec.describe SpecForge::Normalizer do
 
       it do
         expect { normalized }.to raise_error(
-          SpecForge::InvalidStructureError,
+          SpecForge::Error::InvalidStructureError,
           "Expected String, got Integer for \"build_strategy\" (aliases \"strategy\") in factory reference"
         )
       end
@@ -60,7 +60,7 @@ RSpec.describe SpecForge::Normalizer do
 
       it do
         expect { normalized }.to raise_error(
-          SpecForge::InvalidStructureError,
+          SpecForge::Error::InvalidStructureError,
           "Expected Hash, got Integer for \"attributes\" in factory reference"
         )
       end
@@ -83,7 +83,7 @@ RSpec.describe SpecForge::Normalizer do
 
       it do
         expect { normalized }.to raise_error(
-          SpecForge::InvalidStructureError,
+          SpecForge::Error::InvalidStructureError,
           "Expected Integer, got Float for \"size\" (aliases \"count\") in factory reference"
         )
       end

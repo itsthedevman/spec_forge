@@ -25,14 +25,14 @@ module SpecForge
             begin
               Normalizer.normalize_global_context!(global)
             rescue => e
-              raise SpecLoadError.new(e, metadata[:relative_path])
+              raise Error::SpecLoadError.new(e, metadata[:relative_path])
             end
 
           specs =
             specs.map do |spec|
               Normalizer.normalize_spec!(spec, label: "spec \"#{spec[:name]}\"")
             rescue => e
-              raise SpecLoadError.new(e, metadata[:relative_path])
+              raise Error::SpecLoadError.new(e, metadata[:relative_path])
             end
 
           [global, metadata, specs]

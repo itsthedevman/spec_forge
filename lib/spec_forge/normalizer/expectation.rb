@@ -56,7 +56,7 @@ module SpecForge
       #
       # @return [Array<Hash>] Normalized array of expectation hashes
       #
-      # @raise [InvalidStructureError] If validation fails
+      # @raise [Error::InvalidStructureError] If validation fails
       #
       def normalize_expectations!(input)
         raise_errors! do
@@ -75,7 +75,7 @@ module SpecForge
       #
       def normalize_expectations(expectations)
         if !Type.array?(expectations)
-          raise InvalidTypeError.new(expectations, Array, for: "\"expectations\" on spec")
+          raise Error::InvalidTypeError.new(expectations, Array, for: "\"expectations\" on spec")
         end
 
         final_errors = Set.new

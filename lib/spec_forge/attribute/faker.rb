@@ -75,8 +75,8 @@ module SpecForge
       #   1. The resolved Faker class (e.g., Faker::Name)
       #   2. The method object to call on that class (e.g., #first_name)
       #
-      # @raise [InvalidFakerClassError] If the specified Faker class doesn't exist
-      # @raise [InvalidFakerMethodError] If the specified method doesn't exist on the class
+      # @raise [Error::InvalidFakerClassError] If the specified Faker class doesn't exist
+      # @raise [Error::InvalidFakerMethodError] If the specified method doesn't exist on the class
       #
       # @private
       #
@@ -111,7 +111,7 @@ module SpecForge
 
         # If we get here, we consumed all parts as classes but found no method
         class_name = ([class_name] + namespace).map(&:camelize).join("::")
-        raise InvalidFakerMethodError.new(nil, "::#{class_name}".constantize)
+        raise Error::InvalidFakerMethodError.new(nil, "::#{class_name}".constantize)
       end
 
       #
@@ -122,14 +122,14 @@ module SpecForge
         faker_class = begin
           "::Faker::#{class_name.camelize}".constantize
         rescue NameError
-          raise InvalidFakerClassError, class_name
+          raise Error::InvalidFakerClassError, class_name
         end
 
         # Load the method
         faker_method = begin
           faker_class.method(method_name)
         rescue NameError
-          raise InvalidFakerMethodError.new(method_name, faker_class)
+          raise Error::InvalidFakerMethodError.new(method_name, faker_class)
         end
 
         [faker_class, faker_method]
