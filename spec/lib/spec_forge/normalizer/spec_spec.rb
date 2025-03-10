@@ -411,6 +411,29 @@ RSpec.describe SpecForge::Normalizer do
           )
         end
       end
+
+      context "when 'store_as' is nil" do
+        before do
+          expectation[:store_as] = nil
+        end
+
+        it "is expected to default to an empty string" do
+          expect(normalized_expectation[:store_as]).to eq("")
+        end
+      end
+
+      context "when 'store_as' is not a String" do
+        before do
+          expectation[:store_as] = 1
+        end
+
+        it do
+          expect { normalized }.to raise_error(
+            SpecForge::Error::InvalidStructureError,
+            "Expected String, got Integer for \"store_as\" in expectation (item 0) (line 5)"
+          )
+        end
+      end
     end
 
     context "Normalizing Constraints" do

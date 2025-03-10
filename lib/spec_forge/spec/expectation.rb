@@ -15,7 +15,7 @@ module SpecForge
     #       json:
     #         name: kind_of.string
     #
-    class Expectation < Data.define(:id, :name, :line_number, :debug, :constraints)
+    class Expectation < Data.define(:id, :name, :line_number, :debug, :store_as, :constraints)
       #
       # @return [Boolean] True if debugging is enabled
       #
@@ -32,10 +32,10 @@ module SpecForge
       #
       # @return [Expectation] A new expectation instance
       #
-      def initialize(id:, name:, line_number:, debug:, expect:)
+      def initialize(id:, name:, line_number:, debug:, store_as:, expect:)
         constraints = Constraint.new(**expect)
 
-        super(id:, name:, line_number:, debug:, constraints:)
+        super(id:, name:, line_number:, debug:, store_as:, constraints:)
       end
 
       #

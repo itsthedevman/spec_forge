@@ -35,6 +35,7 @@ RSpec.describe SpecForge::Forge do
               name: "GET /example - expectation_1",
               line_number: 1,
               debug: false,
+              store_as: "",
               expect: {status: 404, json: {}}
             }
           ]
@@ -85,6 +86,7 @@ RSpec.describe SpecForge::Forge do
                 var_1: false,
                 var_2: true
               },
+              store_as: "",
               debug: true,
               expect: {status: 404, json: {}}
             },
@@ -103,6 +105,7 @@ RSpec.describe SpecForge::Forge do
               variables: {
                 var_3: false
               },
+              store_as: "",
               debug: false,
               expect: {status: 404, json: {}}
             }
