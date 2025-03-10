@@ -22,6 +22,11 @@ module SpecForge
       attr_predicate :debug
 
       #
+      # @return [Boolean] True if store_as is set
+      #
+      attr_predicate :store_as
+
+      #
       # Creates a new expectation with constraints
       #
       # @param id [String] Unique identifier
