@@ -111,24 +111,17 @@ module SpecForge
       end
 
       #
-      # Clears entries from the store based on scope
+      # Removes all entries from the store
       #
-      # @param scope [Symbol] The scope to clear, either :file or :spec
+      def clear
+        @inner.clear
+      end
+
       #
-      # @return [nil]
+      # Removes all spec entries from the store
       #
-      # @raise [ArgumentError] If an invalid scope is provided
-      #
-      def clear_scope(scope = :file)
-        case scope
-        when :file
-          @inner.clear
-        when :spec
-          @inner.delete_if { |_k, v| v.scope == :spec }
-        else
-          raise ArgumentError,
-            "Invalid scope provided. Expected \"file\", \"spec\", got #{scope.in_quotes}"
-        end
+      def clear_specs
+        @inner.delete_if { |_k, v| v.scope == :spec }
       end
     end
   end
