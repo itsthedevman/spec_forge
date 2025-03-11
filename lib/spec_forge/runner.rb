@@ -59,7 +59,7 @@ module SpecForge
               spec.expectations.each do |expectation|
                 # Callbacks for the expectation
                 before { Callbacks.before_expectation(forge, spec, expectation) }
-                after { Callbacks.after_expectation(forge, spec, expectation) }
+                after { Callbacks.after_expectation(forge, spec, expectation, self) }
 
                 # Onto the actual expectation itself
                 describe(expectation.name) do
