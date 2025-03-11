@@ -26,6 +26,8 @@ module SpecForge
     #   variables[:user_id] #=> 123 (unchanged)
     #
     class Variables
+      attr_reader :base, :overlay
+
       #
       # Creates a new Variables container with base and overlay definitions
       #
@@ -67,9 +69,12 @@ module SpecForge
       # @return [self]
       #
       def set(base:, overlay: {})
-        @base = base
+        @base = Attribute.from(base)
         @overlay = overlay
         @active = Attribute.from(base)
+
+        @resolved_active = nil
+        @resolved_base = nil
 
         self
       end
@@ -86,7 +91,10 @@ module SpecForge
         overlay = @overlay[id]
         return if overlay.blank?
 
-        @active = Attribute.from(@base.merge(overlay))
+        @resolved_active = nil
+
+        active = Configuration.overlay_options(@base, overlay)
+        @active = Attribute.from(active)
       end
 
       #
@@ -96,7 +104,22 @@ module SpecForge
       # @return [Hash] The hash of resolved variable values
       #
       def resolve
-        @active.resolve
+        @resolved_active ||= @active.resolve
+      end
+
+      #
+      # Resolves the base variables
+      #
+      # This method processes all Attribute objects in the base variables hash and
+      # returns their fully resolved values.
+      # When used in specs, this is called once at the spec level before
+      # any expectation-specific overlays are applied, ensuring consistent values
+      # across all expectations unless explicitly overridden.
+      #
+      # @return [Hash] The hash of fully resolved spec-level variable values
+      #
+      def resolve_base
+        @resolved_base ||= @base.resolve
       end
     end
   end

@@ -26,11 +26,11 @@ module SpecForge
           # Set the global variables
           SpecForge.context.global.set(**forge.global)
 
+          # And resolve them
+          SpecForge.context.global.variables.resolve
+
           # Clear the store for this file
           SpecForge.context.store.clear
-
-          # Resolve the global variables
-          SpecForge.context.global.variables.resolve
         end
 
         #
@@ -43,10 +43,13 @@ module SpecForge
         # @param spec [SpecForge::Spec] The spec about to be executed
         #
         def before_spec(forge, spec)
-          # Set the variables for this spec
+          # Prepare the variables for this spec
           SpecForge.context.variables.set(**forge.variables_for_spec(spec))
 
-          # Clean up the store
+          # And resolve the spec level variables
+          SpecForge.context.variables.resolve_base
+
+          # Finally, clear spec level stores
           SpecForge.context.store.clear_specs
         end
 
@@ -61,7 +64,7 @@ module SpecForge
         # @param expectation [SpecForge::Spec::Expectation] The expectation about to be evaluated
         #
         def before_expectation(forge, spec, expectation)
-          # Set metadata
+          # Set metadata for this example
           Metadata.set_for_example(spec, expectation)
 
           # Load the variable overlay for this expectation (if one exists)
@@ -79,9 +82,10 @@ module SpecForge
         # @param forge [SpecForge::Forge] The forge being tested
         # @param spec [SpecForge::Spec] The spec being tested
         # @param expectation [SpecForge::Spec::Expectation] The expectation that was evaluated
+        # @param example [RSpec::Core::Example] The current running example
         #
-        def after_expectation(forge, spec, expectation)
-          store_result(expectation, request, response) if expectation.store_as?
+        def after_expectation(forge, spec, expectation, example)
+          store_result(expectation, example.request, example.response) if expectation.store_as?
         end
 
         #
