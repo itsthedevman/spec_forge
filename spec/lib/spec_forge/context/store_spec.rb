@@ -29,30 +29,27 @@ RSpec.describe SpecForge::Context::Store do
     end
   end
 
-  describe "#clear_scope" do
+  describe "#clear" do
     before do
       store.store("my_file_id", scope: :file, request: {}, variables: {}, response: {})
       store.store("my_spec_id", scope: :spec, request: {}, variables: {}, response: {})
     end
 
-    context "when the scope is 'file'" do
-      it "is expected to clear all" do
-        store.clear_scope
-        expect(store.size).to eq(0)
-      end
+    it "is expected to clear all" do
+      store.clear
+      expect(store.size).to eq(0)
+    end
+  end
+
+  describe "#clear_specs" do
+    before do
+      store.store("my_file_id", scope: :file, request: {}, variables: {}, response: {})
+      store.store("my_spec_id", scope: :spec, request: {}, variables: {}, response: {})
     end
 
-    context "when the scope is 'spec'" do
-      it "is expected to clear all" do
-        store.clear_scope(:spec)
-        expect(store.size).to eq(1)
-      end
-    end
-
-    context "when the scope is neither" do
-      it do
-        expect { store.clear_scope(:noop) }.to raise_error(ArgumentError)
-      end
+    it "is expected to clear all specs" do
+      store.clear_specs
+      expect(store.size).to eq(1)
     end
   end
 end
