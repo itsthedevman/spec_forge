@@ -23,8 +23,8 @@ module SpecForge
         # @param forge [SpecForge::Forge] The forge representing the current file
         #
         def before_file(forge)
+          # Set the global variables
           SpecForge.context.global.update(**forge.global)
-          SpecForge.context.metadata.update(**forge.metadata)
 
           # Clear the store for this file
           SpecForge.context.store.clear
