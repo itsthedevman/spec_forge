@@ -24,7 +24,7 @@ module SpecForge
         #
         def before_file(forge)
           # Set the global variables
-          SpecForge.context.global.update(**forge.global)
+          SpecForge.context.global.set(**forge.global)
 
           # Clear the store for this file
           SpecForge.context.store.clear
@@ -44,7 +44,7 @@ module SpecForge
         #
         def before_spec(forge, spec)
           # Set the variables for this spec
-          SpecForge.context.variables.update(**forge.variables_for_spec(spec))
+          SpecForge.context.variables.set(**forge.variables_for_spec(spec))
 
           # Clean up the store
           SpecForge.context.store.clear_specs
@@ -125,7 +125,7 @@ module SpecForge
             scope = :spec
           end
 
-          SpecForge.context.store.store(
+          SpecForge.context.store.set(
             id,
             scope:,
             request: request.to_h,

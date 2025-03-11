@@ -7,7 +7,7 @@ RSpec.describe SpecForge::Context::Store do
     subject(:entry) { store["my_id"] }
 
     context "when the ID exists" do
-      before { store.store("my_id", scope: :file, request: {}, variables: {}, response: {}) }
+      before { store.set("my_id", scope: :file, request: {}, variables: {}, response: {}) }
 
       it "is expected to return store entry" do
         is_expected.not_to be(nil)
@@ -21,9 +21,9 @@ RSpec.describe SpecForge::Context::Store do
     end
   end
 
-  describe "#store" do
+  describe "#set" do
     it "is expected to store the data as an entry" do
-      store.store("my_id", scope: :file, request: {}, variables: {}, response: {})
+      store.set("my_id", scope: :file, request: {}, variables: {}, response: {})
 
       expect(store["my_id"]).to be_kind_of(described_class::Entry)
     end
@@ -31,8 +31,8 @@ RSpec.describe SpecForge::Context::Store do
 
   describe "#clear" do
     before do
-      store.store("my_file_id", scope: :file, request: {}, variables: {}, response: {})
-      store.store("my_spec_id", scope: :spec, request: {}, variables: {}, response: {})
+      store.set("my_file_id", scope: :file, request: {}, variables: {}, response: {})
+      store.set("my_spec_id", scope: :spec, request: {}, variables: {}, response: {})
     end
 
     it "is expected to clear all" do
@@ -43,8 +43,8 @@ RSpec.describe SpecForge::Context::Store do
 
   describe "#clear_specs" do
     before do
-      store.store("my_file_id", scope: :file, request: {}, variables: {}, response: {})
-      store.store("my_spec_id", scope: :spec, request: {}, variables: {}, response: {})
+      store.set("my_file_id", scope: :file, request: {}, variables: {}, response: {})
+      store.set("my_spec_id", scope: :spec, request: {}, variables: {}, response: {})
     end
 
     it "is expected to clear all specs" do

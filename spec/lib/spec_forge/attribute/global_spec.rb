@@ -10,7 +10,7 @@ RSpec.describe SpecForge::Attribute::Global do
     let(:my_global_var) { Faker::String.random }
 
     before do
-      SpecForge.context.global.update(variables: {my_global_var:})
+      SpecForge.context.global.set(variables: {my_global_var:})
     end
 
     it "is expected to be able to resolve the global variable" do
@@ -34,7 +34,7 @@ RSpec.describe SpecForge::Attribute::Global do
     let(:input) { "global.variables.var" }
 
     before do
-      SpecForge.context.global.update(variables: {var: 1})
+      SpecForge.context.global.set(variables: {var: 1})
     end
   end
 end

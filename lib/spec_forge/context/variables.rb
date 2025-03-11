@@ -35,7 +35,7 @@ module SpecForge
       # @return [Variables]
       #
       def initialize(base: {}, overlay: {})
-        update(base:, overlay:)
+        set(base:, overlay:)
       end
 
       #
@@ -59,14 +59,14 @@ module SpecForge
       end
 
       #
-      # Updates the base and overlay variable hashes
+      # Sets the base and overlay variable hashes
       #
       # @param base [Hash] The new base variable hash
       # @param overlay [Hash<String, Hash>] The new overlay variable hashes
       #
       # @return [self]
       #
-      def update(base:, overlay: {})
+      def set(base:, overlay: {})
         @base = base
         @overlay = overlay
         @active = Attribute.from(base)

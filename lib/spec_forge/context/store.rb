@@ -106,7 +106,7 @@ module SpecForge
       #
       # @return [Entry] The newly created entry
       #
-      def store(id, **)
+      def set(id, **)
         @inner[id] = Entry.new(**)
       end
 
