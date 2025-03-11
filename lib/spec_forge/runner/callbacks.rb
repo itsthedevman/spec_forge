@@ -26,6 +26,9 @@ module SpecForge
           SpecForge.context.global.update(**forge.global)
           SpecForge.context.metadata.update(**forge.metadata)
 
+          # Clear the store for this file
+          SpecForge.context.store.clear
+
           # Resolve the global variables
           SpecForge.context.global.variables.resolve
         end
@@ -40,8 +43,11 @@ module SpecForge
         # @param spec [SpecForge::Spec] The spec about to be executed
         #
         def before_spec(forge, spec)
+          # Set the variables for this spec
           SpecForge.context.variables.update(**forge.variables_for_spec(spec))
-          SpecForge.context.store.clear_scope(:spec)
+
+          # Clean up the store
+          SpecForge.context.store.clear_specs
         end
 
         #
@@ -58,10 +64,10 @@ module SpecForge
           # Set metadata
           Metadata.set_for_example(spec, expectation)
 
-          # Load the variable overlay
+          # Load the variable overlay for this expectation (if one exists)
           SpecForge.context.variables.use_overlay(expectation.id)
 
-          # Resolve the expectation's variables
+          # Ensure everything is resolved
           SpecForge.context.variables.resolve
         end
 
