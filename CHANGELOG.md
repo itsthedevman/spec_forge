@@ -24,8 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Created `Context` class with modular components:
     - `Context::Global` for file-level shared variables
     - `Context::Variables` for managing variables with overlay support
-    - `Context::Metadata` for file and location tracking
-    - `Context::Store` for future extensibility
+    - `Context::Store` for storing the results of the tests
 - Added support for defining and referencing global variables
   ```yaml
   global:
@@ -42,6 +41,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added new `Filter` class for more flexible test filtering
 - Added normalizer for global context validation
 - Added line number tracking for specs and expectations
+- Added new `Runner::Callbacks` class to handle various events while specs are running
+- Added new `Runner::Metadata` class to handle setting example metadata for error reporting
+- Added support for defining stored expectations via the `store_as` key.
+  ```yaml
+  create_user:
+    path: "/users"
+    method: "post"
+    expectations:
+    - variables:
+        name: "John"
+        email: "john@example.com"
+      store_as: "created_user"
+      expect:
+        status: 200
+  ```
 
 ### Changed
 
