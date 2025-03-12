@@ -19,6 +19,10 @@ RSpec.describe SpecForge::Attribute::Matcher do
     let(:input) { "matcher.include" }
   end
 
+  include_examples "from_input_to_attribute" do
+    let(:input) { "matchers.all" }
+  end
+
   describe "KEYWORD_REGEX" do
     subject(:regex) { described_class::KEYWORD_REGEX }
 

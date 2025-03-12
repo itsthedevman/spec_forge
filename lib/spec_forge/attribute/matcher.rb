@@ -37,7 +37,7 @@ module SpecForge
       #
       # @return [Regexp]
       #
-      KEYWORD_REGEX = /^matcher\.|^be\.|^kind_of\./i
+      KEYWORD_REGEX = /^matchers?\.|^be\.|^kind_of\./i
 
       #
       # Instance of Methods providing access to all RSpec matchers
