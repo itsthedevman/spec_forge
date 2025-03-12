@@ -17,8 +17,9 @@ module SpecForge
     #   global.variables[:environment] #=> "test"
     #
     #   # Update global variables
-    #   global.update(variables: {environment: "staging"})
+    #   global.set(variables: {environment: "staging"})
     #   global.variables[:environment] #=> "staging"
+    #   global.variables[:api_version] #=> nil
     #
     class Global
       # @return [Context::Variables] The container for global variables
@@ -36,14 +37,14 @@ module SpecForge
       end
 
       #
-      # Updates the global variables
+      # Sets the global variables
       #
       # @param variables [Hash<Symbol, Object>] A hash of variable names and values
       #
       # @return [self]
       #
-      def update(variables:)
-        @variables.update(base: variables)
+      def set(variables:)
+        @variables.set(base: variables)
         self
       end
 

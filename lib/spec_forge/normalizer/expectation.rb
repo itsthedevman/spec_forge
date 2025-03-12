@@ -34,6 +34,7 @@ module SpecForge
         body: Normalizer::SHARED_ATTRIBUTES[:body],
         variables: Normalizer::SHARED_ATTRIBUTES[:variables],
         debug: Normalizer::SHARED_ATTRIBUTES[:debug],
+        store_as: {type: String, default: ""},
         expect: {type: Hash}
       }.freeze
     end

@@ -28,13 +28,11 @@ RSpec.describe SpecForge::Forge do
           variables: {
             var_1: true
           },
-          debug: false,
           expectations: [
             {
               id: SecureRandom.uuid,
               name: "GET /example - expectation_1",
-              line_number: 1,
-              debug: false,
+
               expect: {status: 404, json: {}}
             }
           ]
@@ -45,9 +43,7 @@ RSpec.describe SpecForge::Forge do
           file_name: "spec_2",
           file_path: "spec_2.yml",
           line_number: 1,
-          base_url: "",
           url: "/example",
-          http_verb: "",
           headers: {
             header_1: true
           },
@@ -60,7 +56,6 @@ RSpec.describe SpecForge::Forge do
           variables: {
             var_1: true
           },
-          debug: false,
           expectations: [
             {
               id: SecureRandom.uuid,
@@ -90,20 +85,13 @@ RSpec.describe SpecForge::Forge do
             },
             {
               id: SecureRandom.uuid,
-              line_number: 1,
               name: "GET /example",
-              base_url: "",
-              url: "",
-              http_verb: "",
               headers: {
                 header_1: false
               },
-              query: {},
-              body: {},
               variables: {
                 var_3: false
               },
-              debug: false,
               expect: {status: 404, json: {}}
             }
           ]
@@ -111,7 +99,7 @@ RSpec.describe SpecForge::Forge do
       ]
     end
 
-    subject(:forge) { described_class.new(global, metadata, specs) }
+    subject(:forge) { Generator.forge(global:, metadata:, specs:) }
 
     context "when variables are defined" do
       subject(:variables) { forge.variables }
@@ -201,7 +189,6 @@ RSpec.describe SpecForge::Forge do
           file_path: "spec_1.yml",
           file_name: "spec_1",
           debug: false,
-          line_number: 1,
           expectations: be_kind_of(Array)
         )
 
@@ -212,7 +199,6 @@ RSpec.describe SpecForge::Forge do
         expect(expectation).to have_attributes(
           id: og_expectation[:id],
           name: "GET /example - expectation_1",
-          line_number: 1,
           debug: false,
           constraints: have_attributes(
             status: SpecForge::Attribute.from(404),
@@ -228,7 +214,6 @@ RSpec.describe SpecForge::Forge do
           file_path: "spec_2.yml",
           file_name: "spec_2",
           debug: false,
-          line_number: 1,
           expectations: be_kind_of(Array)
         )
 
@@ -239,7 +224,6 @@ RSpec.describe SpecForge::Forge do
         expect(spec_2.expectations.first).to have_attributes(
           id: og_expectation_ids.first,
           name: "POST /example1",
-          line_number: 1,
           debug: true,
           constraints: have_attributes(
             status: SpecForge::Attribute.from(404),
@@ -250,7 +234,6 @@ RSpec.describe SpecForge::Forge do
         expect(spec_2.expectations.second).to have_attributes(
           id: og_expectation_ids.second,
           name: "GET /example",
-          line_number: 1,
           debug: false,
           constraints: have_attributes(
             status: SpecForge::Attribute.from(404),

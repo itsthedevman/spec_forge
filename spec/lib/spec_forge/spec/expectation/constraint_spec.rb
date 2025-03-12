@@ -25,7 +25,7 @@ RSpec.describe SpecForge::Spec::Expectation::Constraint do
       let(:status) { "global.variables.status" }
 
       before do
-        SpecForge.context.global.update(variables: {status: 404})
+        SpecForge.context.global.set(variables: {status: 404})
       end
 
       it "is expected to store the status as an integer" do

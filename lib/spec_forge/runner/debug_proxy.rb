@@ -33,8 +33,8 @@ module SpecForge
         -> { puts inspect }
       end
 
-      # @return [RSpec::Example] The current RSpec example that is running
-      attr_reader :rspec_example
+      # @return [RSpec::Forge] The current Forge that is being tested
+      attr_reader :forge
 
       # @return [SpecForge::Spec] The current Spec that is being tested
       attr_reader :spec
@@ -42,21 +42,26 @@ module SpecForge
       # @return [SpecForge::Spec::Expectation] The current expectation that is being tested
       attr_reader :expectation
 
-      delegate_missing_to :@rspec_example
+      # @return [RSpec::Example] The current RSpec example that is running
+      attr_reader :example
+
+      delegate_missing_to :@example
 
       #
       # Creates a new DebugProxy instance
       #
-      # @param rspec_example [RSpec::Example] The current RSpec example being executed
+      # @param forge [SpecForge::Forge] The forge being tested
       # @param spec [SpecForge::Spec] The spec being tested
-      # @param expectation [SpecForge::Spec::Expectation] The expectation being evaluated
+      # @param expectation [SpecForge::Spec::Expectation] The expectation being tested
+      # @param example [RSpec::Core::Example] The current example, being tested?
       #
       # @return [SpecForge::Runner::DebugProxy]
       #
-      def initialize(rspec_example, spec, expectation)
+      def initialize(forge, spec, expectation, example)
         @callback = SpecForge.configuration.on_debug
 
-        @rspec_example = rspec_example
+        @forge = forge
+        @example = example
         @spec = spec
         @expectation = expectation
       end
@@ -113,7 +118,7 @@ module SpecForge
       def global
         @global ||= begin
           hash = SpecForge.context.global.to_h
-          hash[:variables].transform_values!(&:resolve)
+          hash[:variables].resolve
           hash
         end
       end
@@ -127,7 +132,7 @@ module SpecForge
       # @return [Hash]
       #
       def variables
-        @variables ||= SpecForge.context.variables.to_h.transform_values(&:resolve)
+        @variables ||= SpecForge.context.variables.resolve
       end
 
       ##########################################################################
