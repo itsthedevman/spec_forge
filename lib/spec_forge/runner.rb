@@ -67,9 +67,11 @@ module SpecForge
                   Metadata.set_for_group(spec, expectation, self)
 
                   # Lazily load the constraints
-                  let(:expected_status) { expectation.constraints.status.resolve }
-                  let(:expected_json) { expectation.constraints.json.resolve }
-                  let(:expected_json_class) { expected_json&.expected.class }
+                  let(:constraints) { expectation.constraints.as_matchers }
+
+                  let(:match_status) { constraints[:status] }
+                  let(:match_json) { constraints[:json] }
+                  let(:match_json_class) { be_kind_of(match_json.class) }
 
                   # The request for the test itself. Overlays the expectation's data if it exists
                   let(:request) do
@@ -92,12 +94,22 @@ module SpecForge
                     end
 
                     # Status check
-                    expect(response.status).to eq(expected_status)
+                    expect(response.status).to match_status
 
                     # JSON check
-                    if expected_json
-                      expect(response.body).to be_kind_of(expected_json_class)
-                      expect(response.body).to expected_json
+                    if match_json.present?
+                      expect(response.body).to match_json_class
+
+                      case match_json
+                      when Hash
+                        # Check per key for easier debugging
+                        match_json.each do |key, matcher|
+                          expect(response.body).to have_key(key)
+                          expect(response.body[key]).to matcher
+                        end
+                      else
+                        expect(response.body).to match_json
+                      end
                     end
                   end
                 end

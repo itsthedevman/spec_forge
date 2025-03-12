@@ -25,8 +25,6 @@ module SpecForge
         # @return [Constraint] A new constraint instance
         #
         def initialize(status:, json: {})
-          json = convert_to_matchers(json)
-
           super(
             status: Attribute.from(status),
             json: Attribute.from(json)
@@ -40,6 +38,30 @@ module SpecForge
         #
         def to_h
           super.transform_values(&:resolve)
+        end
+
+        #
+        # Converts constraints to RSpec matchers for validation
+        #
+        # Transforms the defined constraints (status and JSON expectations) into
+        # appropriate RSpec matchers that can be used in test expectations.
+        # This method resolves all values and applies the appropriate matcher
+        # conversions to create a complete expectation structure.
+        #
+        # @return [Hash] A hash containing resolved matchers
+        #
+        # @example
+        #   constraint = Constraint.new(status: 200, json: {name: "John"})
+        #   matchers = constraint.as_matchers
+        #   # => {status: eq(200), json: include("name" => eq("John"))}
+        #
+        def as_matchers
+          # Resolve then convert to ensure the values being converted to matchers are the
+          # final values
+          {
+            status: convert_to_matchers(status.resolve).resolve,
+            json: convert_to_matchers(json.resolve).resolve
+          }
         end
 
         private
@@ -61,7 +83,8 @@ module SpecForge
         def convert_to_matchers(value)
           case value
           when HashLike
-            value.transform_values { |v| convert_value_to_matcher(v) }.stringify_keys
+            value = value.transform_values { |v| convert_value_to_matcher(v) }.stringify_keys
+            Attribute.from(value)
           else
             convert_value_to_matcher(value)
           end
@@ -90,9 +113,9 @@ module SpecForge
           when ArrayLike
             value = value.map { |i| convert_value_to_matcher(i) }
             Attribute.from("matcher.contain_exactly" => value)
-          when Attribute::Regex
+          when Regexp
             Attribute.from("matcher.match" => value)
-          when Attribute::Matcher, RSpec::Matchers::BuiltIn::BaseMatcher
+          when RSpec::Matchers::BuiltIn::BaseMatcher
             value
           else
             Attribute.from("matcher.eq" => value)
