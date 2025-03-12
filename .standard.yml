@@ -2,6 +2,5 @@
 #   https://github.com/standardrb/standard
 ruby_version: 3.3
 ignore:
-  - ".direnv/**/*"
-  - "vendor/**/*"
-  - "spec/integration/**/*"
+- ".direnv/**/*"
+- "vendor/**/*"
