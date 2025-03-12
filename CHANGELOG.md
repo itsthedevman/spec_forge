@@ -43,7 +43,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added line number tracking for specs and expectations
 - Added new `Runner::Callbacks` class to handle various events while specs are running
 - Added new `Runner::Metadata` class to handle setting example metadata for error reporting
-- Added support for defining stored expectations via the `store_as` key.
+- Added support for defining and retrieving stored test data via the `store_as` directive and `store` attribute.
   ```yaml
   create_user:
     path: "/users"
@@ -54,6 +54,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
         email: "john@example.com"
       store_as: "created_user"
       expect:
+        status: 200
+
+  show_user:
+    path: "/users/:id"
+    query:
+      id: store.created_user.response.id
+    - expect:
         status: 200
   ```
 
