@@ -63,6 +63,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - expect:
         status: 200
   ```
+- Added new error `UndefinedMatcherError` that is raised when the provided matcher does not exist
+- Added new debug methods to `DebugProxy`
 
 ### Changed
 
@@ -74,6 +76,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated YARD comments with better API descriptions and examples
 - Restructured internal architecture for better separation of concerns
 - Moved all error classes under `SpecForge::Error`
+- Fixed issue where nesting expanded matchers (such as "matcher.include") cause an error
 
 ### Removed
 

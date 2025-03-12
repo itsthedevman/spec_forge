@@ -12,6 +12,6 @@ class User < ApplicationRecord
 
   # Validations
   validates :name, presence: true
-  validates :email, presence: true, uniqueness: true, format: { with: URI::MailTo::EMAIL_REGEXP }
-  validates :role, inclusion: { in: %w[admin user] }
+  validates :email, presence: true, uniqueness: true, format: {with: URI::MailTo::EMAIL_REGEXP}
+  validates :role, inclusion: {in: %w[admin user]}
 end
