@@ -12,54 +12,43 @@ get_status:
 create_user:
   path: /users
   method: post
+  variables:
+    random_email: faker.internet.email
   body:
     name: "Basic Test User"
-    email: "basic@example.com"
+    email: variables.random_email
   expectations:
   - expect:
       status: 201
       json:
         user:
           name: "Basic Test User"
-          email: "basic@example.com"
+          email: variables.random_email
           id: kind_of.integer
-
-# Create a user for show/update/delete
-setup_user:
-  path: /users
-  method: post
-  body:
-    name: "Test User for Operations"
-    email: "operations@example.com"
-  expectations:
-  - variables:
-      user_id: response.body.user.id
-    expect:
-      status: 201
 
 # GET with path parameter
 get_user:
   path: /users/{id}
   variables:
-    user_id: factories.user.id
+    user: factories.user # This creates a user with a random email
   query:
-    id: variables.user_id
+    id: variables.user.id
   expectations:
   - expect:
       status: 200
       json:
         user:
-          id: variables.user_id
-          name: kind_of.string
+          id: variables.user.id
+          name: variables.user.name
 
 # PATCH request
 update_user:
   path: /users/{id}
   method: patch
   variables:
-    user_id: factories.user.id
+    user: factories.user
   query:
-    id: variables.user_id
+    id: variables.user.id
   body:
     name: "Updated Basic User"
   expectations:
@@ -74,9 +63,9 @@ delete_user:
   path: /users/{id}
   method: delete
   variables:
-    user_id: factories.user.id
+    user: factories.user
   query:
-    id: variables.user_id
+    id: variables.user.id
   expectations:
   - expect:
       status: 204
