@@ -35,73 +35,81 @@ RSpec.describe SpecForge::Spec::Expectation::Constraint do
     end
 
     context "when 'json' is provided" do
-      context "and the 'json' is a hash" do
-        let(:json) { {foo: "faker.string.random"} }
+      let(:matchers) { RSpec::Matchers::BuiltIn }
 
-        it "is expected to convert to a matcher" do
-          expect(constraint.json).to be_kind_of(SpecForge::Attribute::Matcher)
-          expect(constraint.json.input).to eq("matcher.include")
-          expect(constraint.json.arguments[:keyword][:foo]).to be_kind_of(
-            SpecForge::Attribute::Faker
-          )
+      subject(:resolved_json) { constraint.json.resolve }
+
+      context "and the 'json' is a hash" do
+        let(:json) do
+          {
+            string: "hello world",
+            integer: 1,
+            bool: false,
+            matcher: {"matcher.include" => [1]},
+            faker: "faker.string.random"
+          }
         end
 
-        context "and it has matchers" do
-          let(:json) do
-            {foo: "/testing/i", bar: "bar", baz: SpecForge::Attribute.from("kind_of.string")}
-          end
+        it "is expected to stringify all hash keys, and convert the values to matchers. Leaving the root hash as a Hash" do
+          expect(resolved_json).to be_kind_of(Hash)
 
-          it "is expected to convert the json attributes to matchers" do
-            arguments = constraint.json.arguments[:keyword]
+          expect(resolved_json["string"]).to be_kind_of(matchers::Eq)
+          expect(resolved_json["string"]).to have_attributes(expected: "hello world")
 
-            expect(arguments[:foo].resolve).to be_kind_of(RSpec::Matchers::BuiltIn::Match)
-            expect(arguments[:bar].resolve).to be_kind_of(RSpec::Matchers::BuiltIn::Eq)
-            expect(arguments[:baz].resolve).to be_kind_of(RSpec::Matchers::BuiltIn::BeAKindOf)
-          end
+          expect(resolved_json["integer"]).to be_kind_of(matchers::Eq)
+          expect(resolved_json["integer"]).to have_attributes(expected: 1)
+
+          expect(resolved_json["bool"]).to be_kind_of(matchers::Eq)
+          expect(resolved_json["bool"]).to have_attributes(expected: false)
+
+          expect(resolved_json["matcher"]).to be_kind_of(matchers::Include)
+          expect(resolved_json["matcher"]).to have_attributes(expected: [1])
+
+          expect(resolved_json["faker"]).to be_kind_of(matchers::Eq)
+          expect(resolved_json["faker"]).to have_attributes(expected: be_kind_of(String))
         end
       end
 
       context "and the 'json' is an array" do
-        let(:json) { ["faker.string.random"] }
+        let(:json) do
+          [
+            [1.0, {var: 1}],
+            {var: true},
+            "/testing/"
+          ]
+        end
 
         it "is expected to convert to a matcher" do
-          expect(constraint.json).to be_kind_of(SpecForge::Attribute::Matcher)
-          expect(constraint.json.input).to eq("matcher.contain_exactly")
-          expect(constraint.json.arguments[:positional].first).to be_kind_of(
-            SpecForge::Attribute::Faker
-          )
-        end
+          expect(resolved_json).to be_kind_of(matchers::ContainExactly)
 
-        context "and it has matcher" do
-          let(:json) { ["bar", [1], {foo: SpecForge::Attribute.from("faker.string.random")}] }
+          expected = resolved_json.expected
 
-          it "is expected to convert the array values to matchers" do
-            arguments = constraint.json.arguments[:positional]
+          # Index 0 (Array)
+          matcher = expected[0]
+          expect(matcher).to be_kind_of(matchers::ContainExactly)
 
-            expect(arguments.first.resolve).to be_kind_of(RSpec::Matchers::BuiltIn::Eq)
+          inner = matcher.expected
+          expect(inner[0]).to be_kind_of(matchers::Eq)
+          expect(inner[0]).to have_attributes(expected: 1)
 
-            array_arg = arguments.second.resolve
-            expect(array_arg).to be_kind_of(RSpec::Matchers::BuiltIn::ContainExactly)
-            expect(array_arg.expected).to contain_exactly(
-              be_kind_of(RSpec::Matchers::BuiltIn::Eq)
-            )
+          expect(inner[1]).to be_kind_of(matchers::Include)
+          expect(inner[1]).to have_attributes(expected: {
+            "var" => be_kind_of(matchers::Eq).and(have_attributes(expected: 1))
+          })
 
-            hash_arg = arguments.third
-            expect(hash_arg).to be_kind_of(SpecForge::Attribute::Matcher)
-            expect(hash_arg.input).to eq("matcher.include")
+          # Index 1 (Hash)
+          matcher = expected[1]
+          expect(matcher).to be_kind_of(matchers::Include)
 
-            expect(hash_arg.arguments[:keyword][:foo]).to be_kind_of(
-              SpecForge::Attribute::Faker
-            )
-          end
-        end
-      end
+          inner = matcher.expected
+          expect(inner["var"]).to be_kind_of(matchers::Eq)
+          expect(inner["var"]).to have_attributes(expected: true)
 
-      context "and the 'json' is blank" do
-        let(:json) { {} }
+          # Index 2 (Regex)
+          matcher = expected[2]
+          expect(matcher).to be_kind_of(matchers::Match)
 
-        it "sets the json value to resolve to nil" do
-          expect(constraint.json.resolve).to be(nil)
+          expect(matcher.expected).to eq(/testing/)
         end
       end
     end

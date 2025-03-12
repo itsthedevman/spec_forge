@@ -25,9 +25,11 @@ module SpecForge
         # @return [Constraint] A new constraint instance
         #
         def initialize(status:, json: {})
+          json = convert_to_matchers(json)
+
           super(
             status: Attribute.from(status),
-            json: convert_to_matchers(json)
+            json: Attribute.from(json)
           )
         end
 
@@ -43,39 +45,57 @@ module SpecForge
         private
 
         #
-        # Converts a value to the appropriate matcher
+        # Recursively converts the value to appropriate RSpec matchers.
+        # At the root level for a Hash, only the values are converted to matchers.
+        # This allows for testing specific keys in the response body while
+        # nested hashes get wrapped in "include" matchers for more flexible validation.
         #
-        # Applies different matchers based on the type:
-        # - Hashes use matcher.include
-        # - Arrays use matcher.contain_exactly
-        # - Regexes use matcher.match
-        # - Literals use matcher.eq
+        # All other values are converted according to rules in #convert_value_to_matcher
         #
         # @param value [Object] The value to convert
         #
-        # @return [Attribute] The value wrapped in appropriate matcher
+        # @return [Object] The value with nested structures converted to matchers
         #
         # @private
         #
         def convert_to_matchers(value)
-          # This makes it easier to check if json was provided
-          return Attribute.from(nil) if value.blank?
-
-          value = Attribute.from(value)
-
           case value
           when HashLike
-            value = value.transform_values { |i| convert_to_matchers(i) }
+            value.transform_values { |v| convert_value_to_matcher(v) }.stringify_keys
+          else
+            convert_value_to_matcher(value)
+          end
+        end
+
+        #
+        # Converts nested values to appropriate RSpec matchers
+        # Used for all values below the root level
+        #
+        # @param value [Object] The value to convert to a matcher
+        #
+        # @return [Object] The appropriate matcher for the value:
+        #   - Hashes become include matchers
+        #   - Arrays become contain_exactly matchers
+        #   - Regex values become match matchers
+        #   - Other values become eq matchers
+        #   - Existing matchers are passed through
+        #
+        # @private
+        #
+        def convert_value_to_matcher(value)
+          case value
+          when HashLike
+            value = value.transform_values { |v| convert_value_to_matcher(v) }.stringify_keys
             Attribute.from("matcher.include" => value)
           when ArrayLike
-            value = value.map { |i| convert_to_matchers(i) }
+            value = value.map { |i| convert_value_to_matcher(i) }
             Attribute.from("matcher.contain_exactly" => value)
           when Attribute::Regex
             Attribute.from("matcher.match" => value)
-          when Attribute::Literal
-            Attribute.from("matcher.eq" => value)
-          else
+          when Attribute::Matcher, RSpec::Matchers::BuiltIn::BaseMatcher
             value
+          else
+            Attribute.from("matcher.eq" => value)
           end
         end
       end
