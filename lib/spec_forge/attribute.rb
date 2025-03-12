@@ -69,7 +69,7 @@ module SpecForge
     end
 
     #
-    # Creates an Attribute instance from a string, handling any macros
+    # Creates an Attribute instance from a string
     #
     # @param string [String] The input string
     #
@@ -78,26 +78,31 @@ module SpecForge
     # @private
     #
     def self.from_string(string)
-      case string
-      when Global::KEYWORD_REGEX
-        Global.new(string)
-      when Faker::KEYWORD_REGEX
-        Faker.new(string)
-      when Variable::KEYWORD_REGEX
-        Variable.new(string)
-      when Matcher::KEYWORD_REGEX
-        Matcher.new(string)
-      when Factory::KEYWORD_REGEX
-        Factory.new(string)
-      when Regex::KEYWORD_REGEX
-        Regex.new(string)
-      else
-        Literal.new(string)
-      end
+      klass =
+        case string
+        when Factory::KEYWORD_REGEX
+          Factory
+        when Faker::KEYWORD_REGEX
+          Faker
+        when Global::KEYWORD_REGEX
+          Global
+        when Matcher::KEYWORD_REGEX
+          Matcher
+        when Regex::KEYWORD_REGEX
+          Regex
+        when Store::KEYWORD_REGEX
+          Store
+        when Variable::KEYWORD_REGEX
+          Variable
+        else
+          Literal
+        end
+
+      klass.new(string)
     end
 
     #
-    # Creates an Attribute instance from a hash, handling any macros
+    # Creates an Attribute instance from a hash
     #
     # @param hash [Hash] The input hash
     #
@@ -254,5 +259,6 @@ require_relative "attribute/matcher"
 require_relative "attribute/regex"
 require_relative "attribute/resolvable_array"
 require_relative "attribute/resolvable_hash"
+require_relative "attribute/store"
 require_relative "attribute/transform"
 require_relative "attribute/variable"
