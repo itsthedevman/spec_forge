@@ -225,6 +225,9 @@ module SpecForge
       end
     end
 
+    #
+    # Raised when the provided matcher name does not defined with RSpec
+    #
     class UndefinedMatcherError < Error
       def initialize(matcher_name)
         matcher_categories = {

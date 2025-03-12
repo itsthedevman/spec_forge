@@ -42,10 +42,19 @@ module SpecForge
       # @return [SpecForge::Spec::Expectation] The current expectation that is being tested
       attr_reader :expectation
 
+      # @return [RSpec::ExampleGroup] The current RSpec example group
+      attr_reader :example_group
+
       # @return [RSpec::Example] The current RSpec example that is running
       attr_reader :example
 
-      delegate_missing_to :@example
+      # @return [Integer] The expected HTTP status code
+      attr_reader :expected_status
+
+      # @return [Object] The expected response body structure
+      attr_reader :expected_json
+
+      delegate_missing_to :@example_group
 
       #
       # Creates a new DebugProxy instance
@@ -53,17 +62,23 @@ module SpecForge
       # @param forge [SpecForge::Forge] The forge being tested
       # @param spec [SpecForge::Spec] The spec being tested
       # @param expectation [SpecForge::Spec::Expectation] The expectation being tested
-      # @param example [RSpec::Core::Example] The current example, being tested?
+      # @param example_group [RSpec::Core::ExampleGroup] The current example group
       #
       # @return [SpecForge::Runner::DebugProxy]
       #
-      def initialize(forge, spec, expectation, example)
+      def initialize(forge, spec, expectation, example_group)
         @callback = SpecForge.configuration.on_debug
 
         @forge = forge
-        @example = example
         @spec = spec
         @expectation = expectation
+        @example_group = example_group
+        @example = RSpec.current_example
+
+        constraints = expectation.constraints
+
+        @expected_status = constraints.status.resolve
+        @expected_json = constraints.json.resolve
       end
 
       #
@@ -77,7 +92,8 @@ module SpecForge
       def call
         puts <<~STRING
 
-          Debug triggered for: #{expectation.name}
+          Debug triggered for:
+          > #{example.metadata[:rerun_file_path]} on line #{expectation.line_number}
 
           Available debugging contexts:
           - spec: Current spec details
@@ -92,12 +108,17 @@ module SpecForge
           Expectations:
           - expected_status: Expected HTTP status code
           - expected_json: Expected response body structure
-          - expected_json_class: Expected response body class type
+
+          Matchers:
+          - match_status: Matcher used to test status
+          - match_json: Matcher used to test response body
 
           Helper objects:
           - http_client: The HTTP client used for the request
           - request_data: Raw request configuration data
-          - rspec_example: Current RSpec example context
+          - example_group: Current RSpec example context
+          - example: Current RSpec example
+          - forge: Current file being tested
 
           💡 Pro tips:
             - Type 'self' or 'inspect' for a pretty-printed JSON overview
@@ -146,26 +167,22 @@ module SpecForge
       # @return [Hash]
       #
       def to_h
-        spec_hash = spec.to_h
-        spec_hash[:expectations].map! do |exp|
-          exp[:expect][:json] = matchers_to_description(exp[:expect][:json])
-          exp
-        end
+        spec_hash = spec.to_h.except(:expectations)
 
-        expectation_hash = @expectation.to_h
+        expectation_hash = expectation.to_h
         expectation_hash[:expect][:json] = matchers_to_description(expectation_hash[:expect][:json])
 
         {
-          spec: spec_hash,
-          expectation: expectation_hash,
-          request: request.to_h,
+          response: {
+            status: response.status,
+            body: response.body,
+            headers: response.headers
+          },
           global:,
           variables:,
-          response: {
-            headers: response.headers,
-            status: response.status,
-            body: response.body
-          }
+          request: request.to_h,
+          expectation: expectation_hash,
+          spec: spec_hash
         }
       end
 
