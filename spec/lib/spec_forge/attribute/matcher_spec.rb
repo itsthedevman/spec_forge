@@ -51,7 +51,11 @@ RSpec.describe SpecForge::Attribute::Matcher do
         let(:input) { "matcher.does_not_exist" }
 
         it do
-          expect { attribute }.to raise_error(NameError)
+          expect { attribute }.to raise_error(SpecForge::Error::UndefinedMatcherError) do |e|
+            expect(e.message).to match(
+              "Undefined matcher method \"does_not_exist\" is not available"
+            )
+          end
         end
       end
 
@@ -300,6 +304,31 @@ RSpec.describe SpecForge::Attribute::Matcher do
         it "is expected to work with RSpec" do
           expect(1).to(attribute.value)
         end
+      end
+    end
+
+    context "when a matcher has a matcher as an argument" do
+      let(:input) { "matcher.include" }
+      let(:keyword) do
+        {
+          "matcher.include" => {
+            "matcher.include" => {foo: "bar"}
+          }
+        }
+      end
+
+      it "is expected to move them to the positional arguments" do
+        expect(attribute.arguments[:keyword]).to be_empty
+        expect(attribute.arguments[:positional].size).to eq(1)
+
+        matcher = attribute.arguments[:positional].first
+        expect(matcher).to be_kind_of(SpecForge::Attribute::Matcher)
+        expect(matcher.arguments[:keyword]).to be_empty
+        expect(matcher.arguments[:positional].size).to eq(1)
+
+        # Nesting works, excellent
+        matcher = matcher.arguments[:positional].first
+        expect(matcher).to be_kind_of(SpecForge::Attribute::Matcher)
       end
     end
   end

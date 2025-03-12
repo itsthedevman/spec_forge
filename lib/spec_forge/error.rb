@@ -224,5 +224,34 @@ module SpecForge
         super("Invalid global namespace #{provided_namespace.in_quotes}. Currently supported namespaces are: \"variables\"")
       end
     end
+
+    class UndefinedMatcherError < Error
+      def initialize(matcher_name)
+        matcher_categories = {
+          Equality: ["matcher.eq", "matcher.eql", "matcher.equal"],
+          Types: ["kind_of.string", "kind_of.integer", "kind_of.array", "kind_of.hash"],
+          Truthiness: ["be.true", "be.false", "be.nil"],
+          Comparison: ["be.within", "be.between", "be.greater_than", "be.less_than"],
+          Collections: ["matcher.include", "matcher.contain_exactly", "matcher.all"],
+          Strings: ["/regex/", "matcher.start_with", "matcher.end_with"]
+        }
+
+        formatted_categories =
+          matcher_categories.join_map("\n") do |category, matchers|
+            "  #{category}: #{matchers.join(", ")}"
+          end
+
+        super(<<~STRING.chomp
+          Undefined matcher method "#{matcher_name}" is not available in RSpec matchers.
+
+          Common matchers you can use:
+          #{formatted_categories}
+
+          For the complete list of available matchers, check the RSpec documentation:
+          https://rspec.info/documentation/3.12/rspec-expectations/RSpec/Matchers.html
+        STRING
+        )
+      end
+    end
   end
 end
