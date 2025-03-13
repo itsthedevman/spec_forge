@@ -53,7 +53,7 @@ RSpec.describe SpecForge::Runner::Callbacks do
       callbacks.before_file(forge)
 
       # Global variables are resolved
-      global_variables = context.global.variables.resolve
+      global_variables = context.global.variables.resolved
 
       expect(global_variables).not_to match(
         var_1: be_kind_of(SpecForge::Attribute),
@@ -88,7 +88,7 @@ RSpec.describe SpecForge::Runner::Callbacks do
       expect(RSpec.current_example.metadata[:location]).to start_with("test/path")
 
       # No overlaid variables, still using the spec's
-      variables = context.variables.resolve
+      variables = context.variables.resolved
       expect(variables).not_to match(
         var_1: be_kind_of(SpecForge::Attribute),
         var_2: be_kind_of(SpecForge::Attribute)
@@ -117,7 +117,7 @@ RSpec.describe SpecForge::Runner::Callbacks do
       callbacks.before_expectation(forge, spec, expectation)
 
       # Now we have overlaid variables
-      variables = context.variables.resolve
+      variables = context.variables.resolved
       expect(variables).not_to match(
         var_1: be_kind_of(SpecForge::Attribute),
         var_2: be_kind_of(SpecForge::Attribute)
@@ -146,7 +146,7 @@ RSpec.describe SpecForge::Runner::Callbacks do
       callbacks.before_expectation(forge, spec, expectation)
 
       # Now we have a combination of variables
-      variables = context.variables.resolve
+      variables = context.variables.resolved
       expect(variables).not_to match(
         var_1: be_kind_of(SpecForge::Attribute),
         var_2: be_kind_of(SpecForge::Attribute),

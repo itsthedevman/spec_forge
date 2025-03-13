@@ -49,7 +49,7 @@ RSpec.describe SpecForge::Attribute::Factory do
 
   context "when 'resolve' is called" do
     it "is expected to work" do
-      expect(factory.resolve).to be_kind_of(User)
+      expect(factory.resolved).to be_kind_of(User)
     end
   end
 
@@ -107,7 +107,7 @@ RSpec.describe SpecForge::Attribute::Factory do
       it "is expected to build a list of users" do
         expect_any_instance_of(User).not_to receive(:save!)
 
-        users = factory.resolve
+        users = factory.resolved
 
         expect(users.size).to eq(5)
         expect(users).to be_all(be_kind_of(User))
@@ -126,7 +126,7 @@ RSpec.describe SpecForge::Attribute::Factory do
           true
         end
 
-        users = factory.resolve
+        users = factory.resolved
 
         expect(users.size).to eq(3)
         expect(save_count).to eq(3)
@@ -142,7 +142,7 @@ RSpec.describe SpecForge::Attribute::Factory do
       it "is expected to build a list of attributes for a user" do
         expect_any_instance_of(User).not_to receive(:save!)
 
-        users = factory.resolve
+        users = factory.resolved
 
         expect(users.size).to eq(20)
         expect(users).to be_all(be_kind_of(Hash))
@@ -159,7 +159,7 @@ RSpec.describe SpecForge::Attribute::Factory do
 
         expect(User.instance_methods).not_to include("persisted?")
 
-        users = factory.resolve
+        users = factory.resolved
 
         expect(users.size).to eq(15)
         expect(users).to be_all(be_kind_of(User))
@@ -175,7 +175,7 @@ RSpec.describe SpecForge::Attribute::Factory do
       it "is expected to build a pair of users" do
         expect_any_instance_of(User).not_to receive(:save!)
 
-        users = factory.resolve
+        users = factory.resolved
 
         expect(users.size).to eq(2)
         expect(users).to be_all(be_kind_of(User))
@@ -194,7 +194,7 @@ RSpec.describe SpecForge::Attribute::Factory do
           true
         end
 
-        users = factory.resolve
+        users = factory.resolved
 
         expect(users.size).to eq(2)
         expect(save_count).to eq(2)

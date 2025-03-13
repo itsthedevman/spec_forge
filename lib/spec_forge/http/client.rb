@@ -33,8 +33,8 @@ module SpecForge
         @backend.public_send(
           request.http_verb.to_s.downcase,
           request.url,
-          query: request.query.resolve,
-          body: request.body.resolve
+          query: request.query.resolved,
+          body: request.body.resolved
         )
       end
     end

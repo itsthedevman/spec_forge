@@ -11,21 +11,35 @@ module SpecForge
     #
     module Resolvable
       #
-      # Returns a proc that resolves attributes using the resolve method
+      # Returns a proc that resolves objects to their cached final values.
+      # For objects that respond to #resolved, calls that method.
+      # For other objects, simply returns them unchanged.
       #
-      # @return [Proc] A proc that calls resolve on objects that respond to it
+      # @return [Proc] A proc for resolving objects to their cached final values
       #
-      def resolvable_proc
-        ->(v) { v.respond_to?(:resolve) ? v.resolve : v }
+      # @example
+      #   proc = resolved_proc
+      #   proc.call(Attribute::Faker.new("faker.name.name")) # => "Jane Doe" (cached)
+      #   proc.call("already resolved") # => "already resolved" (unchanged)
+      #
+      def resolved_proc
+        ->(v) { v.respond_to?(:resolved) ? v.resolved : v }
       end
 
       #
-      # Returns a proc that resolves attributes using the resolve_value method
+      # Returns a proc that freshly resolves objects.
+      # For objects that respond to #resolve, calls that method.
+      # For other objects, simply returns them unchanged.
       #
-      # @return [Proc] A proc that calls resolve_value on objects that respond to it
+      # @return [Proc] A proc for freshly resolving objects
       #
-      def resolvable_value_proc
-        ->(v) { v.respond_to?(:resolve_value) ? v.resolve_value : v }
+      # @example
+      #   proc = resolve_proc
+      #   proc.call(Attribute::Faker.new("faker.name.name")) # => "John Smith" (fresh)
+      #   proc.call("already resolved") # => "already resolved" (unchanged)
+      #
+      def resolve_proc
+        ->(v) { v.respond_to?(:resolve) ? v.resolve : v }
       end
     end
   end

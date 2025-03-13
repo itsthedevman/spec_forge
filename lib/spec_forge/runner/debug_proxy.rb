@@ -77,8 +77,8 @@ module SpecForge
 
         constraints = expectation.constraints
 
-        @expected_status = constraints.status.resolve
-        @expected_json = constraints.json.resolve
+        @expected_status = constraints.status.resolved
+        @expected_json = constraints.json.resolved
       end
 
       #
@@ -139,7 +139,7 @@ module SpecForge
       def global
         @global ||= begin
           hash = SpecForge.context.global.to_h
-          hash[:variables].resolve
+          hash[:variables].resolved
           hash
         end
       end
@@ -153,7 +153,7 @@ module SpecForge
       # @return [Hash]
       #
       def variables
-        @variables ||= SpecForge.context.variables.resolve
+        @variables ||= SpecForge.context.variables.resolved
       end
 
       ##########################################################################

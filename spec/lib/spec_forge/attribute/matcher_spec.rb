@@ -351,7 +351,7 @@ RSpec.describe SpecForge::Attribute::Matcher do
     let(:keyword) { {foo: "bar"} }
 
     it do
-      resolved = attribute.resolve
+      resolved = attribute.resolved
       expect(resolved).to be_kind_of(RSpec::Matchers::BuiltIn::Match)
       expect(resolved.expected).to eq("foo" => "bar")
     end
@@ -362,7 +362,7 @@ RSpec.describe SpecForge::Attribute::Matcher do
     let(:positional) { ["foo"] }
 
     it do
-      resolved = attribute.resolve
+      resolved = attribute.resolved
       expect(resolved).to be_kind_of(RSpec::Matchers::BuiltIn::Match)
       expect(resolved.expected).to eq("foo")
     end

@@ -21,7 +21,7 @@ RSpec.describe SpecForge::Attribute::ResolvableArray do
     it { expect(resolvable).to respond_to(:resolve) }
 
     it "recursively resolves the array" do
-      resolved = resolvable.resolve
+      resolved = resolvable.resolved
       expect(resolved.first).to eq(1)
       expect(resolved.second).to be_kind_of(Array)
 

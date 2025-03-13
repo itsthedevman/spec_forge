@@ -145,6 +145,24 @@ module SpecForge
     end
 
     #
+    # Compares this attributes input to other
+    #
+    # @param other [Object, Attribute] If another Attribute, the input will be compared
+    #
+    # @return [Boolean]
+    #
+    def ==(other)
+      other =
+        if other.is_a?(Attribute)
+          other.input
+        else
+          other
+        end
+
+      input == other
+    end
+
+    #
     # Returns the processed value of this attribute.
     # Recursively calls #value on underlying attributes, but does NOT resolve
     # all nested structures completely.
@@ -175,47 +193,36 @@ module SpecForge
     #
     # @example
     #   faker_attr = Attribute::Faker.new("faker.name.first_name")
-    #   faker_attr.resolve # => "Jane" (result is cached in @resolved)
-    #   faker_attr.resolve # => "Jane" (returns same cached value)
+    #   faker_attr.resolved # => "Jane" (result is cached in @resolved)
+    #   faker_attr.resolved # => "Jane" (returns same cached value)
     #
-    def resolve
-      @resolved ||= resolve_value
+    def resolved
+      @resolved ||= resolve
     end
 
     #
-    # Similar to #resolve but doesn't cache the result, allowing for re-resolution.
-    # Recursively calls #resolve on all nested attributes without storing results.
+    # Performs recursive resolution of the attribute's value.
+    # Handles nested arrays and hashes by recursively resolving their elements.
     #
-    # Use this when you need to ensure fresh values each time, particularly with
-    # factories or other attributes that should generate new values on each call.
+    # Unlike #resolved, this method doesn't cache results and can be used
+    # when fresh resolution is needed each time.
     #
-    # @return [Object] The completely resolved value without caching
+    # @return [Object] The recursively resolved value without caching
     #
     # @example
-    #   factory_attr = Attribute::Factory.new("factories.user")
-    #   factory_attr.resolve_value # => User#1 (a new user)
-    #   factory_attr.resolve_value # => User#2 (another new user)
+    #   hash_attr = Attribute::ResolvableHash.new({name: Attribute::Faker.new("faker.name.name")})
+    #   hash_attr.resolve # => {name: "John Smith"}
+    #   hash_attr.resolve # => {name: "Jane Doe"} (different value on each call)
     #
-    def resolve_value
-      __resolve(value)
-    end
-
-    #
-    # Compares this attributes input to other
-    #
-    # @param other [Object, Attribute] If another Attribute, the input will be compared
-    #
-    # @return [Boolean]
-    #
-    def ==(other)
-      other =
-        if other.is_a?(Attribute)
-          other.input
-        else
-          other
-        end
-
-      input == other
+    def resolve
+      case value
+      when ArrayLike
+        value.map(&resolved_proc)
+      when HashLike
+        value.transform_values(&resolved_proc)
+      else
+        value
+      end
     end
 
     #
@@ -224,28 +231,6 @@ module SpecForge
     # @param variables [Hash] A hash of variable attributes
     #
     def bind_variables(variables)
-    end
-
-    protected
-
-    #
-    # Helper method to recursively resolve nested values
-    #
-    # @param value [Object] The value to resolve
-    #
-    # @return [Object] The resolved value with any nested attributes resolved
-    #
-    # @private
-    #
-    def __resolve(value)
-      case value
-      when ArrayLike
-        value.map(&resolvable_proc)
-      when HashLike
-        value.transform_values(&resolvable_proc)
-      else
-        value
-      end
     end
   end
 end

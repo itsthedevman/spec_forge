@@ -51,7 +51,7 @@ module SpecForge
             end
 
             # Headers
-            builder.headers.merge!(request.headers.resolve)
+            builder.headers.merge!(request.headers.resolved)
           end
       end
 

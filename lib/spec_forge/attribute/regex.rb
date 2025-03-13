@@ -49,7 +49,7 @@ module SpecForge
       #
       # @return [Regexp] The compiled regular expression
       #
-      def resolve
+      def resolved
         @value
       end
 

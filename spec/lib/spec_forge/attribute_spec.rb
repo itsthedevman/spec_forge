@@ -191,7 +191,7 @@ RSpec.describe SpecForge::Attribute do
       ]
     end
 
-    subject(:resolved) { described_class.from(input).resolve }
+    subject(:resolved) { described_class.from(input).resolved }
 
     it "recursively converts the attributes and returns the result" do
       expect(resolved).to match([

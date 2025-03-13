@@ -103,6 +103,31 @@ module SpecForge
       private
 
       #
+      # Similar to #resolve but doesn't cache the result, allowing for re-resolution.
+      # Recursively calls #resolve on all nested attributes without storing results.
+      #
+      # Use this when you need to ensure fresh values each time, particularly with
+      # factories or other attributes that should generate new values on each call.
+      #
+      # @return [Object] The completely resolved value without caching
+      #
+      # @example
+      #   factory_attr = Attribute::Factory.new("factories.user")
+      #   factory_attr.resolve # => User#1 (a new user)
+      #   factory_attr.resolve # => User#2 (another new user)
+      #
+      def resolve
+        case value
+        when ArrayLike
+          value.map(&resolved_proc)
+        when HashLike
+          value.transform_values(&resolved_proc)
+        else
+          value
+        end
+      end
+
+      #
       # @private
       #
       def construct_factory_parameters(attributes)
@@ -113,7 +138,7 @@ module SpecForge
         build_arguments = [
           build_strategy,
           factory_name,
-          **attributes[:attributes].resolve_value
+          **attributes[:attributes].resolve
         ]
 
         # Insert the list size after the strategy
@@ -130,8 +155,8 @@ module SpecForge
       #
       def determine_build_strategy(attributes)
         # Determine build strat, and unfreeze
-        build_strategy = +attributes[:build_strategy].resolve_value
-        list_size = attributes[:size].resolve_value
+        build_strategy = +attributes[:build_strategy].resolve
+        list_size = attributes[:size].resolve
 
         # stubbed => build_stubbed
         build_strategy.prepend("build_") if build_strategy.start_with?("stubbed")

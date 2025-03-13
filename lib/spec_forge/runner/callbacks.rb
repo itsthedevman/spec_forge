@@ -27,7 +27,7 @@ module SpecForge
           SpecForge.context.global.set(**forge.global)
 
           # And resolve them
-          SpecForge.context.global.variables.resolve
+          SpecForge.context.global.variables.resolved
 
           # Clear the store for this file
           SpecForge.context.store.clear
@@ -71,7 +71,7 @@ module SpecForge
           SpecForge.context.variables.use_overlay(expectation.id)
 
           # Ensure everything is resolved
-          SpecForge.context.variables.resolve
+          SpecForge.context.variables.resolved
         end
 
         #
@@ -133,7 +133,7 @@ module SpecForge
             id,
             scope:,
             request: request.to_h,
-            variables: SpecForge.context.variables.resolve,
+            variables: SpecForge.context.variables.resolved,
             response: {
               headers: response.headers,
               status: response.status,

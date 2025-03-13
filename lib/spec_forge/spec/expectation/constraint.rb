@@ -59,8 +59,8 @@ module SpecForge
           # Resolve then convert to ensure the values being converted to matchers are the
           # final values
           {
-            status: convert_to_matchers(status.resolve).resolve,
-            json: convert_to_matchers(json.resolve).resolve
+            status: convert_to_matchers(status.resolved).resolved,
+            json: convert_to_matchers(json.resolved).resolved
           }
         end
 

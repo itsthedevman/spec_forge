@@ -12,7 +12,7 @@ module SpecForge
     # @example In code
     #   hash = {name: Attribute::Faker.new("faker.name.name"), id: 123}
     #   resolvable = Attribute::ResolvableHash.new(hash)
-    #   resolvable.resolve # => {name: "John Smith", id: 123}
+    #   resolvable.resolved # => {name: "John Smith", id: 123}
     #
     class ResolvableHash < SimpleDelegator
       include Resolvable
@@ -27,21 +27,31 @@ module SpecForge
       end
 
       #
-      # Resolves all values in the hash that respond to resolve
+      # Returns a new hash with all values fully resolved to their final values.
+      # Uses the cached version of each value if available.
       #
-      # @return [Hash] A new hash with all values resolved
+      # @return [Hash] A new hash with all values fully resolved to their final values
       #
-      def resolve
-        value.transform_values(&resolvable_proc)
+      # @example
+      #   hash_attr = Attribute::ResolvableHash.new({name: Attribute::Faker.new("faker.name.name")})
+      #   hash_attr.resolved # => {name: "Jane Doe"} (with result cached)
+      #
+      def resolved
+        value.transform_values(&resolved_proc)
       end
 
       #
-      # Resolves all values in the hash using resolve_value
+      # Freshly resolves all values in the hash.
+      # Unlike #resolved, this doesn't use cached values, ensuring fresh resolution.
       #
-      # @return [Hash] A new hash with all values resolved using resolve_value
+      # @return [Hash] A new hash with all values freshly resolved
       #
-      def resolve_value
-        value.transform_values(&resolvable_value_proc)
+      # @example
+      #   hash_attr = Attribute::ResolvableHash.new({name: Attribute::Faker.new("faker.name.name")})
+      #   hash_attr.resolve # => {name: "John Smith"} (fresh value each time)
+      #
+      def resolve
+        value.transform_values(&resolve_proc)
       end
 
       #

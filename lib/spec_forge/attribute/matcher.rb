@@ -95,13 +95,13 @@ module SpecForge
       #
       def value
         if (positional = arguments[:positional]) && positional.present?
-          positional = positional.resolve.each do |value|
+          positional = positional.resolved.each do |value|
             value.deep_stringify_keys! if value.respond_to?(:deep_stringify_keys!)
           end
 
           matcher_method.call(*positional)
         elsif (keyword = arguments[:keyword]) && keyword.present?
-          matcher_method.call(**keyword.resolve.deep_stringify_keys)
+          matcher_method.call(**keyword.resolved.deep_stringify_keys)
         else
           matcher_method.call
         end

@@ -12,7 +12,7 @@ module SpecForge
     # @example In code
     #   array = [1, Attribute::Variable.new("variables.user_id"), 3]
     #   resolvable = Attribute::ResolvableArray.new(array)
-    #   resolvable.resolve # => [1, 42, 3]  # assuming user_id resolves to 42
+    #   resolvable.resolved # => [1, 42, 3]  # assuming user_id resolves to 42
     #
     class ResolvableArray < SimpleDelegator
       include Resolvable
@@ -27,21 +27,31 @@ module SpecForge
       end
 
       #
-      # Resolves all items in the array that respond to resolve
+      # Returns a new array with all items fully resolved to their final values.
+      # Uses the cached version of each item if available.
       #
-      # @return [Array] A new array with all items resolved
+      # @return [Array] A new array with all items fully resolved to their final values
       #
-      def resolve
-        value.map(&resolvable_proc)
+      # @example
+      #   array_attr = Attribute::ResolvableArray.new([Attribute::Faker.new("faker.name.name")])
+      #   array_attr.resolved # => ["Jane Doe"] (with result cached)
+      #
+      def resolved
+        value.map(&resolved_proc)
       end
 
       #
-      # Resolves all items in the array using resolve_value
+      # Freshly resolves all items in the array.
+      # Unlike #resolved, this doesn't use cached values, ensuring fresh resolution.
       #
-      # @return [Array] A new array with all items resolved using resolve_value
+      # @return [Array] A new array with all items freshly resolved
       #
-      def resolve_value
-        value.map(&resolvable_value_proc)
+      # @example
+      #   array_attr = Attribute::ResolvableArray.new([Attribute::Faker.new("faker.name.name")])
+      #   array_attr.resolve # => ["John Smith"] (fresh value each time)
+      #
+      def resolve
+        value.map(&resolve_proc)
       end
 
       #
