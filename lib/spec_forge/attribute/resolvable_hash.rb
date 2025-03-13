@@ -55,6 +55,25 @@ module SpecForge
       end
 
       #
+      # Converts all values in the hash to RSpec matchers.
+      # Transforms each hash value to a matcher using resolve_as_matcher_proc,
+      # then wraps the entire result in a matcher suitable for hash comparison.
+      #
+      # This ensures proper nesting of matchers in hash structures,
+      # which is vital for readable failure messages in complex expectations.
+      #
+      # @return [RSpec::Matchers::BuiltIn::BaseMatcher] A matcher for this hash
+      #
+      # @example
+      #   hash = Attribute::ResolvableHash.new({name: "Test", age: 42})
+      #   hash.resolve_as_matcher # => include("name" => eq("Test"), "age" => eq(42))
+      #
+      def resolve_as_matcher
+        result = value.transform_values(&resolve_as_matcher_proc)
+        Attribute::Literal.new(result).resolve_as_matcher
+      end
+
+      #
       # Binds variables to any attribute objects in the hash values
       #
       # @param variables [Hash] The variables to bind

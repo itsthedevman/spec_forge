@@ -41,6 +41,10 @@ module SpecForge
       def resolve_proc
         ->(v) { v.respond_to?(:resolve) ? v.resolve : v }
       end
+
+      def resolve_as_matcher_proc
+        ->(v) { v.respond_to?(:resolve_as_matcher) ? v.resolve_as_matcher : v }
+      end
     end
   end
 end

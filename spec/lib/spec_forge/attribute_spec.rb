@@ -191,7 +191,7 @@ RSpec.describe SpecForge::Attribute do
       ]
     end
 
-    subject(:resolved) { described_class.from(input).resolved }
+    subject(:resolved) { described_class.from(input).resolve }
 
     it "recursively converts the attributes and returns the result" do
       expect(resolved).to match([
@@ -231,6 +231,83 @@ RSpec.describe SpecForge::Attribute do
         let(:other) { 12345 }
 
         it { is_expected.to be(true) }
+      end
+    end
+  end
+
+  describe "#resolve_as_matcher" do
+    let(:matchers) { RSpec::Matchers::BuiltIn }
+    let(:attribute) { described_class.from(input) }
+
+    subject(:resolved_matcher) { attribute.resolve_as_matcher }
+
+    context "when the resolved value is ArrayLike" do
+      let(:input) do
+        [1, "faker.string.random"]
+      end
+
+      it "is expected to resolve them into RSpec matchers" do
+        expect(resolved_matcher).to be_kind_of(matchers::ContainExactly)
+        expect(resolved_matcher.expected).to contain_exactly(
+          be_kind_of(matchers::Eq),
+          be_kind_of(matchers::Eq)
+        )
+      end
+    end
+
+    context "when the resolved value is HashLike" do
+      let(:input) do
+        {var_1: 1, var_2: true}
+      end
+
+      it "is expected to resolve them into RSpec matchers" do
+        expect(resolved_matcher).to be_kind_of(matchers::Include)
+        expect(resolved_matcher.expected).to match(
+          "var_1" => be_kind_of(matchers::Eq),
+          "var_2" => be_kind_of(matchers::Eq)
+        )
+      end
+    end
+
+    context "when the resolved value is Attribute::Matcher" do
+      let(:input) { "kind_of.array" }
+
+      it "is expected to return itself" do
+        expect(resolved_matcher).to be_kind_of(matchers::BeAKindOf)
+      end
+    end
+
+    context "when the resolved value is RSpec::Matchers" do
+      let(:input) { eq(2) }
+
+      it "is expected to return itself" do
+        expect(resolved_matcher).to be_kind_of(matchers::Eq)
+      end
+    end
+
+    context "when the resolved value is a custom matcher" do
+      let(:input) { forge_and(eq(1)) }
+
+      it "is expected to return itself" do
+        expect(resolved_matcher).to be_kind_of(RSpec::Matchers::DSL::Matcher)
+      end
+    end
+
+    context "when the resolved value is regex" do
+      let(:input) { "/test/" }
+
+      it "is expected to resolve into Match" do
+        expect(resolved_matcher).to be_kind_of(matchers::Match)
+        expect(resolved_matcher.expected).to be_kind_of(Regexp)
+      end
+    end
+
+    context "when the resolved value is anything else" do
+      let(:input) { "faker.string.random.object_id" }
+
+      it "is expected to resolve into Eq" do
+        expect(resolved_matcher).to be_kind_of(matchers::Eq)
+        expect(resolved_matcher.expected).to be_kind_of(Integer)
       end
     end
   end

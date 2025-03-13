@@ -55,6 +55,25 @@ module SpecForge
       end
 
       #
+      # Converts all items in the array to RSpec matchers.
+      # First converts each array element to a matcher using resolve_as_matcher_proc,
+      # then wraps the entire result in a matcher suitable for array comparison.
+      #
+      # This ensures all elements in the array are proper matchers,
+      # which is essential for compound matchers and proper failure messages.
+      #
+      # @return [RSpec::Matchers::BuiltIn::BaseMatcher] A matcher for this array
+      #
+      # @example
+      #   array = Attribute::ResolvableArray.new(["test", /pattern/, 42])
+      #   array.resolve_as_matcher # => contain_exactly(eq("test"), match(/pattern/), eq(42))
+      #
+      def resolve_as_matcher
+        result = value.map(&resolve_as_matcher_proc)
+        Attribute::Literal.new(result).resolve_as_matcher
+      end
+
+      #
       # Binds variables to any attribute objects in the array
       #
       # @param variables [Hash] The variables to bind
