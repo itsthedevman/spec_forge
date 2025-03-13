@@ -5,11 +5,18 @@ get_data_types:
       status: 200
       json:
         # Basic equality matching
-        string_value: "Hello, world!"
-        number_value: 42
+        string_value:
+          matcher.and:
+          - kind_of.string
+          - "Hello, world!"
 
-        # Type checking with kind_of
-        decimal_value: kind_of.float
+        # Type checking with kind_of combined with range check
+        decimal_value:
+          matcher.and:
+          - kind_of.float
+          - be.between:
+            - 3.0
+            - 4.0
 
         # Nested object
         nested_object:
@@ -30,8 +37,12 @@ get_regex_match:
   - expect:
       status: 200
       json:
-        # Regular expression matching
-        string_value: /Hello/
+        # Combining regex and type check with matcher.and
+        string_value:
+          matcher.and:
+          - kind_of.string
+          - /Hello/
+          - matcher.start_with: "Hello"
 
 get_more_type_checks:
   path: /data/types
@@ -39,7 +50,11 @@ get_more_type_checks:
   - expect:
       status: 200
       json:
-        array_simple: kind_of.array
+        array_simple:
+          matcher.and:
+          - kind_of.array
+          - matcher.include: 3
+          - be.present
         null_value: be.nil
         boolean_value: be.true
 
@@ -49,11 +64,16 @@ get_comparisons:
   - expect:
       status: 200
       json:
-        # Use fields that actually exist in the response
+        # Use combined matchers for more comprehensive tests
         number_value:
-          be.greater_than: 40
+          matcher.and:
+          - kind_of.integer
+          - be.greater_than: 40
+          - be.less_than: 50
         decimal_value:
-          be.less_than: 4.0
+          matcher.and:
+          - kind_of.float
+          - be.less_than: 4.0
 
 get_user_data:
   path: /data/users
@@ -73,5 +93,10 @@ get_user_data:
             matcher.include:
               id: kind_of.integer
               name: kind_of.string
-              email: /@/
+              # Enhanced email validation with compound matcher
+              email:
+                matcher.and:
+                - kind_of.string
+                - /@/
+                - matcher.include: "."
               created_at: kind_of.string
