@@ -124,9 +124,6 @@ module SpecForge
       def prepare_for_run
         # Allows modifying the error backtrace reporting within rspec
         RSpec.configuration.instance_variable_set(:@backtrace_formatter, BacktraceFormatter)
-
-        # Define our custom matchers
-        SpecForge::Matchers.define
       end
     end
   end
