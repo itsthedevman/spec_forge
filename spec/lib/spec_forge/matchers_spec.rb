@@ -104,4 +104,34 @@ RSpec.describe SpecForge::Matchers do
       end
     end
   end
+
+  describe "have_size" do
+    context "when the object responds to #size" do
+      context "and it is the same size" do
+        it "passes" do
+          expect([5]).to have_size(1)
+        end
+      end
+
+      context "and it has different sizes" do
+        it do
+          expect {
+            expect([5]).to have_size(0)
+          }.to raise_error(RSpec::Expectations::ExpectationNotMetError) do |e|
+            expect(e.message).to include("expected [5] to have size 0, but had size 1")
+          end
+        end
+      end
+    end
+
+    context "when the object does not respond to #size" do
+      it do
+        expect {
+          expect(nil).to have_size(1)
+        }.to raise_error(RSpec::Expectations::ExpectationNotMetError) do |e|
+          expect(e.message).to include("expected nil to respond to :size")
+        end
+      end
+    end
+  end
 end

@@ -10,6 +10,7 @@ module SpecForge
 
     def define_all
       define_forge_and
+      define_have_size
     end
 
     private
@@ -50,6 +51,22 @@ module SpecForge
 
         description do
           "matches all of: " + matchers.join_map(", ", &:description)
+        end
+      end
+    end
+
+    def define_have_size
+      RSpec::Matchers.define :have_size do |expected|
+        match do |actual|
+          actual.respond_to?(:size) && expected == actual.size
+        end
+
+        failure_message do |actual|
+          if actual.respond_to?(:size)
+            "expected #{actual.inspect} to have size #{expected}, but had size #{actual.size}"
+          else
+            "expected #{actual.inspect} to respond to :size"
+          end
         end
       end
     end
