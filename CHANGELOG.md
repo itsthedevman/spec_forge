@@ -63,8 +63,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - expect:
         status: 200
   ```
-- Added new error `UndefinedMatcherError` that is raised when the provided matcher does not exist
-- Added new debug methods to `DebugProxy`
+- New error `UndefinedMatcherError` that gets raised when the provided matcher doesn't exist
+- New debug methods to `DebugProxy` to make troubleshooting easier:
+  - `example_group` for accessing the RSpec example group
+  - `match_status` for seeing the resolved matcher for status
+  - `match_json` for seeing the resolved matcher for json
+- More integration tests for better coverage
 
 ### Changed
 
@@ -77,6 +81,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Restructured internal architecture for better separation of concerns
 - Moved all error classes under `SpecForge::Error`
 - Fixed issue where nesting expanded matchers (such as "matcher.include") cause an error
+- Changed how response bodies are validated against hash expectations.
+  - Before: The entire hash was checked using a single `include` matcher
+  - Now: Each key at the root level is checked individually, giving more precise error messages when tests fail
+  - Nested hashes still use the `include` matcher for flexibility
+- Adjusted `Attribute::Matcher` to accept either `matcher` or `matchers` namespace
+- Fixed issue where nesting expanded matchers (like "matcher.include") would cause an error
 
 ### Removed
 
