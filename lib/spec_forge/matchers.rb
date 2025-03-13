@@ -123,3 +123,6 @@ module SpecForge
     end
   end
 end
+
+# Define the custom matchers
+SpecForge::Matchers.define

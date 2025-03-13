@@ -1,10 +1,6 @@
 # frozen_string_literal: true
 
 RSpec.describe SpecForge::Matchers do
-  before :all do
-    described_class.define
-  end
-
   describe "forge_and" do
     context "when there is one successful check" do
       it "is expected to pass" do
