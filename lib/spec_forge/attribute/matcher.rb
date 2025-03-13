@@ -74,7 +74,7 @@ module SpecForge
           when "kind_of"
             resolve_kind_of_matcher(method)
           else
-            resolve_matcher(method)
+            resolve_base_matcher(method)
           end
 
         prepare_arguments!
@@ -124,6 +124,14 @@ module SpecForge
           sections[..1]
         else
           [nil, sections.first]
+        end
+      end
+
+      def resolve_base_matcher(method)
+        if method == "and"
+          resolve_matcher("forge_and")
+        else
+          resolve_matcher(method)
         end
       end
 

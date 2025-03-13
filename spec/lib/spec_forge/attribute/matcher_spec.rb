@@ -73,6 +73,19 @@ RSpec.describe SpecForge::Attribute::Matcher do
           expect([1]).to(attribute.value)
         end
       end
+
+      context "and the matcher method is 'and'" do
+        let(:input) { "matcher.and" }
+        let(:positional) { ["kind_of.string"] }
+
+        it "is expected to use 'forge_and' matcher" do
+          expect(attribute.matcher_method).to be_kind_of(Method)
+          expect(attribute.matcher_method.name).to eq(:forge_and)
+          expect(attribute.arguments[:positional]).to contain_exactly(
+            be_kind_of(SpecForge::Attribute)
+          )
+        end
+      end
     end
 
     context "when the starts with 'kind_of'" do
