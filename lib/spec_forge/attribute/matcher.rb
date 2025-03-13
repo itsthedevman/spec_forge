@@ -27,7 +27,7 @@ module SpecForge
       #
       # Helper class to access RSpec matcher methods
       #
-      class Methods
+      class RSpecMatchers
         include RSpec::Matchers
       end
 
@@ -37,12 +37,12 @@ module SpecForge
       #
       # @return [Regexp]
       #
-      KEYWORD_REGEX = /^matcher\.|^be\.|^kind_of\./i
+      KEYWORD_REGEX = /^matchers?\.|^be\.|^kind_of\./i
 
       #
       # Instance of Methods providing access to all RSpec matchers
       #
-      MATCHER_METHODS = Methods.new.freeze
+      MATCHER_METHODS = RSpecMatchers.new.freeze
 
       #
       # Mapping of literal string values to their Ruby equivalents
@@ -78,6 +78,13 @@ module SpecForge
           end
 
         prepare_arguments!
+
+        # An argument can be an expanded version of something (such as matcher.include)
+        # Move it to where it belongs
+        if (keyword = arguments[:keyword]) && !Type.hash?(keyword)
+          arguments[:positional] << keyword
+          arguments[:keyword] = {}
+        end
       end
 
       #
@@ -131,6 +138,10 @@ module SpecForge
       # @private
       #
       def resolve_matcher(method_name, namespace: MATCHER_METHODS)
+        if !namespace.respond_to?(method_name)
+          raise Error::UndefinedMatcherError, method_name
+        end
+
         namespace.public_method(method_name)
       end
 

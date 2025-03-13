@@ -1,48 +1,67 @@
-# frozen_string_literal: true
-
-class UsersController < AuthorizedController
+# app/controllers/users_controller.rb
+class UsersController < ApplicationController
+  # GET /users
   def index
-    users = authorize User.all
-    render json: {users:}
+    users = User.all
+    render json: {users: users}
   end
 
+  # GET /users/:id
   def show
-    user = authorize User.find_by(id: params[:id])
-    render json: {user:}
+    user = User.find_by(id: params[:id])
+
+    if user
+      render json: {user: user}
+    else
+      render json: {error: "User not found"}, status: :not_found
+    end
   end
 
+  # POST /users
   def create
-    create_params = permit_create_params
+    # Extract user attributes, handling both nested and root params
+    user_attributes = params[:user] || params
+    user = User.new(user_params(user_attributes))
 
-    user = authorize User.new(**create_params)
-    user.save!
-
-    render json: {user:}
+    if user.save
+      render json: {user: user}, status: :created
+    else
+      render json: {errors: user.errors.full_messages}, status: :unprocessable_entity
+    end
   end
 
+  # PATCH/PUT /users/:id
   def update
-    update_params = permit_update_params
+    user = User.find_by(id: params[:id])
 
-    user = authorize User.find_by(id: params[:id])
-    user.update!(update_params)
-
-    render json: {user:}
+    if user.nil?
+      render json: {error: "User not found"}, status: :not_found
+    else
+      # Extract user attributes, handling both nested and root params
+      user_attributes = params[:user] || params
+      if user.update(user_params(user_attributes))
+        render json: {user: user}
+      else
+        render json: {errors: user.errors.full_messages}, status: :unprocessable_entity
+      end
+    end
   end
 
+  # DELETE /users/:id
   def destroy
-    user = authorize User.find_by(id: params[:id])
-    user.destroy!
+    user = User.find_by(id: params[:id])
 
-    render json: {user:}
+    if user
+      user.destroy
+      head :no_content
+    else
+      render json: {error: "User not found"}, status: :not_found
+    end
   end
 
   private
 
-  def permit_create_params
-    params.permit(:name, :email, :role, :active)
-  end
-
-  def permit_update_params
-    permit_create_params
+  def user_params(parameters)
+    parameters.permit(:name, :email, :role, :active)
   end
 end

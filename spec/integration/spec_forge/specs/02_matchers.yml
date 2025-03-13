@@ -1,0 +1,77 @@
+get_data_types:
+  path: /data/types
+  expectations:
+  - expect:
+      status: 200
+      json:
+        # Basic equality matching
+        string_value: "Hello, world!"
+        number_value: 42
+
+        # Type checking with kind_of
+        decimal_value: kind_of.float
+
+        # Nested object
+        nested_object:
+          level1:
+            level2:
+              level3: "Deep value"
+              items_count:
+                be.greater_than_or_equal: 5
+              enabled: be.true
+
+        # Array contains element
+        array_simple:
+          matcher.include: 3
+
+get_regex_match:
+  path: /data/types
+  expectations:
+  - expect:
+      status: 200
+      json:
+        # Regular expression matching
+        string_value: /Hello/
+
+get_more_type_checks:
+  path: /data/types
+  expectations:
+  - expect:
+      status: 200
+      json:
+        array_simple: kind_of.array
+        null_value: be.nil
+        boolean_value: be.true
+
+get_comparisons:
+  path: /data/types
+  expectations:
+  - expect:
+      status: 200
+      json:
+        # Use fields that actually exist in the response
+        number_value:
+          be.greater_than: 40
+        decimal_value:
+          be.less_than: 4.0
+
+get_user_data:
+  path: /data/users
+  variables:
+    min_count: 1
+  expectations:
+  - expect:
+      status: 200
+      json:
+        # Minimum count of something
+        total:
+          be.greater_than_or_equal: variables.min_count
+
+        # All items in an array match a pattern
+        users:
+          matcher.all:
+            matcher.include:
+              id: kind_of.integer
+              name: kind_of.string
+              email: /@/
+              created_at: kind_of.string

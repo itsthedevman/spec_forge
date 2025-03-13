@@ -202,7 +202,7 @@ RSpec.describe SpecForge::Forge do
           debug: false,
           constraints: have_attributes(
             status: SpecForge::Attribute.from(404),
-            json: SpecForge::Attribute.from(nil)
+            json: SpecForge::Attribute.from({})
           )
         )
 
@@ -227,7 +227,7 @@ RSpec.describe SpecForge::Forge do
           debug: true,
           constraints: have_attributes(
             status: SpecForge::Attribute.from(404),
-            json: SpecForge::Attribute.from(nil)
+            json: SpecForge::Attribute.from({})
           )
         )
 
@@ -237,7 +237,7 @@ RSpec.describe SpecForge::Forge do
           debug: false,
           constraints: have_attributes(
             status: SpecForge::Attribute.from(404),
-            json: SpecForge::Attribute.from(nil)
+            json: SpecForge::Attribute.from({})
           )
         )
       end

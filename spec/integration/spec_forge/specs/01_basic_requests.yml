@@ -1,0 +1,71 @@
+# Basic GET with no parameters
+get_status:
+  path: /status
+  expectations:
+  - expect:
+      status: 200
+      json:
+        status: "ok"
+        version: kind_of.string
+
+# Basic POST to create a resource
+create_user:
+  path: /users
+  method: post
+  variables:
+    random_email: faker.internet.email
+  body:
+    name: "Basic Test User"
+    email: variables.random_email
+  expectations:
+  - expect:
+      status: 201
+      json:
+        user:
+          name: "Basic Test User"
+          email: variables.random_email
+          id: kind_of.integer
+
+# GET with path parameter
+get_user:
+  path: /users/{id}
+  variables:
+    user: factories.user # This creates a user with a random email
+  query:
+    id: variables.user.id
+  expectations:
+  - expect:
+      status: 200
+      json:
+        user:
+          id: variables.user.id
+          name: variables.user.name
+
+# PATCH request
+update_user:
+  path: /users/{id}
+  method: patch
+  variables:
+    user: factories.user
+  query:
+    id: variables.user.id
+  body:
+    name: "Updated Basic User"
+  expectations:
+  - expect:
+      status: 200
+      json:
+        user:
+          name: "Updated Basic User"
+
+# DELETE request
+delete_user:
+  path: /users/{id}
+  method: delete
+  variables:
+    user: factories.user
+  query:
+    id: variables.user.id
+  expectations:
+  - expect:
+      status: 204
