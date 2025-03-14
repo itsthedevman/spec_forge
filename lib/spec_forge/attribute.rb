@@ -261,7 +261,9 @@ module SpecForge
         methods.include(**resolved_hash)
       when Attribute::Matcher, Regexp
         methods.match(resolved)
-      when RSpec::Matchers::BuiltIn::BaseMatcher, RSpec::Matchers::DSL::Matcher
+      when RSpec::Matchers::BuiltIn::BaseMatcher,
+          RSpec::Matchers::DSL::Matcher,
+          Class
         resolved # Pass through
       else
         methods.eq(resolved)

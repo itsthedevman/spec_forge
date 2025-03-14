@@ -107,6 +107,44 @@ module SpecForge
         end
       end
 
+      #
+      # Ensures proper conversion of nested matcher arguments based on context
+      #
+      # This method overrides handles a special case of matchers that take arguments
+      # which themselves might need to be converted to matchers. It skips conversion
+      # for string arguments that should remain strings
+      # (like with include, start_with, and end_with) while correctly handling nested
+      # matchers and other argument types.
+      #
+      # @example Problem case handled
+      #   # In YAML:
+      #   matcher.all:
+      #     matcher.include:
+      #     - /@/  # Should become match(/@/) when used with include
+      #
+      # @example Edge case handled
+      #   # In YAML:
+      #   matcher.include: "." # Should remain a string, not eq(".")
+      #
+      # @return [RSpec::Matchers::BuiltIn::BaseMatcher] The properly configured matcher
+      #   with all arguments correctly converted based on context
+      #
+      def resolve_as_matcher
+        # Argument conversion only matters for the base matchers
+        if input.start_with?("matcher")
+          block = lambda do |argument|
+            next argument unless convert_argument?(argument)
+
+            argument.resolve_as_matcher
+          end
+
+          arguments[:positional].map!(&block)
+          arguments[:keyword].transform_values!(&block)
+        end
+
+        super
+      end
+
       private
 
       #
@@ -221,6 +259,35 @@ module SpecForge
         arguments[:positional].insert(0, type_class)
 
         resolve_matcher(:be_kind_of)
+      end
+
+      #
+      # Determines whether an argument should skip conversion to a matcher
+      #
+      # This helper method handles the case where string arguments to certain matchers
+      # (include, start_with, end_with) should remain as strings rather than being
+      # converted to eq() matchers.
+      #
+      # @param argument [Object] The argument to analyze
+      #
+      # @return [Boolean] true if the argument should skip conversion, false otherwise
+      #
+      # @example Skip conversion
+      #   skip_argument_conversion?(Attribute::Literal.new(".")) #=> true
+      #   # When used with include, start_with, or end_with
+      #
+      # @example Apply conversion
+      #   skip_argument_conversion?(Attribute::Regex.new("/@/")) #=> false
+      #   # Regex should be converted to match(/@/)
+      #
+      def convert_argument?(argument)
+        return true if argument.is_a?(Attribute::Matcher) || argument.is_a?(Attribute::Regex)
+
+        # Only process include, start_with, end_with
+        return true if [:include, :start_with, :end_with, :have_size].exclude?(matcher_method.name)
+
+        resolved = argument.resolved
+        resolved.is_a?(Array) || resolved.is_a?(Hash)
       end
     end
   end
