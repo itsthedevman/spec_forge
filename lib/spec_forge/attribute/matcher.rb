@@ -127,6 +127,15 @@ module SpecForge
         end
       end
 
+      #
+      # Resolves a matcher with the "matcher" prefix
+      #
+      # @param method [String] The method part after "matcher."
+      #
+      # @return [Method] The resolved matcher method
+      #
+      # @private
+      #
       def resolve_base_matcher(method)
         if method == "and"
           resolve_matcher("forge_and")
