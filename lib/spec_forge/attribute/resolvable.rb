@@ -42,6 +42,18 @@ module SpecForge
         ->(v) { v.respond_to?(:resolve) ? v.resolve : v }
       end
 
+      #
+      # Returns a proc that resolves attributes into their matcher form.
+      # For objects that respond to #resolve_as_matcher, calls that method.
+      # For other objects, simply returns them unchanged.
+      #
+      # @return [Proc] A proc for resolving attributes to matchers
+      #
+      # @example
+      #   proc = resolve_as_matcher_proc
+      #   proc.call(Attribute::Faker.new("faker.name.name")) # => eq("John Doe")
+      #   proc.call(Attribute::Regex.new("/hello/")) # => match(/hello/)
+      #
       def resolve_as_matcher_proc
         ->(v) { v.respond_to?(:resolve_as_matcher) ? v.resolve_as_matcher : v }
       end
