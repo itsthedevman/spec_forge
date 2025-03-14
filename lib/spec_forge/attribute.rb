@@ -250,23 +250,22 @@ module SpecForge
     #   hash_attr.resolve_as_matcher # => include("name" => eq("Test"))
     #
     def resolve_as_matcher
-      result =
-        case resolved
-        when Array, ArrayLike
-          resolved_array = resolved.map(&resolve_as_matcher_proc)
-          Attribute.from("matcher.contain_exactly" => resolved_array)
-        when Hash, HashLike
-          resolved_hash = resolved.transform_values(&resolve_as_matcher_proc).stringify_keys
-          Attribute.from("matcher.include" => resolved_hash)
-        when RSpec::Matchers::BuiltIn::BaseMatcher, RSpec::Matchers::DSL::Matcher
-          Attribute.from(resolved)
-        when Attribute::Matcher, Regexp
-          Attribute.from("matcher.match" => resolved)
-        else
-          Attribute.from("matcher.eq" => resolved)
-        end
+      methods = Attribute::Matcher::MATCHER_METHODS
 
-      result.resolve
+      case resolved
+      when Array, ArrayLike
+        resolved_array = resolved.map(&resolve_as_matcher_proc)
+        methods.contain_exactly(*resolved_array)
+      when Hash, HashLike
+        resolved_hash = resolved.transform_values(&resolve_as_matcher_proc).stringify_keys
+        methods.include(**resolved_hash)
+      when Attribute::Matcher, Regexp
+        methods.match(resolved)
+      when RSpec::Matchers::BuiltIn::BaseMatcher, RSpec::Matchers::DSL::Matcher
+        resolved # Pass through
+      else
+        methods.eq(resolved)
+      end
     end
 
     #
