@@ -109,12 +109,12 @@ module SpecForge
     def define_have_size
       RSpec::Matchers.define :have_size do |expected|
         match do |actual|
-          actual.respond_to?(:size) && expected == actual.size
+          actual.respond_to?(:size) && expected.matches?(actual.size)
         end
 
         failure_message do |actual|
           if actual.respond_to?(:size)
-            "expected #{actual.inspect} to have size #{expected}, but had size #{actual.size}"
+            "expected #{actual.inspect} to have size #{expected.description}, but had size #{actual.size}"
           else
             "expected #{actual.inspect} to respond to :size"
           end
