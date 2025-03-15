@@ -29,7 +29,7 @@ module SpecForge
           metadata = {
             file_path: spec.file_path,
             absolute_file_path: spec.file_path,
-            line_number: spec.line_number,
+            line_number: expectation.line_number,
             location: spec.file_path,
             rerun_file_path: "#{spec.file_name}:#{spec.name}:\"#{expectation.name}\""
           }
@@ -48,7 +48,7 @@ module SpecForge
         # @param expectation [SpecForge::Spec::Expectation] The expectation being evaluated
         #
         def set_for_example(spec, expectation)
-          metadata = {location: "#{spec.file_path}:#{spec.line_number}"}
+          metadata = {location: "#{spec.file_path}:#{expectation.line_number}"}
 
           RSpec.current_example.metadata.merge!(metadata)
         end
