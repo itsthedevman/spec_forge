@@ -144,6 +144,10 @@ module SpecForge
   def self.context
     @context ||= Context.new
   end
+
+  def self.register_callback(name, &)
+    Callbacks.register(name, &)
+  end
 end
 
 require_relative "spec_forge/attribute"
