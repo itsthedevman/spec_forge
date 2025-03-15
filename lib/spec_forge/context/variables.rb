@@ -73,9 +73,6 @@ module SpecForge
         @overlay = overlay
         @active = Attribute.from(base)
 
-        @resolved_active = nil
-        @resolved_base = nil
-
         self
       end
 
@@ -88,12 +85,12 @@ module SpecForge
       # @return [nil]
       #
       def use_overlay(id)
-        overlay = @overlay[id]
-        return if overlay.blank?
+        active = @base.resolved
 
-        @resolved_active = nil
+        if (overlay = @overlay[id]) && overlay.present?
+          active = Configuration.overlay_options(active, overlay)
+        end
 
-        active = Configuration.overlay_options(@base, overlay)
         @active = Attribute.from(active)
       end
 
@@ -104,7 +101,7 @@ module SpecForge
       # @return [Hash] The hash of resolved variable values
       #
       def resolved
-        @resolved_active ||= @active.resolved
+        @active.resolved
       end
 
       #
@@ -119,7 +116,7 @@ module SpecForge
       # @return [Hash] The hash of fully resolved spec-level variable values
       #
       def resolve_base
-        @resolved_base ||= @base.resolved
+        @base.resolved
       end
     end
   end
