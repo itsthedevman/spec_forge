@@ -100,10 +100,8 @@ module SpecForge
         FactoryBot.public_send(*build_arguments)
       end
 
-      private
-
       #
-      # Similar to #resolve but doesn't cache the result, allowing for re-resolution.
+      # Similar to #resolved but doesn't cache the result, allowing for re-resolution.
       # Recursively calls #resolve on all nested attributes without storing results.
       #
       # Use this when you need to ensure fresh values each time, particularly with
@@ -126,6 +124,8 @@ module SpecForge
           value
         end
       end
+
+      private
 
       #
       # @private
