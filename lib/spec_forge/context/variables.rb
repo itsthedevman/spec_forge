@@ -103,8 +103,8 @@ module SpecForge
       #
       # @return [Hash] The hash of resolved variable values
       #
-      def resolve
-        @resolved_active ||= @active.resolve
+      def resolved
+        @resolved_active ||= @active.resolved
       end
 
       #
@@ -119,7 +119,7 @@ module SpecForge
       # @return [Hash] The hash of fully resolved spec-level variable values
       #
       def resolve_base
-        @resolved_base ||= @base.resolve
+        @resolved_base ||= @base.resolved
       end
     end
   end

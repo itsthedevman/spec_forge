@@ -50,7 +50,7 @@ RSpec.describe SpecForge::Context::Variables do
   describe "#resolve" do
     let(:base) { {var_1: "faker.string.random"} }
 
-    subject(:resolved_h) { variables.resolve }
+    subject(:resolved_h) { variables.resolved }
 
     it "is expected to return the resolved variables" do
       expect(resolved_h[:var_1]).not_to eq("faker.string.random")

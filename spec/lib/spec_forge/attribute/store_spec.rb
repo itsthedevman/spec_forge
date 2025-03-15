@@ -27,7 +27,7 @@ RSpec.describe SpecForge::Attribute::Store do
 
     it "is expected to return the value" do
       expect(SpecForge.context.store.size).to eq(1)
-      expect(attribute.resolve).to eq(1)
+      expect(attribute.resolved).to eq(1)
     end
   end
 
@@ -35,7 +35,7 @@ RSpec.describe SpecForge::Attribute::Store do
     let!(:input) { "store.does_not_exist.id" }
 
     it do
-      expect { attribute.resolve }.to raise_error(SpecForge::Error::InvalidInvocationError)
+      expect { attribute.resolved }.to raise_error(SpecForge::Error::InvalidInvocationError)
     end
   end
 end

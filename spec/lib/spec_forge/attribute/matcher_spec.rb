@@ -73,6 +73,19 @@ RSpec.describe SpecForge::Attribute::Matcher do
           expect([1]).to(attribute.value)
         end
       end
+
+      context "and the matcher method is 'and'" do
+        let(:input) { "matcher.and" }
+        let(:positional) { ["kind_of.string"] }
+
+        it "is expected to use 'forge_and' matcher" do
+          expect(attribute.matcher_method).to be_kind_of(Method)
+          expect(attribute.matcher_method.name).to eq(:forge_and)
+          expect(attribute.arguments[:positional]).to contain_exactly(
+            be_kind_of(SpecForge::Attribute)
+          )
+        end
+      end
     end
 
     context "when the starts with 'kind_of'" do
@@ -338,7 +351,7 @@ RSpec.describe SpecForge::Attribute::Matcher do
     let(:keyword) { {foo: "bar"} }
 
     it do
-      resolved = attribute.resolve
+      resolved = attribute.resolved
       expect(resolved).to be_kind_of(RSpec::Matchers::BuiltIn::Match)
       expect(resolved.expected).to eq("foo" => "bar")
     end
@@ -349,9 +362,180 @@ RSpec.describe SpecForge::Attribute::Matcher do
     let(:positional) { ["foo"] }
 
     it do
-      resolved = attribute.resolve
+      resolved = attribute.resolved
       expect(resolved).to be_kind_of(RSpec::Matchers::BuiltIn::Match)
       expect(resolved.expected).to eq("foo")
+    end
+  end
+
+  describe "#resolve_as_matcher" do
+    let(:matchers) { RSpec::Matchers::BuiltIn }
+
+    subject(:resolved_matcher) { attribute.resolve_as_matcher }
+
+    context "when the method is include and the argument is a string" do
+      let(:input) { "matcher.include" }
+      let(:positional) { ["foo"] }
+
+      it "is expected to not convert the string to a matcher" do
+        expect(resolved_matcher).to be_kind_of(matchers::Include)
+        expect(resolved_matcher.expected).to eq(["foo"])
+      end
+    end
+
+    context "when the method is include and the argument is a regex" do
+      let(:input) { "matcher.include" }
+      let(:positional) { ["/foo/"] }
+
+      it "is expected to convert the regex to a match matcher" do
+        expect(resolved_matcher).to be_kind_of(matchers::Include)
+        expect(resolved_matcher.expected.first).to be_kind_of(matchers::Match)
+        expect(resolved_matcher.expected.first.expected).to eq(/foo/)
+      end
+    end
+
+    context "when the method is start_with and the argument is a string" do
+      let(:input) { "matcher.start_with" }
+      let(:positional) { ["foo"] }
+
+      it "is expected to not convert the string to a matcher" do
+        expect(resolved_matcher).to be_kind_of(matchers::StartWith)
+        expect(resolved_matcher.expected).to eq("foo")
+      end
+    end
+
+    context "when the method is start_with and the argument is a string" do
+      let(:input) { "matcher.have_size" }
+      let(:positional) { [5] }
+
+      it "is expected to not convert the integer to a matcher" do
+        expect(resolved_matcher).to be_kind_of(RSpec::Matchers::DSL::Matcher)
+        expect(resolved_matcher.expected).to eq(5)
+      end
+    end
+
+    context "when the method is all and the argument is a regex" do
+      let(:input) { "matcher.all" }
+      let(:positional) { ["/foo/"] }
+
+      it "is expected to convert the regex to a match matcher" do
+        expect(resolved_matcher).to be_kind_of(matchers::All)
+        expect(resolved_matcher.matcher).to be_kind_of(matchers::Match)
+        expect(resolved_matcher.matcher.expected).to eq(/foo/)
+      end
+    end
+
+    context "when the method is matcher 'and'" do
+      let(:input) { "matcher.and" }
+      let(:positional) { ["kind_of.string", "/foo/", "bar"] }
+
+      it "is expected to convert the appropriate arguments to matchers" do
+        matchers_array = resolved_matcher.expected
+
+        expect(matchers_array[0]).to be_kind_of(matchers::BeAKindOf)
+
+        expect(matchers_array[1]).to be_kind_of(matchers::Match)
+        expect(matchers_array[1].expected).to eq(/foo/)
+
+        expect(matchers_array[2]).to be_kind_of(matchers::Eq)
+        expect(matchers_array[2].expected).to eq("bar")
+      end
+    end
+
+    context "when the matcher has nested structure" do
+      let(:input) { "matcher.all" }
+
+      let(:positional) do
+        [
+          {"matcher.include" => ["/foo/", "bar"]}
+        ]
+      end
+
+      it "is expected to convert the nested structure" do
+        expect(resolved_matcher).to be_kind_of(matchers::All)
+
+        inner_matcher = resolved_matcher.matcher
+        expect(inner_matcher).to be_kind_of(matchers::Include)
+
+        expect(inner_matcher.expected[0]).to be_kind_of(matchers::Match)
+        expect(inner_matcher.expected[0].expected).to eq(/foo/)
+
+        expect(inner_matcher.expected[1]).to eq("bar")
+      end
+    end
+
+    context "when the method is include and the argument is an array" do
+      let(:input) { "matcher.include" }
+      let(:positional) { [[1, 2, 3]] }
+
+      it "is expected to convert the array" do
+        expect(resolved_matcher).to be_kind_of(matchers::Include)
+        expect(resolved_matcher.expected.first).to be_kind_of(matchers::ContainExactly)
+      end
+    end
+
+    context "when the method is include and the argument is a hash" do
+      let(:input) { "matcher.include" }
+      let(:positional) { [{key: "value"}] }
+
+      it "is expected to convert the hash" do
+        expect(resolved_matcher).to be_kind_of(matchers::Include)
+        expect(resolved_matcher.expected.first).to be_kind_of(matchers::Include)
+      end
+    end
+
+    context "when the argument is a deeply nested structure" do
+      let(:input) { "matcher.all" }
+      let(:positional) do
+        [
+          {
+            "matcher.include" => {
+              id: "kind_of.integer",
+              name: "kind_of.string",
+              email: {
+                "matcher.and" => [
+                  "kind_of.string",
+                  "/@/",
+                  {"matcher.include" => "."}
+                ]
+              },
+              created_at: "kind_of.string"
+            }
+          }
+        ]
+      end
+
+      it "is expected to convert the nested structure" do
+        expect(resolved_matcher).to be_kind_of(matchers::All)
+
+        include_matcher = resolved_matcher.matcher
+        expect(include_matcher).to be_kind_of(matchers::Include)
+
+        hash_arg = include_matcher.expected
+
+        expect(hash_arg["id"]).to be_kind_of(matchers::BeAKindOf)
+        expect(hash_arg["id"].expected).to eq(Integer)
+
+        expect(hash_arg["name"]).to be_kind_of(matchers::BeAKindOf)
+        expect(hash_arg["name"].expected).to eq(String)
+
+        expect(hash_arg["created_at"]).to be_kind_of(matchers::BeAKindOf)
+        expect(hash_arg["created_at"].expected).to eq(String)
+
+        and_matcher = hash_arg["email"]
+        expect(and_matcher).to be_kind_of(RSpec::Matchers::DSL::Matcher)
+
+        and_matchers = and_matcher.expected
+
+        expect(and_matchers[0]).to be_kind_of(matchers::BeAKindOf)
+        expect(and_matchers[0].expected).to eq(String)
+
+        expect(and_matchers[1]).to be_kind_of(matchers::Match)
+        expect(and_matchers[1].expected).to eq(/@/)
+
+        expect(and_matchers[2]).to be_kind_of(matchers::Include)
+        expect(and_matchers[2].expected).to eq(include(".").expected)
+      end
     end
   end
 end

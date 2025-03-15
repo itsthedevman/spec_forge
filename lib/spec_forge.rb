@@ -56,10 +56,8 @@ module SpecForge
   # @param expectation_name [String, nil] Optional name of expectation to run
   #
   def self.run(file_name: nil, spec_name: nil, expectation_name: nil)
-    path = SpecForge.forge_path
-
     # Load spec_helper.rb
-    forge_helper = path.join("forge_helper.rb")
+    forge_helper = SpecForge.forge_path.join("forge_helper.rb")
     require_relative forge_helper if File.exist?(forge_helper)
 
     # Validate in case anything was changed
@@ -160,6 +158,7 @@ require_relative "spec_forge/filter"
 require_relative "spec_forge/forge"
 require_relative "spec_forge/http"
 require_relative "spec_forge/loader"
+require_relative "spec_forge/matchers"
 require_relative "spec_forge/normalizer"
 require_relative "spec_forge/runner"
 require_relative "spec_forge/spec"

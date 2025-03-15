@@ -15,7 +15,7 @@ RSpec.describe SpecForge::Attribute::Global do
 
     it "is expected to be able to resolve the global variable" do
       expect(attribute.value).to be_kind_of(SpecForge::Attribute::Variable)
-      expect(attribute.resolve).to eq(my_global_var)
+      expect(attribute.resolved).to eq(my_global_var)
     end
   end
 

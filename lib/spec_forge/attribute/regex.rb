@@ -33,6 +33,9 @@ module SpecForge
       #
       attr_reader :value
 
+      alias_method :resolved, :value
+      alias_method :resolve, :value
+
       #
       # Creates a new regex attribute by parsing the input string
       #
@@ -42,15 +45,6 @@ module SpecForge
         super
 
         @value = parse_regex(input)
-      end
-
-      #
-      # Returns the parsed Regexp object
-      #
-      # @return [Regexp] The compiled regular expression
-      #
-      def resolve
-        @value
       end
 
       private

@@ -56,9 +56,9 @@ module SpecForge
       #
       def base_object
         if (positional = arguments[:positional]) && positional.present?
-          faker_method.call(*positional.resolve)
+          faker_method.call(*positional.resolved)
         elsif (keyword = arguments[:keyword]) && keyword.present?
-          faker_method.call(**keyword.resolve)
+          faker_method.call(**keyword.resolved)
         else
           faker_method.call
         end

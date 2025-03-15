@@ -145,6 +145,24 @@ module SpecForge
     end
 
     #
+    # Compares this attributes input to other
+    #
+    # @param other [Object, Attribute] If another Attribute, the input will be compared
+    #
+    # @return [Boolean]
+    #
+    def ==(other)
+      other =
+        if other.is_a?(Attribute)
+          other.input
+        else
+          other
+        end
+
+      input == other
+    end
+
+    #
     # Returns the processed value of this attribute.
     # Recursively calls #value on underlying attributes, but does NOT resolve
     # all nested structures completely.
@@ -175,47 +193,81 @@ module SpecForge
     #
     # @example
     #   faker_attr = Attribute::Faker.new("faker.name.first_name")
-    #   faker_attr.resolve # => "Jane" (result is cached in @resolved)
-    #   faker_attr.resolve # => "Jane" (returns same cached value)
+    #   faker_attr.resolved # => "Jane" (result is cached in @resolved)
+    #   faker_attr.resolved # => "Jane" (returns same cached value)
     #
-    def resolve
-      @resolved ||= resolve_value
+    def resolved
+      @resolved ||= resolve
     end
 
     #
-    # Similar to #resolve but doesn't cache the result, allowing for re-resolution.
-    # Recursively calls #resolve on all nested attributes without storing results.
+    # Performs recursive resolution of the attribute's value.
+    # Handles nested arrays and hashes by recursively resolving their elements.
     #
-    # Use this when you need to ensure fresh values each time, particularly with
-    # factories or other attributes that should generate new values on each call.
+    # Unlike #resolved, this method doesn't cache results and can be used
+    # when fresh resolution is needed each time.
     #
-    # @return [Object] The completely resolved value without caching
+    # @return [Object] The recursively resolved value without caching
     #
     # @example
-    #   factory_attr = Attribute::Factory.new("factories.user")
-    #   factory_attr.resolve_value # => User#1 (a new user)
-    #   factory_attr.resolve_value # => User#2 (another new user)
+    #   hash_attr = Attribute::ResolvableHash.new({name: Attribute::Faker.new("faker.name.name")})
+    #   hash_attr.resolve # => {name: "John Smith"}
+    #   hash_attr.resolve # => {name: "Jane Doe"} (different value on each call)
     #
-    def resolve_value
-      __resolve(value)
+    def resolve
+      case value
+      when ArrayLike
+        value.map(&resolved_proc)
+      when HashLike
+        value.transform_values(&resolved_proc)
+      else
+        value
+      end
     end
 
     #
-    # Compares this attributes input to other
+    # Converts this attribute to an appropriate RSpec matcher.
+    # Handles different types of values by creating the right matcher type:
+    # - Arrays become contain_exactly matchers
+    # - Hashes become include matchers
+    # - Regexp become match matchers
+    # - Existing matchers are passed through
+    # - Other values become eq matchers
     #
-    # @param other [Object, Attribute] If another Attribute, the input will be compared
+    # This method is crucial for nested matcher structures and compound matchers
+    # like matcher.and that require all values to be proper matchers.
     #
-    # @return [Boolean]
+    # @return [RSpec::Matchers::BuiltIn::BaseMatcher] A matcher representing this attribute
     #
-    def ==(other)
-      other =
-        if other.is_a?(Attribute)
-          other.input
-        else
-          other
-        end
+    # @example Converting different values to matchers
+    #   literal_attr = Attribute::Literal.new("hello")
+    #   literal_attr.resolve_as_matcher # => eq("hello")
+    #
+    #   array_attr = Attribute::ResolvableArray.new([1, 2, 3])
+    #   array_attr.resolve_as_matcher # => contain_exactly(eq(1), eq(2), eq(3))
+    #
+    #   hash_attr = Attribute::ResolvableHash.new({name: "Test"})
+    #   hash_attr.resolve_as_matcher # => include("name" => eq("Test"))
+    #
+    def resolve_as_matcher
+      methods = Attribute::Matcher::MATCHER_METHODS
 
-      input == other
+      case resolved
+      when Array, ArrayLike
+        resolved_array = resolved.map(&resolve_as_matcher_proc)
+        methods.contain_exactly(*resolved_array)
+      when Hash, HashLike
+        resolved_hash = resolved.transform_values(&resolve_as_matcher_proc).stringify_keys
+        methods.include(**resolved_hash)
+      when Attribute::Matcher, Regexp
+        methods.match(resolved)
+      when RSpec::Matchers::BuiltIn::BaseMatcher,
+          RSpec::Matchers::DSL::Matcher,
+          Class
+        resolved # Pass through
+      else
+        methods.eq(resolved)
+      end
     end
 
     #
@@ -224,28 +276,6 @@ module SpecForge
     # @param variables [Hash] A hash of variable attributes
     #
     def bind_variables(variables)
-    end
-
-    protected
-
-    #
-    # Helper method to recursively resolve nested values
-    #
-    # @param value [Object] The value to resolve
-    #
-    # @return [Object] The resolved value with any nested attributes resolved
-    #
-    # @private
-    #
-    def __resolve(value)
-      case value
-      when ArrayLike
-        value.map(&resolvable_proc)
-      when HashLike
-        value.transform_values(&resolvable_proc)
-      else
-        value
-      end
     end
   end
 end

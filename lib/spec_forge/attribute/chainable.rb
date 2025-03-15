@@ -16,7 +16,7 @@ module SpecForge
     #
     # @example Basic usage in code
     #   faker = SpecForge::Attribute.from("faker.name.name.upcase")
-    #   faker.resolve #=> BENDING UNIT 22
+    #   faker.resolved #=> BENDING UNIT 22
     #
     module Chainable
       #
@@ -85,7 +85,7 @@ module SpecForge
       #
       # @return [Object] The fully resolved and memoized value
       #
-      def resolve
+      def resolved
         @resolved ||= resolve_chain
       end
 
@@ -110,7 +110,7 @@ module SpecForge
       # @private
       #
       def resolve_chain
-        __resolve(traverse_chain(resolve: true))
+        traverse_chain(resolve: true)
       end
 
       #
@@ -160,7 +160,7 @@ module SpecForge
       def retrieve_value(object, resolve:)
         return object unless object.is_a?(Attribute)
 
-        resolve ? object.resolve : object.value
+        resolve ? object.resolved : object.value
       end
 
       #

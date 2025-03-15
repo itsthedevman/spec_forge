@@ -232,7 +232,7 @@ RSpec.describe SpecForge::Attribute::Variable do
 
     context "and #resolve is called" do
       it "is expected return to the same value" do
-        expect(variable.resolve).to eq(other_attribute.resolve)
+        expect(variable.resolved).to eq(other_attribute.resolved)
       end
     end
 
@@ -241,7 +241,7 @@ RSpec.describe SpecForge::Attribute::Variable do
         expect(variable.value).not_to eq(other_attribute.value)
 
         # Just to make sure
-        expect(variable.resolve).to eq(other_attribute.resolve)
+        expect(variable.resolved).to eq(other_attribute.resolved)
         expect(variable.value).not_to eq(other_attribute.value)
       end
     end
@@ -261,7 +261,7 @@ RSpec.describe SpecForge::Attribute::Variable do
       let(:input) { "variables.var_2" }
 
       it "is expected to be able to resolve the value" do
-        expect(variable.resolve).to eq("1")
+        expect(variable.resolved).to eq("1")
       end
     end
 
@@ -281,7 +281,7 @@ RSpec.describe SpecForge::Attribute::Variable do
       let(:input) { "variables.var_4" }
 
       it "is expected to be able to resolve the value" do
-        expect(variable.resolve).to eq("test")
+        expect(variable.resolved).to eq("test")
       end
     end
 
@@ -298,7 +298,7 @@ RSpec.describe SpecForge::Attribute::Variable do
       let(:input) { "variables.var_1" }
 
       it do
-        expect { variable.resolve }.to raise_error(SystemStackError)
+        expect { variable.resolved }.to raise_error(SystemStackError)
       end
     end
   end

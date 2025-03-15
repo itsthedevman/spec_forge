@@ -1,77 +1,183 @@
-get_data_types:
+# PART 1: BASIC MATCHERS
+basic_matchers:
   path: /data/types
   expectations:
-  - expect:
+  - name: "Basic equality and type matching"
+    expect:
       status: 200
       json:
-        # Basic equality matching
+        # Simple exact equality matching
         string_value: "Hello, world!"
+
+        # Simple numeric equality
         number_value: 42
 
         # Type checking with kind_of
         decimal_value: kind_of.float
 
-        # Nested object
+        # Boolean matchers
+        boolean_value: be.true
+
+        # Nil matcher
+        null_value: be.nil
+
+# PART 2: SIMPLE COMPOSITE MATCHERS
+composite_matchers:
+  path: /data/types
+  expectations:
+  - name: "Simple composite matchers"
+    expect:
+      status: 200
+      json:
+        # Regular expression matching
+        string_value: /Hello, world!/
+
+        # Array inclusion
+        array_simple:
+          matcher.include: 3
+
+        # Comparison operators
+        number_value:
+          be.greater_than: 40
+
+        decimal_value:
+          be.less_than: 4.0
+
+# PART 3: NESTED STRUCTURE MATCHING
+nested_structure:
+  path: /data/types
+  expectations:
+  - name: "Matching nested structures"
+    expect:
+      status: 200
+      json:
+        # Nested object matching
         nested_object:
           level1:
             level2:
               level3: "Deep value"
-              items_count:
-                be.greater_than_or_equal: 5
+              items_count: kind_of.integer
               enabled: be.true
 
-        # Array contains element
-        array_simple:
-          matcher.include: 3
-
-get_regex_match:
-  path: /data/types
-  expectations:
-  - expect:
-      status: 200
-      json:
-        # Regular expression matching
-        string_value: /Hello/
-
-get_more_type_checks:
-  path: /data/types
-  expectations:
-  - expect:
-      status: 200
-      json:
-        array_simple: kind_of.array
-        null_value: be.nil
-        boolean_value: be.true
-
-get_comparisons:
-  path: /data/types
-  expectations:
-  - expect:
-      status: 200
-      json:
-        # Use fields that actually exist in the response
-        number_value:
-          be.greater_than: 40
-        decimal_value:
-          be.less_than: 4.0
-
-get_user_data:
-  path: /data/users
-  variables:
-    min_count: 1
-  expectations:
-  - expect:
-      status: 200
-      json:
-        # Minimum count of something
-        total:
-          be.greater_than_or_equal: variables.min_count
-
-        # All items in an array match a pattern
-        users:
+        # Array of objects
+        array_objects:
           matcher.all:
             matcher.include:
               id: kind_of.integer
               name: kind_of.string
-              email: /@/
-              created_at: kind_of.string
+              tags: kind_of.array
+
+# PART 4: COMPOUND MATCHERS WITH MATCHER.AND
+compound_matchers_and:
+  path: /data/types
+  expectations:
+  - name: "Compound matchers with matcher.and"
+    expect:
+      status: 200
+      json:
+        # Combining type checking with exact equality
+        string_value:
+          matcher.and:
+          - kind_of.string
+          - "Hello, world!"
+
+        # Combining type checking with range checking
+        decimal_value:
+          matcher.and:
+          - kind_of.float
+          - be.greater_than: 3.0
+          - be.less_than: 4.0
+
+        # Combining multiple comparisons
+        number_value:
+          matcher.and:
+          - kind_of.integer
+          - be.greater_than: 40
+          - be.less_than: 50
+
+# PART 5: STRING PATTERN MATCHING
+string_pattern_matching:
+  path: /data/types
+  expectations:
+  - name: "Complex string pattern matching"
+    expect:
+      status: 200
+      json:
+        string_value:
+          matcher.and:
+          - /world/
+          - matcher.start_with: "Hello"
+          - matcher.include: ","
+
+# PART 6: ARRAY AND COLLECTION MATCHERS
+array_matching:
+  path: /data/types
+  expectations:
+  - name: "Array content and size matching"
+    expect:
+      status: 200
+      json:
+        # Compound matching with array elements
+        array_simple:
+          matcher.and:
+          - kind_of.array
+          - matcher.include: 3
+          - be.present
+          - matcher.have_size: 5
+
+# Featured tags in array objects
+tags_matching:
+  path: /data/types
+  expectations:
+  - name: "Finding specific content in nested arrays"
+    expect:
+      status: 200
+      json:
+        # Featured tags checking
+        array_objects:
+          matcher.include:
+            matcher.include:
+              tags:
+                matcher.include: "featured"
+
+# PART 7: REAL-WORLD APPLICATION WITH USERS ENDPOINT
+users_data_validation:
+  path: /data/users
+  variables:
+    min_count: 1
+  expectations:
+  - name: "Complex real-world validation with users data"
+    expect:
+      status: 200
+      json:
+        # Simple count validation
+        total:
+          matcher.and:
+          - kind_of.integer
+          - be.greater_than_or_equal: variables.min_count
+
+        # Validating array of user objects with compound matchers
+        users:
+          matcher.all:
+            matcher.include:
+              # ID validation
+              id: kind_of.integer
+
+              # Name validation
+              name:
+                matcher.and:
+                - kind_of.string
+                - be.present
+
+              # Email validation
+              email:
+                matcher.and:
+                - kind_of.string
+                - /@/
+                - matcher.include: "."
+
+              # Created date validation
+              created_at:
+                matcher.and:
+                - kind_of.string
+                - /^\d{4}-\d{2}-\d{2}/

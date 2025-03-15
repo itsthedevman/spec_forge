@@ -88,8 +88,8 @@ module SpecForge
       #
       # @return [Object] The fully resolved value from the global context
       #
-      def resolve
-        @resolved ||= value.resolve
+      def resolved
+        @resolved ||= value.resolved
       end
     end
   end

@@ -30,7 +30,7 @@ RSpec.describe SpecForge::Spec::Expectation::Constraint do
 
       it "is expected to store the status as an integer" do
         expect(constraint.status).to be_kind_of(SpecForge::Attribute::Global)
-        expect(constraint.status.resolve).to eq(404)
+        expect(constraint.status.resolved).to eq(404)
       end
     end
   end

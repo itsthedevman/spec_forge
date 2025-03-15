@@ -37,13 +37,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     query:
       api_version: "global.variables.api_version"
   ```
+- Added compound matcher support via `matcher.and` for combining multiple matchers
+  ```yaml
+  email:
+    matcher.and:
+    - kind_of.string
+    - /@/
+    - matcher.end_with: ".com"
+  ```
+- Added custom RSpec matcher `have_size` for checking an object's size via `matcher.have_size`
 - Added new `Loader` class for improved spec file processing
 - Added new `Filter` class for more flexible test filtering
 - Added normalizer for global context validation
 - Added line number tracking for specs and expectations
 - Added new `Runner::Callbacks` class to handle various events while specs are running
 - Added new `Runner::Metadata` class to handle setting example metadata for error reporting
-- Added support for defining and retrieving stored test data via the `store_as` directive and `store` attribute.
+- Added support for defining and retrieving stored test data via the `store_as` directive and `store` attribute
   ```yaml
   create_user:
     path: "/users"
@@ -63,30 +72,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - expect:
         status: 200
   ```
-- New error `UndefinedMatcherError` that gets raised when the provided matcher doesn't exist
-- New debug methods to `DebugProxy` to make troubleshooting easier:
+- Added new error `UndefinedMatcherError` that gets raised when the provided matcher doesn't exist
+- Added new debug methods to `DebugProxy` to make troubleshooting easier:
   - `example_group` for accessing the RSpec example group
   - `match_status` for seeing the resolved matcher for status
   - `match_json` for seeing the resolved matcher for json
-- More integration tests for better coverage
+- Added more integration tests for better coverage
 
 ### Changed
 
 - Renamed `SpecForge.forge` to `SpecForge.forge_path`
-- Renamed attribute `http_method` to `http_verb`. `http_method` is now an alias.
+- Renamed attribute `http_method` to `http_verb` (`http_method` is now an alias)
+- Refactored attribute resolution methods:
+  - Renamed `Attribute#resolve` to `#resolved` (memoized version)
+  - Renamed `Attribute#resolve_value` to `#resolve` (immediate resolution)
+  - Added `Attribute#resolve_as_matcher` for resolving attributes into RSpec matchers
 - Refactored variable resolution to use the new context system
 - Updated `Runner` to properly initialize and manage context between tests
 - Improved error messages with more context about the execution environment
 - Updated YARD comments with better API descriptions and examples
 - Restructured internal architecture for better separation of concerns
 - Moved all error classes under `SpecForge::Error`
-- Fixed issue where nesting expanded matchers (such as "matcher.include") cause an error
-- Changed how response bodies are validated against hash expectations.
+- Fixed issue where nesting expanded matchers (such as `matcher.include`) would cause an error
+- Changed how response bodies are validated against hash expectations:
   - Before: The entire hash was checked using a single `include` matcher
   - Now: Each key at the root level is checked individually, giving more precise error messages when tests fail
   - Nested hashes still use the `include` matcher for flexibility
 - Adjusted `Attribute::Matcher` to accept either `matcher` or `matchers` namespace
-- Fixed issue where nesting expanded matchers (like "matcher.include") would cause an error
 
 ### Removed
 

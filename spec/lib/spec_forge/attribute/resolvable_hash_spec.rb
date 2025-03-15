@@ -20,7 +20,7 @@ RSpec.describe SpecForge::Attribute::ResolvableHash do
     it { expect(resolvable).to respond_to(:resolve) }
 
     it "recursively resolves the hash" do
-      resolved = resolvable.resolve
+      resolved = resolvable.resolved
       expect(resolved[:key_1]).to eq(1)
       expect(resolved[:key_2]).to be_kind_of(Hash)
       expect(resolved[:key_2][:key_3].first).to be_kind_of(String)

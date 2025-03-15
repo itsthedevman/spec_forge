@@ -71,7 +71,7 @@ RSpec.describe SpecForge::Factory do
       end
 
       it "is expected to be able to be resolved" do
-        expect(factory.variables[:var_2].resolve).to eq(input[:variables][:var_1])
+        expect(factory.variables[:var_2].resolved).to eq(input[:variables][:var_1])
       end
     end
   end

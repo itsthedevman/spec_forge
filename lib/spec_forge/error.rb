@@ -91,7 +91,7 @@ module SpecForge
     #
     # @example
     #   variable_attr = Attribute::Variable.new("variables.user.invalid_method")
-    #   variable_attr.resolve
+    #   variable_attr.resolved
     #   # => InvalidInvocationError: Cannot invoke "invalid_method" on User
     #
     class InvalidInvocationError < Error
