@@ -167,7 +167,12 @@ module SpecForge
     # @return [Array<Hash, Set>] The normalized data and any errors
     #
     def normalize
-      normalize_to_structure
+      case input
+      when Hash
+        normalize_hash
+      when Array
+        normalize_array
+      end
     end
 
     #
@@ -198,13 +203,12 @@ module SpecForge
     #
     # @private
     #
-    def normalize_to_structure
+    def normalize_hash
       output, errors = {}, Set.new
 
       structure.each do |key, attribute|
         type_class = attribute[:type]
         aliases = attribute[:aliases] || []
-        sub_structure = attribute[:structure]
         default = attribute[:default]
         required = !attribute.key?(:default)
 
@@ -235,19 +239,10 @@ module SpecForge
         # Call the validator if it has one
         attribute[:validator]&.call(value)
 
-        # Validate any sub structures
-        value =
-          case [value.class, sub_structure.class]
-          when [Hash, Hash]
-            new_value, new_errors = self.class
-              .new(label, value, structure: sub_structure)
-              .normalize
-
-            errors += new_errors if new_errors.size > 0
-            new_value
-          else
-            value
-          end
+        # Normalize any sub structures
+        if (substructure = attribute[:structure])
+          value = normalize_substructure(value, substructure, errors)
+        end
 
         # Store
         output[key] = value
@@ -288,6 +283,42 @@ module SpecForge
       else
         value.is_a?(expected_type)
       end
+    end
+
+    def normalize_substructure(value, substructure, errors)
+      return value unless value.is_a?(Hash) || value.is_a?(Array)
+
+      new_value, new_errors = self.class
+        .new(label, value, structure: substructure)
+        .normalize
+
+      errors.merge(new_errors) if new_errors.size > 0
+      new_value
+    end
+
+    def normalize_array
+      output, errors = [], Set.new
+
+      input.each_with_index do |value, index|
+        type_class = structure[:type]
+
+        if !valid_class?(value, type_class)
+          raise Error::InvalidTypeError.new(value, type_class, for: "index #{index} in #{label}")
+        end
+
+        # Call the validator if it has one
+        structure[:validator]&.call(value)
+
+        if (substructure = structure[:structure])
+          value = normalize_substructure(value, substructure, errors)
+        end
+
+        output << value
+      rescue => e
+        errors << e
+      end
+
+      [output, errors]
     end
   end
 end

@@ -70,7 +70,7 @@ RSpec.describe SpecForge::Normalizer do
       end
     end
 
-    context "when a structure is not the same type as the value" do
+    context "when the types do not support structure checking" do
       let(:input) { {mixed_type: "string_or_hash"} }
 
       let(:structure) do
@@ -89,6 +89,47 @@ RSpec.describe SpecForge::Normalizer do
         expect(errors).to be_empty
 
         expect(output[:mixed_type]).to eq("string_or_hash")
+      end
+    end
+
+    context "when the value is Array and the structure is Hash" do
+      let(:input) do
+        {
+          array_of_strings: ["hello", "world", "!"],
+          array_of_bools: [true, false, true, false],
+          array_of_objects: [{var: 1}, {var: 1}, {var: 1}]
+        }
+      end
+
+      let(:structure) do
+        {
+          array_of_strings: {
+            type: Array,
+            structure: {type: String}
+          },
+          array_of_bools: {
+            type: Array,
+            structure: {type: [TrueClass, FalseClass]}
+          },
+          array_of_objects: {
+            type: Array,
+            structure: {
+              type: Hash,
+              structure: {
+                var: {type: Integer}
+              }
+            }
+          }
+        }
+      end
+
+      it "is expected to validate each element of the array against the structure" do
+        output, errors = normalized
+        expect(errors).to be_empty
+
+        expect(output[:array_of_strings]).to contain_exactly("hello", "world", "!")
+        expect(output[:array_of_bools]).to contain_exactly(true, false, true, false)
+        expect(output[:array_of_objects]).to contain_exactly({var: 1}, {var: 1}, {var: 1})
       end
     end
   end
