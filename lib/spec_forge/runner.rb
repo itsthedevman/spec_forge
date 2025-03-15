@@ -57,10 +57,6 @@ module SpecForge
 
               # Expectations
               spec.expectations.each do |expectation|
-                # Callbacks for the expectation
-                before { Callbacks.before_expectation(forge, spec, expectation) }
-                after { Callbacks.after_expectation(forge, spec, expectation, self) }
-
                 # Onto the actual expectation itself
                 describe(expectation.name) do
                   # Set metadata for the example group for error reporting
@@ -86,6 +82,10 @@ module SpecForge
 
                   # The Faraday response
                   subject(:response) { http_client.call(request) }
+
+                  # Callbacks
+                  before { Callbacks.before_expectation(forge, spec, expectation) }
+                  after { Callbacks.after_expectation(forge, spec, expectation, self) }
 
                   # The test itself. Went with no name so RSpec will pick the failure as the message
                   it do

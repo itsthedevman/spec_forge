@@ -2,8 +2,17 @@
 class UsersController < ApplicationController
   # GET /users
   def index
-    users = User.all
-    render json: {users: users}
+    # Get the limit parameter with a default of all users
+    limit = params[:limit].present? ? params[:limit].to_i : User.count
+
+    # Get a limited set of users
+    @users = User.limit(limit)
+
+    # Return with metadata
+    render json: {
+      total: User.count,
+      users: @users
+    }
   end
 
   # GET /users/:id
@@ -13,15 +22,15 @@ class UsersController < ApplicationController
     if user
       render json: {user: user}
     else
+      # Return 404 for non-existent users
       render json: {error: "User not found"}, status: :not_found
     end
   end
 
   # POST /users
   def create
-    # Extract user attributes, handling both nested and root params
-    user_attributes = params[:user] || params
-    user = User.new(user_params(user_attributes))
+    # Better error reporting for validation failures
+    user = User.new(user_params)
 
     if user.save
       render json: {user: user}, status: :created
@@ -61,7 +70,7 @@ class UsersController < ApplicationController
 
   private
 
-  def user_params(parameters)
+  def user_params(parameters = params)
     parameters.permit(:name, :email, :role, :active)
   end
 end

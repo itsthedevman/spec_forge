@@ -114,7 +114,7 @@ RSpec.describe SpecForge::Matchers do
           expect {
             expect([5]).to have_size(0)
           }.to raise_error(RSpec::Expectations::ExpectationNotMetError) do |e|
-            expect(e.message).to include("expected [5] to have size 0, but had size 1")
+            expect(e.message).to include("expected [5] size to eq 0, but got 1")
           end
         end
       end

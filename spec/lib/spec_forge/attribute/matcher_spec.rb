@@ -410,7 +410,8 @@ RSpec.describe SpecForge::Attribute::Matcher do
 
       it "is expected to not convert the integer to a matcher" do
         expect(resolved_matcher).to be_kind_of(RSpec::Matchers::DSL::Matcher)
-        expect(resolved_matcher.expected).to eq(5)
+        expect(resolved_matcher.expected).to be_kind_of(RSpec::Matchers::BuiltIn::Eq)
+        expect(resolved_matcher.expected.expected).to eq(5)
       end
     end
 

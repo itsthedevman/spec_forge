@@ -1,0 +1,131 @@
+# SECTION 1: BASIC FAKER USAGE
+basic_faker:
+  path: /status
+  variables:
+    # Simple Faker examples showing different providers
+    person_name: faker.name.name
+    email: faker.internet.email
+    street: faker.address.street_address
+    product: faker.commerce.product_name
+    phrase: faker.lorem.sentence
+    job: faker.job.title
+    company: faker.company.name
+    emoji: faker.science.element
+  expectations:
+  - name: "Using various Faker providers"
+    # We just need the test to run, not actually testing anything
+    expect:
+      status: 200
+
+# SECTION 2: ADVANCED FAKER PATTERNS
+advanced_faker:
+  path: /data/types
+  variables:
+    # Faker with arguments
+    words:
+      faker.lorem.words:
+        number: 5
+    # Faker with multiple arguments
+    number:
+      faker.number.between:
+        from: 10
+        to: 100
+    # Chained Faker methods
+    uppercase_name: faker.name.first_name.upcase
+    lowercase_email: faker.internet.email.downcase
+    # Combined Faker values
+    password:
+      transform.join:
+      - faker.internet.password
+      - faker.number.digit
+      - "!"
+  expectations:
+  - name: "Using advanced Faker patterns"
+    expect:
+      status: 200
+
+# SECTION 3: BASIC FACTORY USAGE
+basic_factory:
+  path: /users
+  variables:
+    # Simple factory creation
+    user: factories.user
+  expectations:
+  - name: "Creating and using factories"
+    method: post
+    body:
+      name: variables.user.name
+      email: faker.internet.email
+    expect:
+      status: 201
+      json:
+        user:
+          name: variables.user.name
+
+# SECTION 4: FACTORY WITH CUSTOM ATTRIBUTES
+custom_factory:
+  path: /users
+  variables:
+    # Factory with custom attributes
+    admin_user:
+      factories.user:
+        attributes:
+          name: "Admin User"
+          role: "admin"
+          email:
+            transform.join:
+            - "admin"
+            - faker.number.number:
+                digits: 5
+            - "@example.com"
+  expectations:
+  - name: "Using factories with custom attributes"
+    method: get
+    query:
+      id: variables.admin_user.id
+    path: /users/{id}
+    expect:
+      status: 200
+      json:
+        user:
+          name: "Admin User"
+          role: "admin"
+
+# SECTION 5: COMBINING DYNAMIC DATA
+combined_data:
+  variables:
+    # Generate realistic user data
+    first_name: faker.name.first_name
+    last_name: faker.name.last_name
+    domain: faker.internet.domain_name
+    # Combine them in realistic ways
+    full_name:
+      transform.join:
+      - variables.first_name
+      - " "
+      - variables.last_name
+    username:
+      transform.join:
+      - variables.first_name
+      - "."
+      - variables.last_name
+    email:
+      transform.join:
+      - variables.username
+      - "@"
+      - variables.domain
+    # Track creation time to ensure uniqueness
+    timestamp: faker.time.backward.iso8601
+  expectations:
+  - name: "Creating a user with combined dynamic data"
+    path: /users
+    method: post
+    body:
+      name: variables.full_name
+      email: variables.email
+    expect:
+      status: 201
+      json:
+        user:
+          name: variables.full_name
+          email: variables.email

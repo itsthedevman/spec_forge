@@ -283,8 +283,7 @@ module SpecForge
       def convert_argument?(argument)
         return true if argument.is_a?(Attribute::Matcher) || argument.is_a?(Attribute::Regex)
 
-        # Only process include, start_with, end_with
-        return true if [:include, :start_with, :end_with, :have_size].exclude?(matcher_method.name)
+        return true unless [:include, :start_with, :end_with].include?(matcher_method.name)
 
         resolved = argument.resolved
         resolved.is_a?(Array) || resolved.is_a?(Hash)
