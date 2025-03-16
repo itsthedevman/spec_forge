@@ -64,7 +64,8 @@ module SpecForge
         type: [TrueClass, FalseClass],
         default: false,
         aliases: %i[pry breakpoint]
-      }
+      },
+      callback: {type: [String, NilClass]}
     }.freeze
 
     #
@@ -220,14 +221,7 @@ module SpecForge
 
         # Type + existence check
         if !valid_class?(value, type_class)
-          for_context = "\"#{key}\""
-
-          if aliases.size > 0
-            aliases = aliases.join_map(", ") { |a| a.to_s.in_quotes }
-            for_context += " (aliases #{aliases})"
-          end
-
-          for_context += " in #{label}"
+          for_context = generate_error_label(key, aliases)
 
           if (line_number = input[:line_number])
             for_context += " (line #{line_number})"
@@ -241,7 +235,8 @@ module SpecForge
 
         # Normalize any sub structures
         if (substructure = attribute[:structure])
-          value = normalize_substructure(value, substructure, errors)
+          new_label = generate_error_label(key, aliases)
+          value = normalize_substructure(new_label, value, substructure, errors)
         end
 
         # Store
@@ -285,17 +280,77 @@ module SpecForge
       end
     end
 
-    def normalize_substructure(value, substructure, errors)
+    #
+    # Generates an error label with information about the key and its aliases
+    #
+    # Creates a descriptive label for error messages that includes the key name,
+    # any aliases it may have, and the context in which it appears.
+    #
+    # @param key [Symbol, String] The key that caused the error
+    # @param aliases [Array<Symbol, String>] Any aliases for the key
+    #
+    # @return [String] A formatted error label
+    #
+    # @example
+    #   generate_error_label(:user_id, [:id, :uid])
+    #   # => "\"user_id\" (aliases \"id\", \"uid\") in user config"
+    #
+    def generate_error_label(key, aliases)
+      error_label = key.to_s.in_quotes
+
+      if aliases.size > 0
+        aliases = aliases.join_map(", ") { |a| a.to_s.in_quotes }
+        error_label += " (aliases #{aliases})"
+      end
+
+      error_label + " in #{label}"
+    end
+
+    #
+    # Normalizes an array according to its structure definition
+    #
+    # Processes each element in the input array, validating its type and
+    # recursively normalizing any nested structures.
+    #
+    # @return [Array<Object, Set>] A two-element array containing:
+    #   1. The normalized array
+    #   2. A set of any errors encountered during normalization
+    #
+    # @example
+    #   input = [1, "string", 3]
+    #   structure = {type: Numeric}
+    #   normalize_array # => [[1, 3], #<Set: {Error}>]
+    #
+    def normalize_substructure(new_label, value, substructure, errors)
       return value unless value.is_a?(Hash) || value.is_a?(Array)
 
       new_value, new_errors = self.class
-        .new(label, value, structure: substructure)
+        .new(new_label, value, structure: substructure)
         .normalize
 
       errors.merge(new_errors) if new_errors.size > 0
       new_value
     end
 
+    #
+    # Normalizes a nested substructure within a parent structure
+    #
+    # Recursively processes nested Hash or Array structures according to
+    # their structure definitions, collecting any validation errors.
+    #
+    # @param new_label [String] The label to use for error messages
+    # @param value [Hash, Array] The nested structure to normalize
+    # @param substructure [Hash] The structure definition for validation
+    # @param errors [Set] A set to collect any encountered errors
+    #
+    # @return [Hash, Array] The normalized substructure
+    #
+    # @example
+    #   value = {name: "Test", age: "25"}
+    #   substructure = {name: {type: String}, age: {type: Integer}}
+    #   normalize_substructure("user", value, substructure, Set.new)
+    #   # => {name: "Test", age: 25}
+    #
     def normalize_array
       output, errors = [], Set.new
 
@@ -303,14 +358,14 @@ module SpecForge
         type_class = structure[:type]
 
         if !valid_class?(value, type_class)
-          raise Error::InvalidTypeError.new(value, type_class, for: "index #{index} in #{label}")
+          raise Error::InvalidTypeError.new(value, type_class, for: "index #{index} of #{label}")
         end
 
         # Call the validator if it has one
         structure[:validator]&.call(value)
 
         if (substructure = structure[:structure])
-          value = normalize_substructure(value, substructure, errors)
+          value = normalize_substructure(label, value, substructure, errors)
         end
 
         output << value

@@ -65,7 +65,7 @@ RSpec.describe SpecForge::Normalizer do
 
         expect(error).to be_kind_of(SpecForge::Error::InvalidTypeError)
         expect(error.message).to eq(
-          "Expected String, got Integer for \"key_3\" in normalizer"
+          "Expected String, got Integer for \"key_3\" in \"key_2\" in \"nested\" in normalizer"
         )
       end
     end
