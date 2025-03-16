@@ -365,7 +365,7 @@ module SpecForge
         structure[:validator]&.call(value)
 
         if (substructure = structure[:structure])
-          value = normalize_substructure(label, value, substructure, errors)
+          value = normalize_substructure("index #{index} of #{label}", value, substructure, errors)
         end
 
         output << value

@@ -83,5 +83,20 @@ RSpec.describe SpecForge::Normalizer do
         )
       end
     end
+
+    context "when a callback name is not a String" do
+      before do
+        global[:callbacks] = [
+          {before: 1}
+        ]
+      end
+
+      it do
+        expect { normalized }.to raise_error(
+          SpecForge::Error::InvalidStructureError,
+          %{Expected String or NilClass, got Integer for "before_each" (aliases "before") in index 0 of "callbacks" in global context}
+        )
+      end
+    end
   end
 end
