@@ -104,10 +104,12 @@ module SpecForge
       #
       # @param id [String, Symbol] The identifier to store the entry under
       #
-      # @return [Entry] The newly created entry
+      # @return [self]
       #
       def set(id, **)
         @inner[id] = Entry.new(**)
+
+        self
       end
 
       #
