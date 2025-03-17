@@ -31,6 +31,14 @@ module SpecForge
 
           # Clear the store for this file
           SpecForge.context.store.clear
+
+          # # Run callbacks
+          # SpecForge.context.global.run_callbacks(
+          #   :before_file,
+          #   forge:,
+          #   file_path: forge.metadata[:file_path],
+          #   file_name: forge.metadata[:file_name]
+          # )
         end
 
         #
@@ -51,6 +59,17 @@ module SpecForge
 
           # Finally, clear spec level stores
           SpecForge.context.store.clear_specs
+
+          # # Run callbacks
+          # SpecForge.context.global.run_callbacks(
+          #   :before_spec,
+          #   forge:,
+          #   file_path: forge.metadata[:file_path],
+          #   file_name: forge.metadata[:file_name],
+          #   spec:,
+          #   spec_name: spec.name,
+          #   variables: SpecForge.context.variables.to_h
+          # )
         end
 
         #
@@ -62,8 +81,10 @@ module SpecForge
         # @param forge [SpecForge::Forge] The forge being tested
         # @param spec [SpecForge::Spec] The spec being tested
         # @param expectation [SpecForge::Spec::Expectation] The expectation about to be evaluated
+        # @param example_group [RSpec::ExampleGroups] The current running example group
+        # @param example [RSpec::Core::Example] The current example
         #
-        def before_expectation(forge, spec, expectation)
+        def before_expectation(forge, spec, expectation, example_group, example)
           # Set metadata for this example
           Metadata.set_for_example(spec, expectation)
 
@@ -72,20 +93,21 @@ module SpecForge
 
           # Ensure everything is resolved
           SpecForge.context.variables.resolved
-        end
 
-        #
-        # Callback executed after each expectation is run
-        #
-        # Performs cleanup and stores results if needed for future reference.
-        #
-        # @param forge [SpecForge::Forge] The forge being tested
-        # @param spec [SpecForge::Spec] The spec being tested
-        # @param expectation [SpecForge::Spec::Expectation] The expectation that was evaluated
-        # @param example [RSpec::Core::Example] The current running example
-        #
-        def after_expectation(forge, spec, expectation, example)
-          store_result(expectation, example.request, example.response) if expectation.store_as?
+          # Run callbacks
+          # SpecForge.context.global.run_callbacks(
+          #   :before_each,
+          #   forge:,
+          #   file_path: forge.metadata[:file_path],
+          #   file_name: forge.metadata[:file_name],
+          #   spec:,
+          #   spec_name: spec.name,
+          #   variables: SpecForge.context.variables.to_h,
+          #   expectation:,
+          #   expectation_name: expectation.name,
+          #   request: example.request,
+          #   example:
+          # )
         end
 
         #
@@ -97,10 +119,78 @@ module SpecForge
         # @param forge [SpecForge::Forge] The forge being tested
         # @param spec [SpecForge::Spec] The spec being tested
         # @param expectation [SpecForge::Spec::Expectation] The expectation being evaluated
-        # @param example [RSpec::Core::Example] The current running example
+        # @param example_group [RSpec::ExampleGroups] The current running example group
         #
-        def on_debug(forge, spec, expectation, example)
-          DebugProxy.new(forge, spec, expectation, example).call
+        def on_debug(forge, spec, expectation, example_group)
+          DebugProxy.new(forge, spec, expectation, example_group).call
+        end
+
+        #
+        # Callback executed after each expectation is run
+        #
+        # Performs cleanup and stores results if needed for future reference.
+        #
+        # @param forge [SpecForge::Forge] The forge being tested
+        # @param spec [SpecForge::Spec] The spec being tested
+        # @param expectation [SpecForge::Spec::Expectation] The expectation that was evaluated
+        # @param example_group [RSpec::ExampleGroups] The current running example group
+        # @param example [RSpec::Core::Example] The current example
+        #
+        def after_expectation(forge, spec, expectation, example_group, example)
+          request = example_group.request
+          response = example_group.response
+
+          store_result(expectation, request, response) if expectation.store_as?
+
+          # Run callbacks
+          # SpecForge.context.global.run_callbacks(
+          #   :after_each,
+          #   forge:,
+          #   file_path: forge.metadata[:file_path],
+          #   file_name: forge.metadata[:file_name],
+          #   spec:,
+          #   spec_name: spec.name,
+          #   variables: SpecForge.context.variables.to_h,
+          #   expectation:,
+          #   expectation_name: expectation.name,
+          #   request: example.request,
+          #   response: example.response,
+          #   example:
+          # )
+        end
+
+        #
+        # Callback executed after each spec is ran
+        #
+        # @param forge [SpecForge::Forge] The forge being tested
+        # @param spec [SpecForge::Spec] The spec that was executed
+        #
+        def after_spec(forge, spec)
+          # SpecForge.context.global.run_callbacks(
+          #   :after_spec,
+          #   forge:,
+          #   file_path: forge.metadata[:file_path],
+          #   file_name: forge.metadata[:file_name],
+          #   spec:,
+          #   spec_name: spec.name,
+          #   variables: SpecForge.context.variables.to_h,
+          #   store: SpecForge.context.store.to_h
+          # )
+        end
+
+        #
+        # Callback executed after a file's specs have been ran
+        #
+        # @param forge [SpecForge::Forge] The forge representing the current file
+        #
+        def after_file(forge)
+          # # Run callbacks
+          # SpecForge.context.global.run_callbacks(
+          #   :before_file,
+          #   forge:,
+          #   file_path: forge.metadata[:file_path],
+          #   file_name: forge.metadata[:file_name]
+          # )
         end
 
         private

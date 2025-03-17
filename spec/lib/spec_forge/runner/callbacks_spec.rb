@@ -82,7 +82,7 @@ RSpec.describe SpecForge::Runner::Callbacks do
       ##########################################################################
       ## before_expectation, expectation 0
       expectation = spec.expectations.first
-      callbacks.before_expectation(forge, spec, expectation)
+      callbacks.before_expectation(forge, spec, expectation, self, RSpec.current_example)
 
       # Check our test's metadata, since it modifies it lol
       expect(RSpec.current_example.metadata[:location]).to start_with("test/path")
@@ -100,7 +100,7 @@ RSpec.describe SpecForge::Runner::Callbacks do
       ## after_expectation, expectation 0
 
       # Pass in this example so it can access request and response variables
-      callbacks.after_expectation(forge, spec, expectation, self)
+      callbacks.after_expectation(forge, spec, expectation, self, RSpec.current_example)
 
       # This expectation is stored at the file level
       expect(context.store.size).to eq(1)
@@ -114,7 +114,7 @@ RSpec.describe SpecForge::Runner::Callbacks do
       ##########################################################################
       ## before_expectation, expectation 1
       expectation = spec.expectations.second
-      callbacks.before_expectation(forge, spec, expectation)
+      callbacks.before_expectation(forge, spec, expectation, self, RSpec.current_example)
 
       # Now we have overlaid variables
       variables = context.variables.resolved
@@ -129,7 +129,7 @@ RSpec.describe SpecForge::Runner::Callbacks do
       ## after_expectation, expectation 1
 
       # Pass in this example so it can access request and response variables
-      callbacks.after_expectation(forge, spec, expectation, self)
+      callbacks.after_expectation(forge, spec, expectation, self, RSpec.current_example)
 
       # This expectation is stored at the spec level
       expect(context.store.size).to eq(2)
@@ -143,7 +143,7 @@ RSpec.describe SpecForge::Runner::Callbacks do
       ##########################################################################
       ## before_expectation, expectation 2
       expectation = spec.expectations.third
-      callbacks.before_expectation(forge, spec, expectation)
+      callbacks.before_expectation(forge, spec, expectation, self, RSpec.current_example)
 
       # Now we have a combination of variables
       variables = context.variables.resolved
@@ -163,7 +163,7 @@ RSpec.describe SpecForge::Runner::Callbacks do
       ## after_expectation, expectation 2
 
       # Pass in this example so it can access request and response variables
-      callbacks.after_expectation(forge, spec, expectation, self)
+      callbacks.after_expectation(forge, spec, expectation, self, RSpec.current_example)
 
       # This expectation is not stored
       expect(context.store.size).to eq(2)
