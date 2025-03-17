@@ -49,7 +49,7 @@ module SpecForge
       #
       # @return [self]
       #
-      def set(variables:, callbacks: [])
+      def set(variables: {}, callbacks: [])
         @variables.set(base: variables)
         @callbacks.set(callbacks)
 
