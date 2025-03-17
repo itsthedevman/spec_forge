@@ -16,6 +16,10 @@ RSpec.describe SpecForge::Normalizer do
 
     subject(:normalized) { described_class.normalize_global_context!(global) }
 
+    before do
+      SpecForge::Callbacks.register("test_callback") {}
+    end
+
     it "is expected to normalize normally" do
       expect(normalized).to include(
         variables: {
@@ -95,6 +99,21 @@ RSpec.describe SpecForge::Normalizer do
         expect { normalized }.to raise_error(
           SpecForge::Error::InvalidStructureError,
           %{Expected String or NilClass, got Integer for "before_each" (aliases "before") in index 0 of "callbacks" in global context}
+        )
+      end
+    end
+
+    context "when a callback name is not defined" do
+      before do
+        global[:callbacks] = [
+          {before: "Not defined, yo"}
+        ]
+      end
+
+      it do
+        expect { normalized }.to raise_error(
+          SpecForge::Error::InvalidStructureError,
+          %(The callback "Not defined, yo" was referenced but hasn't been defined.\nAvailable callbacks are: "test_callback")
         )
       end
     end

@@ -65,7 +65,15 @@ module SpecForge
         default: false,
         aliases: %i[pry breakpoint]
       },
-      callback: {type: [String, NilClass]}
+      callback: {
+        type: [String, NilClass],
+        validator: lambda do |value|
+          return if value.blank?
+          return if SpecForge::Callbacks.registered?(value)
+
+          raise Error::UndefinedCallbackError.new(value, SpecForge::Callbacks.registered_names)
+        end
+      }
     }.freeze
 
     #
