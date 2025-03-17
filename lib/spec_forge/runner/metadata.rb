@@ -23,7 +23,7 @@ module SpecForge
         #
         # @param spec [SpecForge::Spec] The spec being tested
         # @param expectation [SpecForge::Spec::Expectation] The expectation being evaluated
-        # @param example_group [RSpec::ExampleGroups] The example group to update
+        # @param example_group [RSpec::Core::ExampleGroup] The example group to update
         #
         def set_for_group(spec, expectation, example_group)
           metadata = {

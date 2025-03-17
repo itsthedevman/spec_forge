@@ -62,7 +62,7 @@ module SpecForge
       # @param forge [SpecForge::Forge] The forge being tested
       # @param spec [SpecForge::Spec] The spec being tested
       # @param expectation [SpecForge::Spec::Expectation] The expectation being tested
-      # @param example_group [RSpec::ExampleGroups] The current example group
+      # @param example_group [RSpec::Core::ExampleGroup] The current example group
       #
       # @return [SpecForge::Runner::DebugProxy]
       #
