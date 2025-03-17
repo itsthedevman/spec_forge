@@ -123,6 +123,15 @@ module SpecForge
       def clear_specs
         @inner.delete_if { |_k, v| v.scope == :spec }
       end
+
+      #
+      # Returns a hash representation of store
+      #
+      # @return [Hash]
+      #
+      def to_h
+        @inner
+      end
     end
   end
 end
