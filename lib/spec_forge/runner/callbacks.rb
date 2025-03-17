@@ -33,7 +33,7 @@ module SpecForge
           SpecForge.context.store.clear
 
           # Run the user defined callbacks
-          SpecForge.context.global.run_callbacks(:before_file, file_context(forge))
+          SpecForge.context.global.callbacks.run(:before_file, file_context(forge))
         end
 
         #
@@ -56,7 +56,7 @@ module SpecForge
           SpecForge.context.store.clear_specs
 
           # Run the user defined callbacks
-          SpecForge.context.global.run_callbacks(:before_spec, spec_context(forge, spec))
+          SpecForge.context.global.callbacks.run(:before_spec, spec_context(forge, spec))
         end
 
         #
@@ -68,7 +68,7 @@ module SpecForge
         # @param forge [SpecForge::Forge] The forge being tested
         # @param spec [SpecForge::Spec] The spec being tested
         # @param expectation [SpecForge::Spec::Expectation] The expectation about to be evaluated
-        # @param example_group [RSpec::ExampleGroups] The current running example group
+        # @param example_group [RSpec::Core::ExampleGroup] The current running example group
         # @param example [RSpec::Core::Example] The current example
         #
         def before_expectation(forge, spec, expectation, example_group, example)
@@ -82,7 +82,7 @@ module SpecForge
           SpecForge.context.variables.resolved
 
           # Run the user defined callbacks
-          SpecForge.context.global.run_callbacks(
+          SpecForge.context.global.callbacks.run(
             :before_each,
             expectation_context(forge, spec, expectation, example_group, example)
           )
@@ -97,7 +97,7 @@ module SpecForge
         # @param forge [SpecForge::Forge] The forge being tested
         # @param spec [SpecForge::Spec] The spec being tested
         # @param expectation [SpecForge::Spec::Expectation] The expectation being evaluated
-        # @param example_group [RSpec::ExampleGroups] The current running example group
+        # @param example_group [RSpec::Core::ExampleGroup] The current running example group
         #
         def on_debug(forge, spec, expectation, example_group)
           DebugProxy.new(forge, spec, expectation, example_group).call
@@ -111,7 +111,7 @@ module SpecForge
         # @param forge [SpecForge::Forge] The forge being tested
         # @param spec [SpecForge::Spec] The spec being tested
         # @param expectation [SpecForge::Spec::Expectation] The expectation that was evaluated
-        # @param example_group [RSpec::ExampleGroups] The current running example group
+        # @param example_group [RSpec::Core::ExampleGroup] The current running example group
         # @param example [RSpec::Core::Example] The current example
         #
         def after_expectation(forge, spec, expectation, example_group, example)
@@ -119,7 +119,7 @@ module SpecForge
           store_result(expectation, example_group) if expectation.store_as?
 
           # Run the user defined callbacks
-          SpecForge.context.global.run_callbacks(
+          SpecForge.context.global.callbacks.run(
             :after_each,
             expectation_context(forge, spec, expectation, example_group, example)
           )
@@ -133,7 +133,7 @@ module SpecForge
         #
         def after_spec(forge, spec)
           # Run the user defined callbacks
-          SpecForge.context.global.run_callbacks(:after_spec, spec_context(forge, spec))
+          SpecForge.context.global.callbacks.run(:after_spec, spec_context(forge, spec))
         end
 
         #
@@ -143,7 +143,7 @@ module SpecForge
         #
         def after_file(forge)
           # Run the user defined callbacks
-          SpecForge.context.global.run_callbacks(:after_file, file_context(forge))
+          SpecForge.context.global.callbacks.run(:after_file, file_context(forge))
         end
 
         private
@@ -156,7 +156,7 @@ module SpecForge
         # and normalizes the ID by removing scope prefixes.
         #
         # @param expectation [SpecForge::Spec::Expectation] The expectation that is being stored
-        # @param example_group [RSpec::ExampleGroups] The current running example group
+        # @param example_group [RSpec::Core::ExampleGroup] The current running example group
         #
         def store_result(expectation, example_group)
           id = expectation.store_as
@@ -228,7 +228,7 @@ module SpecForge
         # @param forge [SpecForge::Forge] The forge being tested
         # @param spec [SpecForge::Spec] The spec being tested
         # @param expectation [SpecForge::Spec::Expectation] The expectation being evaluated
-        # @param example_group [RSpec::ExampleGroups] The current running example group
+        # @param example_group [RSpec::Core::ExampleGroup] The current running example group
         # @param example [RSpec::Core::Example] The current example
         #
         # @return [Hash] Context with file, spec and expectation information
