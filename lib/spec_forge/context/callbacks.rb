@@ -48,6 +48,22 @@ module SpecForge
         @inner
       end
 
+      #
+      # Executes all registered callbacks for a specific lifecycle hook
+      #
+      # @param hook_name [String, Symbol] The lifecycle hook (before_file, after_each, etc.)
+      # @param context [Hash] State data that will be converted to a structured object
+      #   and passed to callbacks
+      #
+      #
+      def run(hook_name, context = {})
+        context = context.to_istruct
+
+        @inner[hook_name].each do |callback_name|
+          SpecForge::Callbacks.run(callback_name, context)
+        end
+      end
+
       private
 
       #

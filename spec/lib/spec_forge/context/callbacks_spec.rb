@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
 RSpec.describe SpecForge::Context::Callbacks do
+  let(:callbacks) { [] }
+
+  subject(:context) { described_class.new(callbacks) }
+
   describe "#initialize" do
-    let(:callbacks) { [] }
-
-    subject(:context) { described_class.new(callbacks) }
-
     context "when callbacks are provided" do
       let(:callbacks) do
         [
@@ -51,6 +51,29 @@ RSpec.describe SpecForge::Context::Callbacks do
           is_expected.to eq({})
         end
       end
+    end
+  end
+
+  describe "#run" do
+    let(:callbacks) do
+      [
+        {before_each: "callback_1"},
+        {before_each: "callback_2"}
+      ]
+    end
+
+    let(:result) { [] }
+
+    subject(:runner) { context.run(:before_each, context_key: 1) }
+
+    before do
+      SpecForge::Callbacks.register("callback_1") { |context| result << context.context_key }
+      SpecForge::Callbacks.register("callback_2") { |context| result << (context.context_key + 1) }
+    end
+
+    it "is expected to trigger the callbacks" do
+      runner
+      expect(result).to contain_exactly(1, 2)
     end
   end
 end
