@@ -155,16 +155,17 @@ module SpecForge
       private
 
       def prepare_for_run
+        # Stores the current examples context, useful for callbacks
+        @current_example_context = nil
+
         # Allows modifying the error backtrace reporting within rspec
         RSpec.configuration.instance_variable_set(:@backtrace_formatter, BacktraceFormatter)
 
-        # Listen for when a example passes or fails
+        # Listen for passed/failed events to trigger the "after_each" callback
         RSpec.configuration.reporter.register_listener(
           Listener.instance,
           :example_passed, :example_failed
         )
-
-        @current_example_context = nil
       end
     end
   end
