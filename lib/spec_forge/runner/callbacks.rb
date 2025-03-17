@@ -32,13 +32,8 @@ module SpecForge
           # Clear the store for this file
           SpecForge.context.store.clear
 
-          # # Run callbacks
-          # SpecForge.context.global.run_callbacks(
-          #   :before_file,
-          #   forge:,
-          #   file_path: forge.metadata[:file_path],
-          #   file_name: forge.metadata[:file_name]
-          # )
+          # Run the user defined callbacks
+          SpecForge.context.global.run_callbacks(:before_file, file_context(forge))
         end
 
         #
@@ -57,19 +52,11 @@ module SpecForge
           # And resolve the spec level variables
           SpecForge.context.variables.resolve_base
 
-          # Finally, clear spec level stores
+          # Clear any "spec" level stored data
           SpecForge.context.store.clear_specs
 
-          # # Run callbacks
-          # SpecForge.context.global.run_callbacks(
-          #   :before_spec,
-          #   forge:,
-          #   file_path: forge.metadata[:file_path],
-          #   file_name: forge.metadata[:file_name],
-          #   spec:,
-          #   spec_name: spec.name,
-          #   variables: SpecForge.context.variables.to_h
-          # )
+          # Run the user defined callbacks
+          SpecForge.context.global.run_callbacks(:before_spec, spec_context(forge, spec))
         end
 
         #
@@ -94,20 +81,11 @@ module SpecForge
           # Ensure everything is resolved
           SpecForge.context.variables.resolved
 
-          # Run callbacks
-          # SpecForge.context.global.run_callbacks(
-          #   :before_each,
-          #   forge:,
-          #   file_path: forge.metadata[:file_path],
-          #   file_name: forge.metadata[:file_name],
-          #   spec:,
-          #   spec_name: spec.name,
-          #   variables: SpecForge.context.variables.to_h,
-          #   expectation:,
-          #   expectation_name: expectation.name,
-          #   request: example.request,
-          #   example:
-          # )
+          # Run the user defined callbacks
+          SpecForge.context.global.run_callbacks(
+            :before_each,
+            expectation_context(forge, spec, expectation, example_group, example)
+          )
         end
 
         #
@@ -137,26 +115,14 @@ module SpecForge
         # @param example [RSpec::Core::Example] The current example
         #
         def after_expectation(forge, spec, expectation, example_group, example)
-          request = example_group.request
-          response = example_group.response
+          # Store the data if requested
+          store_result(expectation, example_group) if expectation.store_as?
 
-          store_result(expectation, request, response) if expectation.store_as?
-
-          # Run callbacks
-          # SpecForge.context.global.run_callbacks(
-          #   :after_each,
-          #   forge:,
-          #   file_path: forge.metadata[:file_path],
-          #   file_name: forge.metadata[:file_name],
-          #   spec:,
-          #   spec_name: spec.name,
-          #   variables: SpecForge.context.variables.to_h,
-          #   expectation:,
-          #   expectation_name: expectation.name,
-          #   request: example.request,
-          #   response: example.response,
-          #   example:
-          # )
+          # Run the user defined callbacks
+          SpecForge.context.global.run_callbacks(
+            :after_each,
+            expectation_context(forge, spec, expectation, example_group, example)
+          )
         end
 
         #
@@ -166,16 +132,8 @@ module SpecForge
         # @param spec [SpecForge::Spec] The spec that was executed
         #
         def after_spec(forge, spec)
-          # SpecForge.context.global.run_callbacks(
-          #   :after_spec,
-          #   forge:,
-          #   file_path: forge.metadata[:file_path],
-          #   file_name: forge.metadata[:file_name],
-          #   spec:,
-          #   spec_name: spec.name,
-          #   variables: SpecForge.context.variables.to_h,
-          #   store: SpecForge.context.store.to_h
-          # )
+          # Run the user defined callbacks
+          SpecForge.context.global.run_callbacks(:after_spec, spec_context(forge, spec))
         end
 
         #
@@ -184,13 +142,8 @@ module SpecForge
         # @param forge [SpecForge::Forge] The forge representing the current file
         #
         def after_file(forge)
-          # # Run callbacks
-          # SpecForge.context.global.run_callbacks(
-          #   :before_file,
-          #   forge:,
-          #   file_path: forge.metadata[:file_path],
-          #   file_name: forge.metadata[:file_name]
-          # )
+          # Run the user defined callbacks
+          SpecForge.context.global.run_callbacks(:after_file, file_context(forge))
         end
 
         private
@@ -203,10 +156,9 @@ module SpecForge
         # and normalizes the ID by removing scope prefixes.
         #
         # @param expectation [SpecForge::Spec::Expectation] The expectation that is being stored
-        # @param request [SpecForge::HTTP::Request] The HTTP request that was executed
-        # @param response [Faraday::Response] The HTTP response received
+        # @param example_group [RSpec::ExampleGroups] The current running example group
         #
-        def store_result(expectation, request, response)
+        def store_result(expectation, example_group)
           id = expectation.store_as
           scope = :file
 
@@ -219,16 +171,78 @@ module SpecForge
             scope = :spec
           end
 
+          response = example_group.response
           SpecForge.context.store.set(
             id,
             scope:,
-            request: request.to_h,
+            request: example_group.request.to_h,
             variables: SpecForge.context.variables.resolved,
             response: {
               headers: response.headers,
               status: response.status,
               body: response.body
             }
+          )
+        end
+
+        #
+        # Builds the base context for file-level callbacks
+        #
+        # @param forge [SpecForge::Forge] The forge representing the file
+        #
+        # @return [Hash] Basic file context
+        #
+        # @private
+        #
+        def file_context(forge)
+          {
+            forge: forge,
+            file_path: forge.metadata[:file_path],
+            file_name: forge.metadata[:file_name]
+          }
+        end
+
+        #
+        # Builds context for spec-level callbacks
+        # Includes file context plus spec information
+        #
+        # @param forge [SpecForge::Forge] The forge representing the file
+        # @param spec [SpecForge::Spec] The spec being executed
+        #
+        # @return [Hash] Context with file and spec information
+        #
+        # @private
+        #
+        def spec_context(forge, spec)
+          file_context(forge).merge(
+            spec: spec,
+            spec_name: spec.name,
+            variables: SpecForge.context.variables.resolved
+          )
+        end
+
+        #
+        # Builds context for expectation-level callbacks
+        # Includes spec context plus expectation information
+        #
+        # @param forge [SpecForge::Forge] The forge being tested
+        # @param spec [SpecForge::Spec] The spec being tested
+        # @param expectation [SpecForge::Spec::Expectation] The expectation being evaluated
+        # @param example_group [RSpec::ExampleGroups] The current running example group
+        # @param example [RSpec::Core::Example] The current example
+        #
+        # @return [Hash] Context with file, spec and expectation information
+        #
+        # @private
+        #
+        def expectation_context(forge, spec, expectation, example_group, example)
+          spec_context(forge, spec).merge(
+            expectation:,
+            expectation_name: expectation.name,
+            request: example_group.request,
+            response: example_group.response,
+            example_group:,
+            example:
           )
         end
       end
