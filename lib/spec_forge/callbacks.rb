@@ -57,14 +57,14 @@ module SpecForge
       end
 
       #
-      # Executes the callback for the specified event
+      # Executes a named callback with the provided context
       #
-      # @param name [String, Symbol] The name of the callback event to run
-      # @param context [Object] Context object containing event state
+      # @param name [String, Symbol] The name of the callback to run
+      # @param context [Object] Context object containing state data
       #
-      # @raise [ArgumentError] If the callback does not exist
+      # @raise [ArgumentError] If the callback is not registered
       #
-      def run_callback(name, context)
+      def run(name, context)
         callback = instance[name.to_s]
         raise ArgumentError, "Callback #{name.in_quotes} is not defined" if callback.nil?
 

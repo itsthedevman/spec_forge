@@ -69,8 +69,8 @@ RSpec.describe SpecForge::Callbacks do
     end
   end
 
-  describe "#run_callback" do
-    subject(:result) { described_class.run_callback(name, 1) }
+  describe "#run" do
+    subject(:result) { described_class.run(name, 1) }
 
     context "when the callback is defined" do
       it "is expected to call" do
@@ -81,7 +81,7 @@ RSpec.describe SpecForge::Callbacks do
 
     context "when the callback is not defined" do
       it do
-        expect { described_class.run_callback(:noop, nil) }.to raise_error(ArgumentError)
+        expect { described_class.run(:noop, nil) }.to raise_error(ArgumentError)
       end
     end
   end
