@@ -25,26 +25,34 @@ module SpecForge
       # @return [Context::Variables] The container for global variables
       attr_reader :variables
 
+      # @return [Context::Callbacks] The container for callbacks
+      attr_reader :callbacks
+
       #
       # Creates a new Global context instance
       #
       # @param variables [Hash<Symbol, Object>] A hash of variable names and values
+      # @param callbacks [Array<Hash<Symbol, String>>] An array of callback hooks
       #
       # @return [Global] The new Global instance
       #
-      def initialize(variables: {})
+      def initialize(variables: {}, callbacks: [])
         @variables = Variables.new(base: variables)
+        @callbacks = Callbacks.new(callbacks)
       end
 
       #
       # Sets the global variables
       #
       # @param variables [Hash<Symbol, Object>] A hash of variable names and values
+      # @param callbacks [Array<Hash<Symbol, String>>] An array of callback hooks
       #
       # @return [self]
       #
-      def set(variables:)
+      def set(variables:, callbacks: [])
         @variables.set(base: variables)
+        @callbacks.set(callbacks)
+
         self
       end
 
@@ -55,7 +63,8 @@ module SpecForge
       #
       def to_h
         {
-          variables: variables.to_h
+          variables: variables.to_h,
+          callbacks: callbacks.to_h
         }
       end
     end
