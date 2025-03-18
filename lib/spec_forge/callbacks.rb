@@ -68,7 +68,11 @@ module SpecForge
         callback = instance[name.to_s]
         raise ArgumentError, "Callback #{name.in_quotes} is not defined" if callback.nil?
 
-        callback.call(context)
+        if callback.arity == 0
+          callback.call
+        else
+          callback.call(context)
+        end
       end
     end
   end
