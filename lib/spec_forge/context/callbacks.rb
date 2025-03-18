@@ -55,7 +55,6 @@ module SpecForge
       # @param context [Hash] State data that will be converted to a structured object
       #   and passed to callbacks
       #
-      #
       def run(hook_name, context = {})
         context = context.to_istruct
 
