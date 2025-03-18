@@ -78,6 +78,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `match_status` for seeing the resolved matcher for status
   - `match_json` for seeing the resolved matcher for json
 - Added more integration tests for better coverage
+- Added support for callbacks
+- Define callbacks at configuration level or module level:
+  ```ruby
+  # Configuration level
+  SpecForge.configure do |config|
+    config.register_callback("callback_name") { |context| }
+    # These are aliases
+    # config.define_callback("callback_name") { |context| }
+    # config.callback("callback_name") { |context| }
+  end
+
+  # Module level (no aliases)
+  SpecForge.register_callback("callback_name") { |context| }
+  ```
+- Use callbacks in YAML:
+  ```yaml
+  global:
+    callbacks:
+      - before: prepare_database_state
+        after: cleanup_database_state
+  ```
 
 ### Changed
 
@@ -99,6 +120,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Now: Each key at the root level is checked individually, giving more precise error messages when tests fail
   - Nested hashes still use the `include` matcher for flexibility
 - Adjusted `Attribute::Matcher` to accept either `matcher` or `matchers` namespace
+- Changed empty array matcher from using `contain_exactly` to `eq([])`
+- Changed empty hash matcher from using `include` to `eq({})`
+- Changed `forge_and` description from "matches all of:" to "match all:"
 
 ### Removed
 
