@@ -1,3 +1,25 @@
+#
+# 01_basic_requests.yml
+#
+# This file demonstrates the basic HTTP request functionality in SpecForge.
+#
+# REQUEST OVERVIEW:
+# ------------------
+# SpecForge supports all standard HTTP methods and provides a clean syntax
+# for working with path parameters, query parameters, and request bodies.
+#
+# SUPPORTED HTTP METHODS:
+# - GET (default when no method specified)
+# - POST
+# - PUT
+# - PATCH
+# - DELETE
+#
+# PATH PARAMETERS:
+# Path parameters can be defined using either {placeholder} or :placeholder syntax
+# and are populated from the query section.
+#
+
 # Basic GET with no parameters
 get_status:
   path: /status
