@@ -60,7 +60,7 @@ RSpec.describe SpecForge::Loader do
       it do
         expect { specs }.to raise_error(SpecForge::Error::SpecLoadError) do |e|
           expect(e.message).to include("Error loading spec file: spec_1.yml")
-          expect(e.message).to include("Cause: Expected Hash, got Integer")
+          expect(e.message).to include("Cause: Expected Hash or String, got Integer")
         end
       end
     end

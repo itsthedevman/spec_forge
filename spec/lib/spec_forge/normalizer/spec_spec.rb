@@ -221,7 +221,7 @@ RSpec.describe SpecForge::Normalizer do
         it do
           expect { normalized }.to raise_error(
             SpecForge::Error::InvalidStructureError,
-            "Expected Hash, got Integer for \"query\" (aliases \"params\") in spec (line 1)"
+            "Expected Hash or String, got Integer for \"query\" (aliases \"params\") in spec (line 1)"
           )
         end
       end
@@ -244,7 +244,7 @@ RSpec.describe SpecForge::Normalizer do
         it do
           expect { normalized }.to raise_error(
             SpecForge::Error::InvalidStructureError,
-            "Expected Hash, got Integer for \"body\" (aliases \"data\") in spec (line 1)"
+            "Expected Hash or String, got Integer for \"body\" (aliases \"data\") in spec (line 1)"
           )
         end
       end
@@ -267,7 +267,7 @@ RSpec.describe SpecForge::Normalizer do
         it do
           expect { normalized }.to raise_error(
             SpecForge::Error::InvalidStructureError,
-            "Expected Hash, got Integer for \"variables\" in spec (line 1)"
+            "Expected Hash or String, got Integer for \"variables\" in spec (line 1)"
           )
         end
       end

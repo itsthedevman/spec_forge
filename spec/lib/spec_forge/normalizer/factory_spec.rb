@@ -83,7 +83,7 @@ RSpec.describe SpecForge::Normalizer do
       it do
         expect { normalized }.to raise_error(
           SpecForge::Error::InvalidStructureError,
-          "Expected Hash, got Integer for \"variables\" in factory"
+          "Expected Hash or String, got Integer for \"variables\" in factory"
         )
       end
     end

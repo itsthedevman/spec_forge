@@ -47,17 +47,17 @@ module SpecForge
         default: {}
       },
       query: {
-        type: Hash,
+        type: [Hash, String],
         aliases: %i[params],
         default: {}
       },
       body: {
-        type: Hash,
+        type: [Hash, String],
         aliases: %i[data],
         default: {}
       },
       variables: {
-        type: Hash,
+        type: [Hash, String],
         default: {}
       },
       debug: {

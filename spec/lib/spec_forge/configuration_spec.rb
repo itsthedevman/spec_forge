@@ -178,7 +178,7 @@ RSpec.describe SpecForge::Configuration do
       it do
         expect { validated }.to raise_error(
           SpecForge::Error::InvalidStructureError,
-          "Expected Hash, got Integer for \"query\" (aliases \"params\") in configuration"
+          "Expected Hash or String, got Integer for \"query\" (aliases \"params\") in configuration"
         )
       end
     end
