@@ -269,6 +269,24 @@ RSpec.describe SpecForge::Attribute do
       end
     end
 
+    context "when the resolved value is an empty ArrayLike" do
+      let(:input) { [] }
+
+      it "is expected to resolve into an 'eq' matcher" do
+        expect(resolved_matcher).to be_kind_of(matchers::Eq)
+        expect(resolved_matcher.expected).to eq([])
+      end
+    end
+
+    context "when the resolved value is an empty HashLike" do
+      let(:input) { {} }
+
+      it "is expected to resolve into an 'eq' matcher" do
+        expect(resolved_matcher).to be_kind_of(matchers::Eq)
+        expect(resolved_matcher.expected).to eq({})
+      end
+    end
+
     context "when the resolved value is Attribute::Matcher" do
       let(:input) { "kind_of.array" }
 
