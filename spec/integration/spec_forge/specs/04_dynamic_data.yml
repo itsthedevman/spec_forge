@@ -1,3 +1,25 @@
+#
+# 04_dynamic_data.yml
+#
+# This file demonstrates the dynamic data generation capabilities in SpecForge.
+#
+# DYNAMIC DATA OVERVIEW:
+# ---------------------
+# SpecForge integrates with Faker and FactoryBot to provide powerful dynamic
+# data generation for tests without writing Ruby code.
+#
+# FAKER INTEGRATION:
+# - Access any Faker method with the 'faker.' prefix
+# - Supports method chaining: faker.internet.email.downcase
+# - Supports arguments: faker.number.between: {from: 1, to: 10}
+#
+# FACTORY INTEGRATION:
+# - Access factories with the 'factories.' prefix
+# - Reference factory attributes with dot notation: factories.user.name
+# - Customize factories: factories.user: {attributes: {name: "Custom"}}
+# - Control factory strategy: factories.user: {strategy: build}
+#
+
 # SECTION 1: BASIC FAKER USAGE
 basic_faker:
   path: /status

@@ -1,3 +1,21 @@
+#
+# 03_variables.yml
+#
+# This file demonstrates the variable system in SpecForge.
+#
+# VARIABLE OVERVIEW:
+# -----------------
+# Variables allow you to define and reuse values throughout your specs.
+# They can be defined at both the spec and expectation level, with expectation-level
+# variables taking precedence over spec-level ones with the same name.
+#
+# VARIABLE FEATURES:
+# - Variable references use the 'variables.' prefix
+# - Variables can reference other variables
+# - Variables can be chained to access nested properties
+# - Variables can be used in path parameters, query params, request bodies, and expectations
+#
+
 # SECTION 1: BASIC VARIABLE USAGE
 basic_variables:
   path: /data/types

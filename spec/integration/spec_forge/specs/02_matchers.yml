@@ -1,3 +1,26 @@
+#
+# 02_matchers.yml
+#
+# This file demonstrates the powerful matcher system in SpecForge.
+#
+# MATCHER OVERVIEW:
+# ----------------
+# SpecForge leverages RSpec's matcher system with a clean YAML syntax.
+# Matchers allow flexible validation of responses beyond exact matching.
+#
+# MATCHER NAMESPACES:
+# - be.*          - Predicate and comparison matchers
+#                   Examples: be.true, be.nil, be.greater_than: 5
+#
+# - kind_of.*     - Type checking matchers
+#                   Examples: kind_of.string, kind_of.integer, kind_of.array
+#
+# - matcher.*     - Additional matchers for complex validation
+#                   Examples: matcher.include, matcher.all, matcher.have_size
+#
+# - Regular expressions can be used directly: /pattern/
+#
+
 # PART 1: BASIC MATCHERS
 basic_matchers:
   path: /data/types

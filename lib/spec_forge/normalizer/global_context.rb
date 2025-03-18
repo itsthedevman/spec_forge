@@ -20,7 +20,24 @@ module SpecForge
       # @return [Hash] Configuration attribute validation rules
       #
       STRUCTURE = {
-        variables: Normalizer::SHARED_ATTRIBUTES[:variables]
+        variables: Normalizer::SHARED_ATTRIBUTES[:variables],
+        callbacks: {
+          type: Array,
+          default: [],
+          structure: {
+            type: Hash,
+            default: {},
+            structure: {
+              before_file: Normalizer::SHARED_ATTRIBUTES[:callback],
+              before_spec: Normalizer::SHARED_ATTRIBUTES[:callback],
+              before_each: Normalizer::SHARED_ATTRIBUTES[:callback].merge(aliases: %i[before]),
+              around_each: Normalizer::SHARED_ATTRIBUTES[:callback].merge(aliases: %i[around]),
+              after_each: Normalizer::SHARED_ATTRIBUTES[:callback].merge(aliases: %i[after]),
+              after_spec: Normalizer::SHARED_ATTRIBUTES[:callback],
+              after_file: Normalizer::SHARED_ATTRIBUTES[:callback]
+            }
+          }
+        }
       }.freeze
     end
 

@@ -90,7 +90,7 @@ module SpecForge
         end
 
         description do
-          "matches all of: " + matchers.join_map(", ", &:description)
+          "match all: " + matchers.join_map(", ", &:description)
         end
       end
     end

@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 RSpec.describe SpecForge::Configuration do
+  subject(:configuration) { described_class.new }
+
   describe ".overlay_options" do
     let(:source) {}
     let(:overlay) {}
@@ -202,5 +204,27 @@ RSpec.describe SpecForge::Configuration do
         )
       end
     end
+  end
+
+  describe "#register_callback/#define_callback/#callback" do
+    it "is expected to responds to all three" do
+      is_expected.to respond_to(:register_callback)
+      is_expected.to respond_to(:define_callback)
+      is_expected.to respond_to(:callback)
+    end
+
+    it "is expected to register a callback" do
+      configuration.callback(:callback_one) {}
+      configuration.define_callback(:callback_two) {}
+      configuration.register_callback(:callback_three) {}
+
+      names = SpecForge::Callbacks.registered_names
+      expect(names).to contain_exactly("callback_one", "callback_two", "callback_three")
+    end
+  end
+
+  describe "#specs" do
+    it { is_expected.to respond_to(:specs) }
+    it { expect(configuration.specs).to be_kind_of(RSpec::Core::Configuration) }
   end
 end

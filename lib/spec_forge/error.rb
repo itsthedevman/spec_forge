@@ -256,5 +256,33 @@ module SpecForge
         )
       end
     end
+
+    #
+    # Raised when a callback is referenced in config but hasn't been defined
+    #
+    class UndefinedCallbackError < Error
+      def initialize(callback_name, available_callbacks = [])
+        message = "The callback #{callback_name.in_quotes} was referenced but hasn't been defined."
+
+        message +=
+          if available_callbacks.any?
+            <<~STR.chomp
+
+              Available callbacks are: #{available_callbacks.join_map(", ", &:in_quotes)}
+            STR
+          else
+            <<~STR.chomp
+
+              No callbacks have been defined yet. Register callbacks with:
+
+                SpecForge.register_callback(:#{callback_name}) do |context|
+                  # Your callback code
+                end
+            STR
+          end
+
+        super(message)
+      end
+    end
   end
 end

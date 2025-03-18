@@ -44,110 +44,133 @@ require "yaml"
 #   SpecForge.run(file_name: "users", spec_name: "create_user")
 #
 module SpecForge
-  #
-  # Loads all factories and specs and runs the tests with optional filtering
-  #
-  # This is the main entry point for running SpecForge tests. It loads the
-  # forge_helper.rb file if it exists, configures the environment, loads
-  # factories and specs, and runs the tests through RSpec.
-  #
-  # @param file_name [String, nil] Optional name of spec file to run
-  # @param spec_name [String, nil] Optional name of spec to run
-  # @param expectation_name [String, nil] Optional name of expectation to run
-  #
-  def self.run(file_name: nil, spec_name: nil, expectation_name: nil)
-    # Load spec_helper.rb
-    forge_helper = SpecForge.forge_path.join("forge_helper.rb")
-    require_relative forge_helper if File.exist?(forge_helper)
+  class << self
+    #
+    # Loads all factories and specs and runs the tests with optional filtering
+    #
+    # This is the main entry point for running SpecForge tests. It loads the
+    # forge_helper.rb file if it exists, configures the environment, loads
+    # factories and specs, and runs the tests through RSpec.
+    #
+    # @param file_name [String, nil] Optional name of spec file to run
+    # @param spec_name [String, nil] Optional name of spec to run
+    # @param expectation_name [String, nil] Optional name of expectation to run
+    #
+    def run(file_name: nil, spec_name: nil, expectation_name: nil)
+      # Load spec_helper.rb
+      forge_helper = SpecForge.forge_path.join("forge_helper.rb")
+      require_relative forge_helper if File.exist?(forge_helper)
 
-    # Validate in case anything was changed
-    configuration.validate
+      # Validate in case anything was changed
+      configuration.validate
 
-    # Load factories
-    Factory.load_and_register
+      # Load factories
+      Factory.load_and_register
 
-    # Load the specs from their files and create forges from them
-    forges = Loader.load_from_files.map { |f| Forge.new(*f) }
+      # Load the specs from their files and create forges from them
+      forges = Loader.load_from_files.map { |f| Forge.new(*f) }
 
-    # Filter out the specs and expectations
-    forges = Filter.apply(forges, file_name:, spec_name:, expectation_name:)
+      # Filter out the specs and expectations
+      forges = Filter.apply(forges, file_name:, spec_name:, expectation_name:)
 
-    # Define and run everything
-    Runner.define(forges)
-    Runner.run
-  end
-
-  #
-  # Returns the directory root for the working directory
-  #
-  # @return [Pathname] The root directory path
-  #
-  def self.root
-    @root ||= Pathname.pwd
-  end
-
-  #
-  # Returns SpecForge's working directory
-  #
-  # @return [Pathname] The spec_forge directory path
-  #
-  def self.forge_path
-    @forge_path ||= root.join("spec_forge")
-  end
-
-  #
-  # Returns SpecForge's configuration
-  #
-  # @return [Configuration] The current configuration
-  #
-  def self.configuration
-    @configuration ||= Configuration.new
-  end
-
-  #
-  # Yields SpecForge's configuration to a block for modification
-  #
-  # @yield [config] Block that receives the configuration object
-  # @yieldparam config [Configuration] The configuration to modify
-  #
-  # @return [Configuration] The updated configuration
-  #
-  def self.configure(&block)
-    block&.call(configuration)
-    configuration
-  end
-
-  #
-  # Returns a backtrace cleaner configured for SpecForge
-  #
-  # Creates and configures an ActiveSupport::BacktraceCleaner to improve
-  # error messages by removing unnecessary lines and root paths.
-  #
-  # @return [ActiveSupport::BacktraceCleaner] The configured backtrace cleaner
-  #
-  def self.backtrace_cleaner
-    @backtrace_cleaner ||= begin
-      root = "#{SpecForge.root}/"
-
-      cleaner = ActiveSupport::BacktraceCleaner.new
-      cleaner.add_filter { |line| line.delete_prefix(root) }
-      cleaner.add_silencer { |line| /rubygems|backtrace_cleaner/.match?(line) }
-      cleaner
+      # Define and run everything
+      Runner.define(forges)
+      Runner.run
     end
-  end
 
-  #
-  # Returns the current execution context
-  #
-  # @return [Context] The current context object
-  #
-  def self.context
-    @context ||= Context.new
+    #
+    # Returns the directory root for the working directory
+    #
+    # @return [Pathname] The root directory path
+    #
+    def root
+      @root ||= Pathname.pwd
+    end
+
+    #
+    # Returns SpecForge's working directory
+    #
+    # @return [Pathname] The spec_forge directory path
+    #
+    def forge_path
+      @forge_path ||= root.join("spec_forge")
+    end
+
+    #
+    # Returns SpecForge's configuration
+    #
+    # @return [Configuration] The current configuration
+    #
+    def configuration
+      @configuration ||= Configuration.new
+    end
+
+    #
+    # Yields SpecForge's configuration to a block for modification
+    #
+    # @yield [config] Block that receives the configuration object
+    # @yieldparam config [Configuration] The configuration to modify
+    #
+    # @return [Configuration] The updated configuration
+    #
+    def configure(&block)
+      block&.call(configuration)
+      configuration
+    end
+
+    #
+    # Returns a backtrace cleaner configured for SpecForge
+    #
+    # Creates and configures an ActiveSupport::BacktraceCleaner to improve
+    # error messages by removing unnecessary lines and root paths.
+    #
+    # @return [ActiveSupport::BacktraceCleaner] The configured backtrace cleaner
+    #
+    def backtrace_cleaner
+      @backtrace_cleaner ||= begin
+        root = "#{SpecForge.root}/"
+
+        cleaner = ActiveSupport::BacktraceCleaner.new
+        cleaner.add_filter { |line| line.delete_prefix(root) }
+        cleaner.add_silencer { |line| /rubygems|backtrace_cleaner/.match?(line) }
+        cleaner
+      end
+    end
+
+    #
+    # Returns the current execution context
+    #
+    # @return [Context] The current context object
+    #
+    def context
+      @context ||= Context.new
+    end
+
+    #
+    # Registers a callback for a specific test lifecycle event
+    # Allows custom code execution at specific points during test execution
+    #
+    # @param name [Symbol, String] A unique identifier for this callback
+    # @yield A block to execute when the callback is triggered
+    # @yieldparam context [Object] An object containing context-specific state data, depending
+    #   on which hook the callback is triggered from.
+    #
+    # @return [Proc] The registered callback
+    #
+    # @example Registering a custom debug handler
+    #   SpecForge.register_callback(:clean_database) do |context|
+    #     DatabaseCleaner.clean
+    #   end
+    #
+    def register_callback(name, &)
+      Callbacks.register(name, &)
+    end
   end
 end
 
 require_relative "spec_forge/attribute"
 require_relative "spec_forge/backtrace_formatter"
+require_relative "spec_forge/callbacks"
 require_relative "spec_forge/cli"
 require_relative "spec_forge/configuration"
 require_relative "spec_forge/context"

@@ -255,10 +255,20 @@ module SpecForge
       case resolved
       when Array, ArrayLike
         resolved_array = resolved.map(&resolve_as_matcher_proc)
-        methods.contain_exactly(*resolved_array)
+
+        if resolved_array.size > 0
+          methods.contain_exactly(*resolved_array)
+        else
+          methods.eq([])
+        end
       when Hash, HashLike
         resolved_hash = resolved.transform_values(&resolve_as_matcher_proc).stringify_keys
-        methods.include(**resolved_hash)
+
+        if resolved_hash.size > 0
+          methods.include(**resolved_hash)
+        else
+          methods.eq({})
+        end
       when Attribute::Matcher, Regexp
         methods.match(resolved)
       when RSpec::Matchers::BuiltIn::BaseMatcher,

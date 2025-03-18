@@ -30,6 +30,7 @@ module SpecForge
   end
 end
 
+require_relative "context/callbacks"
 require_relative "context/global"
 require_relative "context/store"
 require_relative "context/variables"

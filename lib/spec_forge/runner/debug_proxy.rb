@@ -116,7 +116,7 @@ module SpecForge
           Helper objects:
           - http_client: The HTTP client used for the request
           - request_data: Raw request configuration data
-          - example_group: Current RSpec example context
+          - example_group: Current RSpec example group
           - example: Current RSpec example
           - forge: Current file being tested
 
