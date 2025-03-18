@@ -32,8 +32,7 @@ module SpecForge
           # Clear the store for this file
           SpecForge.context.store.clear
 
-          # Run the user defined callbacks
-          SpecForge.context.global.callbacks.run(:before_file, file_context(forge))
+          run_user_callbacks(:before_file, file_context(forge))
         end
 
         #
@@ -55,8 +54,7 @@ module SpecForge
           # Clear any "spec" level stored data
           SpecForge.context.store.clear_specs
 
-          # Run the user defined callbacks
-          SpecForge.context.global.callbacks.run(:before_spec, spec_context(forge, spec))
+          run_user_callbacks(:before_spec, spec_context(forge, spec))
         end
 
         #
@@ -72,17 +70,15 @@ module SpecForge
         # @param example [RSpec::Core::Example] The current example
         #
         def before_expectation(forge, spec, expectation, example_group, example)
-          # Set metadata for this example
           Metadata.set_for_example(spec, expectation)
 
           # Load the variable overlay for this expectation (if one exists)
           SpecForge.context.variables.use_overlay(expectation.id)
 
-          # Ensure everything is resolved
+          # Ensure all variables have been resolved
           SpecForge.context.variables.resolved
 
-          # Run the user defined callbacks
-          SpecForge.context.global.callbacks.run(
+          run_user_callbacks(
             :before_each,
             expectation_context(forge, spec, expectation, example_group, example)
           )
@@ -115,11 +111,9 @@ module SpecForge
         # @param example [RSpec::Core::Example] The current example
         #
         def after_expectation(forge, spec, expectation, example_group, example)
-          # Store the data if requested
           store_result(expectation, example_group) if expectation.store_as?
 
-          # Run the user defined callbacks
-          SpecForge.context.global.callbacks.run(
+          run_user_callbacks(
             :after_each,
             expectation_context(forge, spec, expectation, example_group, example)
           )
@@ -132,8 +126,7 @@ module SpecForge
         # @param spec [SpecForge::Spec] The spec that was executed
         #
         def after_spec(forge, spec)
-          # Run the user defined callbacks
-          SpecForge.context.global.callbacks.run(:after_spec, spec_context(forge, spec))
+          run_user_callbacks(:after_spec, spec_context(forge, spec))
         end
 
         #
@@ -142,8 +135,7 @@ module SpecForge
         # @param forge [SpecForge::Forge] The forge representing the current file
         #
         def after_file(forge)
-          # Run the user defined callbacks
-          SpecForge.context.global.callbacks.run(:after_file, file_context(forge))
+          run_user_callbacks(:after_file, file_context(forge))
         end
 
         private
@@ -157,6 +149,8 @@ module SpecForge
         #
         # @param expectation [SpecForge::Spec::Expectation] The expectation that is being stored
         # @param example_group [RSpec::Core::ExampleGroup] The current running example group
+        #
+        # @private
         #
         def store_result(expectation, example_group)
           id = expectation.store_as
@@ -183,6 +177,33 @@ module SpecForge
               body: response.body
             }
           )
+        end
+
+        #
+        # Executes user-defined callbacks for a specific lifecycle point
+        #
+        # Processes the callback_type to extract timing and scope information,
+        # adds this metadata to the context, and then triggers all registered
+        # callbacks for that type.
+        #
+        # @param callback_type [Symbol, String] The type of callback to run
+        #   (:before_file, :after_spec, etc.)
+        # @param context [Hash] Context data containing state information for the callback
+        #
+        # @private
+        #
+        def run_user_callbacks(callback_type, context)
+          callback_timing, callback_scope = callback_type.to_s.split("_")
+
+          # Adds "before_each", "before", and "each" into the context so callbacks
+          # can build logic off of them
+          context.merge!(
+            callback_type: callback_type.to_s,
+            callback_timing:, callback_scope:
+          )
+
+          # Run the callbacks for this type
+          SpecForge.context.global.callbacks.run(callback_type, context)
         end
 
         #

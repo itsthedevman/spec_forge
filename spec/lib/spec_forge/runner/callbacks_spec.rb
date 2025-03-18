@@ -223,6 +223,7 @@ RSpec.describe SpecForge::Runner::Callbacks do
 
       let(:expected) do
         {
+          callback_scope: "file",
           forge: be_kind_of(SpecForge::Forge),
           file_path: "test/path/test.yml",
           file_name: "test"
@@ -235,13 +236,16 @@ RSpec.describe SpecForge::Runner::Callbacks do
       end
 
       it "is expected to execute the callback with context data" do
-        callbacks.before_file(forge)
-        callbacks.after_file(forge)
-
         # before_file
+        expected.merge!(callback_type: "before_file", callback_timing: "before")
+
+        callbacks.before_file(forge)
         expect(results.first).to have_attributes(**expected)
 
         # after_file
+        expected.merge!(callback_type: "after_file", callback_timing: "after")
+
+        callbacks.after_file(forge)
         expect(results.second).to have_attributes(**expected)
       end
     end
@@ -257,6 +261,7 @@ RSpec.describe SpecForge::Runner::Callbacks do
 
       let(:expected) do
         {
+          callback_scope: "spec",
           forge: be_kind_of(SpecForge::Forge),
           file_path: "test/path/test.yml",
           file_name: "test",
@@ -275,13 +280,16 @@ RSpec.describe SpecForge::Runner::Callbacks do
       end
 
       it "is expected to execute the callback with context data" do
-        callbacks.before_spec(forge, forge.specs.first)
-        callbacks.after_spec(forge, forge.specs.first)
-
         # before_spec
+        expected.merge!(callback_type: "before_spec", callback_timing: "before")
+
+        callbacks.before_spec(forge, forge.specs.first)
         expect(results.first).to have_attributes(**expected)
 
         # after_spec
+        expected.merge!(callback_type: "after_spec", callback_timing: "after")
+
+        callbacks.after_spec(forge, forge.specs.first)
         expect(results.second).to have_attributes(**expected)
       end
     end
@@ -297,6 +305,7 @@ RSpec.describe SpecForge::Runner::Callbacks do
 
       let(:expected) do
         {
+          callback_scope: "each",
           forge: be_kind_of(SpecForge::Forge),
           file_path: "test/path/test.yml",
           file_name: "test",
@@ -333,14 +342,22 @@ RSpec.describe SpecForge::Runner::Callbacks do
 
         # before_each
         expect(self).to receive(:response).and_return(nil)
-        expected[:response] = be(nil)
+        expected.merge!(
+          response: be(nil),
+          callback_type: "before_each",
+          callback_timing: "before"
+        )
 
         callbacks.before_expectation(*args)
         expect(results.first).to have_attributes(**expected)
 
         # after_each
         expect(self).to receive(:response).and_call_original
-        expected[:response] = be_kind_of(Faraday::Response)
+        expected.merge!(
+          response: be_kind_of(Faraday::Response),
+          callback_type: "after_each",
+          callback_timing: "after"
+        )
 
         callbacks.after_expectation(*args)
         expect(results.second).to have_attributes(**expected)
