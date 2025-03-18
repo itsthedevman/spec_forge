@@ -1,0 +1,65 @@
+#
+# 05_callbacks.yml
+#
+# This file demonstrates the callback functionality in SpecForge.
+#
+# CALLBACK OVERVIEW:
+# ------------------
+# Callbacks are defined globally and trigger at specific points in the test lifecycle:
+#
+# - before_file/after_file: Run once at the beginning/end of processing this file
+#   Example use: Setting up test fixtures, logging test suite progress
+#
+# - before_spec/after_spec: Run once at the beginning/end of each spec
+#   Example use: Setting up spec-specific data, tracking spec runtime
+#
+# - before_each/after_each: Run before/after each expectation
+#   (shorthand aliases: 'before'/'after')
+#   Example use: Database setup/cleanup, request/response logging
+#
+# Callbacks can accept a context parameter with data relevant to their scope:
+#   - File callbacks: access forge, file_path, file_name
+#   - Spec callbacks: all file data + spec, spec_name, variables
+#   - Expectation callbacks: all spec data + expectation, expectation_name,
+#                            request, response, example_group, example
+#
+
+global:
+  # Define callbacks that apply to all tests in this file
+  callbacks:
+  # Track file progress
+  - before_file: log_file_start
+    after_file: log_file_end
+
+  # Database management - runs before/after each expectation
+  - before: prepare_database_state
+    after: cleanup_database_state
+
+  # Logging with access to test context
+  - before_each: log_context_data
+    after_each: log_test_result
+
+# Simple test to demonstrate callbacks in action
+user_management:
+  path: /users
+  variables:
+    user_name: "Callback Demo User"
+    user_email: "callback-demo@example.com"
+  expectations:
+  - name: "Creating a user"
+    method: post
+    body:
+      name: variables.user_name
+      email: variables.user_email
+    expect:
+      status: 201
+      json:
+        user:
+          name: variables.user_name
+
+  - name: "Retrieving users - but no users exist"
+    expect:
+      status: 200
+      json:
+        total: 0
+        users: []
