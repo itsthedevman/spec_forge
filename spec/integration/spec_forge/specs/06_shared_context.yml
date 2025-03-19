@@ -81,7 +81,7 @@ access_file_scoped_data:
   path: "/users/{id}"
   query:
     # Try to access id directly assuming it might be at the top level
-    id: store.user_data.body.id
+    id: store.user_data.body.user.id
   variables:
     stored_user: store.user_data.body
   expectations:
