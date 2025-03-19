@@ -65,12 +65,6 @@ store_creation:
           email: variables.user_data.email
           role: variables.user_data.role
 
-  - name: "Debug what got stored"
-    debug: true
-    path: "/status"
-    expect:
-      status: 200
-
   - name: "Creating and storing another user - Spec scope"
     variables:
       second_user_data:
@@ -92,7 +86,6 @@ access_file_scoped_data:
     stored_user: store.user_data.body
   expectations:
   - name: "Retrieving user with stored ID (attempt with direct structure)"
-    debug: true
     expect:
       status: 200
 
