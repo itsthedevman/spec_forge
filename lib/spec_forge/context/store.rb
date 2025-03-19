@@ -53,21 +53,21 @@ module SpecForge
         #
         # @return [Integer] The response status code
         #
-        def status = response.status
+        def status = response[:status]
 
         #
         # Shorthand accessor for the response body
         #
         # @return [Hash, Array, String] The parsed response body
         #
-        def body = response.body
+        def body = response[:body]
 
         #
         # Shorthand accessor for the response headers
         #
         # @return [Hash] The response headers
         #
-        def headers = response.headers
+        def headers = response[:headers]
       end
 
       #
