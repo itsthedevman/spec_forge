@@ -174,6 +174,12 @@ module SpecForge
       #
       def describe_value(value)
         case value
+        when Context::Store::Entry
+          "Store with attributes: #{value.available_methods.join_map(", ", &:in_quotes)}"
+        when OpenStruct
+          "Object with attributes: #{value.table.keys.join_map(", ", &:in_quotes)}"
+        when Struct, Data
+          "Object with attributes: #{value.members.join_map(", ", &:in_quotes)}"
         when ArrayLike
           # Preview the first 5 value's classes
           preview = value.take(5).map(&:class)
@@ -192,6 +198,8 @@ module SpecForge
           "\"#{value.truncate(50)}\""
         when NilClass
           "nil"
+        when Proc
+          "Proc defined at #{value.source_location.join(":")}"
         else
           "#{value.class}: #{value.inspect[0..50]}"
         end

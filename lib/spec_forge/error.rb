@@ -100,8 +100,18 @@ module SpecForge
         @object = object
         @resolution_path = resolution_path
 
+        object_class =
+          case object
+          when Data
+            object.class.name || "Data"
+          when Struct
+            object.class.name || "Struct"
+          else
+            object.class
+          end
+
         super(<<~STRING.chomp
-          Cannot invoke "#{step}" on #{object.class}
+          Cannot invoke "#{step}" on #{object_class}
           #{resolution_path_message}
         STRING
         )

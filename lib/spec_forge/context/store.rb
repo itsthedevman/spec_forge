@@ -68,6 +68,15 @@ module SpecForge
         # @return [Hash] The response headers
         #
         def headers = response[:headers]
+
+        #
+        # Returns all available methods that can be called
+        #
+        # @return [Array] The method names
+        #
+        def available_methods
+          members + [:status, :body, :headers]
+        end
       end
 
       #

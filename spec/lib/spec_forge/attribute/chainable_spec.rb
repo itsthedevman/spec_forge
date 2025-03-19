@@ -19,8 +19,13 @@ RSpec.describe SpecForge::Attribute::Chainable do
               {id: 2, name: "Second"}
             ],
             methods: OpenStruct.new(
-              foo: "bar",
+              foo: Struct.new(:bar).new(bar: "baz"),
               hello: ->(name) { "Hello, #{name}!" }
+            ),
+            store: SpecForge::Context::Store::Entry.new(
+              request: {},
+              variables: {},
+              response: {body: {id: ""}}
             )
           }
         end
@@ -39,9 +44,45 @@ RSpec.describe SpecForge::Attribute::Chainable do
           Cannot invoke "foo" on Integer
 
           Resolution path:
-          1. key.header --> Hash with keys: "key_1", "nested", "items", "methods"
+          1. key.header --> Hash with keys: "key_1", "nested", "items", "methods", "store"
           2. key.header.key_1 --> Integer: 2
           3. key.header.key_1.foo --> Error: Cannot invoke "foo" on Integer
+        STRING
+      end
+    end
+  end
+
+  context "when attempting to access a non-existent attribute on Store::Entry" do
+    let(:input) { "key.header.store.body.name" }
+
+    it "is expected to provide a helpful error message" do
+      expect { attribute.value }.to raise_error(SpecForge::Error::InvalidInvocationError) do |e|
+        expect(e.message).to eq <<~STRING
+          Cannot invoke "name" on Hash
+
+          Resolution path:
+          1. key.header --> Hash with keys: "key_1", "nested", "items", "methods", "store"
+          2. key.header.store --> Store with attributes: "scope", "request", "variables", "response", "status", "body", "headers"
+          3. key.header.store.body --> Hash with key: "id"
+          4. key.header.store.body.name --> Error: Cannot invoke "name" on Hash
+        STRING
+      end
+    end
+  end
+
+  context "when attempting to access a non-existent attribute on Struct" do
+    let(:input) { "key.header.methods.foo.baz" }
+
+    it "is expected to provide a helpful error message" do
+      expect { attribute.value }.to raise_error(SpecForge::Error::InvalidInvocationError) do |e|
+        expect(e.message).to eq <<~STRING
+          Cannot invoke "baz" on Struct
+
+          Resolution path:
+          1. key.header --> Hash with keys: "key_1", "nested", "items", "methods", "store"
+          2. key.header.methods --> Object with attributes: "foo", "hello"
+          3. key.header.methods.foo --> Object with attributes: "bar"
+          4. key.header.methods.foo.baz --> Error: Cannot invoke "baz" on Struct
         STRING
       end
     end
@@ -72,7 +113,7 @@ RSpec.describe SpecForge::Attribute::Chainable do
           Cannot invoke "invalid" on Array
 
           Resolution path:
-          1. key.header --> Hash with keys: "key_1", "nested", "items", "methods"
+          1. key.header --> Hash with keys: "key_1", "nested", "items", "methods", "store"
           2. key.header.items --> Array with 2 elements: [Hash, Hash]
           3. key.header.items.invalid --> Error: Cannot invoke "invalid" on Array
         STRING
@@ -89,7 +130,7 @@ RSpec.describe SpecForge::Attribute::Chainable do
           Cannot invoke "missing" on Hash
 
           Resolution path:
-          1. key.header --> Hash with keys: "key_1", "nested", "items", "methods"
+          1. key.header --> Hash with keys: "key_1", "nested", "items", "methods", "store"
           2. key.header.missing --> Error: Cannot invoke "missing" on Hash
         STRING
       end
@@ -113,9 +154,9 @@ RSpec.describe SpecForge::Attribute::Chainable do
           Cannot invoke "upcase" on Proc
 
           Resolution path:
-          1. key.header --> Hash with keys: "key_1", "nested", "items", "methods"
-          2. key.header.methods --> OpenStruct: .+
-          3. key.header.methods.hello --> Proc: .+
+          1. key.header --> Hash with keys: "key_1", "nested", "items", "methods", "store"
+          2. key.header.methods --> Object with attributes: "foo", "hello"
+          3. key.header.methods.hello --> Proc defined at .+chainable_spec.+
           4. key.header.methods.hello.upcase --> Error: Cannot invoke "upcase" on Proc
         STRING
       end
