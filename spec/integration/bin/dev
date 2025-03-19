@@ -1,2 +1,3 @@
 #!/usr/bin/env ruby
+ENV["RAILS_ENV"] = "test"
 exec "./bin/rails", "server", *ARGV
