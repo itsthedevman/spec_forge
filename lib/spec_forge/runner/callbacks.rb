@@ -26,9 +26,6 @@ module SpecForge
           # Set the global variables
           SpecForge.context.global.set(**forge.global)
 
-          # And resolve them
-          SpecForge.context.global.variables.resolved
-
           # Clear the store for this file
           SpecForge.context.store.clear
 
@@ -47,9 +44,6 @@ module SpecForge
         def before_spec(forge, spec)
           # Prepare the variables for this spec
           SpecForge.context.variables.set(**forge.variables_for_spec(spec))
-
-          # And resolve the spec level variables
-          SpecForge.context.variables.resolve_base
 
           # Clear any "spec" level stored data
           SpecForge.context.store.clear_specs
@@ -74,9 +68,6 @@ module SpecForge
 
           # Load the variable overlay for this expectation (if one exists)
           SpecForge.context.variables.use_overlay(expectation.id)
-
-          # Ensure all variables have been resolved
-          SpecForge.context.variables.resolved
 
           run_user_callbacks(
             :before_each,
@@ -170,7 +161,7 @@ module SpecForge
             id,
             scope:,
             request: example_group.request.to_h,
-            variables: SpecForge.context.variables.resolved,
+            variables: SpecForge.context.variables.deep_dup,
             response: {
               headers: response.headers,
               status: response.status,
@@ -238,7 +229,7 @@ module SpecForge
           file_context(forge).merge(
             spec: spec,
             spec_name: spec.name,
-            variables: SpecForge.context.variables.resolved
+            variables: SpecForge.context.variables
           )
         end
 

@@ -153,7 +153,7 @@ module SpecForge
       # @return [Hash]
       #
       def variables
-        @variables ||= SpecForge.context.variables.resolved
+        @variables ||= SpecForge.context.variables
       end
 
       ##########################################################################
