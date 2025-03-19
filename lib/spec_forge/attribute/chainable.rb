@@ -219,7 +219,7 @@ module SpecForge
       #
       def invoke(step, object)
         if hash_key?(object, step)
-          object[step.to_sym]
+          object[step.to_s] || object[step.to_sym]
         elsif index?(object, step)
           object[step.to_i]
         elsif method?(object, step)
@@ -240,8 +240,8 @@ module SpecForge
       # @private
       #
       def hash_key?(object, key)
-        # This is to support the silly delegator
-        method?(object, :key?) && object.key?(key.to_sym)
+        # This is to support the silly delegator and both symbol/string
+        method?(object, :key?) && (object.key?(key.to_s) || object.key?(key.to_sym))
       end
 
       #

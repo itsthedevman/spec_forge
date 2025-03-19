@@ -11,8 +11,8 @@ RSpec.describe SpecForge::Attribute::Chainable do
           {
             key_1: 2,
             nested: {
-              key: "value",
-              array: [1, 2, 3]
+              "key" => "value",
+              "array" => [1, 2, 3]
             },
             items: [
               {id: 1, name: "First"},
