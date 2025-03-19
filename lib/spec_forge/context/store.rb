@@ -141,7 +141,7 @@ module SpecForge
       # @return [Hash]
       #
       def to_h
-        @inner
+        @inner.transform_values(&:to_h).deep_stringify_keys
       end
     end
   end

@@ -100,6 +100,7 @@ module SpecForge
           - expectation: Current expectation being tested
           - variables: Variables defined for this test
           - global: Global context shared across tests
+          - store: Stored data from expectations
 
           Request & Response:
           - request: HTTP request details (method, url, headers, body)
@@ -154,6 +155,15 @@ module SpecForge
       #
       def variables
         @variables ||= SpecForge.context.variables
+      end
+
+      #
+      # Returns a hash representation of the store context
+      #
+      # @return [Hash] The store context
+      #
+      def store
+        @store ||= SpecForge.context.store.to_h
       end
 
       ##########################################################################
