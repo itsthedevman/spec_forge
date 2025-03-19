@@ -19,8 +19,7 @@ module SpecForge
       #   The notification object
       #
       def example_passed(notification)
-        example = notification.example
-        trigger_callback(example)
+        trigger_callback
       end
 
       #
@@ -30,24 +29,23 @@ module SpecForge
       #   The notification object
       #
       def example_failed(notification)
-        example = notification.example
-        trigger_callback(example)
+        trigger_callback
       end
+
+      private
 
       #
       # Triggers the appropriate SpecForge callback with the complete context
       #
-      # Retrieves the current example context stored during the RSpec execution,
-      # adds the example object, and passes everything to the appropriate callback.
-      #
-      # @param example [RSpec::Core::Example] The example that was run
+      # Retrieves the current example context stored during the RSpec execution, and passes
+      # everything to the appropriate callback.
       #
       # @private
       #
-      def trigger_callback(example)
-        # {forge:, spec:, expectation:, example_group:}
-        context = Runner.current_example_context
-        context[:example] = example
+      def trigger_callback
+        context = Runner::State.current.to_h.slice(
+          :forge, :spec, :expectation, :example_group, :example
+        )
 
         Runner::Callbacks.after_expectation(*context.values)
       end

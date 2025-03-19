@@ -29,6 +29,10 @@ module SpecForge
           # Clear the store for this file
           SpecForge.context.store.clear
 
+          # Start fresh
+          State.clear
+
+          # Run the user's before_file callbacks
           run_user_callbacks(:before_file, file_context(forge))
         end
 
@@ -48,6 +52,7 @@ module SpecForge
           # Clear any "spec" level stored data
           SpecForge.context.store.clear_specs
 
+          # Run the user's before_spec callbacks
           run_user_callbacks(:before_spec, spec_context(forge, spec))
         end
 
@@ -64,15 +69,20 @@ module SpecForge
         # @param example [RSpec::Core::Example] The current example
         #
         def before_expectation(forge, spec, expectation, example_group, example)
+          # Store metadata to failure/error messages display the correct information
           Metadata.set_for_example(spec, expectation)
+
+          # Store state data for callbacks and persisting data into the store
+          State.set(
+            forge:, spec:, expectation:, example_group:, example:,
+            request: example_group.request
+          )
 
           # Load the variable overlay for this expectation (if one exists)
           SpecForge.context.variables.use_overlay(expectation.id)
 
-          run_user_callbacks(
-            :before_each,
-            expectation_context(forge, spec, expectation, example_group, example)
-          )
+          # Run the user's before_each callbacks
+          run_user_callbacks(:before_each, expectation_context(forge, spec, expectation, example))
         end
 
         #
@@ -102,12 +112,17 @@ module SpecForge
         # @param example [RSpec::Core::Example] The current example
         #
         def after_expectation(forge, spec, expectation, example_group, example)
-          store_result(expectation, example_group) if expectation.store_as?
+          # Note: Let variables on `example_group` have been reset by RSpec at this point.
+          # Calling them will result in a new value being returned and memoized.
+          # In other words, do not call `example_group.response` in here unless you
+          # like potentially duplicating data ;)
+          State.persist
 
-          run_user_callbacks(
-            :after_each,
-            expectation_context(forge, spec, expectation, example_group, example)
-          )
+          # Run the user's after_each callbacks
+          run_user_callbacks(:after_each, expectation_context(forge, spec, expectation, example))
+
+          # Clear the state for the next expectation
+          State.clear
         end
 
         #
@@ -117,6 +132,7 @@ module SpecForge
         # @param spec [SpecForge::Spec] The spec that was executed
         #
         def after_spec(forge, spec)
+          # Run the user's after_spec callbacks
           run_user_callbacks(:after_spec, spec_context(forge, spec))
         end
 
@@ -126,49 +142,11 @@ module SpecForge
         # @param forge [SpecForge::Forge] The forge representing the current file
         #
         def after_file(forge)
+          # Run the user's after_file callbacks
           run_user_callbacks(:after_file, file_context(forge))
         end
 
         private
-
-        #
-        # Stores the result of an expectation for later reference
-        #
-        # This method processes and stores test execution data into the context store.
-        # It handles scope determination (file vs. spec) based on prefixes in the ID,
-        # and normalizes the ID by removing scope prefixes.
-        #
-        # @param expectation [SpecForge::Spec::Expectation] The expectation that is being stored
-        # @param example_group [RSpec::Core::ExampleGroup] The current running example group
-        #
-        # @private
-        #
-        def store_result(expectation, example_group)
-          id = expectation.store_as
-          scope = :file
-
-          # Remove the file prefix if it was explicitly provided
-          id = id.delete_prefix("file.") if id.start_with?("file.")
-
-          # Change scope to spec if desired
-          if id.start_with?("spec.")
-            id = id.delete_prefix("spec.")
-            scope = :spec
-          end
-
-          response = example_group.response
-          SpecForge.context.store.set(
-            id,
-            scope:,
-            request: example_group.request.to_h,
-            variables: SpecForge.context.variables.deep_dup,
-            response: {
-              headers: response.headers,
-              status: response.status,
-              body: response.body
-            }
-          )
-        end
 
         #
         # Executes user-defined callbacks for a specific lifecycle point
@@ -240,19 +218,24 @@ module SpecForge
         # @param forge [SpecForge::Forge] The forge being tested
         # @param spec [SpecForge::Spec] The spec being tested
         # @param expectation [SpecForge::Spec::Expectation] The expectation being evaluated
-        # @param example_group [RSpec::Core::ExampleGroup] The current running example group
         # @param example [RSpec::Core::Example] The current example
         #
         # @return [Hash] Context with file, spec and expectation information
         #
         # @private
         #
-        def expectation_context(forge, spec, expectation, example_group, example)
+        def expectation_context(forge, spec, expectation, example)
+          example_group = State.current.example_group
+
+          # Pull this data from the State instead of example group to avoid creating a new value
+          request = State.current.request
+          response = State.current.response
+
           spec_context(forge, spec).merge(
             expectation:,
             expectation_name: expectation.name,
-            request: example_group.request,
-            response: example_group.response,
+            request:,
+            response:,
             example_group:,
             example:
           )

@@ -107,6 +107,10 @@ RSpec.describe SpecForge::Runner::Callbacks do
       ##########################################################################
       ## after_expectation, expectation 0
 
+      # This is usually set by RSpec in a callback - so manually it is.
+      # I love potentially hiding bugs! /s
+      SpecForge::Runner::State.set(response:)
+
       # Pass in this example so it can access request and response variables
       callbacks.after_expectation(forge, spec, expectation, self, RSpec.current_example)
 
@@ -135,6 +139,10 @@ RSpec.describe SpecForge::Runner::Callbacks do
 
       ##########################################################################
       ## after_expectation, expectation 1
+
+      # This is usually set by RSpec in a callback - so manually it is.
+      # I love potentially hiding bugs! /s
+      SpecForge::Runner::State.set(response:)
 
       # Pass in this example so it can access request and response variables
       callbacks.after_expectation(forge, spec, expectation, self, RSpec.current_example)
@@ -169,6 +177,10 @@ RSpec.describe SpecForge::Runner::Callbacks do
 
       ##########################################################################
       ## after_expectation, expectation 2
+
+      # This is usually set by RSpec in a callback - so manually it is.
+      # I love potentially hiding bugs! /s
+      SpecForge::Runner::State.set(response:)
 
       # Pass in this example so it can access request and response variables
       callbacks.after_expectation(forge, spec, expectation, self, RSpec.current_example)
@@ -341,7 +353,6 @@ RSpec.describe SpecForge::Runner::Callbacks do
         ]
 
         # before_each
-        expect(self).to receive(:response).and_return(nil)
         expected.merge!(
           response: be(nil),
           callback_type: "before_each",
@@ -352,12 +363,15 @@ RSpec.describe SpecForge::Runner::Callbacks do
         expect(results.first).to have_attributes(**expected)
 
         # after_each
-        expect(self).to receive(:response).and_call_original
         expected.merge!(
           response: be_kind_of(Faraday::Response),
           callback_type: "after_each",
           callback_timing: "after"
         )
+
+        # This is usually set by RSpec in a callback - so manually it is.
+        # I love potentially hiding bugs! /s
+        SpecForge::Runner::State.set(response:)
 
         callbacks.after_expectation(*args)
         expect(results.second).to have_attributes(**expected)
