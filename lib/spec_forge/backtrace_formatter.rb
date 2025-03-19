@@ -44,7 +44,7 @@ module SpecForge
       line_number = example_metadata[:example_group][:line_number]
 
       # Add the yaml location to the front so it's the first thing people see
-      ["#{location}:#{line_number}"] + backtrace
+      ["#{location}:#{line_number}"] + backtrace[0..50]
     end
   end
 end
