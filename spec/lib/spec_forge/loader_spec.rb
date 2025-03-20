@@ -59,7 +59,7 @@ RSpec.describe SpecForge::Loader do
 
       it do
         expect { specs }.to raise_error(SpecForge::Error::SpecLoadError) do |e|
-          expect(e.message).to include("Error loading spec file: spec_1.yml")
+          expect(e.message).to include("Error loading spec file \"spec_1.yml\"")
           expect(e.message).to include("Cause: Expected Hash or String, got Integer")
         end
       end
@@ -80,7 +80,9 @@ RSpec.describe SpecForge::Loader do
 
       it do
         expect { specs }.to raise_error(SpecForge::Error::SpecLoadError) do |e|
-          expect(e.message).to include("Error loading spec file: spec_2.yml")
+          expect(e.message).to include(
+            "Error loading spec \"spec_1\" in file \"spec_2.yml\" (line 1)"
+          )
           expect(e.message).to include("Causes:")
           expect(e.message).to include(
             %{Expected String, got Integer for "url" (aliases "path") in spec "spec_1" (line 1)}
