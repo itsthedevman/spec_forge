@@ -14,6 +14,28 @@ module SpecForge
   class Filter
     class << self
       #
+      # Prints out a message if any of the filters were used
+      #
+      # @param forges [Array<Forge>] The collection of forges that was filtered
+      # @param file_name [String, nil] Optional file name that was used by the filter
+      # @param spec_name [String, nil] Optional spec name that was used by the filter
+      # @param expectation_name [String, nil] Optional expectation name that was used by the filter
+      #
+      def announce(forges, file_name:, spec_name:, expectation_name:)
+        filters = {file_name:, spec_name:, expectation_name:}.reject { |k, v| v.blank? }
+        return if filters.size == 0
+
+        filters_display = filters.join_map(", ") { |k, v| "#{k.in_quotes} => #{v.in_quotes}" }
+
+        expectation_count = forges.sum do |forge|
+          forge.specs.sum { |spec| spec.expectations.size }
+        end
+
+        puts "Applied filter #{filters_display}"
+        puts "Found #{expectation_count} #{"expectation".pluralize(expectation_count)}"
+      end
+
+      #
       # Filters a collection of forges based on specified criteria
       #
       # This method allows running specific tests by filtering forges, specs,

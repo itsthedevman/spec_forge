@@ -73,6 +73,9 @@ module SpecForge
       # Filter out the specs and expectations
       forges = Filter.apply(forges, file_name:, spec_name:, expectation_name:)
 
+      # Tell the user that we filtered if we did
+      Filter.announce(forges, file_name:, spec_name:, expectation_name:)
+
       # Define and run everything
       Runner.define(forges)
       Runner.run
