@@ -138,11 +138,7 @@ module SpecForge
       # @return [Hash] The global context with resolved variables
       #
       def global
-        @global ||= begin
-          hash = SpecForge.context.global.to_h
-          hash[:variables].resolved
-          hash
-        end
+        @global ||= SpecForge.context.global.to_h
       end
 
       #
