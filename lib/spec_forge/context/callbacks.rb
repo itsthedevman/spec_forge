@@ -56,7 +56,7 @@ module SpecForge
       #   and passed to callbacks
       #
       def run(hook_name, context = {})
-        context = context.to_istruct
+        context = context.to_struct
 
         @inner[hook_name].each do |callback_name|
           SpecForge::Callbacks.run(callback_name, context)
