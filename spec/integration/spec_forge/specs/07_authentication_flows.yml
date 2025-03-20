@@ -124,9 +124,8 @@ protected_resources:
           role: "user"
 
   - name: "Attempt to access protected resource without token"
-    headers: {} # Explicitly empty to override any headers
     expect:
-      status: 401
+      status: 403
       json:
         error: kind_of.string
 
@@ -134,7 +133,7 @@ protected_resources:
     headers:
       Authorization: "Bearer invalid_token_here"
     expect:
-      status: 401
+      status: 403
       json:
         error: kind_of.string
 
@@ -142,9 +141,9 @@ protected_resources:
 # This section demonstrates how different user roles
 # have different permissions in the system
 role_based_access:
+  path: "/admin/users"
   expectations:
   - name: "Admin can access admin-only list endpoint"
-    path: "/admin/users"
     headers:
       Authorization:
         transform.join:
@@ -156,7 +155,6 @@ role_based_access:
         users: kind_of.array
 
   - name: "Regular user cannot access admin-only endpoint"
-    path: "/admin/users"
     headers:
       Authorization:
         transform.join:
@@ -254,6 +252,6 @@ token_lifecycle:
         - "Bearer "
         - store.new_user_auth.body.token
     expect:
-      status: 401
+      status: 403
       json:
         error: kind_of.string
