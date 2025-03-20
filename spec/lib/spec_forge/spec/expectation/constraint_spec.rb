@@ -129,4 +129,46 @@ RSpec.describe SpecForge::Spec::Expectation::Constraint do
       end
     end
   end
+
+  describe "#description" do
+    subject(:description) { constraint.description }
+
+    context "when the status code is a literal" do
+      let(:status) { 403 }
+
+      it "is expected to return a formatted description" do
+        expect(description).to eq("is expected to respond with \"403 Forbidden\"")
+      end
+    end
+
+    context "when the status code is not a literal" do
+      let(:status) { "faker.number.positive" }
+
+      it "is expected to return a formatted description" do
+        expect(description).to eq("is expected to respond with the expected status code")
+      end
+    end
+
+    context "when the json is an array" do
+      let(:status) { 200 }
+      let(:json) { [1, 2, 3] }
+
+      it "is expected to return a formatted description" do
+        expect(description).to eq(
+          "is expected to respond with \"200 OK\" and a JSON array that contains 3 items"
+        )
+      end
+    end
+
+    context "when the json is a hash with keys" do
+      let(:status) { 200 }
+      let(:json) { {foo: 1, bar: 2} }
+
+      it "is expected to return a formatted description" do
+        expect(description).to eq(
+          "is expected to respond with \"200 OK\" and a JSON object that contains keys: \"foo\", \"bar\""
+        )
+      end
+    end
+  end
 end

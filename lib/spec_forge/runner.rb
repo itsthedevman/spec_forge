@@ -104,8 +104,8 @@ module SpecForge
                     State.set(response:)
                   end
 
-                  # The test itself. Went with no name so RSpec will pick the failure as the message
-                  it do
+                  # The test itself
+                  it(expectation.constraints.description) do
                     if spec.debug? || expectation.debug?
                       Callbacks.on_debug(forge, spec, expectation, self)
                     end

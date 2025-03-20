@@ -62,6 +62,47 @@ module SpecForge
           }
         end
 
+        #
+        # Generates a human-readable description of what this constraint expects in the response
+        #
+        # Creates a description string for RSpec examples that clearly explains the expected
+        # status code and JSON structure. This makes test output more informative and helps
+        # developers understand what's being tested at a glance.
+        #
+        # @return [String] A human-readable description of the constraint expectations
+        #
+        # @example Status code with JSON object
+        #   constraint.description
+        #   # => "is expected to respond with \"200 OK\" and a JSON object that contains keys: \"id\", \"name\""
+        #
+        # @example Status code with JSON array
+        #   constraint.description
+        #   # => "is expected to respond with \"201 Created\" and a JSON array that contains 3 items"
+        #
+        def description
+          description = "is expected to respond with"
+
+          description += if status.is_a?(Attribute::Literal)
+            " #{HTTP.status_code_to_description(status.input).in_quotes}"
+          else
+            " the expected status code"
+          end
+
+          size = json.size
+
+          if Type.array?(json)
+            description +=
+              " and a JSON array that contains #{size} #{"item".pluralize(size)}"
+          elsif Type.hash?(json) && size > 0
+            keys = json.keys.join_map(", ", &:in_quotes)
+
+            description +=
+              " and a JSON object that contains #{"key".pluralize(size)}: #{keys}"
+          end
+
+          description
+        end
+
         private
 
         def resolve_json_matcher
