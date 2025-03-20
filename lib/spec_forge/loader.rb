@@ -32,7 +32,7 @@ module SpecForge
             specs.map do |spec|
               Normalizer.normalize_spec!(spec, label: "spec \"#{spec[:name]}\"")
             rescue => e
-              raise Error::SpecLoadError.new(e, metadata[:relative_path])
+              raise Error::SpecLoadError.new(e, metadata[:relative_path], spec:)
             end
 
           [global, metadata, specs]
