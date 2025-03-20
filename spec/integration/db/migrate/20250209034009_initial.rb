@@ -4,6 +4,7 @@ class Initial < ActiveRecord::Migration[8.0]
       t.string :name, null: false
       t.string :email, null: false
       t.string :role, default: :user  # admin, user, etc.
+      t.string :password  # For simplicity in the demo; Do not do this in production
       t.boolean :active, default: true
 
       t.timestamps

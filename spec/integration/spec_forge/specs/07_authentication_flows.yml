@@ -1,0 +1,259 @@
+#
+# 07_authentication_flows.yml
+#
+# This file demonstrates token-based authentication workflows in SpecForge.
+#
+# AUTHENTICATION FLOW OVERVIEW:
+# ----------------------------
+# API authentication is the foundation of secure web applications. This file shows
+# how to test common auth patterns using SpecForge's context sharing and variable
+# storage capabilities.
+#
+# KEY CONCEPTS:
+# 1. Logging in to get an API token
+# 2. Using tokens to access protected resources
+# 3. Testing permission boundaries (admin vs. regular users)
+# 4. Handling unauthorized access attempts
+#
+
+# Global variables with our test users' credentials
+global:
+  variables:
+    admin_credentials:
+      email: "admin@example.com"
+      password: "adminpass123"
+    user_credentials:
+      email: "user@example.com"
+      password: "userpass1234"
+  # Reset the database before/after tests to ensure clean state
+  callbacks:
+  - before_file: prepare_database_state
+    after_file: cleanup_database_state
+
+# SECTION 0: CREATE TEST USERS
+# This section sets up the users we need for testing
+setup_users:
+  path: "/users"
+  method: post
+  expectations:
+  - name: "Create admin user"
+    body:
+      name: "Admin User"
+      email: global.variables.admin_credentials.email
+      password: global.variables.admin_credentials.password
+      role: "admin"
+    expect:
+      status: 201
+
+  - name: "Create regular user"
+    body:
+      name: "Regular User"
+      email: global.variables.user_credentials.email
+      password: global.variables.user_credentials.password
+      role: "user"
+    expect:
+      status: 201
+
+# SECTION 1: BASIC TOKEN AUTHENTICATION
+# This section demonstrates the fundamental login/authenticate flow
+token_auth:
+  path: /auth/login
+  method: post
+  expectations:
+  - name: "Login with valid admin credentials"
+    body: global.variables.admin_credentials
+    store_as: admin_auth
+    expect:
+      status: 200
+      json:
+        token: kind_of.string
+        user:
+          email: global.variables.admin_credentials.email
+          role: "admin"
+
+  - name: "Login with valid user credentials"
+    body: global.variables.user_credentials
+    store_as: user_auth
+    expect:
+      status: 200
+      json:
+        token: kind_of.string
+        user:
+          email: global.variables.user_credentials.email
+          role: "user"
+
+  - name: "Login with invalid credentials"
+    body:
+      email: "nobody@example.com"
+      password: "wrongpassword"
+    expect:
+      status: 401
+      json:
+        error: kind_of.string
+
+# SECTION 2: ACCESSING PROTECTED RESOURCES
+# This section shows how to use the token to access resources
+# that require authentication
+protected_resources:
+  path: "/auth/me"
+  expectations:
+  - name: "Access current user info with admin token"
+    headers:
+      Authorization:
+        transform.join:
+        - "Bearer "
+        - store.admin_auth.body.token
+    expect:
+      status: 200
+      json:
+        user:
+          email: global.variables.admin_credentials.email
+          role: "admin"
+
+  - name: "Access current user info with user token"
+    headers:
+      Authorization:
+        transform.join:
+        - "Bearer "
+        - store.user_auth.body.token
+    expect:
+      status: 200
+      json:
+        user:
+          email: global.variables.user_credentials.email
+          role: "user"
+
+  - name: "Attempt to access protected resource without token"
+    headers: {} # Explicitly empty to override any headers
+    expect:
+      status: 401
+      json:
+        error: kind_of.string
+
+  - name: "Attempt to access with invalid token"
+    headers:
+      Authorization: "Bearer invalid_token_here"
+    expect:
+      status: 401
+      json:
+        error: kind_of.string
+
+# SECTION 3: ROLE-BASED ACCESS CONTROL
+# This section demonstrates how different user roles
+# have different permissions in the system
+role_based_access:
+  expectations:
+  - name: "Admin can access admin-only list endpoint"
+    path: "/admin/users"
+    headers:
+      Authorization:
+        transform.join:
+        - "Bearer "
+        - store.admin_auth.body.token
+    expect:
+      status: 200
+      json:
+        users: kind_of.array
+
+  - name: "Regular user cannot access admin-only endpoint"
+    path: "/admin/users"
+    headers:
+      Authorization:
+        transform.join:
+        - "Bearer "
+        - store.user_auth.body.token
+    expect:
+      status: 403
+      json:
+        error: kind_of.string
+
+  - name: "Both user types can access public endpoints"
+    path: "/users"
+    headers:
+      Authorization:
+        transform.join:
+        - "Bearer "
+        - store.user_auth.body.token
+    expect:
+      status: 200
+      json:
+        total: kind_of.integer
+
+# SECTION 4: TOKEN LIFECYCLE
+# This section tests creation and revocation of API tokens
+token_lifecycle:
+  variables:
+    new_user_data:
+      name: faker.name.name
+      email: faker.internet.email
+      password: "newuser123"
+      role: "user"
+  expectations:
+  - name: "Admin creates a new user"
+    path: "/users"
+    method: post
+    headers:
+      Authorization:
+        transform.join:
+        - "Bearer "
+        - store.admin_auth.body.token
+    body: variables.new_user_data
+    store_as: created_user
+    expect:
+      status: 201
+      json:
+        user:
+          name: variables.new_user_data.name
+          email: variables.new_user_data.email
+
+  - name: "New user logs in and gets a token"
+    path: "/auth/login"
+    method: post
+    body:
+      email: variables.new_user_data.email
+      password: variables.new_user_data.password
+    store_as: new_user_auth
+    expect:
+      status: 200
+      json:
+        token: kind_of.string
+        user:
+          email: variables.new_user_data.email
+
+  - name: "New user accesses a protected resource"
+    path: "/auth/me"
+    headers:
+      Authorization:
+        transform.join:
+        - "Bearer "
+        - store.new_user_auth.body.token
+    expect:
+      status: 200
+      json:
+        user:
+          email: variables.new_user_data.email
+
+  - name: "User logs out (revokes token)"
+    path: "/auth/logout"
+    method: post
+    headers:
+      Authorization:
+        transform.join:
+        - "Bearer "
+        - store.new_user_auth.body.token
+    expect:
+      status: 200
+      json:
+        message: "Successfully logged out"
+
+  - name: "Attempt to use revoked token"
+    path: "/auth/me"
+    headers:
+      Authorization:
+        transform.join:
+        - "Bearer "
+        - store.new_user_auth.body.token
+    expect:
+      status: 401
+      json:
+        error: kind_of.string
