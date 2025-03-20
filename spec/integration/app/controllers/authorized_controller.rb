@@ -20,4 +20,10 @@ class AuthorizedController < ApplicationController
     @current_token = api_token
     @current_user = api_token.user
   end
+
+  def require_admin
+    return if current_user&.role == "admin"
+
+    render json: {error: "Admin access required"}, status: :forbidden
+  end
 end

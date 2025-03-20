@@ -1,5 +1,7 @@
 # app/controllers/admin_controller.rb
 class AdminController < AuthorizedController
+  before_action :require_admin
+
   # GET /admin/users
   def users
     users = User.all
@@ -15,6 +17,6 @@ class AdminController < AuthorizedController
           created_at: user.created_at
         }
       end
-  }
+    }
   end
 end
