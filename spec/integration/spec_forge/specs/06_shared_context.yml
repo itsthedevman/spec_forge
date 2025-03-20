@@ -51,6 +51,7 @@ store_creation:
       name: "Store Test User"
       email: "store-test@example.com"
       role: global.variables.admin_role
+      password: "password12345"
   expectations:
   - name: "Creating and storing user - File scope"
     body: variables.user_data
@@ -70,6 +71,7 @@ store_creation:
       second_user_data:
         name: "Spec Scoped User"
         email: "spec-scoped@example.com"
+        password: "password12345"
     body: variables.second_user_data
     # Explicitly specify spec scope with 'spec.' prefix
     store_as: spec.second_user
@@ -110,6 +112,7 @@ combined_workflow:
       name: "Combined Workflow User"
       email: "combined@example.com"
       role: global.variables.admin_role
+      password: "password12345"
   expectations:
   - name: "Create a user referencing global variables"
     path: "/users"
@@ -132,6 +135,7 @@ request_response_metadata:
       user_data:
         name: "Metadata Test User"
         email: "metadata@example.com"
+        password: "password12345"
     body: variables.user_data
     store_as: metadata_example
     expect:

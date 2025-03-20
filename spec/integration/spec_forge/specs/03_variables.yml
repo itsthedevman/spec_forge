@@ -150,6 +150,7 @@ computed_variables:
     body:
       name: variables.full_name
       email: variables.email
+      password: "password12345"
     expect:
       status: 201
       json:

@@ -78,6 +78,7 @@ basic_factory:
     body:
       name: variables.user.name
       email: faker.internet.email
+      password: "password12345"
     expect:
       status: 201
       json:
@@ -136,8 +137,7 @@ combined_data:
       - variables.username
       - "@"
       - variables.domain
-    # Track creation time to ensure uniqueness
-    timestamp: faker.time.backward.iso8601
+    password: "password12345"
   expectations:
   - name: "Creating a user with combined dynamic data"
     path: /users
@@ -145,6 +145,7 @@ combined_data:
     body:
       name: variables.full_name
       email: variables.email
+      password: variables.password
     expect:
       status: 201
       json:

@@ -51,6 +51,7 @@ user_management:
     body:
       name: variables.user_name
       email: variables.user_email
+      password: "password12345"
     expect:
       status: 201
       json:

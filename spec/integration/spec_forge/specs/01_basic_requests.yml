@@ -39,6 +39,7 @@ create_user:
   body:
     name: "Basic Test User"
     email: variables.random_email
+    password: "password12345"
   expectations:
   - expect:
       status: 201
