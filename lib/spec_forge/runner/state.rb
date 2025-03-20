@@ -85,12 +85,12 @@ module SpecForge
         SpecForge.context.store.set(
           id,
           scope:,
-          request: request.to_h,
+          request: request&.to_h,
           variables: SpecForge.context.variables.deep_dup,
           response: {
-            headers: response.headers,
-            status: response.status,
-            body: response.body
+            headers: response&.headers,
+            status: response&.status,
+            body: response&.body
           }
         )
       end
