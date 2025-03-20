@@ -59,70 +59,75 @@ module SpecForge
       # Executes a DELETE request to <base_url>/<provided_url>
       #
       # @param url [String] The URL path to DELETE
+      # @param headers [Hash] HTTP headers to add
       # @param query [Hash] Any query parameters to send
       # @param body [Hash] Any body data to send
       #
       # @return [Faraday::Response] The HTTP response
       #
-      def delete(url, query: {}, body: {})
+      def delete(url, headers: {}, query: {}, body: {})
         url = normalize_url(url, query)
-        connection.delete(url) { |request| update_request(request, query, body) }
+        connection.delete(url) { |request| update_request(request, headers, query, body) }
       end
 
       #
       # Executes a GET request to <base_url>/<provided_url>
       #
       # @param url [String] The URL path to GET
+      # @param headers [Hash] HTTP headers to add
       # @param query [Hash] Any query parameters to send
       # @param body [Hash] Any body data to send
       #
       # @return [Faraday::Response] The HTTP response
       #
-      def get(url, query: {}, body: {})
+      def get(url, headers: {}, query: {}, body: {})
         url = normalize_url(url, query)
-        connection.get(url) { |request| update_request(request, query, body) }
+        connection.get(url) { |request| update_request(request, headers, query, body) }
       end
 
       #
       # Executes a PATCH request to <base_url>/<provided_url>
       #
       # @param url [String] The URL path to PATCH
+      # @param headers [Hash] HTTP headers to add
       # @param query [Hash] Any query parameters to send
       # @param body [Hash] Any body data to send
       #
       # @return [Faraday::Response] The HTTP response
       #
-      def patch(url, query: {}, body: {})
+      def patch(url, headers: {}, query: {}, body: {})
         url = normalize_url(url, query)
-        connection.patch(url) { |request| update_request(request, query, body) }
+        connection.patch(url) { |request| update_request(request, headers, query, body) }
       end
 
       #
       # Executes a POST request to <base_url>/<provided_url>
       #
       # @param url [String] The URL path to POST
+      # @param headers [Hash] HTTP headers to add
       # @param query [Hash] Any query parameters to send
       # @param body [Hash] Any body data to send
       #
       # @return [Faraday::Response] The HTTP response
       #
-      def post(url, query: {}, body: {})
+      def post(url, headers: {}, query: {}, body: {})
         url = normalize_url(url, query)
-        connection.post(url) { |request| update_request(request, query, body) }
+        connection.post(url) { |request| update_request(request, headers, query, body) }
       end
 
       #
       # Executes a PUT request to <base_url>/<provided_url>
       #
       # @param url [String] The URL path to PUT
+      # @param headers [Hash] HTTP headers to add
       # @param query [Hash] Any query parameters to send
       # @param body [Hash] Any body data to send
       #
       # @return [Faraday::Response] The HTTP response
       #
-      def put(url, query: {}, body: {})
+      def put(url, headers: {}, query: {}, body: {})
         url = normalize_url(url, query)
-        connection.put(url) { |request| update_request(request, query, body) }
+        connection.put(url) { |request| update_request(request, headers, query, body) }
       end
 
       private
@@ -131,12 +136,14 @@ module SpecForge
       # Updates the request with query parameters and body
       #
       # @param request [Faraday::Request] The request to update
+      # @param headers [Hash] HTTP headers to add
       # @param query [Hash] Query parameters to add
       # @param body [Hash] Body data to add
       #
       # @private
       #
-      def update_request(request, query, body)
+      def update_request(request, headers, query, body)
+        request.headers.merge!(headers)
         request.params.merge!(query)
         request.body = body.to_json
       end
