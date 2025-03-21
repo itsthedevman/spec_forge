@@ -140,20 +140,26 @@ module SpecForge
         keys = {}
 
         current_spec_name = nil
-        in_expectations = false
+        expectations_line = nil
+        expectations_indent = nil
 
         content.lines.each_with_index do |line, index|
           line_number = index + 1
+          clean_line = line.rstrip
           indentation = line[/^\s*/].size
 
-          # If we hit a line with no indentation, it's a new top-level element
+          # Skip blank lines
+          next if clean_line.empty?
+
+          # Reset on top-level elements
           if indentation == 0
             current_spec_name = nil
-            in_expectations = false
+            expectations_line = nil
+            expectations_indent = nil
 
             # Check if this line starts a spec we're interested in
             spec_names.each do |spec_name|
-              next unless line.start_with?("#{spec_name}:")
+              next unless clean_line.start_with?("#{spec_name}:")
 
               current_spec_name = spec_name
               keys[current_spec_name] = [line_number]
@@ -166,14 +172,17 @@ module SpecForge
           # Skip if we're not in a relevant spec
           next unless current_spec_name
 
-          # Check for expectations section
-          if !in_expectations && line.match?(/^\s+expectations:/i)
-            in_expectations = true
+          # Found expectations section
+          if clean_line.match?(/^[^#]\s*expectations:/i)
+            expectations_line = line_number
+            expectations_indent = indentation
             next
           end
 
-          # Record expectation lines
-          if in_expectations && line.match?(/^\s+-/)
+          # Found an expectation item
+          if expectations_line &&
+              clean_line.start_with?("#{" " * expectations_indent}- ") &&
+              !clean_line.start_with?("#{" " * expectations_indent}-#")
             keys[current_spec_name] << line_number
           end
         end

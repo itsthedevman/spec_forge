@@ -179,9 +179,15 @@ RSpec.describe SpecForge::Loader do
           - name: ""
             expect:
               status: 303
+              json:
+              - "foo"
           - name: ""
             expect:
               status: 303
+              json:
+                nested:
+                  array:
+                  - "This is to make sure it doesn't match to these"
 
         spec_3:
           path: ""
@@ -209,8 +215,8 @@ RSpec.describe SpecForge::Loader do
       it "is expected to parse the line numbers for specs and expectations" do
         expect(line_numbers).to eq(
           spec_1: [1, 4],
-          spec_2: [7, 12, 15],
-          spec_3: [19, 27, 32]
+          spec_2: [7, 12, 17],
+          spec_3: [25, 33, 38]
         )
       end
     end
