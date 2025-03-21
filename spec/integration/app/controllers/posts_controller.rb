@@ -6,6 +6,8 @@ class PostsController < AuthorizedController
 
   # GET /posts
   def index
+    verify_token(allow_unauthorized: true)
+
     # Handle filtering
     posts = if params[:user_id].present?
       Post.where(user_id: params[:user_id])
@@ -29,6 +31,8 @@ class PostsController < AuthorizedController
 
   # GET /posts/:id
   def show
+    verify_token(allow_unauthorized: true)
+
     # Check if post exists first
     return render_not_found("Post not found") unless @post
 
