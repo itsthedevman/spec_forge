@@ -175,6 +175,7 @@ creating_posts:
 # SECTION 3: READING POSTS
 # This section tests retrieving posts with different users
 reading_posts:
+  path: "/posts"
   variables:
     admin_token:
       transform.join:
@@ -190,7 +191,6 @@ reading_posts:
       - store.commenter_auth.body.token
   expectations:
   - name: "List all published posts (unauthenticated)"
-    path: "/posts"
     expect:
       status: 200
       json:
@@ -198,7 +198,6 @@ reading_posts:
         total: kind_of.integer
 
   - name: "Admin can see all posts including drafts"
-    path: "/posts"
     headers:
       Authorization: variables.admin_token
     expect:
@@ -210,7 +209,6 @@ reading_posts:
               title: store.draft_post.variables.draft_post_data.title
 
   - name: "Regular user can only see published posts"
-    path: "/posts"
     headers:
       Authorization: variables.commenter_token
     expect:
@@ -248,13 +246,13 @@ reading_posts:
 # SECTION 4: UPDATING POSTS
 # This section tests updating posts with different users
 updating_posts:
+  path: "/posts/{id}"
   method: patch
   variables:
     updated_title: "Updated Post Title"
     updated_content: "This content has been revised and updated."
   expectations:
   - name: "Author can update their own post"
-    path: "/posts/{id}"
     query:
       id: store.author_post.body.post.id
     headers:
@@ -272,7 +270,6 @@ updating_posts:
           content: store.author_post.body.post.content
 
   - name: "Admin can update any post"
-    path: "/posts/{id}"
     query:
       id: store.author_post.body.post.id
     headers:
@@ -290,7 +287,6 @@ updating_posts:
           content: variables.updated_content
 
   - name: "Regular user cannot update another user's post"
-    path: "/posts/{id}"
     query:
       id: store.author_post.body.post.id
     headers:
@@ -306,7 +302,6 @@ updating_posts:
         error: kind_of.string
 
   - name: "Post can be published from draft"
-    path: "/posts/{id}"
     query:
       id: store.draft_post.body.post.id
     headers:
@@ -326,14 +321,14 @@ updating_posts:
 # SECTION 5: ADDING COMMENTS
 # This section tests adding comments to posts
 commenting:
+  path: "/posts/{post_id}/comments"
+  method: post
   variables:
     admin_comment: "This is a comment from the admin user."
     author_comment: "This is a comment from the post author."
     commenter_comment: "This is a comment from a regular user."
   expectations:
   - name: "Admin adds a comment to a post"
-    path: "/posts/{post_id}/comments"
-    method: post
     query:
       post_id: store.author_post.body.post.id
     headers:
@@ -352,8 +347,6 @@ commenting:
           post_id: store.author_post.body.post.id
 
   - name: "Author adds a comment to their own post"
-    path: "/posts/{post_id}/comments"
-    method: post
     query:
       post_id: store.author_post.body.post.id
     headers:
@@ -372,8 +365,6 @@ commenting:
           post_id: store.author_post.body.post.id
 
   - name: "Regular user adds a comment to a post"
-    path: "/posts/{post_id}/comments"
-    method: post
     query:
       post_id: store.author_post.body.post.id
     headers:
@@ -392,8 +383,6 @@ commenting:
           post_id: store.author_post.body.post.id
 
   - name: "Unauthenticated user cannot add comments"
-    path: "/posts/{post_id}/comments"
-    method: post
     query:
       post_id: store.author_post.body.post.id
     body:
@@ -424,12 +413,12 @@ reading_comments:
 # SECTION 7: MANAGING COMMENTS
 # This section tests updating and deleting comments
 managing_comments:
+  path: "/comments/{id}"
+  method: patch
   variables:
     updated_comment_text: "This comment has been updated."
   expectations:
   - name: "User can update their own comment"
-    path: "/comments/{id}"
-    method: patch
     query:
       id: store.commenter_comment.body.comment.id
     headers:
@@ -446,8 +435,6 @@ managing_comments:
           content: variables.updated_comment_text
 
   - name: "User cannot update another user's comment"
-    path: "/comments/{id}"
-    method: patch
     query:
       id: store.admin_comment.body.comment.id
     headers:
@@ -463,8 +450,6 @@ managing_comments:
         error: kind_of.string
 
   - name: "Admin can update any comment"
-    path: "/comments/{id}"
-    method: patch
     query:
       id: store.author_comment.body.comment.id
     headers:
@@ -482,7 +467,6 @@ managing_comments:
           content: "Admin-modified comment"
 
   - name: "User can delete their own comment"
-    path: "/comments/{id}"
     method: delete
     query:
       id: store.commenter_comment.body.comment.id
@@ -495,7 +479,6 @@ managing_comments:
       status: 204
 
   - name: "Post author can delete comments on their posts"
-    path: "/comments/{id}"
     method: delete
     query:
       id: store.admin_modified_comment.body.comment.id
@@ -549,7 +532,6 @@ deleting_posts:
       status: 204
 
   - name: "Confirm post deletion"
-    path: "/posts/{id}"
     method: get
     query:
       id: store.admin_post.body.post.id
