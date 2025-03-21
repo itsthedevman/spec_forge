@@ -1,12 +1,13 @@
 # spec/integration/app/controllers/comments_controller.rb
 class CommentsController < AuthorizedController
   skip_before_action :verify_token, only: [:index]
-  before_action :set_comment, only: [:update, :destroy]
-  before_action :set_post, only: [:index, :create]
 
   # GET /posts/:post_id/comments
   def index
-    comments = @post.comments.includes(:user)
+    post = find_post
+    return if post.nil?
+
+    comments = post.comments.includes(:user)
 
     # Simple pagination
     limit = params[:limit].present? ? params[:limit].to_i : 20
@@ -20,7 +21,10 @@ class CommentsController < AuthorizedController
 
   # POST /posts/:post_id/comments
   def create
-    comment = @post.comments.new(comment_params)
+    post = find_post
+    return if post.nil?
+
+    comment = post.comments.new(comment_params)
     comment.user = current_user
 
     if comment.save
@@ -32,13 +36,16 @@ class CommentsController < AuthorizedController
 
   # PATCH /comments/:id
   def update
+    comment = find_comment
+    return if comment.nil?
+
     # Only comment author or admin can update
-    if @comment.user_id != current_user.id && current_user.role != "admin"
+    if comment.user_id != current_user.id && current_user.role != "admin"
       return render_forbidden("You cannot edit another user's comment")
     end
 
-    if @comment.update(comment_params)
-      render json: {comment: comment_to_json(@comment)}
+    if comment.update(comment_params)
+      render json: {comment: comment_to_json(comment)}
     else
       render json: {errors: @comment.errors.full_messages}, status: :unprocessable_entity
     end
@@ -46,27 +53,34 @@ class CommentsController < AuthorizedController
 
   # DELETE /comments/:id
   def destroy
+    comment = find_comment
+    return if comment.nil?
+
     # Only comment author, post author, or admin can delete
-    if @comment.user_id != current_user.id &&
-        @comment.post.user_id != current_user.id &&
+    if comment.user_id != current_user.id &&
+        comment.post.user_id != current_user.id &&
         current_user.role != "admin"
       return render_forbidden("You don't have permission to delete this comment")
     end
 
-    @comment.destroy
+    comment.destroy
     head :no_content
   end
 
   private
 
-  def set_comment
-    @comment = Comment.find_by(id: params[:id])
-    render_not_found("Comment not found") unless @comment
+  def find_comment
+    comment = Comment.find_by(id: params[:id])
+    render_not_found("Comment not found") unless comment
+
+    comment
   end
 
-  def set_post
-    @post = Post.find_by(id: params[:post_id])
-    render_not_found("Post not found") unless @post
+  def find_post
+    post = Post.find_by(id: params[:post_id])
+    render_not_found("Post not found") unless post
+
+    post
   end
 
   def comment_params

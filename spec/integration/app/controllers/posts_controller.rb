@@ -2,7 +2,6 @@
 
 class PostsController < AuthorizedController
   skip_before_action :verify_token, only: [:index, :show]
-  before_action :set_post, only: [:show, :update, :destroy]
 
   # GET /posts
   def index
@@ -33,17 +32,17 @@ class PostsController < AuthorizedController
   def show
     verify_token(allow_unauthorized: true)
 
-    # Check if post exists first
-    return render_not_found("Post not found") unless @post
+    post = find_post
+    return if post.nil?
 
     # Then check permissions for private posts
-    if !@post.published && current_user.nil?
+    if !post.published && current_user.nil?
       return render_forbidden("You don't have access to this post")
-    elsif !@post.published && current_user.role != "admin" && @post.user_id != current_user.id
+    elsif !post.published && current_user.role != "admin" && post.user_id != current_user.id
       return render_forbidden("You don't have access to this post")
     end
 
-    render json: {post: post_to_json(@post)}
+    render json: {post: post_to_json(post)}
   end
 
   # POST /posts
@@ -60,34 +59,42 @@ class PostsController < AuthorizedController
 
   # PATCH /posts/:id
   def update
+    post = find_post
+    return if post.nil?
+
     # Only post author or admin can update
-    if @post.user_id != current_user.id && current_user.role != "admin"
+    if post.user_id != current_user.id && current_user.role != "admin"
       return render_forbidden("You cannot edit another user's post")
     end
 
-    if @post.update(post_params)
-      render json: {post: post_to_json(@post)}
+    if post.update(post_params)
+      render json: {post: post_to_json(post)}
     else
-      render json: {errors: @post.errors.full_messages}, status: :unprocessable_entity
+      render json: {errors: post.errors.full_messages}, status: :unprocessable_entity
     end
   end
 
   # DELETE /posts/:id
   def destroy
+    post = find_post
+    return if post.nil?
+
     # Only post author or admin can delete
-    if @post.user_id != current_user.id && current_user.role != "admin"
+    if post.user_id != current_user.id && current_user.role != "admin"
       return render_forbidden("You cannot delete another user's post")
     end
 
-    @post.destroy
+    post.destroy
     head :no_content
   end
 
   private
 
-  def set_post
-    @post = Post.find_by(id: params[:id])
-    render_not_found("Post not found") unless @post
+  def find_post
+    post = Post.find_by(id: params[:id])
+    render_not_found("Post not found") unless post
+
+    post
   end
 
   def post_params
