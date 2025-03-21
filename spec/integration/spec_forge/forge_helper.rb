@@ -43,14 +43,14 @@ SpecForge.configure do |config|
     DatabaseCleaner.start
 
     # If this wasn't a demo, we'd skip this print in production
-    puts "\n┌─ PREPARING DB FOR: #{context.expectation_name}"
+    puts "\n┌─ PREPARING DB"
   end
 
   config.define_callback :cleanup_database_state do |context|
     # Clean up after each expectation
     DatabaseCleaner.clean
 
-    puts "└─ CLEANED DB AFTER: #{context.expectation_name}\n"
+    puts "└─ CLEANED DB AFTER\n"
   end
 
   # Logging callback with full context

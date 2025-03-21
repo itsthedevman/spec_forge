@@ -174,6 +174,12 @@ module SpecForge
       #
       def describe_value(value)
         case value
+        when Context::Store::Entry
+          "Store with attributes: #{value.available_methods.join_map(", ", &:in_quotes)}"
+        when OpenStruct
+          "Object with attributes: #{value.table.keys.join_map(", ", &:in_quotes)}"
+        when Struct, Data
+          "Object with attributes: #{value.members.join_map(", ", &:in_quotes)}"
         when ArrayLike
           # Preview the first 5 value's classes
           preview = value.take(5).map(&:class)
@@ -192,6 +198,8 @@ module SpecForge
           "\"#{value.truncate(50)}\""
         when NilClass
           "nil"
+        when Proc
+          "Proc defined at #{value.source_location.join(":")}"
         else
           "#{value.class}: #{value.inspect[0..50]}"
         end
@@ -211,7 +219,7 @@ module SpecForge
       #
       def invoke(step, object)
         if hash_key?(object, step)
-          object[step.to_sym]
+          object[step.to_s] || object[step.to_sym]
         elsif index?(object, step)
           object[step.to_i]
         elsif method?(object, step)
@@ -232,8 +240,8 @@ module SpecForge
       # @private
       #
       def hash_key?(object, key)
-        # This is to support the silly delegator
-        method?(object, :key?) && object.key?(key.to_sym)
+        # This is to support the silly delegator and both symbol/string
+        method?(object, :key?) && (object.key?(key.to_s) || object.key?(key.to_sym))
       end
 
       #

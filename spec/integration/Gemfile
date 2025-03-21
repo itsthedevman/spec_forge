@@ -24,7 +24,6 @@ gem "thruster", require: false
 # gem "rack-cors"
 
 gem "spec_forge", path: "../.."
-gem "pundit", "~> 2.4"
 
 group :development, :test do
   # Static analysis for security vulnerabilities [https://brakemanscanner.org/]

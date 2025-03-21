@@ -100,8 +100,18 @@ module SpecForge
         @object = object
         @resolution_path = resolution_path
 
+        object_class =
+          case object
+          when Data
+            object.class.name || "Data"
+          when Struct
+            object.class.name || "Struct"
+          else
+            object.class
+          end
+
         super(<<~STRING.chomp
-          Cannot invoke "#{step}" on #{object.class}
+          Cannot invoke "#{step}" on #{object_class}
           #{resolution_path_message}
         STRING
         )
@@ -201,15 +211,21 @@ module SpecForge
     # Provides detailed information about the cause of the loading error
     #
     class SpecLoadError < Error
-      def initialize(error, file_path)
-        message = "Error loading spec file: #{file_path}\n"
+      def initialize(error, file_path, spec: nil)
+        message =
+          if spec
+            "Error loading spec #{spec[:name].in_quotes} in file #{file_path.in_quotes} (line #{spec[:line_number]})"
+          else
+            "Error loading spec file #{file_path.in_quotes}"
+          end
+
         causes = error.message.split("\n").map(&:strip).reject(&:empty?)
 
         message +=
           if causes.size > 1
-            "Causes:\n  - #{causes.join_map("\n  - ")}"
+            "\nCauses:\n  - #{causes.join_map("\n  - ")}"
           else
-            "Cause: #{error}"
+            "\nCause: #{error}"
           end
 
         super(message)

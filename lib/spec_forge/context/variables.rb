@@ -25,7 +25,7 @@ module SpecForge
     #   variables[:name]    #=> "Override User"
     #   variables[:user_id] #=> 123 (unchanged)
     #
-    class Variables
+    class Variables < Hash
       attr_reader :base, :overlay
 
       #
@@ -41,26 +41,6 @@ module SpecForge
       end
 
       #
-      # Access a variable by its name
-      #
-      # @param name [Symbol] The variable name to access
-      #
-      # @return [Object, nil] The value of the variable or nil if not found
-      #
-      def [](name)
-        @active[name]
-      end
-
-      #
-      # Returns the active variables
-      #
-      # @return [Hash]
-      #
-      def to_h
-        @active
-      end
-
-      #
       # Sets the base and overlay variable hashes
       #
       # @param base [Hash] The new base variable hash
@@ -71,8 +51,8 @@ module SpecForge
       def set(base:, overlay: {})
         @base = Attribute.from(base)
         @overlay = overlay
-        @active = Attribute.from(base)
 
+        resolve_into_self(@base)
         self
       end
 
@@ -85,38 +65,26 @@ module SpecForge
       # @return [nil]
       #
       def use_overlay(id)
-        active = @base.resolved
+        active = @base
 
         if (overlay = @overlay[id]) && overlay.present?
           active = Configuration.overlay_options(active, overlay)
         end
 
-        @active = Attribute.from(active)
+        resolve_into_self(active)
+        self
       end
 
-      #
-      # Resolves all active variables
-      # This processes any Attribute objects and returns their resolved values
-      #
-      # @return [Hash] The hash of resolved variable values
-      #
-      def resolved
-        @active.resolved
-      end
+      private
 
-      #
-      # Resolves the base variables
-      #
-      # This method processes all Attribute objects in the base variables hash and
-      # returns their fully resolved values.
-      # When used in specs, this is called once at the spec level before
-      # any expectation-specific overlays are applied, ensuring consistent values
-      # across all expectations unless explicitly overridden.
-      #
-      # @return [Hash] The hash of fully resolved spec-level variable values
-      #
-      def resolve_base
-        @base.resolved
+      def resolve_into_self(hash)
+        # Start fresh
+        clear
+
+        # Load the resolved values into self
+        hash.each do |key, value|
+          self[key] = Attribute.from(value).resolved
+        end
       end
     end
   end

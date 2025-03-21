@@ -47,17 +47,17 @@ module SpecForge
         default: {}
       },
       query: {
-        type: Hash,
+        type: [Hash, String],
         aliases: %i[params],
         default: {}
       },
       body: {
-        type: Hash,
+        type: [Hash, String],
         aliases: %i[data],
         default: {}
       },
       variables: {
-        type: Hash,
+        type: [Hash, String],
         default: {}
       },
       debug: {
@@ -315,32 +315,6 @@ module SpecForge
     end
 
     #
-    # Normalizes an array according to its structure definition
-    #
-    # Processes each element in the input array, validating its type and
-    # recursively normalizing any nested structures.
-    #
-    # @return [Array<Object, Set>] A two-element array containing:
-    #   1. The normalized array
-    #   2. A set of any errors encountered during normalization
-    #
-    # @example
-    #   input = [1, "string", 3]
-    #   structure = {type: Numeric}
-    #   normalize_array # => [[1, 3], #<Set: {Error}>]
-    #
-    def normalize_substructure(new_label, value, substructure, errors)
-      return value unless value.is_a?(Hash) || value.is_a?(Array)
-
-      new_value, new_errors = self.class
-        .new(new_label, value, structure: substructure)
-        .normalize
-
-      errors.merge(new_errors) if new_errors.size > 0
-      new_value
-    end
-
-    #
     # Normalizes a nested substructure within a parent structure
     #
     # Recursively processes nested Hash or Array structures according to
@@ -358,6 +332,32 @@ module SpecForge
     #   substructure = {name: {type: String}, age: {type: Integer}}
     #   normalize_substructure("user", value, substructure, Set.new)
     #   # => {name: "Test", age: 25}
+    #
+    def normalize_substructure(new_label, value, substructure, errors)
+      return value unless value.is_a?(Hash) || value.is_a?(Array)
+
+      new_value, new_errors = self.class
+        .new(new_label, value, structure: substructure)
+        .normalize
+
+      errors.merge(new_errors) if new_errors.size > 0
+      new_value
+    end
+
+    #
+    # Normalizes an array according to its structure definition
+    #
+    # Processes each element in the input array, validating its type and
+    # recursively normalizing any nested structures.
+    #
+    # @return [Array<Object, Set>] A two-element array containing:
+    #   1. The normalized array
+    #   2. A set of any errors encountered during normalization
+    #
+    # @example
+    #   input = [1, "string", 3]
+    #   structure = {type: Numeric}
+    #   normalize_array # => [[1, 3], #<Set: {Error}>]
     #
     def normalize_array
       output, errors = [], Set.new

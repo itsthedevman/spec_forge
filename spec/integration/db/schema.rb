@@ -27,6 +27,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_09_034009) do
     t.string "name", null: false
     t.string "email", null: false
     t.string "role", default: "user"
+    t.string "password"
     t.boolean "active", default: true
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false

@@ -53,7 +53,7 @@ module SpecForge
       # @return [Object] The variable value
       #
       def base_object
-        @variable || bind_variables(SpecForge.context.variables.to_h)
+        @variable || bind_variables(SpecForge.context.variables)
       end
     end
   end

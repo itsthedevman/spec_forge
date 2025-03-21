@@ -53,21 +53,30 @@ module SpecForge
         #
         # @return [Integer] The response status code
         #
-        def status = response.status
+        def status = response[:status]
 
         #
         # Shorthand accessor for the response body
         #
         # @return [Hash, Array, String] The parsed response body
         #
-        def body = response.body
+        def body = response[:body]
 
         #
         # Shorthand accessor for the response headers
         #
         # @return [Hash] The response headers
         #
-        def headers = response.headers
+        def headers = response[:headers]
+
+        #
+        # Returns all available methods that can be called
+        #
+        # @return [Array] The method names
+        #
+        def available_methods
+          members + [:status, :body, :headers]
+        end
       end
 
       #
@@ -132,7 +141,7 @@ module SpecForge
       # @return [Hash]
       #
       def to_h
-        @inner
+        @inner.transform_values(&:to_h).deep_stringify_keys
       end
     end
   end

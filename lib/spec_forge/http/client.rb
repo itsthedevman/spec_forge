@@ -33,6 +33,7 @@ module SpecForge
         @backend.public_send(
           request.http_verb.to_s.downcase,
           request.url,
+          headers: request.headers.resolved,
           query: request.query.resolved,
           body: request.body.resolved
         )

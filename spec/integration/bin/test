@@ -11,6 +11,7 @@ SPEC_FORGE_ARGS="$@"
 
 # Function to clean up resources
 cleanup() {
+    echo ""
     echo "Cleaning up resources..."
 
     # Check if Rails server is running and stop it
@@ -37,7 +38,7 @@ fi
 echo "Starting Rails server..."
 
 # Explicitly set binding to 0.0.0.0 to work in CI
-bin/rails server -p $PORT -b 0.0.0.0 -d
+RAILS_ENV="test" bin/rails server -p $PORT -b 0.0.0.0 -d
 
 if [ $? -ne 0 ]; then
     echo "Error: Failed to start Rails server."
@@ -46,31 +47,39 @@ fi
 
 # Give the server a moment to start up
 echo "Waiting for Rails server to start..."
-for i in $(seq 1 $TIMEOUT); do
+
+sleep_interval=0.25
+start_time=$(date +%s)
+
+while [ $(($(date +%s) - start_time)) -lt $TIMEOUT ]; do
+    elapsed=$(($(date +%s) - start_time))
+
     if curl -s http://localhost:$PORT/health >/dev/null 2>&1 || curl -s http://localhost:$PORT >/dev/null 2>&1; then
-        echo "Rails server started successfully after $i seconds."
+        echo "Rails server started successfully after $elapsed seconds."
         break
     fi
 
     # Print server logs to help debug in CI
-    if [ $i -eq 10 ] || [ $i -eq 20 ]; then
-        echo "Server still not responding after $i seconds. Checking logs:"
+    if [ $elapsed -eq 10 ] || [ $elapsed -eq 20 ]; then
+        echo "Server still not responding after $elapsed seconds. Checking logs:"
         cat log/development.log | tail -n 20
     fi
 
-    if [ $i -eq $TIMEOUT ]; then
+    if [ $elapsed -ge $TIMEOUT ]; then
         echo "Error: Rails server failed to start within $TIMEOUT seconds."
         echo "Last 50 lines of the server log:"
         cat log/development.log | tail -n 50
         exit 1
     fi
 
-    echo "Waiting... ($i/$TIMEOUT)"
-    sleep 1
+    echo "Waiting... ($elapsed/$TIMEOUT)"
+    sleep $sleep_interval
 done
 
 # Run SpecForge tests
 echo "Running SpecForge tests..."
+echo ""
+
 if [ -z "$SPEC_FORGE_ARGS" ]; then
     bundle exec spec_forge
 else
@@ -78,6 +87,7 @@ else
 fi
 
 SPEC_FORGE_EXIT_CODE=$?
+echo ""
 echo "SpecForge tests completed with exit code: $SPEC_FORGE_EXIT_CODE"
 
 exit $SPEC_FORGE_EXIT_CODE

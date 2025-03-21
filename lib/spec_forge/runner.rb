@@ -8,27 +8,6 @@ module SpecForge
   class Runner
     class << self
       #
-      # Stores context information about the currently executing example
-      #
-      # This hash contains references to objects that define the current test context,
-      # including the forge, spec, expectation, and example group. It's used to bridge
-      # the gap between RSpec's regular flow and its notification system.
-      #
-      # @return [Hash] A hash containing :forge, :spec, :expectation, and :example_group keys
-      #
-      # @example Setting the current context
-      #   Runner.current_example_context = {
-      #     forge: forge,
-      #     spec: spec,
-      #     expectation: expectation,
-      #     example_group: example_group
-      #   }
-      #
-      # @api private
-      #
-      attr_accessor :current_example_context
-
-      #
       # Defines RSpec examples for a collection of forges
       # Creates the test structure that will be executed
       #
@@ -106,22 +85,27 @@ module SpecForge
                   # The Faraday response
                   subject(:response) { http_client.call(request) }
 
-                  # Callback
-                  before do
+                  # Callbacks for the expectation
+                  before :each do
                     Callbacks.before_expectation(
                       forge, spec, expectation, self, RSpec.current_example
                     )
-
-                    # The 'after_expectation' callback is handled by Listener due to RSpec not
-                    # reporting the example's status until after the describe block has finished.
-                    # That callback needs this information, let's go ahead and store it
-                    Runner.current_example_context = {
-                      forge:, spec:, expectation:, example_group: self
-                    }
                   end
 
-                  # The test itself. Went with no name so RSpec will pick the failure as the message
-                  it do
+                  # The 'after_expectation' callback is handled by Listener due to RSpec not
+                  # reporting the example's status until after the describe block has finished.
+                  after :each do
+                    # However, the downside about having the callback triggered later is that RSpec
+                    # will have reset the memoized let variables back to nil.
+                    # This causes an issue when an expectation goes to store the state, it will end
+                    # up re-calling the various variables and triggering another HTTP request.
+                    # Since the variables are still memoized in this hook, it is the perfect
+                    # time to store the referenced to them.
+                    State.set(response:)
+                  end
+
+                  # The test itself
+                  it(expectation.constraints.description) do
                     if spec.debug? || expectation.debug?
                       Callbacks.on_debug(forge, spec, expectation, self)
                     end
@@ -155,9 +139,6 @@ module SpecForge
       private
 
       def prepare_for_run
-        # Stores the current examples context, useful for callbacks
-        @current_example_context = nil
-
         # Allows modifying the error backtrace reporting within rspec
         RSpec.configuration.instance_variable_set(:@backtrace_formatter, BacktraceFormatter)
 
@@ -175,3 +156,4 @@ require_relative "runner/callbacks"
 require_relative "runner/debug_proxy"
 require_relative "runner/listener"
 require_relative "runner/metadata"
+require_relative "runner/state"

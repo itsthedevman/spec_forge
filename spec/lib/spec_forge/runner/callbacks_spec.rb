@@ -61,7 +61,7 @@ RSpec.describe SpecForge::Runner::Callbacks do
       callbacks.before_file(forge)
 
       # Global variables are resolved
-      global_variables = context.global.variables.resolved
+      global_variables = context.global.variables
 
       expect(global_variables).not_to match(
         var_1: be_kind_of(SpecForge::Attribute),
@@ -79,12 +79,12 @@ RSpec.describe SpecForge::Runner::Callbacks do
       callbacks.before_spec(forge, spec)
 
       # Ensure the spec level variables are resolved correctly
-      expect(context.variables.resolve_base).not_to match(
+      expect(context.variables).not_to match(
         var_1: be_kind_of(SpecForge::Attribute),
         var_2: be_kind_of(SpecForge::Attribute)
       )
 
-      expect(context.variables.resolve_base).to match(var_1: be_kind_of(String), var_2: [2])
+      expect(context.variables).to match(var_1: be_kind_of(String), var_2: [2])
       expect(context.variables.overlay.size).to eq(2) # First expectation has no overlays
 
       ##########################################################################
@@ -96,7 +96,7 @@ RSpec.describe SpecForge::Runner::Callbacks do
       expect(RSpec.current_example.metadata[:location]).to start_with("test/path")
 
       # No overlaid variables, still using the spec's
-      variables = context.variables.resolved
+      variables = context.variables
       expect(variables).not_to match(
         var_1: be_kind_of(SpecForge::Attribute),
         var_2: be_kind_of(SpecForge::Attribute)
@@ -106,6 +106,10 @@ RSpec.describe SpecForge::Runner::Callbacks do
 
       ##########################################################################
       ## after_expectation, expectation 0
+
+      # This is usually set by RSpec in a callback - so manually it is.
+      # I love potentially hiding bugs! /s
+      SpecForge::Runner::State.set(response:)
 
       # Pass in this example so it can access request and response variables
       callbacks.after_expectation(forge, spec, expectation, self, RSpec.current_example)
@@ -125,7 +129,7 @@ RSpec.describe SpecForge::Runner::Callbacks do
       callbacks.before_expectation(forge, spec, expectation, self, RSpec.current_example)
 
       # Now we have overlaid variables
-      variables = context.variables.resolved
+      variables = context.variables
       expect(variables).not_to match(
         var_1: be_kind_of(SpecForge::Attribute),
         var_2: be_kind_of(SpecForge::Attribute)
@@ -135,6 +139,10 @@ RSpec.describe SpecForge::Runner::Callbacks do
 
       ##########################################################################
       ## after_expectation, expectation 1
+
+      # This is usually set by RSpec in a callback - so manually it is.
+      # I love potentially hiding bugs! /s
+      SpecForge::Runner::State.set(response:)
 
       # Pass in this example so it can access request and response variables
       callbacks.after_expectation(forge, spec, expectation, self, RSpec.current_example)
@@ -154,7 +162,7 @@ RSpec.describe SpecForge::Runner::Callbacks do
       callbacks.before_expectation(forge, spec, expectation, self, RSpec.current_example)
 
       # Now we have a combination of variables
-      variables = context.variables.resolved
+      variables = context.variables
       expect(variables).not_to match(
         var_1: be_kind_of(SpecForge::Attribute),
         var_2: be_kind_of(SpecForge::Attribute),
@@ -169,6 +177,10 @@ RSpec.describe SpecForge::Runner::Callbacks do
 
       ##########################################################################
       ## after_expectation, expectation 2
+
+      # This is usually set by RSpec in a callback - so manually it is.
+      # I love potentially hiding bugs! /s
+      SpecForge::Runner::State.set(response:)
 
       # Pass in this example so it can access request and response variables
       callbacks.after_expectation(forge, spec, expectation, self, RSpec.current_example)
@@ -341,7 +353,6 @@ RSpec.describe SpecForge::Runner::Callbacks do
         ]
 
         # before_each
-        expect(self).to receive(:response).and_return(nil)
         expected.merge!(
           response: be(nil),
           callback_type: "before_each",
@@ -352,12 +363,15 @@ RSpec.describe SpecForge::Runner::Callbacks do
         expect(results.first).to have_attributes(**expected)
 
         # after_each
-        expect(self).to receive(:response).and_call_original
         expected.merge!(
           response: be_kind_of(Faraday::Response),
           callback_type: "after_each",
           callback_timing: "after"
         )
+
+        # This is usually set by RSpec in a callback - so manually it is.
+        # I love potentially hiding bugs! /s
+        SpecForge::Runner::State.set(response:)
 
         callbacks.after_expectation(*args)
         expect(results.second).to have_attributes(**expected)

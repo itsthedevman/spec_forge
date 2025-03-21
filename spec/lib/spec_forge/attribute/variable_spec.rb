@@ -15,14 +15,33 @@ RSpec.describe SpecForge::Attribute::Variable do
   end
 
   context "when just the variable name is referenced" do
-    let(:input) { "variable.id" }
-    let(:variables) { {id: Faker::String.random} }
+    context "and the variable is bound manually" do
+      let(:input) { "variable.id" }
+      let(:variables) { {id: Faker::String.random} }
 
-    it "is expected to return the value" do
-      expect(variable.variable_name).to eq(:id)
-      expect(variable.invocation_chain).to eq([])
+      it "is expected to return the value" do
+        expect(variable.variable_name).to eq(:id)
+        expect(variable.invocation_chain).to eq([])
 
-      expect(variable.value).to eq(variables[:id])
+        expect(variable.value).to eq(variables[:id])
+      end
+    end
+
+    context "and the variable is retrieved from the global context" do
+      let(:input) { "variable.user_data" }
+      let(:variables) { {user_data: {id: "faker.number.positive"}} }
+
+      before do
+        # Unset the internal variable since subject calls bind_variables
+        variable.instance_variable_set(:@variable, nil)
+
+        # Set the global context up
+        SpecForge.context.variables.set(base: variables)
+      end
+
+      it "is expected to return the value with all internal values converted" do
+        expect(variable.value).to match(id: be_kind_of(Numeric))
+      end
     end
   end
 

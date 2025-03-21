@@ -59,8 +59,8 @@ RSpec.describe SpecForge::Loader do
 
       it do
         expect { specs }.to raise_error(SpecForge::Error::SpecLoadError) do |e|
-          expect(e.message).to include("Error loading spec file: spec_1.yml")
-          expect(e.message).to include("Cause: Expected Hash, got Integer")
+          expect(e.message).to include("Error loading spec file \"spec_1.yml\"")
+          expect(e.message).to include("Cause: Expected Hash or String, got Integer")
         end
       end
     end
@@ -80,7 +80,9 @@ RSpec.describe SpecForge::Loader do
 
       it do
         expect { specs }.to raise_error(SpecForge::Error::SpecLoadError) do |e|
-          expect(e.message).to include("Error loading spec file: spec_2.yml")
+          expect(e.message).to include(
+            "Error loading spec \"spec_1\" in file \"spec_2.yml\" (line 1)"
+          )
           expect(e.message).to include("Causes:")
           expect(e.message).to include(
             %{Expected String, got Integer for "url" (aliases "path") in spec "spec_1" (line 1)}
@@ -177,9 +179,15 @@ RSpec.describe SpecForge::Loader do
           - name: ""
             expect:
               status: 303
+              json:
+              - "foo"
           - name: ""
             expect:
               status: 303
+              json:
+                nested:
+                  array:
+                  - "This is to make sure it doesn't match to these"
 
         spec_3:
           path: ""
@@ -207,8 +215,8 @@ RSpec.describe SpecForge::Loader do
       it "is expected to parse the line numbers for specs and expectations" do
         expect(line_numbers).to eq(
           spec_1: [1, 4],
-          spec_2: [7, 12, 15],
-          spec_3: [19, 27, 32]
+          spec_2: [7, 12, 17],
+          spec_3: [25, 33, 38]
         )
       end
     end

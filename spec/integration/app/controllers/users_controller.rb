@@ -1,4 +1,5 @@
-# app/controllers/users_controller.rb
+# frozen_string_literal: true
+
 class UsersController < ApplicationController
   # GET /users
   def index
@@ -6,12 +7,12 @@ class UsersController < ApplicationController
     limit = params[:limit].present? ? params[:limit].to_i : User.count
 
     # Get a limited set of users
-    @users = User.limit(limit)
+    users = User.limit(limit)
 
     # Return with metadata
     render json: {
       total: User.count,
-      users: @users
+      users:
     }
   end
 
@@ -45,14 +46,15 @@ class UsersController < ApplicationController
 
     if user.nil?
       render json: {error: "User not found"}, status: :not_found
+      return
+    end
+
+    # Extract user attributes, handling both nested and root params
+    user_attributes = params[:user] || params
+    if user.update(user_params(user_attributes))
+      render json: {user: user}
     else
-      # Extract user attributes, handling both nested and root params
-      user_attributes = params[:user] || params
-      if user.update(user_params(user_attributes))
-        render json: {user: user}
-      else
-        render json: {errors: user.errors.full_messages}, status: :unprocessable_entity
-      end
+      render json: {errors: user.errors.full_messages}, status: :unprocessable_entity
     end
   end
 
@@ -71,6 +73,6 @@ class UsersController < ApplicationController
   private
 
   def user_params(parameters = params)
-    parameters.permit(:name, :email, :role, :active)
+    parameters.permit(:name, :email, :role, :active, :password)
   end
 end

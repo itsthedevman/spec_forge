@@ -3,5 +3,6 @@ user:
   attributes:
     name: faker.name.name
     email: faker.internet.email
+    password: password12345
     role: user
     active: true

@@ -6,58 +6,6 @@ RSpec.describe SpecForge::Context::Variables do
 
   subject(:variables) { described_class.new(base:, overlay:) }
 
-  describe "#[]" do
-    context "when only 'base' is provided" do
-      let(:base) { {var_1: 1, var_2: 2} }
-
-      it "is expected to return the base variables" do
-        expect(variables[:var_1]).to eq(1)
-        expect(variables[:var_2]).to eq(2)
-      end
-    end
-
-    context "when 'overlay' is provided but #use_overlay has not been called" do
-      let(:base) { {var_1: 1, var_2: 2} }
-      let(:overlay) { {my_overlay: {var_1: 2}} }
-
-      it "is expected to return the base variables" do
-        expect(variables[:var_1]).to eq(1)
-        expect(variables[:var_2]).to eq(2)
-      end
-    end
-
-    context "when 'overlay' is provided but #use_overlay has been called" do
-      let(:base) { {var_1: 1, var_2: 2} }
-      let(:overlay) { {my_overlay: {var_1: 2}} }
-
-      before { variables.use_overlay(:my_overlay) }
-
-      it "is expected to return the overlaid variables" do
-        expect(variables[:var_1]).to eq(2)
-        expect(variables[:var_2]).to eq(2)
-      end
-    end
-  end
-
-  describe "#to_h" do
-    let(:base) { {var_1: 2} }
-
-    it "is expected to return the active variables" do
-      expect(variables.to_h).to eq(base)
-    end
-  end
-
-  describe "#resolve" do
-    let(:base) { {var_1: "faker.string.random"} }
-
-    subject(:resolved_h) { variables.resolved }
-
-    it "is expected to return the resolved variables" do
-      expect(resolved_h[:var_1]).not_to eq("faker.string.random")
-      expect(resolved_h[:var_1]).to be_kind_of(String)
-    end
-  end
-
   describe "#use_overlay" do
     context "when the overlay has new variables" do
       let(:base) { {var_2: Faker::String.random} }
@@ -74,13 +22,13 @@ RSpec.describe SpecForge::Context::Variables do
       let(:overlay) { {overlay_1: {var_1: 2, var_2: 1}} }
 
       it "is expected to reset the variables back to base" do
-        expect(variables.resolved).to match(var_1: 1, var_2: 2)
+        expect(variables).to match(var_1: 1, var_2: 2)
 
         variables.use_overlay(:overlay_1)
-        expect(variables.resolved).to match(var_1: 2, var_2: 1)
+        expect(variables).to match(var_1: 2, var_2: 1)
 
         variables.use_overlay(:does_not_exist)
-        expect(variables.resolved).to match(var_1: 1, var_2: 2)
+        expect(variables).to match(var_1: 1, var_2: 2)
       end
     end
   end
