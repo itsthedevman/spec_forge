@@ -41,7 +41,7 @@ Rails.application.configure do
   config.action_controller.raise_on_missing_callback_actions = true
 
   # Enable logging
-  config.logger = Logger.new(STDOUT)
+  config.logger = Logger.new($stdout)
   config.log_level = :debug
   config.active_record.verbose_query_logs = true
 end
