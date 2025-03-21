@@ -1,0 +1,559 @@
+#
+# 08_content_workflows.yml
+#
+# This file demonstrates managing blog content with a full CRUD lifecycle.
+#
+# CONTENT WORKFLOW OVERVIEW:
+# ------------------------
+# This test file showcases a complete blog content system workflow including:
+# - Creating and managing posts as different users
+# - Comment operations (adding, editing, deleting)
+# - Role-based permissions (what can admins vs. regular users do)
+# - Content filtering and management
+#
+# Each section builds upon previous sections, demonstrating how SpecForge
+# can create sophisticated test flows with state that persists between tests.
+#
+
+# Global variables shared across all tests
+global:
+  variables:
+    admin_credentials:
+      email: "admin@example.com"
+      password: "adminpass123"
+    author_credentials:
+      email: "author@example.com"
+      password: "authorpass123"
+    commenter_credentials:
+      email: "commenter@example.com"
+      password: "commenterpass123"
+  # Add database cleanup to prevent test interference
+  callbacks:
+  - before_file: prepare_database_state
+    after_file: cleanup_database_state
+
+# SECTION 0: SETUP TEST USERS
+# Create the different users we'll need for our tests
+setup_users:
+  path: "/users"
+  method: post
+  expectations:
+  - name: "Create admin user"
+    body:
+      name: "Admin User"
+      email: global.variables.admin_credentials.email
+      password: global.variables.admin_credentials.password
+      role: "admin"
+    store_as: admin_user
+    expect:
+      status: 201
+
+  - name: "Create author user"
+    body:
+      name: "Content Author"
+      email: global.variables.author_credentials.email
+      password: global.variables.author_credentials.password
+      role: "user"
+    store_as: author_user
+    expect:
+      status: 201
+
+  - name: "Create commenter user"
+    body:
+      name: "Comment Writer"
+      email: global.variables.commenter_credentials.email
+      password: global.variables.commenter_credentials.password
+      role: "user"
+    store_as: commenter_user
+    expect:
+      status: 201
+
+# SECTION 1: USER AUTHENTICATION
+# Log in with our test users to get authentication tokens
+user_authentication:
+  path: /auth/login
+  method: post
+  expectations:
+  - name: "Login with admin credentials"
+    body: global.variables.admin_credentials
+    store_as: admin_auth
+    expect:
+      status: 200
+      json:
+        token: kind_of.string
+
+  - name: "Login with author credentials"
+    body: global.variables.author_credentials
+    store_as: author_auth
+    expect:
+      status: 200
+      json:
+        token: kind_of.string
+
+  - name: "Login with commenter credentials"
+    body: global.variables.commenter_credentials
+    store_as: commenter_auth
+    expect:
+      status: 200
+      json:
+        token: kind_of.string
+
+# SECTION 2: CREATING BLOG POSTS
+# This section tests creating posts with different users
+creating_posts:
+  path: "/posts"
+  method: post
+  variables:
+    admin_post_data:
+      title: "Admin Post Title"
+      content: "This is a post created by the admin user."
+      published: true
+    author_post_data:
+      title: "Author's First Blog Post"
+      content: "This is a blog post written by the author user."
+      published: true
+    draft_post_data:
+      title: "Unpublished Draft Post"
+      content: "This post is still a draft and shouldn't be publicly visible."
+      published: false
+  expectations:
+  - name: "Admin creates a published post"
+    headers:
+      Authorization:
+        transform.join:
+        - "Bearer "
+        - store.admin_auth.body.token
+    body: variables.admin_post_data
+    store_as: admin_post
+    expect:
+      status: 201
+      json:
+        post:
+          title: variables.admin_post_data.title
+          content: variables.admin_post_data.content
+          published: variables.admin_post_data.published
+
+  - name: "Author creates a published post"
+    headers:
+      Authorization:
+        transform.join:
+        - "Bearer "
+        - store.author_auth.body.token
+    body: variables.author_post_data
+    store_as: author_post
+    expect:
+      status: 201
+      json:
+        post:
+          title: variables.author_post_data.title
+          content: variables.author_post_data.content
+          published: variables.author_post_data.published
+
+  - name: "Author creates a draft post"
+    headers:
+      Authorization:
+        transform.join:
+        - "Bearer "
+        - store.author_auth.body.token
+    body: variables.draft_post_data
+    store_as: draft_post
+    expect:
+      status: 201
+      json:
+        post:
+          title: variables.draft_post_data.title
+          content: variables.draft_post_data.content
+          published: variables.draft_post_data.published
+
+  - name: "Unauthenticated user cannot create posts"
+    body: variables.admin_post_data
+    expect:
+      status: 403
+      json:
+        error: kind_of.string
+
+# SECTION 3: READING POSTS
+# This section tests retrieving posts with different users
+reading_posts:
+  variables:
+    admin_token:
+      transform.join:
+      - "Bearer "
+      - store.admin_auth.body.token
+    author_token:
+      transform.join:
+      - "Bearer "
+      - store.author_auth.body.token
+    commenter_token:
+      transform.join:
+      - "Bearer "
+      - store.commenter_auth.body.token
+  expectations:
+  - name: "List all published posts (unauthenticated)"
+    path: "/posts"
+    expect:
+      status: 200
+      json:
+        posts: kind_of.array
+        total: kind_of.integer
+
+  - name: "Admin can see all posts including drafts"
+    path: "/posts"
+    headers:
+      Authorization: variables.admin_token
+    expect:
+      status: 200
+      json:
+        posts:
+          matcher.include:
+            matcher.include:
+              title: store.draft_post.variables.draft_post_data.title
+
+  - name: "Regular user can only see published posts"
+    path: "/posts"
+    headers:
+      Authorization: variables.commenter_token
+    expect:
+      status: 200
+      json:
+        posts:
+          matcher.all:
+            matcher.include:
+              published: true
+
+  - name: "Author can view their own draft post"
+    path: "/posts/{id}"
+    query:
+      id: store.draft_post.body.post.id
+    headers:
+      Authorization: variables.author_token
+    expect:
+      status: 200
+      json:
+        post:
+          title: store.draft_post.variables.draft_post_data.title
+          published: false
+
+  - name: "Other users cannot view draft posts"
+    path: "/posts/{id}"
+    query:
+      id: store.draft_post.body.post.id
+    headers:
+      Authorization: variables.commenter_token
+    expect:
+      status: 403
+      json:
+        error: kind_of.string
+
+# SECTION 4: UPDATING POSTS
+# This section tests updating posts with different users
+updating_posts:
+  method: patch
+  variables:
+    updated_title: "Updated Post Title"
+    updated_content: "This content has been revised and updated."
+  expectations:
+  - name: "Author can update their own post"
+    path: "/posts/{id}"
+    query:
+      id: store.author_post.body.post.id
+    headers:
+      Authorization:
+        transform.join:
+        - "Bearer "
+        - store.author_auth.body.token
+    body:
+      title: variables.updated_title
+    expect:
+      status: 200
+      json:
+        post:
+          title: variables.updated_title
+          content: store.author_post.body.post.content
+
+  - name: "Admin can update any post"
+    path: "/posts/{id}"
+    query:
+      id: store.author_post.body.post.id
+    headers:
+      Authorization:
+        transform.join:
+        - "Bearer "
+        - store.admin_auth.body.token
+    body:
+      content: variables.updated_content
+    expect:
+      status: 200
+      json:
+        post:
+          title: variables.updated_title
+          content: variables.updated_content
+
+  - name: "Regular user cannot update another user's post"
+    path: "/posts/{id}"
+    query:
+      id: store.author_post.body.post.id
+    headers:
+      Authorization:
+        transform.join:
+        - "Bearer "
+        - store.commenter_auth.body.token
+    body:
+      title: "Attempted title change"
+    expect:
+      status: 403
+      json:
+        error: kind_of.string
+
+  - name: "Post can be published from draft"
+    path: "/posts/{id}"
+    query:
+      id: store.draft_post.body.post.id
+    headers:
+      Authorization:
+        transform.join:
+        - "Bearer "
+        - store.author_auth.body.token
+    body:
+      published: true
+    store_as: published_draft
+    expect:
+      status: 200
+      json:
+        post:
+          published: true
+
+# SECTION 5: ADDING COMMENTS
+# This section tests adding comments to posts
+commenting:
+  variables:
+    admin_comment: "This is a comment from the admin user."
+    author_comment: "This is a comment from the post author."
+    commenter_comment: "This is a comment from a regular user."
+  expectations:
+  - name: "Admin adds a comment to a post"
+    path: "/posts/{post_id}/comments"
+    method: post
+    query:
+      post_id: store.author_post.body.post.id
+    headers:
+      Authorization:
+        transform.join:
+        - "Bearer "
+        - store.admin_auth.body.token
+    body:
+      content: variables.admin_comment
+    store_as: admin_comment
+    expect:
+      status: 201
+      json:
+        comment:
+          content: variables.admin_comment
+          post_id: store.author_post.body.post.id
+
+  - name: "Author adds a comment to their own post"
+    path: "/posts/{post_id}/comments"
+    method: post
+    query:
+      post_id: store.author_post.body.post.id
+    headers:
+      Authorization:
+        transform.join:
+        - "Bearer "
+        - store.author_auth.body.token
+    body:
+      content: variables.author_comment
+    store_as: author_comment
+    expect:
+      status: 201
+      json:
+        comment:
+          content: variables.author_comment
+          post_id: store.author_post.body.post.id
+
+  - name: "Regular user adds a comment to a post"
+    path: "/posts/{post_id}/comments"
+    method: post
+    query:
+      post_id: store.author_post.body.post.id
+    headers:
+      Authorization:
+        transform.join:
+        - "Bearer "
+        - store.commenter_auth.body.token
+    body:
+      content: variables.commenter_comment
+    store_as: commenter_comment
+    expect:
+      status: 201
+      json:
+        comment:
+          content: variables.commenter_comment
+          post_id: store.author_post.body.post.id
+
+  - name: "Unauthenticated user cannot add comments"
+    path: "/posts/{post_id}/comments"
+    method: post
+    query:
+      post_id: store.author_post.body.post.id
+    body:
+      content: "Anonymous comment attempt"
+    expect:
+      status: 403
+      json:
+        error: kind_of.string
+
+# SECTION 6: READING COMMENTS
+# This section tests retrieving comments
+reading_comments:
+  path: "/posts/{post_id}/comments"
+  query:
+    post_id: store.author_post.body.post.id
+  expectations:
+  - name: "List all comments on a post"
+    expect:
+      status: 200
+      json:
+        comments:
+          matcher.include:
+          - content: store.admin_comment.variables.admin_comment
+          - content: store.admin_comment.variables.author_comment
+          - content: store.admin_comment.variables.commenter_comment
+        total: 3
+
+# SECTION 7: MANAGING COMMENTS
+# This section tests updating and deleting comments
+managing_comments:
+  variables:
+    updated_comment_text: "This comment has been updated."
+  expectations:
+  - name: "User can update their own comment"
+    path: "/comments/{id}"
+    method: patch
+    query:
+      id: store.commenter_comment.body.comment.id
+    headers:
+      Authorization:
+        transform.join:
+        - "Bearer "
+        - store.commenter_auth.body.token
+    body:
+      content: variables.updated_comment_text
+    expect:
+      status: 200
+      json:
+        comment:
+          content: variables.updated_comment_text
+
+  - name: "User cannot update another user's comment"
+    path: "/comments/{id}"
+    method: patch
+    query:
+      id: store.admin_comment.body.comment.id
+    headers:
+      Authorization:
+        transform.join:
+        - "Bearer "
+        - store.commenter_auth.body.token
+    body:
+      content: "Attempted comment modification"
+    expect:
+      status: 403
+      json:
+        error: kind_of.string
+
+  - name: "Admin can update any comment"
+    path: "/comments/{id}"
+    method: patch
+    query:
+      id: store.author_comment.body.comment.id
+    headers:
+      Authorization:
+        transform.join:
+        - "Bearer "
+        - store.admin_auth.body.token
+    body:
+      content: "Admin-modified comment"
+    store_as: admin_modified_comment
+    expect:
+      status: 200
+      json:
+        comment:
+          content: "Admin-modified comment"
+
+  - name: "User can delete their own comment"
+    path: "/comments/{id}"
+    method: delete
+    query:
+      id: store.commenter_comment.body.comment.id
+    headers:
+      Authorization:
+        transform.join:
+        - "Bearer "
+        - store.commenter_auth.body.token
+    expect:
+      status: 204
+
+  - name: "Post author can delete comments on their posts"
+    path: "/comments/{id}"
+    method: delete
+    query:
+      id: store.admin_modified_comment.body.comment.id
+    headers:
+      Authorization:
+        transform.join:
+        - "Bearer "
+        - store.author_auth.body.token
+    expect:
+      status: 204
+
+# SECTION 8: DELETING POSTS
+# This section tests deleting posts with proper authorization
+deleting_posts:
+  path: "/posts/{id}"
+  method: delete
+  expectations:
+  - name: "Regular user cannot delete another user's post"
+    query:
+      id: store.admin_post.body.post.id
+    headers:
+      Authorization:
+        transform.join:
+        - "Bearer "
+        - store.commenter_auth.body.token
+    expect:
+      status: 403
+      json:
+        error: kind_of.string
+
+  - name: "Author can delete their own post"
+    query:
+      id: store.published_draft.body.post.id
+    headers:
+      Authorization:
+        transform.join:
+        - "Bearer "
+        - store.author_auth.body.token
+    expect:
+      status: 204
+
+  - name: "Admin can delete any post"
+    query:
+      id: store.admin_post.body.post.id
+    headers:
+      Authorization:
+        transform.join:
+        - "Bearer "
+        - store.admin_auth.body.token
+    expect:
+      status: 204
+
+  - name: "Confirm post deletion"
+    path: "/posts/{id}"
+    method: get
+    query:
+      id: store.admin_post.body.post.id
+    expect:
+      status: 404
+      json:
+        error: kind_of.string

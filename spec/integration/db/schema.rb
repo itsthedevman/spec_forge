@@ -23,6 +23,26 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_09_034009) do
     t.index ["user_id"], name: "index_api_tokens_on_user_id"
   end
 
+  create_table "comments", force: :cascade do |t|
+    t.text "content", null: false
+    t.bigint "post_id", null: false
+    t.bigint "user_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["post_id"], name: "index_comments_on_post_id"
+    t.index ["user_id"], name: "index_comments_on_user_id"
+  end
+
+  create_table "posts", force: :cascade do |t|
+    t.string "title", null: false
+    t.text "content", null: false
+    t.boolean "published", default: false
+    t.bigint "user_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_posts_on_user_id"
+  end
+
   create_table "users", force: :cascade do |t|
     t.string "name", null: false
     t.string "email", null: false
@@ -34,4 +54,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_09_034009) do
   end
 
   add_foreign_key "api_tokens", "users"
+  add_foreign_key "comments", "posts"
+  add_foreign_key "comments", "users"
+  add_foreign_key "posts", "users"
 end

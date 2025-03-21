@@ -1,0 +1,7 @@
+post:
+  class: Post
+  attributes:
+    title: faker.lorem.sentence
+    content: faker.lorem.paragraphs
+    published: true
+    user: factories.user

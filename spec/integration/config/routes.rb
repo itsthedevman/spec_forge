@@ -19,4 +19,12 @@ Rails.application.routes.draw do
   # Data routes
   get "/data/types", to: "data#types"
   get "/data/users", to: "data#users"
+
+  # Posts with nested comments
+  resources :posts do
+    resources :comments, only: [:index, :create]
+  end
+
+  # Comments standalone routes for update/delete
+  resources :comments, only: [:update, :destroy]
 end
