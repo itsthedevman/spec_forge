@@ -50,9 +50,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added new `Filter` class for more flexible test filtering
 - Added normalizer for global context validation
 - Added line number tracking for specs and expectations
-- Added new `Runner::Callbacks` class to handle various events while specs are running
-- Added new `Runner::Metadata` class to handle setting example metadata for error reporting
-- Added support for defining and retrieving stored test data via the `store_as` directive and `store` attribute
+- Added support for defining and referencing callbacks
+  ```ruby
+  # Configuration level
+  SpecForge.configure do |config|
+    config.register_callback("callback_name") { |context| }
+    # These are aliases
+    # config.define_callback("callback_name") { |context| }
+    # config.callback("callback_name") { |context| }
+  end
+
+  # Module level (no aliases)
+  SpecForge.register_callback("callback_name") { |context| }
+  ```
+  Once defined, callbacks can be referenced in spec files via the global context
+  ```yaml
+  global:
+    callbacks:
+    - before: callback_name
+      after: cleanup_database_state
+  ```
+- Added support for storing and retrieving test data via the `store_as` directive and `store` attribute
   ```yaml
   create_user:
     path: "/users"
@@ -72,33 +90,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - expect:
         status: 200
   ```
-- Added new error `UndefinedMatcherError` that gets raised when the provided matcher doesn't exist
-- Added new debug methods to `DebugProxy` to make troubleshooting easier:
-  - `example_group` for accessing the RSpec example group
-  - `match_status` for seeing the resolved matcher for status
-  - `match_json` for seeing the resolved matcher for json
-- Added more integration tests for better coverage
-- Added support for callbacks
-- Define callbacks at configuration level or module level:
-  ```ruby
-  # Configuration level
-  SpecForge.configure do |config|
-    config.register_callback("callback_name") { |context| }
-    # These are aliases
-    # config.define_callback("callback_name") { |context| }
-    # config.callback("callback_name") { |context| }
-  end
-
-  # Module level (no aliases)
-  SpecForge.register_callback("callback_name") { |context| }
-  ```
-- Use callbacks in YAML:
-  ```yaml
-  global:
-    callbacks:
-      - before: prepare_database_state
-        after: cleanup_database_state
-  ```
+- Added `UndefinedMatcherError` for clearer error messaging when invalid matchers are used
+- Enhanced debugging capabilities with improved DebugProxy methods and store access
+- Added HTTP status descriptions for better error messages
+- Added support for string values in `query`, `body`, and `variables` attributes
+- Added print statement when filtering tests for better visibility
 
 ### Changed
 
@@ -110,22 +106,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added `Attribute#resolve_as_matcher` for resolving attributes into RSpec matchers
 - Refactored variable resolution to use the new context system
 - Updated `Runner` to properly initialize and manage context between tests
-- Improved error messages with more context about the execution environment
+- Improved error messages with more contextual information about the execution environment
 - Updated YARD comments with better API descriptions and examples
 - Restructured internal architecture for better separation of concerns
 - Moved all error classes under `SpecForge::Error`
 - Fixed issue where nesting expanded matchers (such as `matcher.include`) would cause an error
-- Changed how response bodies are validated against hash expectations:
-  - Before: The entire hash was checked using a single `include` matcher
-  - Now: Each key at the root level is checked individually, giving more precise error messages when tests fail
+- Improved response body validation for hash expectations:
+  - Each root-level key is now checked individually for more precise error messages
   - Nested hashes still use the `include` matcher for flexibility
 - Adjusted `Attribute::Matcher` to accept either `matcher` or `matchers` namespace
 - Changed empty array matcher from using `contain_exactly` to `eq([])`
 - Changed empty hash matcher from using `include` to `eq({})`
 - Changed `forge_and` description from "matches all of:" to "match all:"
+- Improved error handling for chainable attributes with better descriptions for various object types
+- Limited error backtrace to 50 lines for cleaner output
+- Enhanced spec loading error messages with more detailed information
+- Improved RSpec example descriptions for better test output
+- Added support for overwriting headers at the request level
 
-### Removed
-
+## Removed
 
 ## [0.5.0] - 12025-02-28
 
