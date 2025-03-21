@@ -136,6 +136,9 @@ module SpecForge
       # @private
       #
       def extract_line_numbers(content, input_hash)
+        # I hate this code, lol, and it hates me.
+        # I've tried to make it better, I've tried to clean it up, but every time I break it.
+        # If you know how to make this better, please submit a PR and save me.
         spec_names = input_hash.keys
         keys = {}
 
@@ -180,9 +183,7 @@ module SpecForge
           end
 
           # Found an expectation item
-          if expectations_line &&
-              clean_line.start_with?("#{" " * expectations_indent}- ") &&
-              !clean_line.start_with?("#{" " * expectations_indent}-#")
+          if expectations_line && clean_line.start_with?("#{" " * expectations_indent}- ")
             keys[current_spec_name] << line_number
           end
         end
