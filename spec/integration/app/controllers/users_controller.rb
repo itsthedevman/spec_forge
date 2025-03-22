@@ -3,6 +3,8 @@
 class UsersController < ApplicationController
   # GET /users
   def index
+    return unless validate_numeric_param(:limit)
+
     # Get the limit parameter with a default of all users
     limit = params[:limit].present? ? params[:limit].to_i : User.count
 

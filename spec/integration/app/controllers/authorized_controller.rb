@@ -7,9 +7,13 @@ class AuthorizedController < ApplicationController
 
   private
 
-  def verify_token
+  def verify_token(allow_unauthorized: false)
     authorization_header = request.headers[:Authorization]
-    return render_forbidden if authorization_header.blank?
+
+    if authorization_header.blank?
+      return if allow_unauthorized
+      return render_forbidden
+    end
 
     token = authorization_header.delete_prefix("Bearer ")
     return render_forbidden if token.blank?

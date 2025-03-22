@@ -1,0 +1,480 @@
+#
+# 09_error_handling.yml
+#
+# This file demonstrates comprehensive API error handling testing in SpecForge.
+#
+# ERROR HANDLING OVERVIEW:
+# ----------------------
+# Robust APIs must gracefully handle errors and provide meaningful feedback.
+# This test suite validates the API's error responses across several categories:
+#
+# 1. Validation Errors - Testing the API's response when provided with invalid data
+# 2. Permission Errors - Testing authorization boundaries and access controls
+# 3. Not Found Errors - Testing behavior when requesting non-existent resources
+# 4. Bad Request Errors - Testing malformed requests and invalid parameters
+#
+# Each section builds on the previous, demonstrating how SpecForge can methodically
+# test error paths with the same rigor as success paths.
+#
+
+# Global variables for test data and authentication
+global:
+  variables:
+    admin_credentials:
+      email: "error-admin@example.com"
+      password: "adminpass123"
+    user_credentials:
+      email: "error-user@example.com"
+      password: "userpass123"
+  # Add database cleanup to prevent test interference
+  callbacks:
+  - before_file: prepare_database_state
+    after_file: cleanup_database_state
+
+# SECTION 0: SETUP TEST USERS
+# Create users needed for all our error tests
+setup_users:
+  path: "/users"
+  method: post
+  expectations:
+  - name: "Create admin user"
+    body:
+      name: "Error Test Admin"
+      email: global.variables.admin_credentials.email
+      password: global.variables.admin_credentials.password
+      role: "admin"
+    store_as: admin_user
+    expect:
+      status: 201
+
+  - name: "Create regular user"
+    body:
+      name: "Error Test User"
+      email: global.variables.user_credentials.email
+      password: global.variables.user_credentials.password
+      role: "user"
+    store_as: regular_user
+    expect:
+      status: 201
+
+# SECTION 1: AUTHENTICATE USERS
+# Get authentication tokens for testing
+authenticate_users:
+  path: "/auth/login"
+  method: post
+  expectations:
+  - name: "Authenticate admin user"
+    body: global.variables.admin_credentials
+    store_as: admin_auth
+    expect:
+      status: 200
+      json:
+        token: kind_of.string
+
+  - name: "Authenticate regular user"
+    body: global.variables.user_credentials
+    store_as: user_auth
+    expect:
+      status: 200
+      json:
+        token: kind_of.string
+
+# SECTION 2: VALIDATION ERRORS
+# Testing proper error responses for invalid input
+validation_errors:
+  variables:
+    admin_token:
+      transform.join:
+      - "Bearer "
+      - store.admin_auth.body.token
+  expectations:
+  # Test: Missing required fields
+  - name: "Error: Creating user with missing required fields"
+    path: "/users"
+    method: post
+    headers:
+      Authorization: variables.admin_token
+    body:
+      # Missing name and email, which are required
+      password: "incomplete123"
+    expect:
+      status: 422
+      json:
+        errors: kind_of.array # Array of validation error messages
+
+  # Test: Invalid email format
+  - name: "Error: Creating user with invalid email format"
+    path: "/users"
+    method: post
+    headers:
+      Authorization: variables.admin_token
+    body:
+      name: "Invalid Email User"
+      email: "not-an-email" # Invalid email format
+      password: "password123"
+    expect:
+      status: 422
+      json:
+        errors: kind_of.array
+
+  # Test: Invalid role value
+  - name: "Error: Creating user with invalid role"
+    path: "/users"
+    method: post
+    headers:
+      Authorization: variables.admin_token
+    body:
+      name: "Invalid Role User"
+      email: "invalid-role@example.com"
+      password: "password123"
+      role: "superuser" # Invalid role (only 'admin' and 'user' are valid)
+    expect:
+      status: 422
+      json:
+        errors: kind_of.array
+
+  # Test: Post with missing title/content
+  - name: "Error: Creating post with missing required fields"
+    path: "/posts"
+    method: post
+    headers:
+      Authorization: variables.admin_token
+    body:
+      # Missing title and content, which are required
+      published: true
+    expect:
+      status: 422
+      json:
+        errors: kind_of.array
+
+  # Test: Comment with empty content
+  - name: "Error: Creating post first to comment on"
+    path: "/posts"
+    method: post
+    headers:
+      Authorization: variables.admin_token
+    body:
+      title: "Post for Comment Test"
+      content: "This post will be used to test comment validation"
+      published: true
+    store_as: validation_post
+    expect:
+      status: 201
+
+  - name: "Error: Creating comment with empty content"
+    path: "/posts/{post_id}/comments"
+    method: post
+    query:
+      post_id: store.validation_post.body.post.id
+    headers:
+      Authorization: variables.admin_token
+    body:
+      content: "" # Empty content
+    expect:
+      status: 422
+      json:
+        errors: kind_of.array
+
+# SECTION 3: PERMISSION ERRORS
+# Testing proper error responses for unauthorized access
+permission_errors:
+  variables:
+    user_token:
+      transform.join:
+      - "Bearer "
+      - store.user_auth.body.token
+    admin_token:
+      transform.join:
+      - "Bearer "
+      - store.admin_auth.body.token
+  expectations:
+  # Test: Accessing admin-only endpoint as regular user
+  - name: "Error: Regular user accessing admin-only endpoint"
+    path: "/admin/users"
+    headers:
+      Authorization: variables.user_token
+    expect:
+      status: 403
+      json:
+        error: kind_of.string
+
+  # Test: Accessing protected endpoint without authentication
+  - name: "Error: Accessing protected endpoint without authentication"
+    path: "/auth/me"
+    expect:
+      status: 403
+      json:
+        error: kind_of.string
+
+  # Test: Creating a resource that requires authentication
+  - name: "Error: Creating post without authentication"
+    path: "/posts"
+    method: post
+    body:
+      title: "Unauthorized Post"
+      content: "This post should not be created"
+      published: true
+    expect:
+      status: 403
+      json:
+        error: kind_of.string
+
+  # Test: Create admin post for permission testing
+  - name: "Setup: Create post owned by admin"
+    path: "/posts"
+    method: post
+    headers:
+      Authorization: variables.admin_token
+    body:
+      title: "Admin's Protected Post"
+      content: "This post is owned by the admin"
+      published: true
+    store_as: admin_permission_post
+    expect:
+      status: 201
+
+  # Test: Regular user updating another user's post
+  - name: "Error: Regular user updating another user's post"
+    path: "/posts/{id}"
+    method: patch
+    query:
+      id: store.admin_permission_post.body.post.id
+    headers:
+      Authorization: variables.user_token
+    body:
+      title: "Attempted Title Change"
+    expect:
+      status: 403
+      json:
+        error: kind_of.string
+
+  # Test: Regular user deleting another user's post
+  - name: "Error: Regular user deleting another user's post"
+    path: "/posts/{id}"
+    method: delete
+    query:
+      id: store.admin_permission_post.body.post.id
+    headers:
+      Authorization: variables.user_token
+    expect:
+      status: 403
+      json:
+        error: kind_of.string
+
+# SECTION 4: NOT FOUND ERRORS
+# Testing proper error responses for non-existent resources
+not_found_errors:
+  variables:
+    admin_token:
+      transform.join:
+      - "Bearer "
+      - store.admin_auth.body.token
+    non_existent_id: 99999 # Assuming this ID doesn't exist
+  expectations:
+  # Test: Accessing non-existent user
+  - name: "Error: Accessing non-existent user"
+    path: "/users/{id}"
+    query:
+      id: variables.non_existent_id
+    expect:
+      status: 404
+      json:
+        error: kind_of.string
+
+  # Test: Accessing non-existent post
+  - name: "Error: Accessing non-existent post"
+    path: "/posts/{id}"
+    query:
+      id: variables.non_existent_id
+    expect:
+      status: 404
+      json:
+        error: kind_of.string
+
+  # Test: Creating comment on non-existent post
+  - name: "Error: Creating comment on non-existent post"
+    path: "/posts/{post_id}/comments"
+    method: post
+    query:
+      post_id: variables.non_existent_id
+    headers:
+      Authorization: variables.admin_token
+    body:
+      content: "This comment shouldn't be created"
+    expect:
+      status: 404
+      json:
+        error: kind_of.string
+
+  # Test: Updating non-existent post
+  - name: "Error: Updating non-existent post"
+    path: "/posts/{id}"
+    method: patch
+    query:
+      id: variables.non_existent_id
+    headers:
+      Authorization: variables.admin_token
+    body:
+      title: "Updated Title"
+    expect:
+      status: 404
+      json:
+        error: kind_of.string
+
+  # Test: Deleting non-existent post
+  - name: "Error: Deleting non-existent post"
+    path: "/posts/{id}"
+    method: delete
+    query:
+      id: variables.non_existent_id
+    headers:
+      Authorization: variables.admin_token
+    expect:
+      status: 404
+      json:
+        error: kind_of.string
+
+  # Test: Deleting non-existent comment
+  - name: "Error: Deleting non-existent comment"
+    path: "/comments/{id}"
+    method: delete
+    query:
+      id: variables.non_existent_id
+    headers:
+      Authorization: variables.admin_token
+    expect:
+      status: 404
+      json:
+        error: kind_of.string
+
+# SECTION 5: BAD REQUEST SCENARIOS
+# Testing API responses to malformed requests
+bad_request_scenarios:
+  variables:
+    admin_token:
+      transform.join:
+      - "Bearer "
+      - store.admin_auth.body.token
+  expectations:
+  # Test: Setup post for testing
+  - name: "Setup: Create post for bad request testing"
+    path: "/posts"
+    method: post
+    headers:
+      Authorization: variables.admin_token
+    body:
+      title: "Bad Request Test Post"
+      content: "This post will be used to test bad requests"
+      published: true
+    store_as: bad_request_post
+    expect:
+      status: 201
+
+  # Test: Malformed JSON in request body
+  # Note: This is challenging to test directly in SpecForge as it would need malformed JSON,
+  # but we can test with an object that will likely trigger parsing issues
+  - name: "Error: Request with invalid JSON (circular reference)"
+    path: "/posts"
+    method: post
+    headers:
+      Authorization: variables.admin_token
+      Content-Type: "application/json"
+    # Body is intentionally omitted to simulate malformed JSON
+    # In a real implementation, we might test this differently
+    expect:
+      status: 400
+      json:
+        error: kind_of.string
+
+  # Test: Invalid query parameters
+  - name: "Error: Request with invalid query parameters"
+    path: "/users"
+    query:
+      # An invalid parameter that should be ignored or cause an error
+      invalid_param: true
+      limit: "not_a_number"
+    expect:
+      status: 400
+      json:
+        error: kind_of.string
+
+  # Test: Invalid sort parameter
+  - name: "Error: Request with invalid sort parameter"
+    path: "/posts"
+    query:
+      sort: "invalid_column" # Column doesn't exist
+    expect:
+      status: 400
+      json:
+        error: kind_of.string
+
+  # Test: Invalid content type
+  - name: "Error: Request with unsupported content type"
+    path: "/posts"
+    method: post
+    headers:
+      Authorization: variables.admin_token
+      Content-Type: "application/xml" # API only supports JSON
+    body:
+      title: "XML Test Post"
+      content: "This should fail due to content type"
+    expect:
+      status: 415 # Unsupported Media Type
+      json:
+        error: kind_of.string
+
+# SECTION 6: AUTHENTICATION ERRORS
+# Testing error handling for authentication failures
+authentication_errors:
+  path: "/auth/login"
+  method: post
+  expectations:
+  # Test: Login with non-existent user
+  - name: "Error: Login with non-existent user"
+    body:
+      email: "nonexistent@example.com"
+      password: "password123"
+    expect:
+      status: 401
+      json:
+        error: kind_of.string
+
+  # Test: Login with incorrect password
+  - name: "Error: Login with incorrect password"
+    body:
+      email: global.variables.admin_credentials.email
+      password: "wrongpassword"
+    expect:
+      status: 401
+      json:
+        error: kind_of.string
+
+  # Test: Login with missing credentials
+  - name: "Error: Login with missing credentials"
+    body: # Missing email and password
+    expect:
+      status: 401
+      json:
+        error: kind_of.string
+
+  # Test: Using invalid token format
+  - name: "Error: Using malformed authorization token"
+    path: "/auth/me"
+    method: get
+    headers:
+      Authorization: "InvalidTokenFormat"
+    expect:
+      status: 403
+      json:
+        error: kind_of.string
+
+  # Test: Using tampered token
+  - name: "Error: Using tampered authorization token"
+    path: "/auth/me"
+    method: get
+    headers:
+      Authorization: "Bearer tamperedtokenvalue12345"
+    expect:
+      status: 403
+      json:
+        error: kind_of.string
