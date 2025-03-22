@@ -19,7 +19,11 @@ class ApplicationController < ActionController::API
     unless valid_types.include?(request.content_type.to_s.split(";").first.downcase)
       render json: {error: "Unsupported media type. Please use JSON."},
         status: :unsupported_media_type
+
+      return false  # Ensure we stop execution after rendering
     end
+
+    true
   end
 
   def validate_numeric_param(param_name)
