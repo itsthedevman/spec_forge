@@ -7,6 +7,9 @@ class PostsController < AuthorizedController
   def index
     verify_token(allow_unauthorized: true)
 
+    allowed_sort_columns = ["created_at", "title", "updated_at"]
+    return unless validate_sort_param(:sort, allowed_sort_columns)
+
     # Handle filtering
     posts = if params[:user_id].present?
       Post.where(user_id: params[:user_id])

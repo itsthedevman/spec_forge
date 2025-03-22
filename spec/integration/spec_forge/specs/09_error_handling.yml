@@ -460,6 +460,7 @@ authentication_errors:
   # Test: Using invalid token format
   - name: "Error: Using malformed authorization token"
     path: "/auth/me"
+    method: get
     headers:
       Authorization: "InvalidTokenFormat"
     expect:
@@ -470,6 +471,7 @@ authentication_errors:
   # Test: Using tampered token
   - name: "Error: Using tampered authorization token"
     path: "/auth/me"
+    method: get
     headers:
       Authorization: "Bearer tamperedtokenvalue12345"
     expect:
