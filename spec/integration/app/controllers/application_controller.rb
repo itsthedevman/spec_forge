@@ -47,4 +47,30 @@ class ApplicationController < ActionController::API
 
     true
   end
+
+  def validate_boolean_param(param_name)
+    return true unless params[param_name].present?
+
+    value = params[param_name].to_s.downcase
+    valid_values = ["true", "false", "1", "0", "yes", "no"]
+
+    unless valid_values.include?(value)
+      render_bad_request("#{param_name.to_s.humanize} must be a boolean value")
+      return false
+    end
+
+    true
+  end
+
+  def validate_direction_param(param_name)
+    return true unless params[param_name].present?
+
+    valid_directions = ["asc", "desc"]
+    unless valid_directions.include?(params[param_name].to_s.downcase)
+      render_bad_request("#{param_name.to_s.humanize} must be one of: #{valid_directions.join(", ")}")
+      return false
+    end
+
+    true
+  end
 end

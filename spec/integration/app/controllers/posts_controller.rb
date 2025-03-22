@@ -7,27 +7,52 @@ class PostsController < AuthorizedController
   def index
     verify_token(allow_unauthorized: true)
 
+    # Validate parameters
     allowed_sort_columns = ["created_at", "title", "updated_at"]
     return unless validate_sort_param(:sort, allowed_sort_columns)
+    return unless validate_direction_param(:direction) # Add this line!
+    return unless validate_boolean_param(:published)
+    return unless validate_numeric_param(:limit)
+    return unless validate_numeric_param(:offset)
+    return unless validate_numeric_param(:user_id)
 
-    # Handle filtering
-    posts = if params[:user_id].present?
-      Post.where(user_id: params[:user_id])
-    else
-      Post.all
+    # Start with all posts
+    posts_scope = Post.all.includes(:user)
+
+    # Apply filters
+    # User filter
+    posts_scope = posts_scope.where(user_id: params[:user_id]) if params[:user_id].present?
+
+    # Title filter - if implemented
+    posts_scope = posts_scope.where("title ILIKE ?", "%#{params[:title]}%") if params[:title].present?
+
+    # Published filter
+    if params[:published].present?
+      published = ActiveModel::Type::Boolean.new.cast(params[:published])
+      posts_scope = posts_scope.where(published: published)
+    elsif current_user.nil? || current_user.role != "admin"
+      # Default: non-admins see only published posts
+      posts_scope = posts_scope.where(published: true)
     end
 
-    # Handle published filter
-    posts = posts.where(published: true) if current_user.nil? || current_user.role != "admin"
+    # Get total count before pagination
+    total_count = posts_scope.count
 
-    # Handle pagination (simple version)
+    # Apply sorting
+    if params[:sort].present?
+      direction = (params[:direction]&.downcase == "desc") ? :desc : :asc
+      posts_scope = posts_scope.order(params[:sort] => direction)
+    end
+
+    # Apply pagination
     limit = params[:limit].present? ? params[:limit].to_i : 10
     offset = params[:offset].present? ? params[:offset].to_i : 0
-    posts = posts.limit(limit).offset(offset)
+    posts_scope = posts_scope.limit(limit).offset(offset)
 
+    # Load and format the results
     render json: {
-      total: posts.count,
-      posts: posts.map { |post| post_to_json(post) }
+      total: total_count,
+      posts: posts_scope.map { |post| post_to_json(post) }
     }
   end
 
