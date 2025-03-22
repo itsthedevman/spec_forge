@@ -8,31 +8,97 @@ RAILS_PID_FILE="tmp/pids/server.pid"
 TIMEOUT=${TIMEOUT:-30}
 PORT=${PORT:-3000}
 SPEC_FORGE_ARGS="$@"
+CONTINUE_RUNNING_SERVER="false"
+
+# Check if Rails server is already running elsewhere
+check_running_server() {
+    # Check for any running Rails server processes
+    local other_servers=$(ps aux | grep -v grep | grep -E "[r]ails\ss|[p]uma" | wc -l)
+
+    if [ $other_servers -gt 0 ]; then
+        echo "⚠️  WARNING: Detected $other_servers running Rails server(s)!"
+        echo "This might cause your tests to connect to the wrong server."
+        echo "Please stop all other Rails servers before running tests."
+        echo ""
+        echo "Running processes:"
+        ps aux | grep -v grep | grep -E "[r]ails\ss|[p]uma"
+        echo ""
+        echo "Options:"
+        echo "1) Continue anyway"
+        echo "2) Kill running servers and continue"
+        echo "3) Abort"
+        echo ""
+        read -p "Enter your choice (1-3): " choice
+
+        case "$choice" in
+        1)
+            echo "Continuing with tests..."
+            CONTINUE_RUNNING_SERVER="true"
+            ;;
+        2)
+            echo "Killing running servers..."
+            pkill -9 -f "puma" || true
+            sleep 1
+            ;;
+        *)
+            echo "Aborting tests."
+            exit 0
+            ;;
+        esac
+    fi
+}
 
 # Function to clean up resources
 cleanup() {
     echo ""
     echo "Cleaning up resources..."
 
-    # Check if Rails server is running and stop it
+    # Nuclear option - kill all puma processes for this directory
+    echo "Stopping any Rails servers..."
+    pkill -9 -f "puma .* \[integration\]" || true
+
+    # Clean up the PID file if it exists (just for good measure)
     if [ -f "$RAILS_PID_FILE" ]; then
-        echo "Stopping Rails server..."
-        kill -INT $(cat "$RAILS_PID_FILE") 2>/dev/null || true
         rm -f "$RAILS_PID_FILE" 2>/dev/null || true
-        echo "Rails server stopped."
     fi
 
     echo "Cleanup complete."
 }
 
-# Set up cleanup on script exit
-trap cleanup EXIT INT TERM
+# We need separate handlers for different signals
+exit_handler() {
+    if [ "$CONTINUE_RUNNING_SERVER" = "false" ]; then
+        cleanup
+    fi
+
+    # Normal exit
+}
+
+interrupt_handler() {
+    if [ "$CONTINUE_RUNNING_SERVER" = "false" ]; then
+        cleanup
+    fi
+
+    echo "Test run interrupted by user."
+
+    # Remove all traps to prevent cascading
+    trap - EXIT INT TERM
+
+    exit 1
+}
 
 # Make sure we're in the Rails root directory
 if [ ! -f "./config/application.rb" ]; then
     echo "Error: Must be run from the Rails application root directory."
     exit 1
 fi
+
+# Check for already running servers
+check_running_server
+
+# Set up different trap handlers
+trap exit_handler EXIT
+trap interrupt_handler INT TERM
 
 # Start Rails server
 echo "Starting Rails server..."
