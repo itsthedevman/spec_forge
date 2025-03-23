@@ -36,22 +36,24 @@ module SpecForge
       #
       # Creates a new Request with standardized headers and values
       #
-      # @param base_url [String] The base URL for the request
-      # @param url [String] The path portion of the URL
-      # @param http_verb [String, Symbol] The HTTP method (GET, POST, etc.)
-      # @param headers [Hash] HTTP headers for the request
-      # @param query [Hash] Query parameters to include
-      # @param body [Hash] Request body data
+      # @param base_url [String, nil] The base URL for the request
+      # @param url [String, nil] The path portion of the URL
+      # @param http_verb [String, Symbol, nil] The HTTP method (GET, POST, etc.)
+      # @param headers [Hash, nil] HTTP headers for the request
+      # @param query [Hash, nil] Query parameters to include
+      # @param body [Hash, nil] Request body data
       #
       # @return [Request] A new immutable request object
       #
-      def initialize(base_url:, url:, http_verb:, headers:, query:, body:)
-        http_verb = Verb.from(http_verb.presence || "GET")
-        query = Attribute.from(query)
-        body = Attribute.from(body)
-        headers = normalize_headers(headers)
+      def initialize(**options)
+        base_url = options[:base_url] || ""
+        url = options[:url] || ""
+        http_verb = Verb.from(options[:http_verb].presence || "GET")
+        query = Attribute.from(options[:query] || {})
+        body = Attribute.from(options[:body] || {})
+        headers = normalize_headers(options[:headers] || {})
 
-        super
+        super(base_url:, url:, http_verb:, headers:, query:, body:)
       end
 
       #
