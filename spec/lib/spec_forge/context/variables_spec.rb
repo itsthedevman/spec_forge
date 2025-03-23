@@ -31,5 +31,17 @@ RSpec.describe SpecForge::Context::Variables do
         expect(variables).to match(var_1: 1, var_2: 2)
       end
     end
+
+    context "when the value is blank" do
+      let(:base) { {var_1: "Something"} }
+      let(:overlay) { {overlay_1: {var_1: ""}} }
+
+      it "is expected to overwrite the base value" do
+        expect(variables).to match(var_1: "Something")
+
+        variables.use_overlay(:overlay_1)
+        expect(variables).to match(var_1: "")
+      end
+    end
   end
 end

@@ -68,7 +68,7 @@ module SpecForge
         active = @base
 
         if (overlay = @overlay[id]) && overlay.present?
-          active = Configuration.overlay_options(active, overlay)
+          active = active.deep_merge(overlay)
         end
 
         resolve_into_self(active)
