@@ -24,17 +24,17 @@ module SpecForge
       line_number: {type: Integer},
       base_url: {
         type: String,
-        default: ""
+        default: nil
       },
       url: {
         type: String,
         aliases: %i[path],
-        default: ""
+        default: nil
       },
       http_verb: {
         type: String,
         aliases: %i[method http_method],
-        default: "", # Do not default this to "GET". Leave it blank. Seriously.
+        default: nil, # Do not default this to "GET". Leave it nil. Seriously.
         validator: lambda do |value|
           valid_verbs = HTTP::Verb::VERBS.values
           return if value.blank? || valid_verbs.include?(value.to_s.upcase)
@@ -190,16 +190,20 @@ module SpecForge
     # @return [Hash] A hash with default values for all structure keys
     #
     def default
-      structure.transform_values do |value|
-        if value.key?(:default)
-          value[:default].dup
-        elsif value[:type] == Integer # Can't call new on int
-          0
-        elsif value[:type] == Proc # Sameeee
-          -> {}
-        else
-          value[:type].new
-        end
+      structure.each_with_object({}) do |(key, value), hash|
+        hash[key] =
+          if value.key?(:default)
+            default = value[:default]
+            next if default.nil?
+
+            default.dup
+          elsif value[:type] == Integer # Can't call new on int
+            0
+          elsif value[:type] == Proc # Sameeee
+            -> {}
+          else
+            value[:type].new
+          end
       end
     end
 
@@ -219,13 +223,16 @@ module SpecForge
         type_class = attribute[:type]
         aliases = attribute[:aliases] || []
         default = attribute[:default]
-        required = !attribute.key?(:default)
+
+        has_default = attribute.key?(:default)
+        nilable = has_default && default.nil?
 
         # Get the value
         value = value_from_keys(input, [key] + aliases)
+        next if nilable && value.nil?
 
         # Default the value if needed
-        value = default.dup if !required && value.nil?
+        value = default.dup if has_default && value.nil?
 
         # Type + existence check
         if !valid_class?(value, type_class)

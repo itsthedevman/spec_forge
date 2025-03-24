@@ -126,6 +126,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Removed
 
+- Removed `Configuration.overlay_options`
+
 ## [0.5.0] - 12025-02-28
 
 ### Added

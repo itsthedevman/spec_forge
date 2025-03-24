@@ -224,7 +224,7 @@ module SpecForge
         normalized_spec, _errors = Normalizer.new("", spec_hash, structure:).normalize
         normalized_expectation, _errors = Normalizer.new("", expectation_hash, structure:).normalize
 
-        request_data = Configuration.overlay_options(normalized_spec, normalized_expectation)
+        request_data = normalized_spec.deep_merge(normalized_expectation)
 
         url = request_data[:url]
         http_verb = request_data[:http_verb].presence || "GET"

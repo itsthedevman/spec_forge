@@ -9,27 +9,45 @@
 Write API tests in YAML that read like documentation:
 
 ```yaml
-user_profile:
-  path: /users/1
+show_user:
+  path: /users/{id}
+  variables:
+    expected_status: 200
+    user_id: 1
+  query:
+    id: variables.user_id
   expectations:
   - expect:
-      status: 200
+      status: variables.expected_status
       json:
         name: kind_of.string
-        email: /@/
+        email:
+          matcher.and:
+          - kind_of.string
+          - /@/
 ```
 
 That's a complete test. No Ruby code, no configuration files, no HTTP client setup - just a clear description of what you're testing. Under the hood, you get all the power of RSpec's matchers, Faker's data generation, and FactoryBot's test objects.
 
 ## Why SpecForge?
 
-SpecForge shines when you need:
+1. **Living Documentation**: Your tests should serve as clear, readable documentation of your API's behavior.
+2. **Reduce Boilerplate**: Write tests without repetitive setup code and HTTP configuration.
+3. **Quick Setup**: Start testing APIs in minutes instead of spending hours on test infrastructure.
+4. **Gradual Adoption**: Use alongside your existing test suite, introducing it incrementally where it makes sense.
+5. **Developer & QA Collaboration**: Create a testing format that everyone can understand and maintain, regardless of Ruby expertise.
 
-1. **Living Documentation**: Tests serve as clear, maintainable documentation of your API's expected behavior.
-2. **Power Without Complexity**: Get the benefits of Ruby-based tests (dynamic data, factories, matchers) without writing Ruby code.
-3. **Quick Setup**: Start testing APIs without configuring HTTP clients or writing boilerplate code.
-4. **Gradual Adoption**: Use alongside your existing test suite. Keep complex tests in RSpec while making simple API tests more accessible.
-5. **Accessible API Testing**: Non-developers can write and maintain tests without Ruby knowledge. The YAML syntax reads like documentation.
+## Key Features
+
+- **YAML-Based Tests**: Write clear, declarative tests that read like documentation
+- **RSpec Integration**: Leverage all the power of RSpec matchers and expectations
+- **FactoryBot Integration**: Generate test data with FactoryBot integration
+- **Faker Integration**: Create realistic test data with Faker
+- **Variable System**: Define and reference variables for dynamic test data
+- **Context Storage**: Store API responses and reference them in subsequent tests
+- **Compound Matchers**: Combine multiple validations with `matcher.and` for precise expectations
+- **Global Variables**: Define shared configuration at the file level
+- **Callback System**: Hook into the test lifecycle using Ruby for setup, teardown, and much more!
 
 ## When Not to Use SpecForge
 
@@ -93,22 +111,9 @@ For comprehensive documentation, visit the [SpecForge Wiki](https://github.com/i
 
 Also see the [API Documentation](https://itsthedevman.com/docs/spec_forge).
 
-## Roadmap
+## Future Development
 
-Current development priorities:
-
-- [ ] Negated matcher: `matcher.not`
-- [ ] Compound matcher: `matcher.and`
-- [ ] Size matcher: `matcher.size`
-- [ ] Map transform: `transform.map`
-- [ ] XML/HTML response handling
-- [ ] OpenAPI generation from tests
-- [x] ~~`create_list/build_list` factory strategies~~ (Released in v0.5.0)
-- [x] ~~Array support for `json` expectations~~ (Released in v0.5.0)
-- [x] ~~Support for running individual specs~~ (Released in v0.4.0)
-- [x] ~~Improved error reporting~~ (Released in v0.4.0)
-
-Have a feature request? Open an issue on GitHub!
+For the latest development priorities and feature ideas, check out our [Github Project](https://github.com/itsthedevman/spec_forge/projects?query=is%3Aopen). Have a feature request? Open an issue on GitHub!
 
 ## Contributing
 

@@ -76,7 +76,7 @@ module SpecForge
                     request = request_data[:base]
 
                     if (overlay = request_data[:overlay][expectation.id])
-                      request = request.merge(overlay)
+                      request = request.deep_merge(overlay)
                     end
 
                     HTTP::Request.new(**request)

@@ -160,7 +160,8 @@ module SpecForge
         overlay.reject! { |_k, v| v.blank? }
 
         base = spec.extract!(*HTTP::REQUEST_ATTRIBUTES)
-        base = Configuration.overlay_options({http_verb: "GET", **config}, base)
+        base = config.deep_merge(base)
+        base[:http_verb] ||= "GET"
 
         hash[spec[:id]] = {base:, overlay:}
       end

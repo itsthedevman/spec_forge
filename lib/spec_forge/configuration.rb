@@ -34,30 +34,6 @@ module SpecForge
     end
 
     #
-    # Overlays options from one hash onto another with special handling for nil values
-    # Uses deep_merge with custom logic to handle blank values
-    #
-    # @param source [Hash] The base hash to overlay onto
-    # @param overlay [Hash] The hash containing values to overlay
-    #
-    # @return [Hash] The merged hash with overlay values taking precedence when appropriate
-    #
-    def self.overlay_options(source, overlay)
-      source.deep_merge(overlay) do |key, source_value, overlay_value|
-        # If overlay has a populated value, use it
-        if overlay_value.present? || overlay_value == false
-          overlay_value
-        # If source is nil and overlay exists (but wasn't "present"), use overlay
-        elsif source_value.nil? && !overlay_value.nil?
-          overlay_value
-        # Otherwise keep source value
-        else
-          source_value
-        end
-      end
-    end
-
-    #
     # Initializes a new Configuration with default values
     # Sets up the configuration structure including factory settings and debug proxy
     #

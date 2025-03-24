@@ -107,16 +107,6 @@ RSpec.describe SpecForge::Normalizer do
     end
 
     context "Normalizing Spec" do
-      context "when 'base_url' is nil" do
-        before do
-          spec[:base_url] = nil
-        end
-
-        it "is expected to default to an empty string" do
-          expect(normalized[:base_url]).to eq("")
-        end
-      end
-
       context "when 'base_url' is not a String" do
         before do
           spec[:base_url] = 1
@@ -130,16 +120,6 @@ RSpec.describe SpecForge::Normalizer do
         end
       end
 
-      context "when 'url' is nil" do
-        before do
-          spec[:url] = nil
-        end
-
-        it "is expected to default to an empty string" do
-          expect(normalized[:url]).to eq("")
-        end
-      end
-
       context "when 'url' is not a String" do
         before do
           spec[:url] = 1
@@ -150,16 +130,6 @@ RSpec.describe SpecForge::Normalizer do
             SpecForge::Error::InvalidStructureError,
             "Expected String, got Integer for \"url\" (aliases \"path\") in spec (line 1)"
           )
-        end
-      end
-
-      context "when 'http_verb' is nil" do
-        before do
-          spec[:http_verb] = nil
-        end
-
-        it "is expected to default to an empty string" do
-          expect(normalized[:http_verb]).to eq("")
         end
       end
 
@@ -311,21 +281,14 @@ RSpec.describe SpecForge::Normalizer do
 
       context "when 'url' is not a String" do
         before do
-          expectation[:url] = nil
+          expectation[:url] = 1
         end
 
-        it "is expected to default to an empty string" do
-          expect(normalized_expectation[:url]).to eq("")
-        end
-      end
-
-      context "when 'http_verb' is nil" do
-        before do
-          expectation[:http_verb] = nil
-        end
-
-        it "is expected to default to an empty string" do
-          expect(normalized_expectation[:http_verb]).to eq("")
+        it do
+          expect { normalized }.to raise_error(
+            SpecForge::Error::InvalidStructureError,
+            "Expected String, got Integer for \"url\" (aliases \"path\") in expectation (item 0) (line 5)"
+          )
         end
       end
 
