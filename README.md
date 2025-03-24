@@ -113,7 +113,7 @@ Also see the [API Documentation](https://itsthedevman.com/docs/spec_forge).
 
 ## Future Development
 
-For the latest development priorities and feature ideas, check out our [Roadmap board](https://tree.taiga.io/project/itsthedevman-specforge-roadmap/kanban). Have a feature request? Open an issue on GitHub!
+For the latest development priorities and feature ideas, check out our [Github Project](https://github.com/itsthedevman/spec_forge/projects?query=is%3Aopen). Have a feature request? Open an issue on GitHub!
 
 ## Contributing
 
