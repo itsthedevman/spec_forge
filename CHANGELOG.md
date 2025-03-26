@@ -19,6 +19,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Removed
+
+## [0.6.0] - 12025-03-25
+
+### Added
+
 - Added new context system for managing shared state between tests
   - Introduced `SpecForge.context` global accessor for accessing test context
   - Created `Context` class with modular components:
@@ -231,7 +239,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial commit
 
-[unreleased]: https://github.com/itsthedevman/spec_forge/compare/v0.5.0...HEAD
+[unreleased]: https://github.com/itsthedevman/spec_forge/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/itsthedevman/spec_forge/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/itsthedevman/spec_forge/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/itsthedevman/spec_forge/compare/v0.3.2...v0.4.0
 [0.3.2]: https://github.com/itsthedevman/spec_forge/compare/v0.3.0...v0.3.2
