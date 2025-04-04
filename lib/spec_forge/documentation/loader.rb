@@ -67,7 +67,7 @@ module SpecForge
           url: request_hash[:url],
           http_verb: request_hash[:http_verb],
           request_body: request_hash[:body],
-          request_headers: request_hash[:headers].merge(response.env.request_headers),
+          request_headers: request_hash[:headers],
           request_query: request_hash[:query],
 
           # Response data
