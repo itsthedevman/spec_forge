@@ -182,7 +182,11 @@ module SpecForge
           global:,
           variables:,
           request: request.to_h,
-          response: response.to_hash,
+          response: {
+            status: response.status,
+            body: response.body,
+            headers: response.headers
+          },
           expectation: expectation_hash,
           spec: spec_hash
         }
