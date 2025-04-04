@@ -2,7 +2,7 @@
 
 module SpecForge
   module Documentation
-    class Document
+    class Document < Data.define(:info, :endpoints, :structures)
     end
   end
 end
