@@ -179,14 +179,10 @@ module SpecForge
         expectation_hash[:expect][:json] = matchers_to_description(expectation_hash[:expect][:json])
 
         {
-          response: {
-            status: response.status,
-            body: response.body,
-            headers: response.headers
-          },
           global:,
           variables:,
           request: request.to_h,
+          response: response.to_hash,
           expectation: expectation_hash,
           spec: spec_hash
         }

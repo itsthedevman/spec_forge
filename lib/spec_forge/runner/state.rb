@@ -87,11 +87,7 @@ module SpecForge
           scope:,
           request: request&.to_h,
           variables: SpecForge.context.variables.deep_dup,
-          response: {
-            headers: response&.headers,
-            status: response&.status,
-            body: response&.body
-          }
+          response: response&.to_hash
         )
       end
     end
