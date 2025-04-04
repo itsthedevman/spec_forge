@@ -62,7 +62,9 @@ module SpecForge
       # @return [Hash] The request data with all dynamic values resolved
       #
       def to_h
-        super.transform_values { |v| v.respond_to?(:resolved) ? v.resolved : v }
+        hash = super.transform_values { |v| v.respond_to?(:resolved) ? v.resolved : v }
+        hash[:http_verb] = hash[:http_verb].to_s
+        hash
       end
 
       private
