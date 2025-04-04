@@ -26,6 +26,10 @@ module SpecForge
         json: {
           type: [Hash, Array],
           default: {}
+        },
+        headers: {
+          type: [Hash, String],
+          default: {}
         }
       }.freeze
     end

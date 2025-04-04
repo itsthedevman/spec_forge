@@ -28,6 +28,9 @@ RSpec.describe SpecForge::Normalizer do
         },
         expect: {
           status: 0,
+          headers: {
+            response_header: Faker::String.random
+          },
           json: {
             json_1: Faker::String.random,
             json_2: Faker::String.random
@@ -104,6 +107,8 @@ RSpec.describe SpecForge::Normalizer do
       expect(constraint[:json]).to be_kind_of(Hash)
       expect(constraint[:json][:json_1]).to be_kind_of(String)
       expect(constraint[:json][:json_2]).to be_kind_of(String)
+      expect(constraint[:headers]).to be_kind_of(Hash)
+      expect(constraint[:headers][:response_header]).to be_kind_of(String)
     end
 
     context "Normalizing Spec" do
@@ -446,6 +451,29 @@ RSpec.describe SpecForge::Normalizer do
           expect(normalized_constraint[:json]).to eq([])
         end
       end
+
+      context "when 'headers' is nil" do
+        before do
+          constraint[:headers] = nil
+        end
+
+        it "is expected to default to an empty hash" do
+          expect(normalized_constraint[:headers]).to eq({})
+        end
+      end
+
+      context "when 'headers' is not a Hash" do
+        before do
+          constraint[:headers] = []
+        end
+
+        it do
+          expect { normalized }.to raise_error(
+            SpecForge::Error::InvalidStructureError,
+            "Expected Hash or String, got Array for \"headers\" in expect (item 0)"
+          )
+        end
+      end
     end
 
     context "when aliases are used" do
@@ -473,9 +501,7 @@ RSpec.describe SpecForge::Normalizer do
               url: expectation[:path],
               http_verb: expectation[:method],
               query: expectation[:params],
-              body: expectation[:data],
-              variables: expectation[:variables],
-              expect: expectation[:expect]
+              body: expectation[:data]
             )
           ]
         )
