@@ -28,6 +28,10 @@ class DataController < ApplicationController
   end
 
   def users
+    response.headers["X-Total-Count"] = "42"
+    response.headers["X-Pagination-Pages"] = "3"
+    response.headers["X-Pagination-Current"] = "1"
+
     render json: {
       total: User.count,
       active_count: User.where(active: true).count,
@@ -40,6 +44,28 @@ class DataController < ApplicationController
           role: user.role
         }
       end
+    }
+  end
+
+  def headers
+    # Return any client headers we received
+    client_id = request.headers["X-Client-ID"]
+    accept = request.headers["Accept"]
+
+    # Set some response headers for testing
+    response.headers["Content-Type"] = "application/json; charset=utf-8"
+    response.headers["X-Request-ID"] = SecureRandom.uuid
+    response.headers["X-API-Version"] = "1.0.3"
+    response.headers["Cache-Control"] = "max-age=3600, private, must-revalidate"
+    response.headers["Vary"] = "Accept, Origin"
+
+    # Return success response
+    render json: {
+      success: true,
+      headers_received: {
+        client_id: client_id,
+        accept: accept
+      }
     }
   end
 end

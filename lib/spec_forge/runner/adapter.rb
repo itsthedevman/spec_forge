@@ -72,6 +72,7 @@ module SpecForge
                   let(:match_status) { constraints[:status] }
                   let(:match_json) { constraints[:json] }
                   let(:match_json_class) { be_kind_of(match_json.class) }
+                  let(:match_headers) { constraints[:headers] }
 
                   # The request for the test itself. Overlays the expectation's data if it exists
                   let(:request) do
@@ -108,23 +109,40 @@ module SpecForge
 
                   # The test itself
                   it(expectation.constraints.description) do
+                    # Debugging
                     if spec.debug? || expectation.debug?
                       Callbacks.on_debug(forge, spec, expectation, self)
                     end
 
+                    ############################################################
                     # Status check
                     expect(response.status).to match_status
 
+                    ############################################################
+                    # Headers check
+                    if match_headers.present?
+                      match_headers.each do |key, matcher|
+                        expect(response.headers).to include(key.downcase => matcher)
+                      end
+                    end
+
+                    ############################################################
                     # JSON check
                     if match_json.present?
                       expect(response.body).to match_json_class
 
                       case match_json
                       when Hash
-                        # Check per key for easier debugging
                         match_json.each do |key, matcher|
-                          expect(response.body).to have_key(key)
-                          expect(response.body[key]).to matcher
+                          expect(response.body).to include(key)
+
+                          begin
+                            expect(response.body[key]).to matcher
+                          rescue RSpec::Expectations::ExpectationNotMetError => e
+                            # Add the key that failed to the front of the error message
+                            e.message.insert(0, "Key: #{key.in_quotes}\n")
+                            raise e
+                          end
                         end
                       else
                         expect(response.body).to match_json

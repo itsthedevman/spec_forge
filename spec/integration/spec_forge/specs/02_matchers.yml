@@ -163,7 +163,48 @@ tags_matching:
               tags:
                 matcher.include: "featured"
 
-# PART 7: REAL-WORLD APPLICATION WITH USERS ENDPOINT
+# PART 7: HEADER MATCHING
+header_matching:
+  path: /data/headers
+  headers:
+    X-Client-ID: "test-client"
+    Accept: "application/json"
+  expectations:
+  - name: "Basic header matching"
+    expect:
+      status: 200
+      headers:
+        # Exact equality matching
+        Content-Type: "application/json; charset=utf-8"
+
+        # Regular expression matching
+        X-Request-ID: /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
+
+        # Type checking
+        Content-Length: kind_of.string
+
+        # Boolean presence check
+        X-API-Version: be.present
+      json:
+        success: true
+
+  - name: "Advanced header matching"
+    expect:
+      status: 200
+      headers:
+        # Compound matchers work with headers too
+        Cache-Control:
+          matcher.and:
+          - matcher.include: "max-age="
+          - matcher.include: "private"
+
+        # Pattern variations
+        Vary:
+          matcher.include: "Accept"
+      json:
+        success: true
+
+# PART 8: REAL-WORLD APPLICATION WITH USERS ENDPOINT
 users_data_validation:
   path: /data/users
   variables:
@@ -172,6 +213,9 @@ users_data_validation:
   - name: "Complex real-world validation with users data"
     expect:
       status: 200
+      headers:
+        X-Total-Count: kind_of.string
+        X-Pagination-Pages: "3"
       json:
         # Simple count validation
         total:

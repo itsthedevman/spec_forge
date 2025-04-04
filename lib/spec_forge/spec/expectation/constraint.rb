@@ -61,7 +61,8 @@ module SpecForge
         def as_matchers
           {
             status: status.resolve_as_matcher,
-            json: resolve_json_matcher
+            json: resolve_json_matcher,
+            headers: resolve_hash_matcher(headers)
           }
         end
 
@@ -111,10 +112,14 @@ module SpecForge
         def resolve_json_matcher
           case json
           when HashLike
-            json.transform_values(&:resolve_as_matcher).stringify_keys
+            resolve_hash_matcher(json)
           else
             json.resolve_as_matcher
           end
+        end
+
+        def resolve_hash_matcher(hash)
+          hash.transform_values(&:resolve_as_matcher).stringify_keys
         end
       end
     end
