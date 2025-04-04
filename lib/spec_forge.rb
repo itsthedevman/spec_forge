@@ -57,28 +57,8 @@ module SpecForge
     # @param expectation_name [String, nil] Optional name of expectation to run
     #
     def run(file_name: nil, spec_name: nil, expectation_name: nil)
-      # Load spec_helper.rb
-      forge_helper = SpecForge.forge_path.join("forge_helper.rb")
-      require_relative forge_helper if File.exist?(forge_helper)
-
-      # Validate in case anything was changed
-      configuration.validate
-
-      # Load factories
-      Factory.load_and_register
-
-      # Load the specs from their files and create forges from them
-      forges = Loader.load_from_files.map { |f| Forge.new(*f) }
-
-      # Filter out the specs and expectations
-      forges = Filter.apply(forges, file_name:, spec_name:, expectation_name:)
-
-      # Tell the user that we filtered if we did
-      Filter.announce(forges, file_name:, spec_name:, expectation_name:)
-
-      # Define and run everything
-      Runner.define(forges)
-      Runner.run
+      forges = Runner.prepare(file_name:, spec_name:, expectation_name:)
+      Runner.run(forges, exit_on_finish: true)
     end
 
     #
