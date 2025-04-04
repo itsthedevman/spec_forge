@@ -148,6 +148,19 @@ module SpecForge
     def register_callback(name, &)
       Callbacks.register(name, &)
     end
+
+    #
+    # Generates a unique ID for an object based on hash and object_id
+    #
+    # @param object [Object] The object to generate an ID for
+    #
+    # @return [String] A unique ID string
+    #
+    # @private
+    #
+    def generate_id(object)
+      "#{object.hash.abs.to_s(36)}_#{object.object_id.to_s(36)}"
+    end
   end
 end
 
