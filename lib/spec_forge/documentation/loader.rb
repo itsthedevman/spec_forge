@@ -56,10 +56,18 @@ module SpecForge
       private
 
       def extract_endpoint(context)
-        response = context.response
-
         request_hash = context.request.to_h
-        response_hash = response.to_hash
+        response_hash = context.response.to_hash
+
+        # Only pull the headers that the user explicitly checked for.
+        # This keeps the extra unrelated headers from being included
+        response_headers = context.expectation
+          .constraints
+          .headers
+          .keys
+          .map { |h| h.to_s.downcase }
+
+        response_headers = response_hash[:response_headers].slice(*response_headers)
 
         {
           # Request data
@@ -73,7 +81,7 @@ module SpecForge
           # Response data
           response_status: response_hash[:status],
           response_body: response_hash[:body],
-          response_headers: response_hash[:response_headers]
+          response_headers:
         }
       end
     end
