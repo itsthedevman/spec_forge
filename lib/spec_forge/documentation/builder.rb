@@ -8,6 +8,9 @@ module SpecForge
       # Source: https://gist.github.com/johnelliott/cf77003f72f889abbc3f32785fa3df8d
       UUID_REGEX = /^[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$/i
 
+      INTEGER_REGEX = /^-?\d+$/
+      FLOAT_REGEX = /^-?\d+\.\d+$/
+
       def self.build(endpoints: [], structures: [])
         instance
           .prepare(endpoints:, structures:)
@@ -33,7 +36,7 @@ module SpecForge
         # Step one, group the endpoints
         endpoints = grouped_endpoints
 
-        endpoints.each_value do |endpoint|
+        r = endpoints.each_value do |endpoint|
           endpoint.transform_values! do |operations|
             # Step two, clear data from any error (4xx, 5xx) operations
             operations = sanitize_error_operations(operations)
@@ -45,6 +48,8 @@ module SpecForge
             flatten_operations(operations)
           end
         end
+
+        binding.pry
       end
 
       private
@@ -89,28 +94,8 @@ module SpecForge
       end
 
       def flatten_operations(operations)
-        parameters = {}
-
-        operations.each do |operation|
-          operation[:request_query].each do |key, value|
-            parameters[key] = value
-          end
-        end
-
-        parameters.transform_values! do |value|
-          {
-            location: "query",
-            type: determine_param_type(value)
-          }
-        end
-
-        responses = operations.map do |operation|
-          {
-            status: operation[:response_status],
-            headers: operation[:response_headers],
-            body: operation[:response_body]
-          }
-        end
+        parameters = normalize_parameters(operations)
+        responses = normalize_responses(operations)
 
         {
           summary: "",
@@ -120,7 +105,59 @@ module SpecForge
         }
       end
 
-      def determine_param_type(value)
+      def normalize_parameters(operations)
+        parameters = {}
+
+        operations.each do |operation|
+          parameters.merge(operation[:request_query])
+        end
+
+        parameters.transform_values! do |value|
+          {
+            location: "query",
+            type: determine_type(value)
+          }
+        end
+      end
+
+      def normalize_responses(operations)
+        operations.map do |operation|
+          {
+            status: operation[:response_status],
+            headers: normalize_headers(operation[:response_headers]),
+            body: normalize_response_body(operation[:response_body])
+          }
+        end
+      end
+
+      def normalize_headers(headers)
+        headers.transform_values do |value|
+          {type: determine_type(value), description: ""}
+        end
+      end
+
+      def normalize_response_body(body)
+        proc = lambda do |value|
+          {type: determine_type(value), description: ""}
+        end
+
+        case body
+        when Hash
+          {
+            type: "object",
+            properties: body.transform_values(&proc)
+          }
+        when Array
+          {
+            type: "array",
+            items: body.map(&proc)
+          }
+        else
+          # TODO: print a warning
+        end
+      end
+
+      def determine_type(value)
         case value
         when true, false
           "boolean"
@@ -131,6 +168,8 @@ module SpecForge
           "double"
         when Integer
           "integer"
+        when Array
+          "array"
         when NilClass
           "null"
         when DateTime, Time
@@ -140,6 +179,12 @@ module SpecForge
         when String, Symbol
           if value.match?(UUID_REGEX)
             "uuid"
+          elsif value.match?(INTEGER_REGEX)
+            "integer"
+          elsif value.match?(FLOAT_REGEX)
+            "double"
+          elsif value == "true" || value == "false"
+            "boolean"
           else
             "string"
           end
