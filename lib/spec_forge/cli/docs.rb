@@ -21,7 +21,8 @@ module SpecForge
       private
 
       def generate
-        Documentation::Loader.load
+        builder_data = Documentation::Loader.load
+        Documentation::Builder.build(**builder_data)
       end
     end
   end
