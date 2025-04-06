@@ -13,19 +13,26 @@ module SpecForge
       syntax "init"
       summary "Initializes directory structure and configuration files"
 
+      option "--skip-docs", "Skip generating the \"docs\" directory"
+      option "--skip-factories", "Skip generating the \"factories\" directory"
+
       #
       # Creates the "spec_forge", "spec_forge/factories", and "spec_forge/specs" directories
       # Also creates the "spec_forge.rb" initialization file
       #
       def call
         base_path = SpecForge.forge_path
-        actions.empty_directory "#{base_path}/factories"
-        actions.empty_directory "#{base_path}/specs"
+        actions.empty_directory(base_path.join("specs"))
+        actions.empty_directory(base_path.join("factories")) unless options.skip_factories
 
-        actions.template(
-          "forge_helper.tt",
-          SpecForge.root.join(base_path, "forge_helper.rb")
-        )
+        unless options.skip_docs
+          actions.empty_directory(base_path.join("docs"))
+          actions.empty_directory(base_path.join("docs", "schemas"))
+
+          actions.template("docs_config.tt", base_path.join("docs", "config.yml"))
+        end
+
+        actions.template("forge_helper.tt", base_path.join("forge_helper.rb"))
       end
     end
   end
