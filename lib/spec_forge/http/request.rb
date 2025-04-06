@@ -7,7 +7,15 @@ module SpecForge
     #
     # @return [Array<Symbol>]
     #
-    REQUEST_ATTRIBUTES = [:base_url, :url, :http_verb, :headers, :query, :body].freeze
+    REQUEST_ATTRIBUTES = %i[
+      base_url
+      url
+      http_verb
+      content_type
+      headers
+      query
+      body
+    ].freeze
 
     #
     # Represents an HTTP request configuration
@@ -52,8 +60,9 @@ module SpecForge
         query = Attribute.from(options[:query] || {})
         body = Attribute.from(options[:body] || {})
         headers = normalize_headers(options[:headers] || {})
+        content_type = "application/json"
 
-        super(base_url:, url:, http_verb:, headers:, query:, body:)
+        super(base_url:, url:, http_verb:, content_type:, headers:, query:, body:)
       end
 
       #
