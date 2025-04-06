@@ -78,6 +78,7 @@ module SpecForge
           base_url: request_hash[:base_url],
           url: request_hash[:url],
           http_verb: request_hash[:http_verb],
+          content_type: request_hash[:content_type],
           request_body: request_hash[:body],
           request_headers: request_hash[:headers],
           request_query: request_hash[:query],

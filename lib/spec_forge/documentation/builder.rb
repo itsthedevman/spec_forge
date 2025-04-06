@@ -60,113 +60,6 @@ module SpecForge
         end
       end
 
-      def grouped_endpoints
-        endpoints = Hash.new { |h, k| h[k] = {} }
-
-        # Convert the endpoints from a flat array of objects into a hash
-        @endpoints.each do |input|
-          # "/users" => {}
-          endpoint_hash = endpoints[input[:url]]
-
-          # "GET" => []
-          (endpoint_hash[input[:http_verb]] ||= []) << input
-        end
-
-        endpoints
-      end
-
-      def sanitize_error_operations(operations)
-        operations.each do |operation|
-          next unless operation[:response_status] >= 400
-
-          # This keeps tests that handle errors from including their invalid attributes
-          # and such in the output.
-          operation[:request_query] = {}
-          operation[:request_headers] = {}
-          operation[:request_body] = {}
-        end
-      end
-
-      def merge_operations(operations)
-        operations.group_by { |o| o[:response_status] }
-          .transform_values { |o| flat_merge(o) }
-          .values
-      end
-
-      def flatten_operations(operations)
-        parameters = normalize_parameters(operations)
-        responses = normalize_responses(operations)
-
-        id = operations.key_map(:spec_name).reject(&:blank?).first
-
-        summary = operations.key_map(:expectation_name)
-          .reject(&:blank?)
-          .first
-          &.split(" - ")
-          &.second
-
-        {
-          id:,
-          summary:,
-          description: "",
-          parameters:,
-          request_body: {},
-          responses:
-        }
-      end
-
-      def normalize_parameters(operations)
-        parameters = {}
-
-        operations.each do |operation|
-          parameters.merge(operation[:request_query])
-        end
-
-        parameters.transform_values! do |value|
-          {
-            location: "query",
-            type: determine_type(value)
-          }
-        end
-      end
-
-      def normalize_responses(operations)
-        operations.map do |operation|
-          {
-            status: operation[:response_status],
-            headers: normalize_headers(operation[:response_headers]),
-            body: normalize_response_body(operation[:response_body])
-          }
-        end
-      end
-
-      def normalize_headers(headers)
-        headers.transform_values do |value|
-          {type: determine_type(value), description: ""}
-        end
-      end
-
-      def normalize_response_body(body)
-        proc = lambda do |value|
-          {type: determine_type(value), description: ""}
-        end
-
-        case body
-        when Hash
-          {
-            type: "object",
-            properties: body.transform_values(&proc)
-          }
-        when Array
-          {
-            type: "array",
-            items: body.map(&proc)
-          }
-        else
-          # TODO: print a warning
-        end
-      end
-
       def determine_type(value)
         case value
         when true, false
@@ -204,6 +97,131 @@ module SpecForge
           "number"
         else
           "object"
+        end
+      end
+
+      def grouped_endpoints
+        endpoints = Hash.new { |h, k| h[k] = {} }
+
+        # Convert the endpoints from a flat array of objects into a hash
+        @endpoints.each do |input|
+          # "/users" => {}
+          endpoint_hash = endpoints[input[:url]]
+
+          # "GET" => []
+          (endpoint_hash[input[:http_verb]] ||= []) << input
+        end
+
+        endpoints
+      end
+
+      def sanitize_error_operations(operations)
+        operations.each do |operation|
+          next unless operation[:response_status] >= 400
+
+          # This keeps tests that handle errors from including their invalid attributes
+          # and such in the output.
+          operation[:request_query] = {}
+          operation[:request_headers] = {}
+          operation[:request_body] = {}
+        end
+      end
+
+      def merge_operations(operations)
+        operations.group_by { |o| o[:response_status] }
+          .transform_values { |o| flat_merge(o) }
+          .values
+      end
+
+      def flatten_operations(operations)
+        id = operations.key_map(:spec_name).reject(&:blank?).first
+
+        summary = operations.key_map(:expectation_name)
+          .reject(&:blank?)
+          .first
+          &.split(" - ")
+          &.second
+
+        parameters = normalize_parameters(operations)
+        request_body = normalize_request_body(operations)
+        responses = normalize_responses(operations)
+
+        {
+          id:,
+          summary:,
+          parameters:,
+          request_body:,
+          responses:
+        }
+      end
+
+      def normalize_parameters(operations)
+        parameters = {}
+
+        operations.each do |operation|
+          parameters.merge(operation[:request_query])
+        end
+
+        parameters.transform_values! do |value|
+          {
+            location: "query",
+            type: determine_type(value)
+          }
+        end
+      end
+
+      def normalize_request_body(operations)
+        operation = operations.find { |o| o[:response_status] < 400 }
+        return {} if operation.nil? || operation[:request_body].blank?
+
+        body = {
+          content_type: operation[:content_type]
+        }
+
+        case (request_body = operation[:request_body])
+        when Hash
+          body[:properties] = request_body
+        when Array
+          body[:items] = request_body
+        end
+
+        body
+      end
+
+      def normalize_responses(operations)
+        operations.map do |operation|
+          {
+            status: operation[:response_status],
+            headers: normalize_headers(operation[:response_headers]),
+            body: normalize_response_body(operation[:response_body])
+          }
+        end
+      end
+
+      def normalize_headers(headers)
+        headers.transform_values do |value|
+          {type: determine_type(value)}
+        end
+      end
+
+      def normalize_response_body(body)
+        proc = lambda do |value|
+          {type: determine_type(value)}
+        end
+
+        case body
+        when Hash
+          {
+            type: "object",
+            properties: body.transform_values(&proc)
+          }
+        when Array
+          {
+            type: "array",
+            items: body.map(&proc)
+          }
+        else
+          # TODO: print a warning
         end
       end
     end
