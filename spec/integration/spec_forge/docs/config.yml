@@ -1,0 +1,15 @@
+info:
+  title: SpecForge Integration Tests
+  version: 0.0.1
+  description: These are SpecForge's official integration tests
+  contact:
+    name: Bryan
+    email: bryan@itsthedevman.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+openapi:
+  servers:
+  - url: http://localhost:3000
+    description: Testing
