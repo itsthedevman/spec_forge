@@ -3,32 +3,23 @@
 module SpecForge
   module Documentation
     class Builder
-      include Singleton
-
       # Source: https://gist.github.com/johnelliott/cf77003f72f889abbc3f32785fa3df8d
       UUID_REGEX = /^[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$/i
       INTEGER_REGEX = /^-?\d+$/
       FLOAT_REGEX = /^-?\d+\.\d+$/
 
       def self.build(endpoints: [], structures: [])
-        instance
-          .prepare(endpoints:, structures:)
+        new(endpoints:, structures:)
           .prepare_endpoints
+          .export_as_document
       end
 
-      attr_reader :endpoints, :structures
+      attr_reader :info, :endpoints, :structures
 
-      def initialize
-        @info = {} # TODO: Set this
-        @endpoints = []
-        @structures = []
-      end
-
-      def prepare(endpoints:, structures:)
+      def initialize(endpoints:, structures:)
+        @info = Documentation.config[:info]
         @endpoints = endpoints
         @structures = structures
-
-        self
       end
 
       def prepare_endpoints
@@ -47,6 +38,14 @@ module SpecForge
             flatten_operations(operations)
           end
         end
+
+        @endpoints = endpoints
+
+        self
+      end
+
+      def export_as_document
+        Document.new(info:, endpoints:, structures:)
       end
 
       private
@@ -156,7 +155,7 @@ module SpecForge
         parameters = {}
 
         operations.each do |operation|
-          parameters.merge(operation[:request_query])
+          parameters.merge!(operation[:request_query])
         end
 
         parameters.transform_values! do |value|
