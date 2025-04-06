@@ -97,10 +97,20 @@ module SpecForge
         parameters = normalize_parameters(operations)
         responses = normalize_responses(operations)
 
+        id = operations.key_map(:spec_name).reject(&:blank?).first
+
+        summary = operations.key_map(:expectation_name)
+          .reject(&:blank?)
+          .first
+          &.split(" - ")
+          &.second
+
         {
-          summary: "",
+          id:,
+          summary:,
           description: "",
           parameters:,
+          request_body: {},
           responses:
         }
       end

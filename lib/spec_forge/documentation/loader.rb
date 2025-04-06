@@ -70,6 +70,10 @@ module SpecForge
         response_headers = response_hash[:response_headers].slice(*response_headers)
 
         {
+          # Metadata
+          spec_name: context.spec.name,
+          expectation_name: context.expectation.name,
+
           # Request data
           base_url: request_hash[:base_url],
           url: request_hash[:url],
