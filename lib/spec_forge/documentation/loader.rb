@@ -5,10 +5,10 @@ module SpecForge
     class Loader
       include Singleton
 
-      def self.load
+      def self.extract_from_tests
         instance
-          .run
-          .normalize
+          .run_tests
+          .extract_and_normalize_data
       end
 
       def initialize
@@ -16,36 +16,33 @@ module SpecForge
         @successes = []
       end
 
-      def run
-        forges = setup
+      def run_tests
+        @successes.clear
+
+        Callbacks.register(@callback_name) do |context|
+          @successes << context if context.example.execution_result.status == :passed
+        end
+
+        forges = prepare_forges
+
         Runner.run(forges, exit_on_finish: false)
 
         self
       ensure
-        teardown
+        Callbacks.deregister(@callback_name)
       end
 
-      def setup
-        @successes.clear
-
+      def prepare_forges
         forges = Runner.prepare
 
         forges.each do |forge|
           forge.global[:callbacks] << {after_each: @callback_name}
         end
 
-        Callbacks.register(@callback_name) do |context|
-          @successes << context if context.example.execution_result.status == :passed
-        end
-
         forges
       end
 
-      def teardown
-        Callbacks.deregister(@callback_name)
-      end
-
-      def normalize
+      def extract_and_normalize_data
         object = {endpoints: [], structures: []}
 
         @successes.each_with_object(object) do |context, hash|

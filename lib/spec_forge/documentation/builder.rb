@@ -7,7 +7,6 @@ module SpecForge
 
       # Source: https://gist.github.com/johnelliott/cf77003f72f889abbc3f32785fa3df8d
       UUID_REGEX = /^[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$/i
-
       INTEGER_REGEX = /^-?\d+$/
       FLOAT_REGEX = /^-?\d+\.\d+$/
 
@@ -36,7 +35,7 @@ module SpecForge
         # Step one, group the endpoints
         endpoints = grouped_endpoints
 
-        r = endpoints.each_value do |endpoint|
+        endpoints.each_value do |endpoint|
           endpoint.transform_values! do |operations|
             # Step two, clear data from any error (4xx, 5xx) operations
             operations = sanitize_error_operations(operations)
@@ -48,8 +47,6 @@ module SpecForge
             flatten_operations(operations)
           end
         end
-
-        binding.pry
       end
 
       private
