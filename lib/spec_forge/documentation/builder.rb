@@ -170,18 +170,13 @@ module SpecForge
         operation = operations.find { |o| o[:response_status] < 400 }
         return {} if operation.nil? || operation[:request_body].blank?
 
-        body = {
-          content_type: operation[:content_type]
+        content = operation[:request_body]
+
+        {
+          content_type: operation[:content_type],
+          type: determine_type(content),
+          content:
         }
-
-        case (request_body = operation[:request_body])
-        when Hash
-          body[:properties] = request_body
-        when Array
-          body[:items] = request_body
-        end
-
-        body
       end
 
       def normalize_responses(operations)
@@ -209,12 +204,12 @@ module SpecForge
         when Hash
           {
             type: "object",
-            properties: body.transform_values(&proc)
+            content: body.transform_values(&proc)
           }
         when Array
           {
             type: "array",
-            items: body.map(&proc)
+            content: body.map(&proc)
           }
         else
           # TODO: print a warning

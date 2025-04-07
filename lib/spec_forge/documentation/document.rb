@@ -19,4 +19,6 @@ end
 require_relative "document/info"
 require_relative "document/operation"
 require_relative "document/parameter"
+require_relative "document/request_body"
 require_relative "document/response"
+# require_relative "document/response_body"
