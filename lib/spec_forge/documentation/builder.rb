@@ -204,7 +204,7 @@ module SpecForge
         when Hash
           {
             type: "object",
-            content: body.transform_values(&proc)
+            content: body.deep_transform_values(&proc)
           }
         when Array
           {
