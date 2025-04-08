@@ -4,9 +4,10 @@ module SpecForge
   module Documentation
     module Renderers
       class Base
-        attr_reader :output
+        attr_reader :input, :output
 
-        def initialize
+        def initialize(input = {})
+          @input = input
           @output = {}
         end
 
