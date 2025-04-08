@@ -9,8 +9,8 @@ module SpecForge
         # Defines the forges with RSpec
         forges.each { |forge| instance.describe(forge) }
 
-        # Remove any arguments as RSpec will attempt to use them
-        ARGV.clear
+        # Disable autorun because RSpec does it
+        RSpec::Core::Runner.disable_autorun!
 
         # Allows modifying the error backtrace reporting within rspec
         RSpec.configuration.instance_variable_set(:@backtrace_formatter, BacktraceFormatter)
@@ -24,7 +24,8 @@ module SpecForge
 
       def self.run(exit_on_finish: false)
         if exit_on_finish
-          RSpec::Core::Runner.invoke
+          status = RSpec::Core::Runner.run([]).to_i
+          exit(status)
         else
           RSpec::Core::Runner.run([])
         end
