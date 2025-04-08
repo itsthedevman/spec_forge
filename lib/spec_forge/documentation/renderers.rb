@@ -9,3 +9,4 @@ end
 
 require_relative "renderers/base"
 require_relative "renderers/file"
+require_relative "renderers/openapi"
