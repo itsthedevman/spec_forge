@@ -9,7 +9,7 @@ module SpecForge
             [name, Parameter.new(name:, **value)]
           end.to_h
 
-          request_body = RequestBody.new(**request_body) if request_body.size > 0
+          request_body = RequestBody.new(**request_body) if request_body.present?
           responses = responses.map { |r| Response.new(**r) }
 
           super
