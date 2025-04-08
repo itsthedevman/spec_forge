@@ -4,8 +4,10 @@ module SpecForge
   module Documentation
     module Renderers
       module OpenAPI
-        class V3_0 < Base # standard:disable Naming/ClassAndModuleCamelCase
-          CURRENT_VERSION = "3.0.3"
+        class Base < File
+          def self.to_sem_version
+            SemVersion.new(CURRENT_VERSION)
+          end
         end
       end
     end
