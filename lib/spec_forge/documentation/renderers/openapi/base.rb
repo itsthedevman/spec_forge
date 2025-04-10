@@ -25,8 +25,8 @@ module SpecForge
               {type: "object", properties: {}}
             when "array"
               {type: "array", items: []}
-            when "boolean"
-              {type: "boolean"}
+            when "boolean", "number", "integer", "string"
+              {type: format}
             else
               {type: "string", format:}
             end

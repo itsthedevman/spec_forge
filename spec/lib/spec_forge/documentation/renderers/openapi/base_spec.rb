@@ -74,7 +74,31 @@ RSpec.describe SpecForge::Documentation::Renderers::OpenAPI::Base do
       let(:type) { "boolean" }
 
       it "is expected to return a schema with type 'boolean'" do
-        is_expected.to eq({type: "boolean"})
+        is_expected.to eq({type:})
+      end
+    end
+
+    context "when the type is 'number'" do
+      let(:type) { "number" }
+
+      it "is expected to return a schema with type 'number'" do
+        is_expected.to eq({type:})
+      end
+    end
+
+    context "when the type is 'integer'" do
+      let(:type) { "integer" }
+
+      it "is expected to return a schema with type 'integer'" do
+        is_expected.to eq({type:})
+      end
+    end
+
+    context "when the type is 'string'" do
+      let(:type) { "string" }
+
+      it "is expected to return a schema with type 'string'" do
+        is_expected.to eq({type:})
       end
     end
 
