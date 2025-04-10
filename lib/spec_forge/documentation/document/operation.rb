@@ -3,8 +3,8 @@
 module SpecForge
   module Documentation
     class Document
-      class Operation < Data.define(:id, :summary, :parameters, :request_body, :responses)
-        def initialize(id:, summary:, parameters:, request_body:, responses:)
+      class Operation < Data.define(:id, :description, :parameters, :request_body, :responses)
+        def initialize(id:, description:, parameters:, request_body:, responses:)
           parameters = parameters.each_pair.map do |name, value|
             [name, Parameter.new(name: name.to_s, **value)]
           end.to_h

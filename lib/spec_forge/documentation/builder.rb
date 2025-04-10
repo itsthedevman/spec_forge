@@ -132,11 +132,11 @@ module SpecForge
       def flatten_operations(operations)
         id = operations.key_map(:spec_name).reject(&:blank?).first
 
-        summary = operations.key_map(:expectation_name)
+        description = operations.key_map(:expectation_name)
           .reject(&:blank?)
           .first
           &.split(" - ")
-          &.second
+          &.second || ""
 
         parameters = normalize_parameters(operations)
         request_body = normalize_request_body(operations)
@@ -144,7 +144,7 @@ module SpecForge
 
         {
           id:,
-          summary:,
+          description:,
           parameters:,
           request_body:,
           responses:
@@ -155,13 +155,19 @@ module SpecForge
         parameters = {}
 
         operations.each do |operation|
-          parameters.merge!(operation[:request_query])
+          # Store the URL so it can be determined if the param is in the path or not
+          url = operation[:url]
+          params = operation[:request_query].transform_values { |value| {value:, url:} }
+
+          parameters.merge!(params)
         end
 
-        parameters.transform_values! do |value|
+        parameters.transform_values!.with_key do |key, data|
+          key_in_path = data[:url].include?("{#{key}}")
+
           {
-            location: "query",
-            type: determine_type(value)
+            location: key_in_path ? "path" : "query",
+            type: determine_type(data[:value])
           }
         end
       end
