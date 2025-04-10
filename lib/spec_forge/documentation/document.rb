@@ -7,7 +7,8 @@ module SpecForge
         info = Info.new(**info)
 
         endpoints = endpoints.transform_values do |operations|
-          operations.transform_values { |op| Operation.new(**op) }
+          operations.transform_keys(&:downcase)
+            .transform_values! { |op| Operation.new(**op) }
         end
 
         super
