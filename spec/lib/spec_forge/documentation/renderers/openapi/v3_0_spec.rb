@@ -171,6 +171,11 @@ RSpec.describe SpecForge::Documentation::Renderers::OpenAPI::V3_0 do
             }
           }
         },
+        security: [
+          {APIKeyScheme: []},
+          {OAuth: ["read:users", "write:users"]},
+          {OpenIdConnect: ["email"]}
+        ],
         security_schemes: {
           BasicHTTPScheme: {
             type: "http",
@@ -205,6 +210,10 @@ RSpec.describe SpecForge::Documentation::Renderers::OpenAPI::V3_0 do
                 }
               }
             }
+          },
+          OpenIdConnect: {
+            type: "openIdConnect",
+            openIdConnectUrl: "https://example.com/.well-known/openid-configuration"
           }
         }
       }
@@ -240,7 +249,12 @@ RSpec.describe SpecForge::Documentation::Renderers::OpenAPI::V3_0 do
         }
       )
 
-      # expect(output[:security]).to
+      expect(output[:security]).to contain_exactly(
+        {APIKeyScheme: []},
+        {OAuth: ["read:users", "write:users"]},
+        {OpenIdConnect: ["email"]}
+      )
+
       # expect(output[:paths]).to
       # expect(output[:components]).to
     end

@@ -11,12 +11,13 @@ module SpecForge
             @config ||= Documentation.config[:openapi]
           end
 
+          # https://spec.openapis.org/oas/v3.0.4.html#openapi-object
           def render
             output[:openapi] = config[:version].presence || CURRENT_VERSION
             output[:info] = export_info
             output[:servers] = export_servers
             output[:tags] = export_tags
-            output[:security] = []
+            output[:security] = export_security
             output[:paths] = {}
             output[:components] = {}
             output
@@ -24,14 +25,17 @@ module SpecForge
 
           protected
 
+          # https://spec.openapis.org/oas/v3.0.4.html#info-object
           def export_info
             input.info.to_h
           end
 
+          # https://spec.openapis.org/oas/v3.0.4.html#server-object
           def export_servers
             config[:servers] || []
           end
 
+          # https://spec.openapis.org/oas/v3.0.4.html#tag-object
           def export_tags
             tags = config[:tags] || {}
 
@@ -48,6 +52,11 @@ module SpecForge
 
               tag
             end
+          end
+
+          # https://spec.openapis.org/oas/v3.0.4.html#security-requirement-object
+          def export_security
+            config[:security] || []
           end
         end
       end
