@@ -15,7 +15,7 @@ module SpecForge
 
         def self.[](version)
           version = SemVersion.from_loose_version(version)
-          renderer = VERSIONS.find { |k, _v| k.satisfies?("~> #{version}") }&.second
+          renderer = VERSIONS.value_where { |k, _v| k.satisfies?("~> #{version}") }
 
           if renderer.nil?
             raise ArgumentError, "Invalid OpenAPI version provided: #{version.to_s.in_quotes}"
