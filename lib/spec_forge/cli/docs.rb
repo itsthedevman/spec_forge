@@ -10,7 +10,8 @@ module SpecForge
       def call
         case (action = arguments.first)
         when "generate"
-          Documentation.generate
+          renderer = Documentation::Renderers::OpenAPI["3.0"]
+          Documentation.generate(renderer)
         when "serve"
           nil
         else
