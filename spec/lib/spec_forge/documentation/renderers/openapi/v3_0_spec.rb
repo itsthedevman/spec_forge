@@ -228,7 +228,18 @@ RSpec.describe SpecForge::Documentation::Renderers::OpenAPI::V3_0 do
         {url: be_kind_of(String), description: be_kind_of(String)}
       )
 
-      # expect(output[:tags]).to
+      expect(output[:tags]).to contain_exactly(
+        {name: "tag_1", description: be_kind_of(String)},
+        {
+          name: "tag_2",
+          description: be_kind_of(String),
+          externalDocs: {
+            url: be_kind_of(String),
+            description: be_kind_of(String)
+          }
+        }
+      )
+
       # expect(output[:security]).to
       # expect(output[:paths]).to
       # expect(output[:components]).to
