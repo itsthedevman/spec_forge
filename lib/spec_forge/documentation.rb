@@ -11,9 +11,10 @@ module SpecForge
       end
     end
 
-    def self.generate
+    def self.generate(renderer)
       test_data = Documentation::Loader.extract_from_tests
       document = Documentation::Builder.build(**test_data)
+      renderer.new(document).render
     end
   end
 end
