@@ -3,13 +3,13 @@
 module SpecForge
   module Documentation
     class Document
-      class Operation < Data.define(:id, :description, :parameters, :request_body, :responses)
-        def initialize(id:, description:, parameters:, request_body:, responses:)
+      class Operation < Data.define(:id, :description, :parameters, :requests, :responses)
+        def initialize(id:, description:, parameters:, requests:, responses:)
           parameters = parameters.each_pair.map do |name, value|
             [name, Parameter.new(name: name.to_s, **value)]
           end.to_h
 
-          request_body = RequestBody.new(**request_body) if request_body.present?
+          requests = requests.map { |r| RequestBody.new(**r) }
           responses = responses.map { |r| Response.new(**r) }
 
           super

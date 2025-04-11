@@ -139,14 +139,14 @@ module SpecForge
           &.second || ""
 
         parameters = normalize_parameters(operations)
-        request_body = normalize_request_body(operations)
+        requests = normalize_requests(operations)
         responses = normalize_responses(operations)
 
         {
           id:,
           description:,
           parameters:,
-          request_body:,
+          requests:,
           responses:
         }
       end
@@ -172,17 +172,23 @@ module SpecForge
         end
       end
 
-      def normalize_request_body(operations)
-        operation = operations.find { |o| o[:response_status] < 400 }
-        return {} if operation.nil? || operation[:request_body].blank?
+      def normalize_requests(operations)
+        successful_operations = operations.select { |o| o[:response_status] < 400 }
+        return [] if successful_operations.blank?
 
-        content = operation[:request_body]
+        successful_operations.filter_map.with_index do |operation, index|
+          content = operation[:request_body]
+          next if content.blank?
 
-        {
-          content_type: operation[:content_type],
-          type: determine_type(content),
-          content:
-        }
+          name = operation[:expectation_name].split(" - ").second
+
+          {
+            name: name || "Example #{index}",
+            content_type: operation[:content_type],
+            type: determine_type(content),
+            content:
+          }
+        end
       end
 
       def normalize_responses(operations)
