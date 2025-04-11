@@ -66,7 +66,9 @@ RSpec.describe SpecForge::Documentation::Renderers::OpenAPI::V3_0 do
               password: "password12345"
             },
             request_headers: {},
-            request_query: {},
+            request_query: {
+              limit: 50
+            },
             response_status: 201,
             response_body: {
               user: {
@@ -255,7 +257,20 @@ RSpec.describe SpecForge::Documentation::Renderers::OpenAPI::V3_0 do
         {OpenIdConnect: ["email"]}
       )
 
-      # expect(output[:paths]).to
+      expect(output[:paths].keys).to contain_exactly("/users", "/users/{id}")
+
+      operations = output[:paths]["/users"]
+      expect(operations.keys).to contain_exactly("post")
+      expect(operations["post"]).to match(
+        operationId: "create_user",
+        description: be_kind_of(String),
+        parameters: contain_exactly(
+          {name: "limit", in: "query", schema: {type: "integer"}, required: false}
+        )
+        # request_body: {},
+        # responses: {}
+      )
+
       # expect(output[:components]).to
     end
   end

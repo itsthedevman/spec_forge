@@ -18,7 +18,7 @@ module SpecForge
             output[:servers] = export_servers
             output[:tags] = export_tags
             output[:security] = export_security
-            output[:paths] = {}
+            output[:paths] = export_paths
             output[:components] = {}
             output
           end
@@ -57,6 +57,32 @@ module SpecForge
           # https://spec.openapis.org/oas/v3.0.4.html#security-requirement-object
           def export_security
             config[:security] || []
+          end
+
+          # https://spec.openapis.org/oas/v3.0.4.html#paths-object
+          def export_paths
+            paths = input.endpoints.deep_dup
+
+            paths.each_value do |operations|
+              operations.transform_values! do |document|
+                parameters =
+                  document.parameters.values.map do |parameter|
+                    params = parameter.to_h
+
+                    params[:in] = params.delete(:location)
+                    params[:schema] = type_to_schema(params.delete(:type))
+                    params[:required] = params[:in] == "path" || params[:required] || false
+
+                    params
+                  end
+
+                {
+                  operationId: document.id,
+                  parameters:,
+                  description: document.description
+                }
+              end
+            end
           end
         end
       end
