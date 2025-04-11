@@ -31,6 +31,10 @@ module SpecForge
               {type: "string", format:}
             end
           end
+
+          def camelize(string)
+            string.parameterize.underscore.camelcase(:lower)
+          end
         end
       end
     end
