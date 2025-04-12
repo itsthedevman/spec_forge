@@ -7,11 +7,18 @@ module SpecForge
       syntax "docs <action>"
       summary "TODO"
 
+      option "--use-cache", "Use cached test data instead of running tests again"
+
       def call
         case (action = arguments.first)
         when "generate"
-          renderer = Documentation::Renderers::OpenAPI["3.0"]
-          Documentation.generate(renderer)
+          renderer_class = Documentation::Renderers::OpenAPI["3.0"]
+
+          Documentation.render(
+            renderer_class,
+            path: SpecForge.docs_path.join("export", "openapi.json"),
+            use_cache: options.use_cache
+          )
         when "serve"
           nil
         else
