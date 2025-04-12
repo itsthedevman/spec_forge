@@ -10,10 +10,6 @@ module SpecForge
 
           super
         end
-
-        def to_h
-          super.to_deep_h
-        end
       end
     end
   end

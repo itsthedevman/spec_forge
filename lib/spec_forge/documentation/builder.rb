@@ -194,6 +194,7 @@ module SpecForge
       def normalize_responses(operations)
         operations.map do |operation|
           {
+            content_type: operation[:content_type],
             status: operation[:response_status],
             headers: normalize_headers(operation[:response_headers]),
             body: normalize_response_body(operation[:response_body])
@@ -223,8 +224,13 @@ module SpecForge
             type: "array",
             content: body.map(&proc)
           }
+        when String
+          {
+            type: "string",
+            content: body
+          }
         else
-          # TODO: print a warning
+          raise "Unexpected body: #{body.inspect}"
         end
       end
     end
