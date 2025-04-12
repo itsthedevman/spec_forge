@@ -11,7 +11,7 @@ module SpecForge
             if output.is_a?(String)
               output
             else
-              output.to_json
+              JSON.pretty_generate(output)
             end
 
           ::File.write(file_path, content)
