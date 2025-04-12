@@ -6,8 +6,14 @@
     flake-utils.url = "github:numtide/flake-utils";
   };
 
-  outputs = { self, nixpkgs, flake-utils }:
-    flake-utils.lib.eachDefaultSystem (system:
+  outputs =
+    {
+      self,
+      nixpkgs,
+      flake-utils,
+    }:
+    flake-utils.lib.eachDefaultSystem (
+      system:
       let
         pkgs = import nixpkgs {
           inherit system;
@@ -31,6 +37,7 @@
 
             nodejs_22
             yarn
+            docker
 
             # Database
             postgresql_17
@@ -65,6 +72,9 @@
               echo "Creating database user ${db_user}..."
               psql postgres -c "CREATE USER ${db_user} WITH SUPERUSER PASSWORD '${db_pass}';"
             fi
+
+            echo "Pulling redocs CLI"
+            docker pull redocly/cli
           '';
         };
       }
