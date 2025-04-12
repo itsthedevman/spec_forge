@@ -81,6 +81,15 @@ module SpecForge
     end
 
     #
+    # Returns SpecForge's docs directory
+    #
+    # @return [Pathname] The spec_forge docs directory path
+    #
+    def docs_path
+      @docs_path ||= forge_path.join("docs")
+    end
+
+    #
     # Returns SpecForge's configuration
     #
     # @return [Configuration] The current configuration
