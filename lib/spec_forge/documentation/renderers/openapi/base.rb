@@ -11,7 +11,7 @@ module SpecForge
 
           protected
 
-          def type_to_schema(format)
+          def type_to_schema(format, content: nil)
             case format
             when "datetime", "time"
               {type: "string", format: "date-time"}
@@ -22,9 +22,9 @@ module SpecForge
             when "double", "float"
               {type: "number", format:}
             when "object"
-              {type: "object", properties: {}}
+              {type: "object", properties: content || {}}
             when "array"
-              {type: "array", items: []}
+              {type: "array", items: content || []}
             when "boolean", "number", "integer", "string"
               {type: format}
             else

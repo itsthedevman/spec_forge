@@ -20,7 +20,7 @@ module SpecForge
             output[:security] = export_security
             output[:paths] = export_paths
             output[:components] = {}
-            output
+            output.deep_stringify_keys
           end
 
           protected
@@ -46,7 +46,7 @@ module SpecForge
               when String
                 tag[:description] = description_or_hash
               when Hash
-                description_or_hash[:externalDocs] = description_or_hash.delete(:external_docs)
+                description_or_hash.rename_key_unordered!(:external_docs, :externalDocs)
                 tag.merge!(description_or_hash)
               end
 
@@ -67,22 +67,74 @@ module SpecForge
               operations.transform_values! do |document|
                 parameters =
                   document.parameters.values.map do |parameter|
-                    params = parameter.to_h
+                    params = parameter.to_deep_h
 
-                    params[:in] = params.delete(:location)
                     params[:schema] = type_to_schema(params.delete(:type))
                     params[:required] = params[:in] == "path" || params[:required] || false
 
+                    params.rename_key_unordered!(:location, :in)
                     params
                   end
 
-                {
-                  operationId: document.id,
-                  parameters:,
-                  description: document.description
+                output = {
+                  operationId: camelize(document.id),
+                  description: document.description,
+                  parameters:
                 }
+
+                if (requests = document.requests) && requests.present?
+                  output[:requestBody] = export_request_body(requests)
+                end
+
+                if (responses = document.responses) && responses.present?
+                  output[:responses] = export_responses(responses)
+                end
+
+                output
               end
             end
+          end
+
+          def export_request_body(requests)
+            content = requests.group_by(&:content_type)
+
+            content.transform_values! do |grouped_requests|
+              request = grouped_requests.first
+
+              content = request.content
+              schema = type_to_schema(request.type, content: request.content)
+
+              {
+                schema:,
+                examples: grouped_requests.to_h do |request|
+                  [
+                    camelize(request.name),
+                    {
+                      summary: request.name,
+                      value: request.content
+                    }
+                  ]
+                end
+              }
+            end
+
+            {content:}
+          end
+
+          def export_responses(responses)
+            responses.group_by(&:status)
+              .stringify_keys
+              .transform_values! do |responses|
+                response = responses.first
+                schema = type_to_schema(response.body.type, content: response.body.content)
+
+                {
+                  headers: response.headers,
+                  content: {
+                    response.content_type => {schema:}
+                  }
+                }
+              end
           end
         end
       end
