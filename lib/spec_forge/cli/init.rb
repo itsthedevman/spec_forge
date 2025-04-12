@@ -25,14 +25,16 @@ module SpecForge
         actions.empty_directory(base_path.join("specs"))
         actions.empty_directory(base_path.join("factories")) unless options.skip_factories
 
-        unless options.skip_docs
-          actions.empty_directory(base_path.join("docs"))
-          actions.empty_directory(base_path.join("docs", "schemas"))
-
-          actions.template("docs_config.tt", base_path.join("docs", "config.yml"))
-        end
-
         actions.template("forge_helper.tt", base_path.join("forge_helper.rb"))
+
+        unless options.skip_docs
+          docs_path = SpecForge.docs_path
+          actions.empty_directory(docs_path)
+          actions.empty_directory(docs_path.join("schemas"))
+          actions.empty_directory(docs_path.join("export"))
+
+          actions.template("docs_config.tt", docs_path.join("config.yml"))
+        end
       end
     end
   end
