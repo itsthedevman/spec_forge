@@ -27,7 +27,7 @@ module SpecForge
 
           # https://spec.openapis.org/oas/v3.0.4.html#info-object
           def export_info
-            input.info.to_h
+            input.info.to_deep_h
           end
 
           # https://spec.openapis.org/oas/v3.0.4.html#server-object
