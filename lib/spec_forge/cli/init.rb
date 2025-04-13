@@ -28,12 +28,23 @@ module SpecForge
         actions.template("forge_helper.tt", base_path.join("forge_helper.rb"))
 
         unless options.skip_docs
-          docs_path = SpecForge.docs_path
-          actions.empty_directory(docs_path)
-          actions.empty_directory(docs_path.join("schemas"))
-          actions.empty_directory(docs_path.join("export"))
+          # spec_forge/openapi
+          openapi_path = SpecForge.openapi_path
+          actions.empty_directory(openapi_path)
 
-          actions.template("docs_config.tt", docs_path.join("config.yml"))
+          # spec_forge/openapi/config
+          config_path = openapi_path.join("config")
+
+          actions.empty_directory(config_path)
+          actions.empty_directory(config_path.join("paths")) # openapi/config/paths
+          actions.empty_directory(config_path.join("schemas")) # openapi/config/schemas
+
+          # openapi/config/openapi.yml
+          actions.template("openapi.tt", config_path.join("openapi.yml"))
+
+          # spec_forge/openapi/generated
+          generated_path = openapi_path.join("generated")
+          actions.empty_directory(generated_path.join(".cache")) # openapi/generated/.cache
         end
       end
     end

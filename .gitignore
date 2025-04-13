@@ -8,4 +8,4 @@
 /tmp/
 /vendor/
 /.direnv/
-/spec/integration/spec_forge/docs/export/.loader_cache.yml
+/spec/integration/spec_forge/openapi/generated/.cache

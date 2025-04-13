@@ -9,7 +9,16 @@ info:
     name: MIT
     url: https://opensource.org/licenses/MIT
 
-openapi:
-  servers:
-  - url: http://localhost:3000
-    description: Testing
+servers:
+- url: http://localhost:3000
+  description: Testing
+
+# tags:
+#   users: User management
+#   posts: Post management
+#
+# security_schemes:
+#   bearer_auth:
+#     type: http
+#     scheme: bearer
+#     bearer_format: JWT
