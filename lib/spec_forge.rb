@@ -81,12 +81,12 @@ module SpecForge
     end
 
     #
-    # Returns SpecForge's docs directory
+    # Returns SpecForge's openapi directory
     #
-    # @return [Pathname] The spec_forge docs directory path
+    # @return [Pathname] The spec_forge openapi directory path
     #
-    def docs_path
-      @docs_path ||= forge_path.join("docs")
+    def openapi_path
+      @openapi_path ||= forge_path.join("openapi")
     end
 
     #

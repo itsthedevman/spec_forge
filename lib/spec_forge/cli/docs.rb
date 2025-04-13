@@ -16,7 +16,7 @@ module SpecForge
 
           Documentation.render(
             renderer_class,
-            path: SpecForge.docs_path.join("export", "openapi.json"),
+            path: SpecForge.openapi_path.join("export", "openapi.json"),
             use_cache: options.use_cache
           )
         when "serve"

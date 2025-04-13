@@ -4,7 +4,7 @@ module SpecForge
   module Documentation
     def self.config
       @config ||= begin
-        path = SpecForge.docs_path.join("config.yml")
+        path = SpecForge.openapi_path.join("config.yml")
         hash = YAML.safe_load_file(path, symbolize_names: true)
 
         Normalizer.normalize_documentation_config!(hash)
@@ -12,7 +12,7 @@ module SpecForge
     end
 
     def self.render(renderer_class, use_cache: false, path: nil)
-      cache_path = SpecForge.docs_path.join("export", ".loader_cache.yml")
+      cache_path = SpecForge.openapi_path.join("export", ".loader_cache.yml")
 
       test_data =
         if use_cache && File.exist?(cache_path)
@@ -30,7 +30,7 @@ module SpecForge
       renderer = renderer_class.new(document)
       return renderer unless path
 
-      puts "Writing to #{path.relative_path_from(SpecForge.docs_path)}"
+      puts "Writing to #{path.relative_path_from(SpecForge.openapi_path)}"
       renderer.to_file(path)
     end
   end
