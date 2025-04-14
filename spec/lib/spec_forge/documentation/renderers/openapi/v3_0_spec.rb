@@ -1,9 +1,10 @@
 # frozen_string_literal: true
 
 RSpec.describe SpecForge::Documentation::Renderers::OpenAPI::V3_0 do
-  let(:input) { SpecForge::Documentation::Document.new(endpoints: {}) }
   let(:config) { SpecForge::Normalizer.default_openapi_config }
-  let(:renderer) { described_class.new(input) }
+  let(:endpoints) { [] }
+  let(:document) { SpecForge::Documentation::Builder.document_from_endpoints(endpoints) }
+  let(:renderer) { described_class.new(document) }
 
   subject(:output) { renderer.render }
 
@@ -15,7 +16,7 @@ RSpec.describe SpecForge::Documentation::Renderers::OpenAPI::V3_0 do
     it "is expected to return the OAS 3.0 structure" do
       is_expected.to match(
         openapi: described_class::CURRENT_VERSION,
-        info: {contact: {}, description: "", license: {}, title: "", version: ""},
+        info: {}, # This has whatever the config contains
         servers: [],
         tags: [],
         security: [],
@@ -32,8 +33,8 @@ RSpec.describe SpecForge::Documentation::Renderers::OpenAPI::V3_0 do
   end
 
   context "when the document is fully complete" do
-    let(:input) do
-      endpoints = [
+    let(:endpoints) do
+      [
         {
           spec_name: "create_user",
           expectation_name: "POST /users",
@@ -122,8 +123,6 @@ RSpec.describe SpecForge::Documentation::Renderers::OpenAPI::V3_0 do
           response_headers: {}
         }
       ]
-
-      SpecForge::Documentation::Builder.document_from_endpoints(endpoints)
     end
 
     let(:config) do

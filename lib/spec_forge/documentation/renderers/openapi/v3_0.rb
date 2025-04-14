@@ -16,23 +16,27 @@ module SpecForge
             end
           end
 
-          # https://spec.openapis.org/oas/v3.0.4.html#openapi-object
           def render
-            output[:openapi] = config[:version].presence || CURRENT_VERSION
+            output[:openapi] = export_openapi_version
             output[:info] = export_info
             output[:servers] = export_servers
             output[:tags] = export_tags
             output[:security] = export_security
             output[:paths] = export_paths
             output[:components] = {}
-            output.deep_stringify_keys
+            output
           end
 
           protected
 
+          # https://spec.openapis.org/oas/v3.0.4.html#openapi-object
+          def export_openapi_version
+            config[:version].presence || CURRENT_VERSION
+          end
+
           # https://spec.openapis.org/oas/v3.0.4.html#info-object
           def export_info
-            input.info.to_deep_h
+            config[:info]
           end
 
           # https://spec.openapis.org/oas/v3.0.4.html#server-object
