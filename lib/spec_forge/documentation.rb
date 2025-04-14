@@ -1,7 +1,33 @@
 # frozen_string_literal: true
 
 module SpecForge
+  #
+  # Provides functionality for generating API documentation from SpecForge tests
+  #
+  # This module serves as the entry point for documentation generation, with methods
+  # to extract test data, transform it into a document structure, and render it
+  # using various output formats like OpenAPI.
+  #
+  # @example Generating OpenAPI documentation
+  #   SpecForge::Documentation.render(
+  #     SpecForge::Documentation::Renderers::OpenAPI["3.0"],
+  #     path: "openapi.yml"
+  #   )
+  #
   module Documentation
+    #
+    # Renders documentation using the specified renderer
+    #
+    # Extracts test data (either from cache or by running tests), builds
+    # a document structure, and renders it using the provided renderer.
+    # Optionally writes the output to a file.
+    #
+    # @param renderer_class [Class] The renderer class to use
+    # @param use_cache [Boolean] Whether to use cached test data instead of running tests
+    # @param path [String, Pathname] Optional file path to write the output to
+    #
+    # @return [Renderers::Base] The renderer instance with results
+    #
     def self.render(renderer_class, use_cache: false, path: nil)
       cache_path = SpecForge.openapi_path.join("generated", ".cache", "loader.yml")
 

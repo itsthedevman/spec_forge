@@ -3,7 +3,22 @@
 module SpecForge
   module Documentation
     module Renderers
+      #
+      # Renderer that can write documentation to files
+      #
+      # Extends the base renderer with file writing capabilities.
+      #
+      # @example Writing documentation to a file
+      #   File.new(document).to_file("api.yml")
+      #
       class File < Base
+        #
+        # Writes the rendered output to a file
+        #
+        # Automatically determines the appropriate format based on file extension
+        #
+        # @param file_path [String, Pathname] Path to write the file to
+        #
         def to_file(file_path)
           output = render
 

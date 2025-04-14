@@ -2,22 +2,55 @@
 
 module SpecForge
   module Documentation
+    #
+    # Transforms extracted test data into a structured document
+    #
+    # This class processes raw endpoint data from tests into a hierarchical document
+    # structure suitable for rendering as API documentation.
+    #
+    # @example Creating a document from test data
+    #   document = Builder.document_from_endpoints(endpoints)
+    #
     class Builder
       # Source: https://gist.github.com/johnelliott/cf77003f72f889abbc3f32785fa3df8d
       UUID_REGEX = /^[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$/i
       INTEGER_REGEX = /^-?\d+$/
       FLOAT_REGEX = /^-?\d+\.\d+$/
 
+      #
+      # Creates a document from endpoint data
+      #
+      # @param endpoints [Array<Hash>] Array of endpoint data extracted from tests
+      #
+      # @return [Document] A structured documentation document
+      #
       def self.document_from_endpoints(endpoints = [])
         new(endpoints).export_as_document
       end
 
       attr_reader :endpoints
 
+      #
+      # Initializes a new builder with endpoint data
+      #
+      # @param endpoints [Array<Hash>] Array of endpoint data extracted from tests
+      #
+      # @return [Builder] A new builder instance
+      #
       def initialize(endpoints)
         @endpoints = prepare_endpoints(endpoints)
       end
 
+      #
+      # Prepares endpoint data for document creation
+      #
+      # Groups endpoints by path and HTTP method, sanitizes error responses,
+      # merges similar operations, and flattens the result.
+      #
+      # @param endpoints [Array<Hash>] Raw endpoint data from tests
+      #
+      # @return [Hash] Processed endpoints organized by path and method
+      #
       def prepare_endpoints(endpoints)
         # Step one, group the endpoints by their paths and verb
         # { path: {get: [], post: []}, path_2: {get: []}, ... }
@@ -38,6 +71,11 @@ module SpecForge
         end
       end
 
+      #
+      # Exports the processed endpoints as a document
+      #
+      # @return [Document] A document containing the processed endpoints
+      #
       def export_as_document
         Document.new(endpoints:)
       end
@@ -90,6 +128,15 @@ module SpecForge
         end
       end
 
+      #
+      # Groups endpoints by path and HTTP method
+      #
+      # @param endpoints [Array<Hash>] Array of endpoint data
+      #
+      # @return [Hash] Endpoints grouped by path and method
+      #
+      # @private
+      #
       def group_endpoints(endpoints)
         grouped = Hash.new_nested_hash(depth: 1)
 
@@ -105,6 +152,18 @@ module SpecForge
         grouped
       end
 
+      #
+      # Sanitizes operations that represent error responses
+      #
+      # Removes request details from operations with 4xx/5xx responses
+      # to prevent invalid data from appearing in documentation.
+      #
+      # @param operations [Array<Hash>] Array of operations
+      #
+      # @return [Array<Hash>] Sanitized operations
+      #
+      # @private
+      #
       def sanitize_error_operations(operations)
         operations.each do |operation|
           next unless operation[:response_status] >= 400
@@ -117,12 +176,30 @@ module SpecForge
         end
       end
 
+      #
+      # Merges similar operations into a single operation
+      #
+      # @param operations [Array<Hash>] Array of operations
+      #
+      # @return [Array<Hash>] Merged operations
+      #
+      # @private
+      #
       def merge_operations(operations)
         operations.group_by { |o| o[:response_status] }
           .transform_values { |o| flat_merge(o) }
           .values
       end
 
+      #
+      # Flattens multiple operations into a single operation structure
+      #
+      # @param operations [Array<Hash>] Array of operations
+      #
+      # @return [Hash] Flattened operation
+      #
+      # @private
+      #
       def flatten_operations(operations)
         id = operations.key_map(:spec_name).reject(&:blank?).first
 
@@ -145,6 +222,18 @@ module SpecForge
         }
       end
 
+      #
+      # Normalizes request parameters from operations
+      #
+      # Extracts and categorizes parameters as path or query parameters
+      # and determines their data types.
+      #
+      # @param operations [Array<Hash>] Array of operations
+      #
+      # @return [Hash] Normalized parameters
+      #
+      # @private
+      #
       def normalize_parameters(operations)
         parameters = {}
 
@@ -166,6 +255,18 @@ module SpecForge
         end
       end
 
+      #
+      # Normalizes request bodies from operations
+      #
+      # Extracts request bodies from successful operations and
+      # determines their data types.
+      #
+      # @param operations [Array<Hash>] Array of operations
+      #
+      # @return [Array<Hash>] Normalized request bodies
+      #
+      # @private
+      #
       def normalize_requests(operations)
         successful_operations = operations.select { |o| o[:response_status] < 400 }
         return [] if successful_operations.blank?
@@ -185,6 +286,18 @@ module SpecForge
         end
       end
 
+      #
+      # Normalizes responses from operations
+      #
+      # Extracts response details including status, headers, and body
+      # and determines their data types.
+      #
+      # @param operations [Array<Hash>] Array of operations
+      #
+      # @return [Array<Hash>] Normalized responses
+      #
+      # @private
+      #
       def normalize_responses(operations)
         operations.map do |operation|
           {
@@ -196,12 +309,30 @@ module SpecForge
         end
       end
 
+      #
+      # Normalizes response headers
+      #
+      # @param headers [Hash] Response headers
+      #
+      # @return [Hash] Normalized headers with types
+      #
+      # @private
+      #
       def normalize_headers(headers)
         headers.transform_values do |value|
           {type: determine_type(value)}
         end
       end
 
+      #
+      # Normalizes response body structure
+      #
+      # @param body [Hash, Array, String] Response body
+      #
+      # @return [Hash] Normalized body structure with type information
+      #
+      # @private
+      #
       def normalize_response_body(body)
         proc = lambda do |value|
           {type: determine_type(value)}

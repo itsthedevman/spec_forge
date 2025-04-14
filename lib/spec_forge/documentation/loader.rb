@@ -2,20 +2,48 @@
 
 module SpecForge
   module Documentation
+    #
+    # Extracts API documentation data from SpecForge tests
+    #
+    # This class runs all tests and captures successful test contexts
+    # to extract endpoint information, including request/response data.
+    #
+    # @example Extracting documentation data
+    #   endpoints = Loader.extract_from_tests
+    #
     class Loader
       include Singleton
 
+      #
+      # Runs tests and extracts endpoint data
+      #
+      # @return [Array<Hash>] Extracted endpoint data from successful tests
+      #
       def self.extract_from_tests
         instance
           .run_tests
           .extract_and_normalize_data
       end
 
+      #
+      # Initializes a new loader
+      #
+      # Sets up a unique callback and prepares storage for successful test results
+      #
+      # @return [Loader] A new loader instance
+      #
       def initialize
         @callback_name = "__sf_docs_#{SpecForge.generate_id(self)}"
         @successes = []
       end
 
+      #
+      # Runs all tests and captures successful test results
+      #
+      # Registers a callback to capture test context and runs all tests
+      #
+      # @return [self] Returns self for method chaining
+      #
       def run_tests
         @successes.clear
 
@@ -32,6 +60,13 @@ module SpecForge
         Callbacks.deregister(@callback_name)
       end
 
+      #
+      # Prepares forge objects for test execution
+      #
+      # Adds the documentation callback to each forge
+      #
+      # @return [Array<Forge>] Array of prepared forge objects
+      #
       def prepare_forges
         forges = Runner.prepare
 
@@ -42,6 +77,11 @@ module SpecForge
         forges
       end
 
+      #
+      # Extracts and normalizes endpoint data from test results
+      #
+      # @return [Array<Hash>] Normalized endpoint data
+      #
       def extract_and_normalize_data
         @successes.map { |d| extract_endpoint(d) }
       end
