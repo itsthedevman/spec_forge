@@ -106,7 +106,7 @@ RSpec.describe SpecForge::Documentation::Renderers::OpenAPI::Base do
       let(:type) { "array" }
 
       it "is expected to return a schema with type 'array'" do
-        is_expected.to eq({type: "array", items: []})
+        is_expected.to eq({type: "array"})
       end
     end
 
@@ -114,7 +114,7 @@ RSpec.describe SpecForge::Documentation::Renderers::OpenAPI::Base do
       let(:type) { "object" }
 
       it "is expected to return a schema with type 'object'" do
-        is_expected.to eq({type: "object", properties: {}})
+        is_expected.to eq({type: "object"})
       end
     end
 
