@@ -3,12 +3,12 @@
 module SpecForge
   class Normalizer
     #
-    # Normalizes documentation configuration hash structure for SpecForge
+    # Normalizes OpenAPI configuration hash structure for SpecForge
     #
     # Ensures that the configuration has the correct structure
     # and default values for all required settings.
     #
-    class DocumentationConfig < Normalizer
+    class OpenAPIConfig < Normalizer
       #
       # Defines the normalized structure for configuration validation
       #
@@ -45,30 +45,24 @@ module SpecForge
             }
           }
         },
-        openapi: {
-          type: Hash,
-          default: {},
+        servers: {
+          type: Array,
+          default: [],
           structure: {
-            servers: {
-              type: Array,
-              default: [],
-              structure: {
-                type: Hash,
-                structure: {
-                  url: {type: String, default: ""},
-                  description: {type: String, default: ""}
-                }
-              }
-            },
-            tags: {
-              type: Hash,
-              default: {}
-            },
-            security_schemes: {
-              type: Hash,
-              default: {}
+            type: Hash,
+            structure: {
+              url: {type: String, default: ""},
+              description: {type: String, default: ""}
             }
           }
+        },
+        tags: {
+          type: Hash,
+          default: {}
+        },
+        security_schemes: {
+          type: Hash,
+          default: {}
         }
       }.freeze
     end
@@ -76,16 +70,16 @@ module SpecForge
     # On Normalizer
     class << self
       #
-      # Generates an empty documentation configuration hash
+      # Generates an empty OpenAPI configuration hash
       #
       # @return [Hash] Default configuration hash
       #
-      def default_documentation_config
-        DocumentationConfig.default
+      def default_openapi_config
+        OpenAPIConfig.default
       end
 
       #
-      # Normalizes a documentation configuration hash with validation
+      # Normalizes a OpenAPI configuration hash with validation
       #
       # @param input [Hash] The hash to normalize
       #
@@ -93,14 +87,14 @@ module SpecForge
       #
       # @raise [Error::InvalidStructureError] If validation fails
       #
-      def normalize_documentation_config!(input)
+      def normalize_openapi_config!(input)
         raise_errors! do
-          normalize_documentation_config(input)
+          normalize_openapi_config(input)
         end
       end
 
       #
-      # Normalize a documentation configuration hash
+      # Normalize a OpenAPI configuration hash
       #
       # @param configuration [Hash] Configuration hash
       #
@@ -108,12 +102,12 @@ module SpecForge
       #
       # @private
       #
-      def normalize_documentation_config(configuration)
+      def normalize_openapi_config(configuration)
         if !Type.hash?(configuration)
-          raise Error::InvalidTypeError.new(configuration, Hash, for: "documentation config")
+          raise Error::InvalidTypeError.new(configuration, Hash, for: "openapi/config/openapi.yml")
         end
 
-        Normalizer::DocumentationConfig.new("documentation config", configuration).normalize
+        Normalizer::OpenAPIConfig.new("openapi/config/openapi.yml", configuration).normalize
       end
     end
   end

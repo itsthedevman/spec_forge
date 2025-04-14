@@ -2,7 +2,7 @@
 
 # This is more for organizational purposes
 RSpec.describe SpecForge::Normalizer do
-  describe ".normalize_documentation_config!" do
+  describe ".normalize_openapi_config!" do
     let(:config) do
       {
         info: {
@@ -12,17 +12,15 @@ RSpec.describe SpecForge::Normalizer do
           contact: {name: "My API Team", email: "api@example.com"},
           license: {name: "MIT", url: "https://opensource.org/licenses/MIT"}
         },
-        openapi: {
-          servers: [{url: "http://localhost:3000", description: "Test"}],
-          tags: {tag_1: "Tag 1"},
-          security_schemes: {
-            bearer_auth: {}
-          }
+        servers: [{url: "http://localhost:3000", description: "Test"}],
+        tags: {tag_1: "Tag 1"},
+        security_schemes: {
+          bearer_auth: {}
         }
       }
     end
 
-    subject(:normalized) { described_class.normalize_documentation_config!(config) }
+    subject(:normalized) { described_class.normalize_openapi_config!(config) }
 
     it "is expected to normalize fully" do
       expect(normalized[:info]).to be_kind_of(Hash)
@@ -36,11 +34,10 @@ RSpec.describe SpecForge::Normalizer do
       expect(normalized[:info][:license][:name]).to eq(config.dig(:info, :license, :name))
       expect(normalized[:info][:license][:url]).to eq(config.dig(:info, :license, :url))
 
-      expect(normalized[:openapi]).to be_kind_of(Hash)
-      expect(normalized[:openapi][:servers]).to be_kind_of(Array)
-      expect(normalized[:openapi][:servers].first).to eq(config.dig(:openapi, :servers, 0))
-      expect(normalized[:openapi][:tags]).to be_kind_of(Hash)
-      expect(normalized[:openapi][:security_schemes]).to be_kind_of(Hash)
+      expect(normalized[:servers]).to be_kind_of(Array)
+      expect(normalized[:servers].first).to eq(config.dig(:servers, 0))
+      expect(normalized[:tags]).to be_kind_of(Hash)
+      expect(normalized[:security_schemes]).to be_kind_of(Hash)
     end
 
     context "when 'info' is nil" do
@@ -51,11 +48,11 @@ RSpec.describe SpecForge::Normalizer do
       it do
         expect { normalized }.to raise_error(SpecForge::Error::InvalidStructureError) do |e|
           expect(e.message).to include(
-            "Expected String, got NilClass for \"title\" in \"info\" in documentation config"
+            "Expected String, got NilClass for \"title\" in \"info\" in openapi/config/openapi.yml"
           )
 
           expect(e.message).to include(
-            "Expected String, got NilClass for \"version\" in \"info\" in documentation config"
+            "Expected String, got NilClass for \"version\" in \"info\" in openapi/config/openapi.yml"
           )
         end
       end
@@ -69,7 +66,7 @@ RSpec.describe SpecForge::Normalizer do
       it do
         expect { normalized }.to raise_error(
           SpecForge::Error::InvalidStructureError,
-          "Expected Hash, got Integer for \"info\" in documentation config"
+          "Expected Hash, got Integer for \"info\" in openapi/config/openapi.yml"
         )
       end
     end
@@ -82,7 +79,7 @@ RSpec.describe SpecForge::Normalizer do
       it do
         expect { normalized }.to raise_error(
           SpecForge::Error::InvalidStructureError,
-          "Expected String, got NilClass for \"title\" in \"info\" in documentation config"
+          "Expected String, got NilClass for \"title\" in \"info\" in openapi/config/openapi.yml"
         )
       end
     end
@@ -95,7 +92,7 @@ RSpec.describe SpecForge::Normalizer do
       it do
         expect { normalized }.to raise_error(
           SpecForge::Error::InvalidStructureError,
-          "Expected String, got Integer for \"title\" in \"info\" in documentation config"
+          "Expected String, got Integer for \"title\" in \"info\" in openapi/config/openapi.yml"
         )
       end
     end
@@ -108,7 +105,7 @@ RSpec.describe SpecForge::Normalizer do
       it do
         expect { normalized }.to raise_error(
           SpecForge::Error::InvalidStructureError,
-          "Expected String, got NilClass for \"version\" in \"info\" in documentation config"
+          "Expected String, got NilClass for \"version\" in \"info\" in openapi/config/openapi.yml"
         )
       end
     end
@@ -121,7 +118,7 @@ RSpec.describe SpecForge::Normalizer do
       it do
         expect { normalized }.to raise_error(
           SpecForge::Error::InvalidStructureError,
-          "Expected String, got Integer for \"version\" in \"info\" in documentation config"
+          "Expected String, got Integer for \"version\" in \"info\" in openapi/config/openapi.yml"
         )
       end
     end
@@ -136,10 +133,9 @@ RSpec.describe SpecForge::Normalizer do
         expect(normalized[:info][:contact]).to be_kind_of(Hash)
         expect(normalized[:info][:license]).to be_kind_of(Hash)
 
-        expect(normalized[:openapi]).to be_kind_of(Hash)
-        expect(normalized[:openapi][:servers]).to be_kind_of(Array)
-        expect(normalized[:openapi][:tags]).to be_kind_of(Hash)
-        expect(normalized[:openapi][:security_schemes]).to be_kind_of(Hash)
+        expect(normalized[:servers]).to be_kind_of(Array)
+        expect(normalized[:tags]).to be_kind_of(Hash)
+        expect(normalized[:security_schemes]).to be_kind_of(Hash)
       end
     end
   end
