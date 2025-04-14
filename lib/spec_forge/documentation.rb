@@ -12,7 +12,7 @@ module SpecForge
           endpoints = Documentation::Loader.extract_from_tests
 
           # Write out the cache
-          File.write(cache_path, endpoints.to_yaml)
+          File.write(cache_path, endpoints.to_yaml(stringify_names: true))
 
           endpoints
         end
