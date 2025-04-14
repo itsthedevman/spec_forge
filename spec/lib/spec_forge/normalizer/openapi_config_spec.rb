@@ -40,69 +40,6 @@ RSpec.describe SpecForge::Normalizer do
       expect(normalized[:security_schemes]).to be_kind_of(Hash)
     end
 
-    context "when 'info' is nil" do
-      before { config[:info] = nil }
-
-      include_examples("raises_invalid_structure_error") do
-        let(:error_messages) do
-          [
-            "Expected String, got NilClass for \"title\" in \"info\" in openapi/config/openapi.yml",
-            "Expected String, got NilClass for \"version\" in \"info\" in openapi/config/openapi.yml"
-          ]
-        end
-      end
-    end
-
-    context "when 'info' is not a Hash" do
-      before { config[:info] = 1 }
-
-      include_examples("raises_invalid_structure_error") do
-        let(:error_message) do
-          "Expected Hash, got Integer for \"info\" in openapi/config/openapi.yml"
-        end
-      end
-    end
-
-    context "when 'info.title' is nil" do
-      before { config[:info][:title] = nil }
-
-      include_examples("raises_invalid_structure_error") do
-        let(:error_message) do
-          "Expected String, got NilClass for \"title\" in \"info\" in openapi/config/openapi.yml"
-        end
-      end
-    end
-
-    context "when 'info.title' is not a String" do
-      before { config[:info][:title] = 1 }
-
-      include_examples("raises_invalid_structure_error") do
-        let(:error_message) do
-          "Expected String, got Integer for \"title\" in \"info\" in openapi/config/openapi.yml"
-        end
-      end
-    end
-
-    context "when 'info.version' is nil" do
-      before { config[:info][:version] = nil }
-
-      include_examples("raises_invalid_structure_error") do
-        let(:error_message) do
-          "Expected String, got NilClass for \"version\" in \"info\" in openapi/config/openapi.yml"
-        end
-      end
-    end
-
-    context "when 'info.version' is not a String" do
-      before { config[:info][:version] = 1 }
-
-      include_examples("raises_invalid_structure_error") do
-        let(:error_message) do
-          "Expected String, got Integer for \"version\" in \"info\" in openapi/config/openapi.yml"
-        end
-      end
-    end
-
     context "when the bare minimum is given" do
       let(:config) do
         {info: {title: "", version: ""}}
@@ -118,5 +55,42 @@ RSpec.describe SpecForge::Normalizer do
         expect(normalized[:security_schemes]).to be_kind_of(Hash)
       end
     end
+
+    include_examples(
+      "normalizer_raises_invalid_structure",
+      {
+        context: "when 'info' is nil",
+        before: -> { config[:info] = nil },
+        errors: [
+          "Expected String, got NilClass for \"title\" in \"info\" in openapi/config/openapi.yml",
+          "Expected String, got NilClass for \"version\" in \"info\" in openapi/config/openapi.yml"
+        ]
+      },
+      {
+        context: "when 'info' is not a Hash",
+        before: -> { config[:info] = 1 },
+        error: "Expected Hash, got Integer for \"info\" in openapi/config/openapi.yml"
+      },
+      {
+        context: "when 'info.title' is not a String",
+        before: -> { config[:info][:title] = 1 },
+        error: "Expected String, got Integer for \"title\" in \"info\" in openapi/config/openapi.yml"
+      },
+      {
+        context: "when 'info.title' is nil",
+        before: -> { config[:info][:title] = nil },
+        error: "Expected String, got NilClass for \"title\" in \"info\" in openapi/config/openapi.yml"
+      },
+      {
+        context: "when 'info.title' is not a String",
+        before: -> { config[:info][:version] = 1 },
+        error: "Expected String, got Integer for \"version\" in \"info\" in openapi/config/openapi.yml"
+      },
+      {
+        context: "when 'info.title' is nil",
+        before: -> { config[:info][:version] = nil },
+        error: "Expected String, got NilClass for \"version\" in \"info\" in openapi/config/openapi.yml"
+      }
+    )
   end
 end

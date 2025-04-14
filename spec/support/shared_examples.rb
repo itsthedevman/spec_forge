@@ -26,3 +26,27 @@ RSpec.shared_examples("raises_invalid_structure_error") do
     end
   end
 end
+
+# include_examples(
+#   "normalizer_raises_invalid_structure",
+#   {
+#     context: xxx,
+#     before: -> xxx,
+#     error: xxx
+#   },
+# )
+RSpec.shared_examples("normalizer_raises_invalid_structure") do |*checks|
+  checks.each do |check|
+    context(check[:context] || "") do
+      before do
+        block = check[:before] || -> {}
+        instance_exec(&block)
+      end
+
+      include_examples("raises_invalid_structure_error") do
+        let(:error_message) { check[:error] }
+        let(:error_messages) { check[:errors] || [] }
+      end
+    end
+  end
+end
