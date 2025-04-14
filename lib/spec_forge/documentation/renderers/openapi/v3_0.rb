@@ -8,14 +8,15 @@ module SpecForge
           CURRENT_VERSION = "3.0.4"
 
           def render
-            output[:openapi] = export_openapi_version
-            output[:info] = export_info
-            output[:servers] = export_servers
-            output[:tags] = export_tags
-            output[:security] = export_security
-            output[:paths] = export_paths
-            output[:components] = {}
-            output
+            {
+              openapi: export_openapi_version,
+              info: export_info,
+              servers: export_servers,
+              tags: export_tags,
+              security: export_security,
+              paths: export_paths,
+              components: {}
+            }
           end
 
           protected
