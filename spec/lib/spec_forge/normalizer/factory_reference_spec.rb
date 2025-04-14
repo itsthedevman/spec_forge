@@ -21,9 +21,7 @@ RSpec.describe SpecForge::Normalizer do
     end
 
     context "when 'build_strategy' is nil" do
-      before do
-        factory[:build_strategy] = nil
-      end
+      before { factory[:build_strategy] = nil }
 
       it do
         expect(normalized[:build_strategy]).to eq("create")
@@ -31,22 +29,17 @@ RSpec.describe SpecForge::Normalizer do
     end
 
     context "when 'build_strategy' is not a String" do
-      before do
-        factory[:build_strategy] = 1
-      end
+      before { factory[:build_strategy] = 1 }
 
-      it do
-        expect { normalized }.to raise_error(
-          SpecForge::Error::InvalidStructureError,
+      include_examples "raises_invalid_structure_error" do
+        let(:error_message) do
           "Expected String, got Integer for \"build_strategy\" (aliases \"strategy\") in factory reference"
-        )
+        end
       end
     end
 
     context "when 'attributes' is nil" do
-      before do
-        factory[:attributes] = nil
-      end
+      before { factory[:attributes] = nil }
 
       it do
         expect(normalized[:attributes]).to eq({})
@@ -54,22 +47,17 @@ RSpec.describe SpecForge::Normalizer do
     end
 
     context "when 'attributes' is not a Hash" do
-      before do
-        factory[:attributes] = 1
-      end
+      before { factory[:attributes] = 1 }
 
-      it do
-        expect { normalized }.to raise_error(
-          SpecForge::Error::InvalidStructureError,
+      include_examples "raises_invalid_structure_error" do
+        let(:error_message) do
           "Expected Hash, got Integer for \"attributes\" in factory reference"
-        )
+        end
       end
     end
 
     context "when 'size' is nil" do
-      before do
-        factory[:size] = nil
-      end
+      before { factory[:size] = nil }
 
       it do
         expect(normalized[:size]).to eq(0)
@@ -77,15 +65,12 @@ RSpec.describe SpecForge::Normalizer do
     end
 
     context "when 'size' is not an Integer" do
-      before do
-        factory[:size] = 1.0
-      end
+      before { factory[:size] = 1.0 }
 
-      it do
-        expect { normalized }.to raise_error(
-          SpecForge::Error::InvalidStructureError,
+      include_examples "raises_invalid_structure_error" do
+        let(:error_message) do
           "Expected Integer, got Float for \"size\" (aliases \"count\") in factory reference"
-        )
+        end
       end
     end
 

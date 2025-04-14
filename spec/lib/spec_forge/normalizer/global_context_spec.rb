@@ -30,9 +30,7 @@ RSpec.describe SpecForge::Normalizer do
     end
 
     context "when 'variables' is nil" do
-      before do
-        global[:variables] = nil
-      end
+      before { global[:variables] = nil }
 
       it do
         expect(normalized[:variables]).to eq({})
@@ -40,22 +38,17 @@ RSpec.describe SpecForge::Normalizer do
     end
 
     context "when 'variables' is not a Hash" do
-      before do
-        global[:variables] = 1
-      end
+      before { global[:variables] = 1 }
 
-      it do
-        expect { normalized }.to raise_error(
-          SpecForge::Error::InvalidStructureError,
+      include_examples("raises_invalid_structure_error") do
+        let(:error_message) do
           "Expected Hash or String, got Integer for \"variables\" in global context"
-        )
+        end
       end
     end
 
     context "when 'callbacks' is nil" do
-      before do
-        global[:callbacks] = nil
-      end
+      before { global[:callbacks] = nil }
 
       it "is expected to default it to an empty hash" do
         expect(normalized[:callbacks]).to eq([])
@@ -63,58 +56,42 @@ RSpec.describe SpecForge::Normalizer do
     end
 
     context "when 'callbacks' is not a Array" do
-      before do
-        global[:callbacks] = 1
-      end
+      before { global[:callbacks] = 1 }
 
-      it do
-        expect { normalized }.to raise_error(
-          SpecForge::Error::InvalidStructureError,
+      include_examples("raises_invalid_structure_error") do
+        let(:error_message) do
           "Expected Array, got Integer for \"callbacks\" in global context"
-        )
+        end
       end
     end
 
     context "when 'callbacks' is not an array of objects" do
-      before do
-        global[:callbacks] = ["test_callback"]
-      end
+      before { global[:callbacks] = ["test_callback"] }
 
-      it do
-        expect { normalized }.to raise_error(
-          SpecForge::Error::InvalidStructureError,
+      include_examples("raises_invalid_structure_error") do
+        let(:error_message) do
           "Expected Hash, got String for index 0 of \"callbacks\" in global context"
-        )
+        end
       end
     end
 
     context "when a callback name is not a String" do
-      before do
-        global[:callbacks] = [
-          {before: 1}
-        ]
-      end
+      before { global[:callbacks] = [{before: 1}] }
 
-      it do
-        expect { normalized }.to raise_error(
-          SpecForge::Error::InvalidStructureError,
+      include_examples("raises_invalid_structure_error") do
+        let(:error_message) do
           %{Expected String or NilClass, got Integer for "before_each" (aliases "before") in index 0 of "callbacks" in global context}
-        )
+        end
       end
     end
 
     context "when a callback name is not defined" do
-      before do
-        global[:callbacks] = [
-          {before: "Not defined, yo"}
-        ]
-      end
+      before { global[:callbacks] = [{before: "Not defined, yo"}] }
 
-      it do
-        expect { normalized }.to raise_error(
-          SpecForge::Error::InvalidStructureError,
+      include_examples("raises_invalid_structure_error") do
+        let(:error_message) do
           %(The callback "Not defined, yo" was referenced but hasn't been defined.\nAvailable callbacks are: "test_callback")
-        )
+        end
       end
     end
   end

@@ -41,85 +41,65 @@ RSpec.describe SpecForge::Normalizer do
     end
 
     context "when 'info' is nil" do
-      before do
-        config[:info] = nil
-      end
+      before { config[:info] = nil }
 
-      it do
-        expect { normalized }.to raise_error(SpecForge::Error::InvalidStructureError) do |e|
-          expect(e.message).to include(
-            "Expected String, got NilClass for \"title\" in \"info\" in openapi/config/openapi.yml"
-          )
-
-          expect(e.message).to include(
+      include_examples("raises_invalid_structure_error") do
+        let(:error_messages) do
+          [
+            "Expected String, got NilClass for \"title\" in \"info\" in openapi/config/openapi.yml",
             "Expected String, got NilClass for \"version\" in \"info\" in openapi/config/openapi.yml"
-          )
+          ]
         end
       end
     end
 
     context "when 'info' is not a Hash" do
-      before do
-        config[:info] = 1
-      end
+      before { config[:info] = 1 }
 
-      it do
-        expect { normalized }.to raise_error(
-          SpecForge::Error::InvalidStructureError,
+      include_examples("raises_invalid_structure_error") do
+        let(:error_message) do
           "Expected Hash, got Integer for \"info\" in openapi/config/openapi.yml"
-        )
+        end
       end
     end
 
     context "when 'info.title' is nil" do
-      before do
-        config[:info][:title] = nil
-      end
+      before { config[:info][:title] = nil }
 
-      it do
-        expect { normalized }.to raise_error(
-          SpecForge::Error::InvalidStructureError,
+      include_examples("raises_invalid_structure_error") do
+        let(:error_message) do
           "Expected String, got NilClass for \"title\" in \"info\" in openapi/config/openapi.yml"
-        )
+        end
       end
     end
 
     context "when 'info.title' is not a String" do
-      before do
-        config[:info][:title] = 1
-      end
+      before { config[:info][:title] = 1 }
 
-      it do
-        expect { normalized }.to raise_error(
-          SpecForge::Error::InvalidStructureError,
+      include_examples("raises_invalid_structure_error") do
+        let(:error_message) do
           "Expected String, got Integer for \"title\" in \"info\" in openapi/config/openapi.yml"
-        )
+        end
       end
     end
 
     context "when 'info.version' is nil" do
-      before do
-        config[:info][:version] = nil
-      end
+      before { config[:info][:version] = nil }
 
-      it do
-        expect { normalized }.to raise_error(
-          SpecForge::Error::InvalidStructureError,
+      include_examples("raises_invalid_structure_error") do
+        let(:error_message) do
           "Expected String, got NilClass for \"version\" in \"info\" in openapi/config/openapi.yml"
-        )
+        end
       end
     end
 
     context "when 'info.version' is not a String" do
-      before do
-        config[:info][:version] = 1
-      end
+      before { config[:info][:version] = 1 }
 
-      it do
-        expect { normalized }.to raise_error(
-          SpecForge::Error::InvalidStructureError,
+      include_examples("raises_invalid_structure_error") do
+        let(:error_message) do
           "Expected String, got Integer for \"version\" in \"info\" in openapi/config/openapi.yml"
-        )
+        end
       end
     end
 

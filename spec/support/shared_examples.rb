@@ -9,3 +9,20 @@ RSpec.shared_examples("from_input_to_attribute") do
     end
   end
 end
+
+RSpec.shared_examples("raises_invalid_structure_error") do
+  let(:error_message) { "" }
+  let(:error_messages) { [] }
+
+  before do
+    error_messages << error_message if error_message.present?
+  end
+
+  it do
+    expect { normalized }.to raise_error(SpecForge::Error::InvalidStructureError) do |e|
+      error_messages.each do |message|
+        expect(e.message).to include(message)
+      end
+    end
+  end
+end

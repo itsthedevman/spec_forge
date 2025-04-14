@@ -113,48 +113,37 @@ RSpec.describe SpecForge::Normalizer do
 
     context "Normalizing Spec" do
       context "when 'base_url' is not a String" do
-        before do
-          spec[:base_url] = 1
-        end
+        before { spec[:base_url] = 1 }
 
-        it do
-          expect { normalized }.to raise_error(
-            SpecForge::Error::InvalidStructureError,
+        include_examples("raises_invalid_structure_error") do
+          let(:error_message) do
             "Expected String, got Integer for \"base_url\" in spec (line 1)"
-          )
+          end
         end
       end
 
       context "when 'url' is not a String" do
-        before do
-          spec[:url] = 1
-        end
+        before { spec[:url] = 1 }
 
-        it do
-          expect { normalized }.to raise_error(
-            SpecForge::Error::InvalidStructureError,
+        include_examples("raises_invalid_structure_error") do
+          let(:error_message) do
             "Expected String, got Integer for \"url\" (aliases \"path\") in spec (line 1)"
-          )
+          end
         end
       end
 
       context "when 'http_verb' is not a String" do
-        before do
-          spec[:http_verb] = 1
-        end
+        before { spec[:http_verb] = 1 }
 
-        it do
-          expect { normalized }.to raise_error(
-            SpecForge::Error::InvalidStructureError,
+        include_examples("raises_invalid_structure_error") do
+          let(:error_message) do
             "Expected String, got Integer for \"http_verb\" (aliases \"method\", \"http_method\") in spec (line 1)"
-          )
+          end
         end
       end
 
       context "when 'headers' is nil" do
-        before do
-          spec[:headers] = nil
-        end
+        before { spec[:headers] = nil }
 
         it "is expected to default to an empty hash" do
           expect(normalized[:headers]).to eq({})
@@ -162,22 +151,17 @@ RSpec.describe SpecForge::Normalizer do
       end
 
       context "when 'headers' is not a Hash" do
-        before do
-          spec[:headers] = 1
-        end
+        before { spec[:headers] = 1 }
 
-        it do
-          expect { normalized }.to raise_error(
-            SpecForge::Error::InvalidStructureError,
+        include_examples("raises_invalid_structure_error") do
+          let(:error_message) do
             "Expected Hash, got Integer for \"headers\" in spec (line 1)"
-          )
+          end
         end
       end
 
       context "when 'query' is nil" do
-        before do
-          spec[:query] = nil
-        end
+        before { spec[:query] = nil }
 
         it "is expected to default to an empty hash" do
           expect(normalized[:query]).to eq({})
@@ -189,22 +173,17 @@ RSpec.describe SpecForge::Normalizer do
       end
 
       context "when 'query' is not a Hash" do
-        before do
-          spec[:query] = 1
-        end
+        before { spec[:query] = 1 }
 
-        it do
-          expect { normalized }.to raise_error(
-            SpecForge::Error::InvalidStructureError,
+        include_examples("raises_invalid_structure_error") do
+          let(:error_message) do
             "Expected Hash or String, got Integer for \"query\" (aliases \"params\") in spec (line 1)"
-          )
+          end
         end
       end
 
       context "when 'body' is nil" do
-        before do
-          spec[:body] = nil
-        end
+        before { spec[:body] = nil }
 
         it "is expected to default to an empty hash" do
           expect(normalized[:body]).to eq({})
@@ -212,22 +191,17 @@ RSpec.describe SpecForge::Normalizer do
       end
 
       context "when 'body' is not a Hash" do
-        before do
-          spec[:body] = 1
-        end
+        before { spec[:body] = 1 }
 
-        it do
-          expect { normalized }.to raise_error(
-            SpecForge::Error::InvalidStructureError,
+        include_examples("raises_invalid_structure_error") do
+          let(:error_message) do
             "Expected Hash or String, got Integer for \"body\" (aliases \"data\") in spec (line 1)"
-          )
+          end
         end
       end
 
       context "when 'variables' is nil" do
-        before do
-          spec[:variables] = nil
-        end
+        before { spec[:variables] = nil }
 
         it "is expected to default to an empty hash" do
           expect(normalized[:variables]).to eq({})
@@ -235,41 +209,32 @@ RSpec.describe SpecForge::Normalizer do
       end
 
       context "when 'variables' is not a Hash" do
-        before do
-          spec[:variables] = 1
-        end
+        before { spec[:variables] = 1 }
 
-        it do
-          expect { normalized }.to raise_error(
-            SpecForge::Error::InvalidStructureError,
+        include_examples("raises_invalid_structure_error") do
+          let(:error_message) do
             "Expected Hash or String, got Integer for \"variables\" in spec (line 1)"
-          )
+          end
         end
       end
 
       context "when 'expectations' is nil" do
-        before do
-          spec[:expectations] = nil
-        end
+        before { spec[:expectations] = nil }
 
-        it do
-          expect { normalized }.to raise_error(
-            SpecForge::Error::InvalidStructureError,
+        include_examples("raises_invalid_structure_error") do
+          let(:error_message) do
             "Expected Array, got NilClass for \"expectations\" in spec (line 1)"
-          )
+          end
         end
       end
 
       context "when 'expectations' is not an Array" do
-        before do
-          spec[:expectations] = 1
-        end
+        before { spec[:expectations] = 1 }
 
-        it do
-          expect { normalized }.to raise_error(
-            SpecForge::Error::InvalidStructureError,
+        include_examples("raises_invalid_structure_error") do
+          let(:error_message) do
             "Expected Array, got Integer for \"expectations\" in spec (line 1)"
-          )
+          end
         end
       end
     end
@@ -285,48 +250,37 @@ RSpec.describe SpecForge::Normalizer do
       end
 
       context "when 'url' is not a String" do
-        before do
-          expectation[:url] = 1
-        end
+        before { expectation[:url] = 1 }
 
-        it do
-          expect { normalized }.to raise_error(
-            SpecForge::Error::InvalidStructureError,
+        include_examples("raises_invalid_structure_error") do
+          let(:error_message) do
             "Expected String, got Integer for \"url\" (aliases \"path\") in expectation (item 0) (line 5)"
-          )
+          end
         end
       end
 
       context "when 'http_verb' is not a String" do
-        before do
-          expectation[:http_verb] = 1
-        end
+        before { expectation[:http_verb] = 1 }
 
-        it do
-          expect { normalized }.to raise_error(
-            SpecForge::Error::InvalidStructureError,
+        include_examples("raises_invalid_structure_error") do
+          let(:error_message) do
             "Expected String, got Integer for \"http_verb\" (aliases \"method\", \"http_method\") in expectation (item 0) (line 5)"
-          )
+          end
         end
       end
 
       context "when 'http_verb' is not a valid verb" do
-        before do
-          expectation[:http_verb] = "TEG"
-        end
+        before { expectation[:http_verb] = "TEG" }
 
-        it do
-          expect { normalized }.to raise_error(
-            SpecForge::Error::InvalidStructureError,
+        include_examples("raises_invalid_structure_error") do
+          let(:error_message) do
             "Invalid HTTP verb: TEG. Valid values are: DELETE, GET, PATCH, POST, PUT"
-          )
+          end
         end
       end
 
       context "when 'headers' is not a String" do
-        before do
-          expectation[:headers] = nil
-        end
+        before { expectation[:headers] = nil }
 
         it do
           expect(normalized_expectation[:headers]).to eq({})
@@ -334,9 +288,7 @@ RSpec.describe SpecForge::Normalizer do
       end
 
       context "when 'query' is not a Hash" do
-        before do
-          expectation[:query] = nil
-        end
+        before { expectation[:query] = nil }
 
         it "is expected to default to an empty hash" do
           expect(normalized_expectation[:query]).to eq({})
@@ -348,9 +300,7 @@ RSpec.describe SpecForge::Normalizer do
       end
 
       context "when 'body' is not a Hash" do
-        before do
-          expectation[:body] = nil
-        end
+        before { expectation[:body] = nil }
 
         it "is expected to default to an empty hash" do
           expect(normalized_expectation[:body]).to eq({})
@@ -358,9 +308,7 @@ RSpec.describe SpecForge::Normalizer do
       end
 
       context "when 'variables' is not a Hash" do
-        before do
-          expectation[:variables] = nil
-        end
+        before { expectation[:variables] = nil }
 
         it "is expected to default to an empty hash" do
           expect(normalized_expectation[:variables]).to eq({})
@@ -368,22 +316,17 @@ RSpec.describe SpecForge::Normalizer do
       end
 
       context "when 'expect' is not a Hash" do
-        before do
-          expectation[:expect] = nil
-        end
+        before { expectation[:expect] = nil }
 
-        it do
-          expect { normalized }.to raise_error(
-            SpecForge::Error::InvalidStructureError,
+        include_examples("raises_invalid_structure_error") do
+          let(:error_message) do
             "Expected Hash, got NilClass for \"expect\" in expectation (item 0) (line 5)"
-          )
+          end
         end
       end
 
       context "when 'store_as' is nil" do
-        before do
-          expectation[:store_as] = nil
-        end
+        before { expectation[:store_as] = nil }
 
         it "is expected to default to an empty string" do
           expect(normalized_expectation[:store_as]).to eq("")
@@ -391,15 +334,12 @@ RSpec.describe SpecForge::Normalizer do
       end
 
       context "when 'store_as' is not a String" do
-        before do
-          expectation[:store_as] = 1
-        end
+        before { expectation[:store_as] = 1 }
 
-        it do
-          expect { normalized }.to raise_error(
-            SpecForge::Error::InvalidStructureError,
+        include_examples("raises_invalid_structure_error") do
+          let(:error_message) do
             "Expected String, got Integer for \"store_as\" in expectation (item 0) (line 5)"
-          )
+          end
         end
       end
     end
@@ -410,22 +350,17 @@ RSpec.describe SpecForge::Normalizer do
       subject(:normalized_constraint) { normalized[:expectations].first[:expect] }
 
       context "when 'status' is not an Integer" do
-        before do
-          constraint[:status] = nil
-        end
+        before { constraint[:status] = nil }
 
-        it do
-          expect { normalized }.to raise_error(
-            SpecForge::Error::InvalidStructureError,
+        include_examples("raises_invalid_structure_error") do
+          let(:error_message) do
             "Expected Integer or String, got NilClass for \"status\" in expect (item 0)"
-          )
+          end
         end
       end
 
       context "when 'status' is a String" do
-        before do
-          constraint[:status] = "global.variables.status"
-        end
+        before { constraint[:status] = "global.variables.status" }
 
         it do
           expect(normalized_constraint[:status]).to eq("global.variables.status")
@@ -433,9 +368,7 @@ RSpec.describe SpecForge::Normalizer do
       end
 
       context "when 'json' is not a Hash" do
-        before do
-          constraint[:json] = nil
-        end
+        before { constraint[:json] = nil }
 
         it "is expected to default to an empty hash" do
           expect(normalized_constraint[:json]).to eq({})
@@ -443,9 +376,7 @@ RSpec.describe SpecForge::Normalizer do
       end
 
       context "when 'json' is an Array" do
-        before do
-          constraint[:json] = []
-        end
+        before { constraint[:json] = [] }
 
         it "is expected to allow it" do
           expect(normalized_constraint[:json]).to eq([])
@@ -453,9 +384,7 @@ RSpec.describe SpecForge::Normalizer do
       end
 
       context "when 'headers' is nil" do
-        before do
-          constraint[:headers] = nil
-        end
+        before { constraint[:headers] = nil }
 
         it "is expected to default to an empty hash" do
           expect(normalized_constraint[:headers]).to eq({})
@@ -463,15 +392,12 @@ RSpec.describe SpecForge::Normalizer do
       end
 
       context "when 'headers' is not a Hash" do
-        before do
-          constraint[:headers] = []
-        end
+        before { constraint[:headers] = [] }
 
-        it do
-          expect { normalized }.to raise_error(
-            SpecForge::Error::InvalidStructureError,
+        include_examples("raises_invalid_structure_error") do
+          let(:error_message) do
             "Expected Hash or String, got Array for \"headers\" in expect (item 0)"
-          )
+          end
         end
       end
     end

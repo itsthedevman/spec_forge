@@ -43,9 +43,7 @@ RSpec.describe SpecForge::Normalizer do
     end
 
     context "when 'model_class' is nil" do
-      before do
-        factory[:model_class] = nil
-      end
+      before { factory[:model_class] = nil }
 
       it "is expected to default to an empty string" do
         expect(normalized[:model_class]).to eq("")
@@ -53,22 +51,17 @@ RSpec.describe SpecForge::Normalizer do
     end
 
     context "when 'model_class' is not a String" do
-      before do
-        factory[:model_class] = 1
-      end
+      before { factory[:model_class] = 1 }
 
-      it do
-        expect { normalized }.to raise_error(
-          SpecForge::Error::InvalidStructureError,
+      include_examples("raises_invalid_structure_error") do
+        let(:error_message) do
           "Expected String, got Integer for \"model_class\" (aliases \"class\") in factory"
-        )
+        end
       end
     end
 
     context "when 'variables' is nil" do
-      before do
-        factory[:variables] = nil
-      end
+      before { factory[:variables] = nil }
 
       it "is expected to default to an empty hash" do
         expect(normalized[:variables]).to eq({})
@@ -76,22 +69,17 @@ RSpec.describe SpecForge::Normalizer do
     end
 
     context "when 'variables' is not a Hash" do
-      before do
-        factory[:variables] = 1
-      end
+      before { factory[:variables] = 1 }
 
-      it do
-        expect { normalized }.to raise_error(
-          SpecForge::Error::InvalidStructureError,
+      include_examples("raises_invalid_structure_error") do
+        let(:error_message) do
           "Expected Hash or String, got Integer for \"variables\" in factory"
-        )
+        end
       end
     end
 
     context "when 'attributes' is nil" do
-      before do
-        factory[:attributes] = nil
-      end
+      before { factory[:attributes] = nil }
 
       it "is expected to default to an empty hash" do
         expect(normalized[:attributes]).to eq({})
@@ -99,15 +87,12 @@ RSpec.describe SpecForge::Normalizer do
     end
 
     context "when 'attributes' is not a Hash" do
-      before do
-        factory[:attributes] = 1
-      end
+      before { factory[:attributes] = 1 }
 
-      it do
-        expect { normalized }.to raise_error(
-          SpecForge::Error::InvalidStructureError,
+      include_examples("raises_invalid_structure_error") do
+        let(:error_message) do
           "Expected Hash, got Integer for \"attributes\" in factory"
-        )
+        end
       end
     end
   end
