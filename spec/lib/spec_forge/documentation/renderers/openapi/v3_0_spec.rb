@@ -1,13 +1,15 @@
 # frozen_string_literal: true
 
 RSpec.describe SpecForge::Documentation::Renderers::OpenAPI::V3_0 do
-  let(:input) { SpecForge::Documentation::Document.new(info:, endpoints:, structures:) }
-  let(:info) { {} }
-  let(:endpoints) { {} }
-  let(:structures) { {} }
+  let(:input) { SpecForge::Documentation::Document.new(endpoints: {}) }
   let(:config) { SpecForge::Normalizer.default_openapi_config }
+  let(:renderer) { described_class.new(input) }
 
-  subject(:output) { described_class.new(input).render }
+  subject(:output) { renderer.render }
+
+  before do
+    allow(renderer).to receive(:config).and_return(config)
+  end
 
   context "when the document is empty" do
     it "is expected to return the OAS 3.0 structure" do
@@ -30,125 +32,116 @@ RSpec.describe SpecForge::Documentation::Renderers::OpenAPI::V3_0 do
   end
 
   context "when the document is fully complete" do
-    let(:info) do
-      {
-        title: "My API",
-        version: "0.1.0",
-        description: "This is my cool API",
-        contact: {
-          name: "Bryan",
-          email: "bryan@itsthedevman.com"
-        },
-        license: {
-          name: "MIT",
-          url: "https://opensource.org/licenses/MIT"
-        }
-      }
-    end
-
-    let(:test_data) do
-      data = {
-        endpoints: [
-          {
-            spec_name: "create_user",
-            expectation_name: "POST /users",
-            base_url: "http://localhost:3000",
-            url: "/users",
-            http_verb: "POST",
-            content_type: "application/json",
-            request_body: {
+    let(:input) do
+      endpoints = [
+        {
+          spec_name: "create_user",
+          expectation_name: "POST /users",
+          base_url: "http://localhost:3000",
+          url: "/users",
+          http_verb: "POST",
+          content_type: "application/json",
+          request_body: {
+            name: "Basic Test User",
+            email: "gregorio@lockman-luettgen.test",
+            password: "password12345"
+          },
+          request_headers: {},
+          request_query: {
+            limit: 50
+          },
+          response_status: 201,
+          response_body: {
+            user: {
+              id: Faker::Number.positive.to_i,
               name: "Basic Test User",
               email: "gregorio@lockman-luettgen.test",
-              password: "password12345"
-            },
-            request_headers: {},
-            request_query: {
-              limit: 50
-            },
-            response_status: 201,
-            response_body: {
-              user: {
-                id: Faker::Number.positive.to_i,
-                name: "Basic Test User",
-                email: "gregorio@lockman-luettgen.test",
-                role: "user",
-                password: "password12345",
-                active: true,
-                created_at: Time.current.to_s,
-                updated_at: Time.current.to_s
-              }
-            },
-            response_headers: {}
+              role: "user",
+              password: "password12345",
+              active: true,
+              created_at: Time.current.to_s,
+              updated_at: Time.current.to_s
+            }
           },
-          {
-            spec_name: "get_user",
-            expectation_name: "GET /users/{id}",
-            base_url: "http://localhost:3000",
-            url: "/users/{id}",
-            http_verb: "GET",
-            content_type: "application/json",
-            request_body: {},
-            request_headers: {},
-            request_query: {
-              id: 3535
-            },
-            response_status: 200,
-            response_body: {
-              user: {
-                id: 3535,
-                name: "Luise Ratke",
-                email: "marine@harber-macgyver.example",
-                role: "user",
-                password: "password12345",
-                active: true,
-                created_at: Time.current.to_s,
-                updated_at: Time.current.to_s
-              }
-            },
-            response_headers: {}
+          response_headers: {}
+        },
+        {
+          spec_name: "get_user",
+          expectation_name: "GET /users/{id}",
+          base_url: "http://localhost:3000",
+          url: "/users/{id}",
+          http_verb: "GET",
+          content_type: "application/json",
+          request_body: {},
+          request_headers: {},
+          request_query: {
+            id: 3535
           },
-          {
-            spec_name: "update_user",
-            expectation_name: "PATCH /users/{id}",
-            base_url: "http://localhost:3000",
-            url: "/users/{id}",
-            http_verb: "PATCH",
-            content_type: "application/json",
-            request_body: {
-              name: "Updated Basic User"
-            },
-            request_headers: {},
-            request_query: {
-              id: 3536
-            },
-            response_status: 200,
-            response_body: {
-              user: {
-                id: 3536,
-                name: "Updated Basic User",
-                email: "eliseo_kassulke@gleason.test",
-                role: "user",
-                password: "password12345",
-                active: true,
-                created_at: Time.current.to_s,
-                updated_at: Time.current.to_s
-              }
-            },
-            response_headers: {}
-          }
-        ],
-        structures: []
-      }
+          response_status: 200,
+          response_body: {
+            user: {
+              id: 3535,
+              name: "Luise Ratke",
+              email: "marine@harber-macgyver.example",
+              role: "user",
+              password: "password12345",
+              active: true,
+              created_at: Time.current.to_s,
+              updated_at: Time.current.to_s
+            }
+          },
+          response_headers: {}
+        },
+        {
+          spec_name: "update_user",
+          expectation_name: "PATCH /users/{id}",
+          base_url: "http://localhost:3000",
+          url: "/users/{id}",
+          http_verb: "PATCH",
+          content_type: "application/json",
+          request_body: {
+            name: "Updated Basic User"
+          },
+          request_headers: {},
+          request_query: {
+            id: 3536
+          },
+          response_status: 200,
+          response_body: {
+            user: {
+              id: 3536,
+              name: "Updated Basic User",
+              email: "eliseo_kassulke@gleason.test",
+              role: "user",
+              password: "password12345",
+              active: true,
+              created_at: Time.current.to_s,
+              updated_at: Time.current.to_s
+            }
+          },
+          response_headers: {}
+        }
+      ]
 
-      SpecForge::Documentation::Builder.new(**data).prepare_endpoints
+      SpecForge::Documentation::Builder.document_from_endpoints(endpoints)
     end
-
-    let(:endpoints) { test_data.endpoints }
-    let(:structures) { test_data.structures }
 
     let(:config) do
       config = SpecForge::Normalizer.default_openapi_config
-      config[:openapi] = {
+      config.merge(
+        info: {
+          title: "My API",
+          version: "0.1.0",
+          description: "This is my cool API",
+          contact: {
+            name: "Bryan",
+            email: "bryan@itsthedevman.com"
+          },
+          license: {
+            name: "MIT",
+            url: "https://opensource.org/licenses/MIT"
+          }
+        },
         servers: [
           {
             url: Faker::Internet.url,
@@ -214,9 +207,7 @@ RSpec.describe SpecForge::Documentation::Renderers::OpenAPI::V3_0 do
             openIdConnectUrl: "https://example.com/.well-known/openid-configuration"
           }
         }
-      }
-
-      config
+      )
     end
 
     it "is expected to render a valid OAS 3.0 hash" do

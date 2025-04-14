@@ -8,23 +8,23 @@ module SpecForge
       INTEGER_REGEX = /^-?\d+$/
       FLOAT_REGEX = /^-?\d+\.\d+$/
 
-      def self.build(endpoints: [])
-        new(endpoints:)
-          .prepare_endpoints
-          .export_as_document
+      def self.document_from_endpoints(endpoints = [])
+        new(endpoints).export_as_document
       end
 
       attr_reader :endpoints
 
-      def initialize(endpoints:)
-        @endpoints = endpoints
+      def initialize(endpoints)
+        @endpoints = prepare_endpoints(endpoints)
       end
 
-      def prepare_endpoints
-        # Step one, group the endpoints
-        endpoints = grouped_endpoints
+      def prepare_endpoints(endpoints)
+        # Step one, group the endpoints by their paths and verb
+        # { path: {get: [], post: []}, path_2: {get: []}, ... }
+        grouped = group_endpoints(endpoints)
 
-        endpoints.each_value do |endpoint|
+        grouped.each_value do |endpoint|
+          # Operations are those arrays
           endpoint.transform_values! do |operations|
             # Step two, clear data from any error (4xx, 5xx) operations
             operations = sanitize_error_operations(operations)
@@ -36,10 +36,6 @@ module SpecForge
             flatten_operations(operations)
           end
         end
-
-        @endpoints = endpoints
-
-        self
       end
 
       def export_as_document
@@ -94,19 +90,19 @@ module SpecForge
         end
       end
 
-      def grouped_endpoints
-        endpoints = Hash.new { |h, k| h[k] = {} }
+      def group_endpoints(endpoints)
+        grouped = Hash.new_nested_hash(depth: 1)
 
         # Convert the endpoints from a flat array of objects into a hash
-        @endpoints.each do |input|
+        endpoints.each do |input|
           # "/users" => {}
-          endpoint_hash = endpoints[input[:url]]
+          endpoint_hash = grouped[input[:url]]
 
           # "GET" => []
           (endpoint_hash[input[:http_verb]] ||= []) << input
         end
 
-        endpoints
+        grouped
       end
 
       def sanitize_error_operations(operations)

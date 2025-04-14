@@ -5,19 +5,19 @@ module SpecForge
     def self.render(renderer_class, use_cache: false, path: nil)
       cache_path = SpecForge.openapi_path.join("generated", ".cache", "loader.yml")
 
-      test_data =
+      endpoints =
         if use_cache && File.exist?(cache_path)
           YAML.safe_load_file(cache_path, symbolize_names: true)
         else
-          data = Documentation::Loader.extract_from_tests
+          endpoints = Documentation::Loader.extract_from_tests
 
           # Write out the cache
-          File.write(cache_path, data.deep_stringify_keys.to_yaml)
+          File.write(cache_path, endpoints.to_yaml)
 
-          data
+          endpoints
         end
 
-      document = Documentation::Builder.build(**test_data)
+      document = Documentation::Builder.document_from_endpoints(endpoints)
       renderer = renderer_class.new(document)
       return renderer unless path
 

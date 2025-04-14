@@ -43,11 +43,7 @@ module SpecForge
       end
 
       def extract_and_normalize_data
-        object = {endpoints: [], structures: []}
-
-        @successes.each_with_object(object) do |context, hash|
-          hash[:endpoints] << extract_endpoint(context)
-        end
+        @successes.map { |d| extract_endpoint(d) }
       end
 
       private
