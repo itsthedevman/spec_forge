@@ -5,13 +5,16 @@ module SpecForge
     module Renderers
       class File < Base
         def to_file(file_path)
-          render
+          output = render
 
+          file_extension = file_path.extname
           content =
             if output.is_a?(String)
               output
-            else
+            elsif file_extension == ".json"
               JSON.pretty_generate(output)
+            elsif file_extension == ".yml" || file_extension == ".yaml"
+              output.to_yaml(stringify_names: true)
             end
 
           ::File.write(file_path, content)
