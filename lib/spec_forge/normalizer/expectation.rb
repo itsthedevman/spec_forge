@@ -37,34 +37,12 @@ module SpecForge
         store_as: {type: String, default: ""},
         expect: {type: Hash}
       }.freeze
+
+      define_normalizer_methods(self)
     end
 
     # On Normalizer
     class << self
-      #
-      # Generates an empty expectation hash
-      #
-      # @return [Hash] Default expectation hash
-      #
-      def default_expectation
-        Expectation.default
-      end
-
-      #
-      # Normalize an array of expectation hashes
-      #
-      # @param input [Array<Hash>] The array to normalize
-      #
-      # @return [Array<Hash>] Normalized array of expectation hashes
-      #
-      # @raise [Error::InvalidStructureError] If validation fails
-      #
-      def normalize_expectations!(input)
-        raise_errors! do
-          normalize_expectations(input)
-        end
-      end
-
       #
       # Normalize an array of expectation hashes
       #
@@ -74,7 +52,7 @@ module SpecForge
       #
       # @private
       #
-      def normalize_expectations(expectations)
+      def normalize_expectation(expectations)
         if !Type.array?(expectations)
           raise Error::InvalidTypeError.new(expectations, Array, for: "\"expectations\" on spec")
         end

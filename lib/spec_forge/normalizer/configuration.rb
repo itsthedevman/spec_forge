@@ -41,50 +41,8 @@ module SpecForge
           type: Proc
         }
       }.freeze
-    end
 
-    # On Normalizer
-    class << self
-      #
-      # Generates an empty configuration hash
-      #
-      # @return [Hash] Default configuration hash
-      #
-      def default_configuration
-        Configuration.default
-      end
-
-      #
-      # Normalizes a configuration hash with validation
-      #
-      # @param input [Hash] The hash to normalize
-      #
-      # @return [Hash] A normalized hash with defaults applied
-      #
-      # @raise [Error::InvalidStructureError] If validation fails
-      #
-      def normalize_configuration!(input)
-        raise_errors! do
-          normalize_configuration(input)
-        end
-      end
-
-      #
-      # Normalize a configuration hash
-      #
-      # @param configuration [Hash] Configuration hash
-      #
-      # @return [Array] [normalized_hash, errors]
-      #
-      # @private
-      #
-      def normalize_configuration(configuration)
-        if !Type.hash?(configuration)
-          raise Error::InvalidTypeError.new(configuration, Hash, for: "configuration")
-        end
-
-        Normalizer::Configuration.new("configuration", configuration).normalize
-      end
+      define_normalizer_methods(self)
     end
   end
 end

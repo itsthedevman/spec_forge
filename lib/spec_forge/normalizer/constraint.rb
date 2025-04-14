@@ -32,33 +32,10 @@ module SpecForge
           default: {}
         }
       }.freeze
-    end
 
-    # On Normalizer
-    class << self
-      #
-      # Generates an empty constraint hash
-      #
-      # @return [Hash] Default constraint hash
-      #
-      def default_constraint
-        Constraint.default
-      end
+      default_label "expect"
 
-      #
-      # Normalize a constraint hash
-      #
-      # @param constraint [Hash] Constraint hash
-      #
-      # @return [Array] [normalized_hash, errors]
-      #
-      # @private
-      #
-      def normalize_constraint(constraint)
-        raise Error::InvalidTypeError.new(constraint, Hash, for: "expect") unless Type.hash?(constraint)
-
-        Normalizer::Constraint.new("expect", constraint).normalize
-      end
+      define_normalizer_methods(self)
     end
   end
 end

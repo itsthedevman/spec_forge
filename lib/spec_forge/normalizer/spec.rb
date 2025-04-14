@@ -38,19 +38,12 @@ module SpecForge
         debug: Normalizer::SHARED_ATTRIBUTES[:debug],
         expectations: {type: Array}
       }.freeze
+
+      define_normalizer_methods(self)
     end
 
     # On Normalizer
     class << self
-      #
-      # Generates an empty spec hash
-      #
-      # @return [Hash] Default spec hash
-      #
-      def default_spec
-        Spec.default
-      end
-
       #
       # Normalizes a spec hash with validation and processes expectations
       #
@@ -67,7 +60,7 @@ module SpecForge
 
           # Process expectations
           if (expectations = input[:expectations]) && Type.array?(expectations)
-            expectation_output, expectation_errors = normalize_expectations(expectations)
+            expectation_output, expectation_errors = normalize_expectation(expectations)
 
             output[:expectations] = expectation_output
             errors += expectation_errors if expectation_errors.size > 0
@@ -75,22 +68,6 @@ module SpecForge
 
           [output, errors]
         end
-      end
-
-      #
-      # Normalize a spec hash
-      #
-      # @param spec [Hash] Spec hash
-      # @param label [String] Label for error messages
-      #
-      # @return [Array] [normalized_hash, errors]
-      #
-      # @private
-      #
-      def normalize_spec(spec, label: "spec")
-        raise Error::InvalidTypeError.new(spec, Hash, for: label) unless Type.hash?(spec)
-
-        Normalizer::Spec.new(label, spec).normalize
       end
     end
   end

@@ -144,6 +144,61 @@ module SpecForge
       def default
         new("", "").default
       end
+
+      #
+      # Human-readable label for this normalizer
+      #
+      # @return [String, nil] The label for this normalizer
+      #
+      attr_reader :label
+
+      #
+      # Sets the default label for this normalizer class
+      #
+      # @param value [String] The label to use for this normalizer
+      #
+      # @return [String] The set label
+      #
+      def default_label(value)
+        @label = value
+      end
+
+      #
+      # Defines the standard normalizer methods for a normalizer class
+      #
+      # This method creates three methods on the Normalizer class for a given normalizer:
+      # - default_#{key} - Returns default values for this normalizer
+      # - normalize_#{key}! - Normalize with error handling
+      # - normalize_#{key} - Normalize without error handling
+      #
+      # @param normalizer_class [Class] The normalizer class to define methods for
+      #
+      # @example Defining methods for a spec normalizer
+      #   define_normalizer_methods(SpecForge::Normalizer::Spec)
+      #   # Creates methods: default_spec, normalize_spec!, normalize_spec
+      #
+      def define_normalizer_methods(normalizer_class)
+        key = normalizer_class.name.split("::").last.underscore
+        normalizer_label = normalizer_class.label || key.humanize.downcase
+
+        # default_spec, default_factory_reference, etc.
+        Normalizer.define_singleton_method(:"default_#{key}") do
+          normalizer_class.default
+        end
+
+        # normalize_spec!, normalize_factory_reference!, etc.
+        Normalizer.define_singleton_method(:"normalize_#{key}!") do |input, **args|
+          raise_errors! { public_send(:"normalize_#{key}", input, **args) }
+        end
+
+        # normalize_spec, normalize_factory_reference, etc.
+        Normalizer.define_singleton_method(:"normalize_#{key}") do |input, **args|
+          label = args[:label] || normalizer_label
+          raise Error::InvalidTypeError.new(input, Hash, for: label) if !Type.hash?(input)
+
+          normalizer_class.new(label, input).normalize
+        end
+      end
     end
 
     # @return [String] A label that describes the data itself

@@ -8,7 +8,7 @@ module SpecForge
     # Ensures that the configuration has the correct structure
     # and default values for all required settings.
     #
-    class OpenAPIConfig < Normalizer
+    class OpenapiConfig < Normalizer
       #
       # Defines the normalized structure for configuration validation
       #
@@ -65,50 +65,10 @@ module SpecForge
           default: {}
         }
       }.freeze
-    end
 
-    # On Normalizer
-    class << self
-      #
-      # Generates an empty OpenAPI configuration hash
-      #
-      # @return [Hash] Default configuration hash
-      #
-      def default_openapi_config
-        OpenAPIConfig.default
-      end
+      default_label "openapi/config/openapi.yml"
 
-      #
-      # Normalizes a OpenAPI configuration hash with validation
-      #
-      # @param input [Hash] The hash to normalize
-      #
-      # @return [Hash] A normalized hash with defaults applied
-      #
-      # @raise [Error::InvalidStructureError] If validation fails
-      #
-      def normalize_openapi_config!(input)
-        raise_errors! do
-          normalize_openapi_config(input)
-        end
-      end
-
-      #
-      # Normalize a OpenAPI configuration hash
-      #
-      # @param configuration [Hash] Configuration hash
-      #
-      # @return [Array] [normalized_hash, errors]
-      #
-      # @private
-      #
-      def normalize_openapi_config(configuration)
-        if !Type.hash?(configuration)
-          raise Error::InvalidTypeError.new(configuration, Hash, for: "openapi/config/openapi.yml")
-        end
-
-        Normalizer::OpenAPIConfig.new("openapi/config/openapi.yml", configuration).normalize
-      end
+      define_normalizer_methods(self)
     end
   end
 end
