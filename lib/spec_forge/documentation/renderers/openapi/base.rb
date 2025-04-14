@@ -11,6 +11,15 @@ module SpecForge
 
           protected
 
+          def config
+            @config ||= begin
+              path = SpecForge.openapi_path.join("config", "openapi.yml")
+              hash = YAML.safe_load_file(path, symbolize_names: true)
+
+              Normalizer.normalize_openapi_config!(hash)
+            end
+          end
+
           def type_to_schema(format)
             case format
             when "datetime", "time"

@@ -7,15 +7,6 @@ module SpecForge
         class V3_0 < Base # standard:disable Naming/ClassAndModuleCamelCase
           CURRENT_VERSION = "3.0.4"
 
-          def config
-            @config ||= begin
-              path = SpecForge.openapi_path.join("config", "openapi.yml")
-              hash = YAML.safe_load_file(path, symbolize_names: true)
-
-              Normalizer.normalize_openapi_config!(hash)
-            end
-          end
-
           def render
             output[:openapi] = export_openapi_version
             output[:info] = export_info
