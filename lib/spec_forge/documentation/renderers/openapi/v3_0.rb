@@ -8,7 +8,12 @@ module SpecForge
           CURRENT_VERSION = "3.0.4"
 
           def config
-            @config ||= Documentation.config[:openapi]
+            @config ||= begin
+              path = SpecForge.openapi_path.join("config", "openapi.yml")
+              hash = YAML.safe_load_file(path, symbolize_names: true)
+
+              Normalizer.normalize_openapi_config!(hash)
+            end
           end
 
           # https://spec.openapis.org/oas/v3.0.4.html#openapi-object
@@ -78,7 +83,9 @@ module SpecForge
 
                 output = {
                   operationId: camelize(document.id),
+                  summary: document.id.humanize,
                   description: document.description,
+                  security: [{}],
                   parameters:
                 }
 
@@ -86,9 +93,10 @@ module SpecForge
                   output[:requestBody] = export_request_body(requests)
                 end
 
-                if (responses = document.responses) && responses.present?
-                  output[:responses] = export_responses(responses)
-                end
+                output[:responses] = {}
+                # if (responses = document.responses) && responses.present?
+                #   output[:responses] = export_responses(responses)
+                # end
 
                 output
               end
@@ -102,9 +110,12 @@ module SpecForge
               request = grouped_requests.first
 
               content = request.content
-              schema = type_to_schema(request.type, content: request.content)
+
+              schema = type_to_schema(request.type)
+              schema.merge!(content_to_schema(request.content))
 
               {
+                required: true,
                 schema:,
                 examples: grouped_requests.to_h do |request|
                   [
@@ -125,11 +136,16 @@ module SpecForge
             responses.group_by(&:status)
               .stringify_keys
               .transform_values! do |responses|
+                # I was trying to figure out how to get body content into the schema hash
+                # in a way that makes it easy so I don't have to check for `items` or `properties`
+                # But at the same time, content needs to have their types converted as well
                 response = responses.first
-                schema = type_to_schema(response.body.type, content: response.body.content)
+                schema = type_to_schema(response.body.type)
+                schema.merge!(content_to_schema(response.body.content))
 
                 {
                   headers: response.headers,
+                  description: "",
                   content: {
                     response.content_type => {schema:}
                   }

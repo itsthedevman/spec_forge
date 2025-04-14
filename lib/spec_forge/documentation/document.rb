@@ -2,10 +2,8 @@
 
 module SpecForge
   module Documentation
-    class Document < Data.define(:info, :endpoints, :structures)
-      def initialize(info: {}, endpoints: {}, structures: {})
-        info = Info.new(**info)
-
+    class Document < Data.define(:endpoints)
+      def initialize(endpoints: {})
         endpoints = endpoints.transform_values do |operations|
           operations.transform_keys(&:downcase)
             .transform_values! { |op| Operation.new(**op) }
@@ -17,7 +15,6 @@ module SpecForge
   end
 end
 
-require_relative "document/info"
 require_relative "document/operation"
 require_relative "document/parameter"
 require_relative "document/request_body"

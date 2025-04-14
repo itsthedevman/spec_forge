@@ -8,18 +8,16 @@ module SpecForge
       INTEGER_REGEX = /^-?\d+$/
       FLOAT_REGEX = /^-?\d+\.\d+$/
 
-      def self.build(endpoints: [], structures: [])
-        new(endpoints:, structures:)
+      def self.build(endpoints: [])
+        new(endpoints:)
           .prepare_endpoints
           .export_as_document
       end
 
-      attr_reader :info, :endpoints, :structures
+      attr_reader :endpoints
 
-      def initialize(endpoints:, structures:)
-        @info = Documentation.config[:info]
+      def initialize(endpoints:)
         @endpoints = endpoints
-        @structures = structures
       end
 
       def prepare_endpoints
@@ -45,7 +43,7 @@ module SpecForge
       end
 
       def export_as_document
-        Document.new(info:, endpoints:, structures:)
+        Document.new(endpoints:)
       end
 
       private

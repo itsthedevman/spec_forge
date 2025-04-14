@@ -5,13 +5,9 @@ RSpec.describe SpecForge::Documentation::Renderers::OpenAPI::V3_0 do
   let(:info) { {} }
   let(:endpoints) { {} }
   let(:structures) { {} }
-  let(:config) { SpecForge::Normalizer.default_documentation_config }
+  let(:config) { SpecForge::Normalizer.default_openapi_config }
 
   subject(:output) { described_class.new(input).render }
-
-  before do
-    allow(SpecForge::Documentation).to receive(:config).and_return(config)
-  end
 
   context "when the document is empty" do
     it "is expected to return the OAS 3.0 structure" do
@@ -151,7 +147,7 @@ RSpec.describe SpecForge::Documentation::Renderers::OpenAPI::V3_0 do
     let(:structures) { test_data.structures }
 
     let(:config) do
-      config = SpecForge::Normalizer.default_documentation_config
+      config = SpecForge::Normalizer.default_openapi_config
       config[:openapi] = {
         servers: [
           {
