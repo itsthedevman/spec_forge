@@ -4,11 +4,10 @@ module SpecForge
   module Documentation
     module Renderers
       class Base
-        attr_reader :input, :output
+        attr_reader :input
 
         def initialize(input = {})
           @input = input
-          @output = {}
         end
 
         def render
@@ -17,11 +16,10 @@ module SpecForge
 
         def to_h
           render
-          output
         end
 
         def to_yaml
-          to_h.to_yaml
+          render.to_yaml(stringify_names: true)
         end
       end
     end
