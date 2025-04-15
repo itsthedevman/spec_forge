@@ -50,31 +50,11 @@ RSpec.describe SpecForge::Normalizer do
       end
     end
 
-    context "when 'model_class' is not a String" do
-      before { factory[:model_class] = 1 }
-
-      include_examples("raises_invalid_structure_error") do
-        let(:error_message) do
-          "Expected String, got Integer for \"model_class\" (aliases \"class\") in factory"
-        end
-      end
-    end
-
     context "when 'variables' is nil" do
       before { factory[:variables] = nil }
 
       it "is expected to default to an empty hash" do
         expect(normalized[:variables]).to eq({})
-      end
-    end
-
-    context "when 'variables' is not a Hash" do
-      before { factory[:variables] = 1 }
-
-      include_examples("raises_invalid_structure_error") do
-        let(:error_message) do
-          "Expected Hash or String, got Integer for \"variables\" in factory"
-        end
       end
     end
 
@@ -86,14 +66,23 @@ RSpec.describe SpecForge::Normalizer do
       end
     end
 
-    context "when 'attributes' is not a Hash" do
-      before { factory[:attributes] = 1 }
-
-      include_examples("raises_invalid_structure_error") do
-        let(:error_message) do
-          "Expected Hash, got Integer for \"attributes\" in factory"
-        end
-      end
-    end
+    include_examples(
+      "normalizer_raises_invalid_structure",
+      {
+        context: "when 'model_class' is not a String",
+        before: -> { factory[:model_class] = 1 },
+        error: "Expected String, got Integer for \"model_class\" (aliases \"class\") in factory"
+      },
+      {
+        context: "when 'variables' is not a Hash",
+        before: -> { factory[:variables] = 1 },
+        error: "Expected Hash or String, got Integer for \"variables\" in factory"
+      },
+      {
+        context: "when 'attributes' is not a Hash",
+        before: -> { factory[:attributes] = 1 },
+        error: "Expected Hash, got Integer for \"attributes\" in factory"
+      }
+    )
   end
 end

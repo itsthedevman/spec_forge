@@ -112,51 +112,11 @@ RSpec.describe SpecForge::Normalizer do
     end
 
     context "Normalizing Spec" do
-      context "when 'base_url' is not a String" do
-        before { spec[:base_url] = 1 }
-
-        include_examples("raises_invalid_structure_error") do
-          let(:error_message) do
-            "Expected String, got Integer for \"base_url\" in spec (line 1)"
-          end
-        end
-      end
-
-      context "when 'url' is not a String" do
-        before { spec[:url] = 1 }
-
-        include_examples("raises_invalid_structure_error") do
-          let(:error_message) do
-            "Expected String, got Integer for \"url\" (aliases \"path\") in spec (line 1)"
-          end
-        end
-      end
-
-      context "when 'http_verb' is not a String" do
-        before { spec[:http_verb] = 1 }
-
-        include_examples("raises_invalid_structure_error") do
-          let(:error_message) do
-            "Expected String, got Integer for \"http_verb\" (aliases \"method\", \"http_method\") in spec (line 1)"
-          end
-        end
-      end
-
       context "when 'headers' is nil" do
         before { spec[:headers] = nil }
 
         it "is expected to default to an empty hash" do
           expect(normalized[:headers]).to eq({})
-        end
-      end
-
-      context "when 'headers' is not a Hash" do
-        before { spec[:headers] = 1 }
-
-        include_examples("raises_invalid_structure_error") do
-          let(:error_message) do
-            "Expected Hash, got Integer for \"headers\" in spec (line 1)"
-          end
         end
       end
 
@@ -172,31 +132,11 @@ RSpec.describe SpecForge::Normalizer do
         end
       end
 
-      context "when 'query' is not a Hash" do
-        before { spec[:query] = 1 }
-
-        include_examples("raises_invalid_structure_error") do
-          let(:error_message) do
-            "Expected Hash or String, got Integer for \"query\" (aliases \"params\") in spec (line 1)"
-          end
-        end
-      end
-
       context "when 'body' is nil" do
         before { spec[:body] = nil }
 
         it "is expected to default to an empty hash" do
           expect(normalized[:body]).to eq({})
-        end
-      end
-
-      context "when 'body' is not a Hash" do
-        before { spec[:body] = 1 }
-
-        include_examples("raises_invalid_structure_error") do
-          let(:error_message) do
-            "Expected Hash or String, got Integer for \"body\" (aliases \"data\") in spec (line 1)"
-          end
         end
       end
 
@@ -208,35 +148,54 @@ RSpec.describe SpecForge::Normalizer do
         end
       end
 
-      context "when 'variables' is not a Hash" do
-        before { spec[:variables] = 1 }
-
-        include_examples("raises_invalid_structure_error") do
-          let(:error_message) do
-            "Expected Hash or String, got Integer for \"variables\" in spec (line 1)"
-          end
-        end
-      end
-
-      context "when 'expectations' is nil" do
-        before { spec[:expectations] = nil }
-
-        include_examples("raises_invalid_structure_error") do
-          let(:error_message) do
-            "Expected Array, got NilClass for \"expectations\" in spec (line 1)"
-          end
-        end
-      end
-
-      context "when 'expectations' is not an Array" do
-        before { spec[:expectations] = 1 }
-
-        include_examples("raises_invalid_structure_error") do
-          let(:error_message) do
-            "Expected Array, got Integer for \"expectations\" in spec (line 1)"
-          end
-        end
-      end
+      include_examples(
+        "normalizer_raises_invalid_structure",
+        {
+          context: "when 'base_url' is not a String",
+          before: -> { spec[:base_url] = 1 },
+          error: "Expected String, got Integer for \"base_url\" in spec (line 1)"
+        },
+        {
+          context: "when 'url' is not a String",
+          before: -> { spec[:url] = 1 },
+          error: "Expected String, got Integer for \"url\" (aliases \"path\") in spec (line 1)"
+        },
+        {
+          context: "when 'http_verb' is not a String",
+          before: -> { spec[:http_verb] = 1 },
+          error: "Expected String, got Integer for \"http_verb\" (aliases \"method\", \"http_method\") in spec (line 1)"
+        },
+        {
+          context: "when 'headers' is not a Hash",
+          before: -> { spec[:headers] = 1 },
+          error: "Expected Hash, got Integer for \"headers\" in spec (line 1)"
+        },
+        {
+          context: "when 'query' is not a Hash",
+          before: -> { spec[:query] = 1 },
+          error: "Expected Hash or String, got Integer for \"query\" (aliases \"params\") in spec (line 1)"
+        },
+        {
+          context: "when 'body' is not a Hash",
+          before: -> { spec[:body] = 1 },
+          error: "Expected Hash or String, got Integer for \"body\" (aliases \"data\") in spec (line 1)"
+        },
+        {
+          context: "when 'variables' is not a Hash",
+          before: -> { spec[:variables] = 1 },
+          error: "Expected Hash or String, got Integer for \"variables\" in spec (line 1)"
+        },
+        {
+          context: "when 'expectations' is nil",
+          before: -> { spec[:expectations] = nil },
+          error: "Expected Array, got NilClass for \"expectations\" in spec (line 1)"
+        },
+        {
+          context: "when 'expectations' is not an Array",
+          before: -> { spec[:expectations] = 1 },
+          error: "Expected Array, got Integer for \"expectations\" in spec (line 1)"
+        }
+      )
     end
 
     context "Normalizing Expectations" do
@@ -246,36 +205,6 @@ RSpec.describe SpecForge::Normalizer do
         it "is expected to be a duplicated object" do
           default_value = described_class::Expectation::STRUCTURE[:http_verb][:default]
           expect(default_value).not_to eq(normalized_expectation[:http_verb].object_id)
-        end
-      end
-
-      context "when 'url' is not a String" do
-        before { expectation[:url] = 1 }
-
-        include_examples("raises_invalid_structure_error") do
-          let(:error_message) do
-            "Expected String, got Integer for \"url\" (aliases \"path\") in expectation (item 0) (line 5)"
-          end
-        end
-      end
-
-      context "when 'http_verb' is not a String" do
-        before { expectation[:http_verb] = 1 }
-
-        include_examples("raises_invalid_structure_error") do
-          let(:error_message) do
-            "Expected String, got Integer for \"http_verb\" (aliases \"method\", \"http_method\") in expectation (item 0) (line 5)"
-          end
-        end
-      end
-
-      context "when 'http_verb' is not a valid verb" do
-        before { expectation[:http_verb] = "TEG" }
-
-        include_examples("raises_invalid_structure_error") do
-          let(:error_message) do
-            "Invalid HTTP verb: TEG. Valid values are: DELETE, GET, PATCH, POST, PUT"
-          end
         end
       end
 
@@ -315,16 +244,6 @@ RSpec.describe SpecForge::Normalizer do
         end
       end
 
-      context "when 'expect' is not a Hash" do
-        before { expectation[:expect] = nil }
-
-        include_examples("raises_invalid_structure_error") do
-          let(:error_message) do
-            "Expected Hash, got NilClass for \"expect\" in expectation (item 0) (line 5)"
-          end
-        end
-      end
-
       context "when 'store_as' is nil" do
         before { expectation[:store_as] = nil }
 
@@ -333,31 +252,40 @@ RSpec.describe SpecForge::Normalizer do
         end
       end
 
-      context "when 'store_as' is not a String" do
-        before { expectation[:store_as] = 1 }
-
-        include_examples("raises_invalid_structure_error") do
-          let(:error_message) do
-            "Expected String, got Integer for \"store_as\" in expectation (item 0) (line 5)"
-          end
-        end
-      end
+      include_examples(
+        "normalizer_raises_invalid_structure",
+        {
+          context: "when 'url' is not a String",
+          before: -> { expectation[:url] = 1 },
+          error: "Expected String, got Integer for \"url\" (aliases \"path\") in expectation (item 0) (line 5)"
+        },
+        {
+          context: "when 'http_verb' is not a String",
+          before: -> { expectation[:http_verb] = 1 },
+          error: "Expected String, got Integer for \"http_verb\" (aliases \"method\", \"http_method\") in expectation (item 0) (line 5)"
+        },
+        {
+          context: "when 'http_verb' is not a valid verb",
+          before: -> { expectation[:http_verb] = "TEG" },
+          error: "Invalid HTTP verb: TEG. Valid values are: DELETE, GET, PATCH, POST, PUT"
+        },
+        {
+          context: "when 'expect' is not a Hash",
+          before: -> { expectation[:expect] = nil },
+          error: "Expected Hash, got NilClass for \"expect\" in expectation (item 0) (line 5)"
+        },
+        {
+          context: "when 'store_as' is not a String",
+          before: -> { expectation[:store_as] = 1 },
+          error: "Expected String, got Integer for \"store_as\" in expectation (item 0) (line 5)"
+        }
+      )
     end
 
     context "Normalizing Constraints" do
       let(:constraint) { expectation[:expect] }
 
       subject(:normalized_constraint) { normalized[:expectations].first[:expect] }
-
-      context "when 'status' is not an Integer" do
-        before { constraint[:status] = nil }
-
-        include_examples("raises_invalid_structure_error") do
-          let(:error_message) do
-            "Expected Integer or String, got NilClass for \"status\" in expect (item 0)"
-          end
-        end
-      end
 
       context "when 'status' is a String" do
         before { constraint[:status] = "global.variables.status" }
@@ -391,15 +319,19 @@ RSpec.describe SpecForge::Normalizer do
         end
       end
 
-      context "when 'headers' is not a Hash" do
-        before { constraint[:headers] = [] }
-
-        include_examples("raises_invalid_structure_error") do
-          let(:error_message) do
-            "Expected Hash or String, got Array for \"headers\" in expect (item 0)"
-          end
-        end
-      end
+      include_examples(
+        "normalizer_raises_invalid_structure",
+        {
+          context: "when 'status' is not an Integer",
+          before: -> { constraint[:status] = nil },
+          error: "Expected Integer or String, got NilClass for \"status\" in expect (item 0)"
+        },
+        {
+          context: "when 'headers' is not a Hash",
+          before: -> { constraint[:headers] = [] },
+          error: "Expected Hash or String, got Array for \"headers\" in expect (item 0)"
+        }
+      )
     end
 
     context "when aliases are used" do

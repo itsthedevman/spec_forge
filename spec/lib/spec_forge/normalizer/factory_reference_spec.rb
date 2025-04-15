@@ -23,54 +23,24 @@ RSpec.describe SpecForge::Normalizer do
     context "when 'build_strategy' is nil" do
       before { factory[:build_strategy] = nil }
 
-      it do
+      it "is expected to default to 'create'" do
         expect(normalized[:build_strategy]).to eq("create")
-      end
-    end
-
-    context "when 'build_strategy' is not a String" do
-      before { factory[:build_strategy] = 1 }
-
-      include_examples "raises_invalid_structure_error" do
-        let(:error_message) do
-          "Expected String, got Integer for \"build_strategy\" (aliases \"strategy\") in factory reference"
-        end
       end
     end
 
     context "when 'attributes' is nil" do
       before { factory[:attributes] = nil }
 
-      it do
+      it "is expected to default to an empty hash" do
         expect(normalized[:attributes]).to eq({})
-      end
-    end
-
-    context "when 'attributes' is not a Hash" do
-      before { factory[:attributes] = 1 }
-
-      include_examples "raises_invalid_structure_error" do
-        let(:error_message) do
-          "Expected Hash, got Integer for \"attributes\" in factory reference"
-        end
       end
     end
 
     context "when 'size' is nil" do
       before { factory[:size] = nil }
 
-      it do
+      it "is expected to default to 0" do
         expect(normalized[:size]).to eq(0)
-      end
-    end
-
-    context "when 'size' is not an Integer" do
-      before { factory[:size] = 1.0 }
-
-      include_examples "raises_invalid_structure_error" do
-        let(:error_message) do
-          "Expected Integer, got Float for \"size\" (aliases \"count\") in factory reference"
-        end
       end
     end
 
@@ -81,10 +51,29 @@ RSpec.describe SpecForge::Normalizer do
         factory[:count] = factory.delete(:size)
       end
 
-      it do
+      it "is expected to accept the aliases" do
         expect(normalized[:build_strategy]).to eq(factory[:strategy])
         expect(normalized[:size]).to eq(factory[:count])
       end
     end
+
+    include_examples(
+      "normalizer_raises_invalid_structure",
+      {
+        context: "when 'build_strategy' is not a String",
+        before: -> { factory[:build_strategy] = 1 },
+        error: "Expected String, got Integer for \"build_strategy\" (aliases \"strategy\") in factory reference"
+      },
+      {
+        context: "when 'attributes' is not a Hash",
+        before: -> { factory[:attributes] = 1 },
+        error: "Expected Hash, got Integer for \"attributes\" in factory reference"
+      },
+      {
+        context: "when 'size' is not an Integer",
+        before: -> { factory[:size] = 1.0 },
+        error: "Expected Integer, got Float for \"size\" (aliases \"count\") in factory reference"
+      }
+    )
   end
 end
