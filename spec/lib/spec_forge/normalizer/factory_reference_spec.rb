@@ -20,30 +20,6 @@ RSpec.describe SpecForge::Normalizer do
       expect(normalized[:attributes]).to match(name: "faker.name.name")
     end
 
-    context "when 'build_strategy' is nil" do
-      before { factory[:build_strategy] = nil }
-
-      it "is expected to default to 'create'" do
-        expect(normalized[:build_strategy]).to eq("create")
-      end
-    end
-
-    context "when 'attributes' is nil" do
-      before { factory[:attributes] = nil }
-
-      it "is expected to default to an empty hash" do
-        expect(normalized[:attributes]).to eq({})
-      end
-    end
-
-    context "when 'size' is nil" do
-      before { factory[:size] = nil }
-
-      it "is expected to default to 0" do
-        expect(normalized[:size]).to eq(0)
-      end
-    end
-
     context "when aliases are used" do
       before do
         factory[:build_strategy] = "build"
@@ -56,6 +32,28 @@ RSpec.describe SpecForge::Normalizer do
         expect(normalized[:size]).to eq(factory[:count])
       end
     end
+
+    include_examples(
+      "normalizer_defaults_value",
+      {
+        context: "when 'build_strategy' is nil",
+        before: -> { factory[:build_strategy] = nil },
+        input: -> { normalized[:build_strategy] },
+        default: "create"
+      },
+      {
+        context: "when 'attributes' is nil",
+        before: -> { factory[:attributes] = nil },
+        input: -> { normalized[:attributes] },
+        default: {}
+      },
+      {
+        context: "when 'size' is nil",
+        before: -> { factory[:size] = nil },
+        input: -> { normalized[:size] },
+        default: 0
+      }
+    )
 
     include_examples(
       "normalizer_raises_invalid_structure",

@@ -29,21 +29,21 @@ RSpec.describe SpecForge::Normalizer do
       )
     end
 
-    context "when 'variables' is nil" do
-      before { global[:variables] = nil }
-
-      it do
-        expect(normalized[:variables]).to eq({})
-      end
-    end
-
-    context "when 'callbacks' is nil" do
-      before { global[:callbacks] = nil }
-
-      it "is expected to default it to an empty hash" do
-        expect(normalized[:callbacks]).to eq([])
-      end
-    end
+    include_examples(
+      "normalizer_defaults_value",
+      {
+        context: "when 'variables' is nil",
+        before: -> { global[:variables] = nil },
+        input: -> { normalized[:variables] },
+        default: {}
+      },
+      {
+        context: "when 'callbacks' is nil",
+        before: -> { global[:callbacks] = nil },
+        input: -> { normalized[:callbacks] },
+        default: []
+      }
+    )
 
     include_examples(
       "normalizer_raises_invalid_structure",

@@ -42,29 +42,27 @@ RSpec.describe SpecForge::Normalizer do
       end
     end
 
-    context "when 'model_class' is nil" do
-      before { factory[:model_class] = nil }
-
-      it "is expected to default to an empty string" do
-        expect(normalized[:model_class]).to eq("")
-      end
-    end
-
-    context "when 'variables' is nil" do
-      before { factory[:variables] = nil }
-
-      it "is expected to default to an empty hash" do
-        expect(normalized[:variables]).to eq({})
-      end
-    end
-
-    context "when 'attributes' is nil" do
-      before { factory[:attributes] = nil }
-
-      it "is expected to default to an empty hash" do
-        expect(normalized[:attributes]).to eq({})
-      end
-    end
+    include_examples(
+      "normalizer_defaults_value",
+      {
+        context: "when 'model_class' is nil",
+        before: -> { factory[:model_class] = nil },
+        input: -> { normalized[:model_class] },
+        default: ""
+      },
+      {
+        context: "when 'variables' is nil",
+        before: -> { factory[:variables] = nil },
+        input: -> { normalized[:variables] },
+        default: {}
+      },
+      {
+        context: "when 'attributes' is nil",
+        before: -> { factory[:attributes] = nil },
+        input: -> { normalized[:attributes] },
+        default: {}
+      }
+    )
 
     include_examples(
       "normalizer_raises_invalid_structure",

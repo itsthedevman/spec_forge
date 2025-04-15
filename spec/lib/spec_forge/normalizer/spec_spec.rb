@@ -111,42 +111,66 @@ RSpec.describe SpecForge::Normalizer do
       expect(constraint[:headers][:response_header]).to be_kind_of(String)
     end
 
+    context "when aliases are used" do
+      before do
+        spec[:path] = spec.delete(:url)
+        spec[:method] = spec.delete(:http_verb)
+        spec[:params] = spec.delete(:query)
+        spec[:data] = spec.delete(:body)
+
+        expectation[:path] = expectation.delete(:url)
+        expectation[:method] = expectation.delete(:http_verb)
+        expectation[:params] = expectation.delete(:query)
+        expectation[:data] = expectation.delete(:body)
+      end
+
+      it "normalizes them" do
+        expect(normalized).to include(
+          url: spec[:path],
+          http_verb: spec[:method],
+          query: spec[:params],
+          body: spec[:data],
+          variables: spec[:variables],
+          expectations: [
+            include(
+              url: expectation[:path],
+              http_verb: expectation[:method],
+              query: expectation[:params],
+              body: expectation[:data]
+            )
+          ]
+        )
+      end
+    end
+
     context "Normalizing Spec" do
-      context "when 'headers' is nil" do
-        before { spec[:headers] = nil }
-
-        it "is expected to default to an empty hash" do
-          expect(normalized[:headers]).to eq({})
-        end
-      end
-
-      context "when 'query' is nil" do
-        before { spec[:query] = nil }
-
-        it "is expected to default to an empty hash" do
-          expect(normalized[:query]).to eq({})
-
-          # Ensure the value is disconnected from the default
-          default_value = described_class::Spec::STRUCTURE[:query][:default]
-          expect(default_value).not_to eq(normalized[:query].object_id)
-        end
-      end
-
-      context "when 'body' is nil" do
-        before { spec[:body] = nil }
-
-        it "is expected to default to an empty hash" do
-          expect(normalized[:body]).to eq({})
-        end
-      end
-
-      context "when 'variables' is nil" do
-        before { spec[:variables] = nil }
-
-        it "is expected to default to an empty hash" do
-          expect(normalized[:variables]).to eq({})
-        end
-      end
+      include_examples(
+        "normalizer_defaults_value",
+        {
+          context: "when 'headers' is nil",
+          before: -> { spec[:headers] = nil },
+          input: -> { normalized[:headers] },
+          default: {}
+        },
+        {
+          context: "when 'query' is nil",
+          before: -> { spec[:query] = nil },
+          input: -> { normalized[:query] },
+          default: {}
+        },
+        {
+          context: "when 'body' is nil",
+          before: -> { spec[:body] = nil },
+          input: -> { normalized[:body] },
+          default: {}
+        },
+        {
+          context: "when 'variables' is nil",
+          before: -> { spec[:variables] = nil },
+          input: -> { normalized[:variables] },
+          default: {}
+        }
+      )
 
       include_examples(
         "normalizer_raises_invalid_structure",
@@ -208,49 +232,39 @@ RSpec.describe SpecForge::Normalizer do
         end
       end
 
-      context "when 'headers' is not a String" do
-        before { expectation[:headers] = nil }
-
-        it do
-          expect(normalized_expectation[:headers]).to eq({})
-        end
-      end
-
-      context "when 'query' is not a Hash" do
-        before { expectation[:query] = nil }
-
-        it "is expected to default to an empty hash" do
-          expect(normalized_expectation[:query]).to eq({})
-
-          # Ensure the value is disconnected from the default
-          default_value = described_class::Expectation::STRUCTURE[:query][:default]
-          expect(default_value).not_to eq(normalized_expectation[:query].object_id)
-        end
-      end
-
-      context "when 'body' is not a Hash" do
-        before { expectation[:body] = nil }
-
-        it "is expected to default to an empty hash" do
-          expect(normalized_expectation[:body]).to eq({})
-        end
-      end
-
-      context "when 'variables' is not a Hash" do
-        before { expectation[:variables] = nil }
-
-        it "is expected to default to an empty hash" do
-          expect(normalized_expectation[:variables]).to eq({})
-        end
-      end
-
-      context "when 'store_as' is nil" do
-        before { expectation[:store_as] = nil }
-
-        it "is expected to default to an empty string" do
-          expect(normalized_expectation[:store_as]).to eq("")
-        end
-      end
+      include_examples(
+        "normalizer_defaults_value",
+        {
+          context: "when 'headers' is not a String",
+          before: -> { expectation[:headers] = nil },
+          input: -> { normalized_expectation[:headers] },
+          default: {}
+        },
+        {
+          context: "when 'query' is not a Hash",
+          before: -> { expectation[:query] = nil },
+          input: -> { normalized_expectation[:query] },
+          default: {}
+        },
+        {
+          context: "when 'body' is not a Hash",
+          before: -> { expectation[:body] = nil },
+          input: -> { normalized_expectation[:body] },
+          default: {}
+        },
+        {
+          context: "when 'variables' is not a Hash",
+          before: -> { expectation[:variables] = nil },
+          input: -> { normalized_expectation[:variables] },
+          default: {}
+        },
+        {
+          context: "when 'store_as' is nil",
+          before: -> { expectation[:store_as] = nil },
+          input: -> { normalized_expectation[:store_as] },
+          default: ""
+        }
+      )
 
       include_examples(
         "normalizer_raises_invalid_structure",
@@ -287,37 +301,33 @@ RSpec.describe SpecForge::Normalizer do
 
       subject(:normalized_constraint) { normalized[:expectations].first[:expect] }
 
-      context "when 'status' is a String" do
-        before { constraint[:status] = "global.variables.status" }
-
-        it do
-          expect(normalized_constraint[:status]).to eq("global.variables.status")
-        end
-      end
-
-      context "when 'json' is not a Hash" do
-        before { constraint[:json] = nil }
-
-        it "is expected to default to an empty hash" do
-          expect(normalized_constraint[:json]).to eq({})
-        end
-      end
-
-      context "when 'json' is an Array" do
-        before { constraint[:json] = [] }
-
-        it "is expected to allow it" do
-          expect(normalized_constraint[:json]).to eq([])
-        end
-      end
-
-      context "when 'headers' is nil" do
-        before { constraint[:headers] = nil }
-
-        it "is expected to default to an empty hash" do
-          expect(normalized_constraint[:headers]).to eq({})
-        end
-      end
+      include_examples(
+        "normalizer_defaults_value",
+        {
+          context: "when 'status' is a String",
+          before: -> { constraint[:status] = "global.variables.status" },
+          input: -> { normalized_constraint[:status] },
+          default: "global.variables.status"
+        },
+        {
+          context: "when 'json' is not a Hash",
+          before: -> { constraint[:json] = nil },
+          input: -> { normalized_constraint[:json] },
+          default: {}
+        },
+        {
+          context: "when 'json' is an Array",
+          before: -> { constraint[:json] = [] },
+          input: -> { normalized_constraint[:json] },
+          default: []
+        },
+        {
+          context: "when 'headers' is nil",
+          before: -> { constraint[:headers] = nil },
+          input: -> { normalized_constraint[:headers] },
+          default: {}
+        }
+      )
 
       include_examples(
         "normalizer_raises_invalid_structure",
@@ -332,38 +342,6 @@ RSpec.describe SpecForge::Normalizer do
           error: "Expected Hash or String, got Array for \"headers\" in expect (item 0)"
         }
       )
-    end
-
-    context "when aliases are used" do
-      before do
-        spec[:path] = spec.delete(:url)
-        spec[:method] = spec.delete(:http_verb)
-        spec[:params] = spec.delete(:query)
-        spec[:data] = spec.delete(:body)
-
-        expectation[:path] = expectation.delete(:url)
-        expectation[:method] = expectation.delete(:http_verb)
-        expectation[:params] = expectation.delete(:query)
-        expectation[:data] = expectation.delete(:body)
-      end
-
-      it "normalizes them" do
-        expect(normalized).to include(
-          url: spec[:path],
-          http_verb: spec[:method],
-          query: spec[:params],
-          body: spec[:data],
-          variables: spec[:variables],
-          expectations: [
-            include(
-              url: expectation[:path],
-              http_verb: expectation[:method],
-              query: expectation[:params],
-              body: expectation[:data]
-            )
-          ]
-        )
-      end
     end
   end
 end
