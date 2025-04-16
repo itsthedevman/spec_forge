@@ -1,5 +1,5 @@
 {
-  description = "Ruby 3.4.2 development environment";
+  description = "Ruby 3.2 development environment";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -20,7 +20,7 @@
       {
         devShells.default = pkgs.mkShell {
           buildInputs = with pkgs; [
-            (ruby_3_4.override {
+            (ruby_3_2.override {
               jemallocSupport = true;
               docSupport = false;
             })
