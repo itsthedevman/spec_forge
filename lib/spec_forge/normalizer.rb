@@ -107,6 +107,47 @@ module SpecForge
     STRUCTURE = {}
 
     class << self
+      def id
+        @id ||= name.split("::").last.underscore
+      end
+
+      def label
+        @label ||= id.humanize.downcase
+      end
+
+      #
+      # Sets the default label for this normalizer class
+      #
+      # @param value [String] The label to use for this normalizer
+      #
+      # @return [String] The set label
+      #
+      def default_label(value)
+        @label = value
+      end
+
+      #
+      # Returns a default version of this normalizer
+      #
+      # @return [Hash] Default structure with default values
+      #
+      def default
+        new("", "").default
+      end
+
+      def normalize!(input, label: self.label)
+        raise_errors! { normalize(input, label:) }
+      end
+
+      #
+      # @api private
+      #
+      def normalize(input, label: self.label)
+        raise Error::InvalidTypeError.new(input, Hash, for: label) if !Type.hash?(input)
+
+        new(label, input).normalize
+      end
+
       #
       # Raises any errors collected by the block
       #
@@ -117,7 +158,7 @@ module SpecForge
       #
       # @raise [Error::InvalidStructureError] If any errors were encountered
       #
-      # @private
+      # @api private
       #
       def raise_errors!(&block)
         errors = Set.new
@@ -135,35 +176,6 @@ module SpecForge
       end
 
       #
-      # Returns a default version of this normalizer
-      #
-      # @return [Hash] Default structure with default values
-      #
-      # @private
-      #
-      def default
-        new("", "").default
-      end
-
-      #
-      # Human-readable label for this normalizer
-      #
-      # @return [String, nil] The label for this normalizer
-      #
-      attr_reader :label
-
-      #
-      # Sets the default label for this normalizer class
-      #
-      # @param value [String] The label to use for this normalizer
-      #
-      # @return [String] The set label
-      #
-      def default_label(value)
-        @label = value
-      end
-
-      #
       # Defines the standard normalizer methods for a normalizer class
       #
       # This method creates three methods on the Normalizer class for a given normalizer:
@@ -177,26 +189,21 @@ module SpecForge
       #   define_normalizer_methods(SpecForge::Normalizer::Spec)
       #   # Creates methods: default_spec, normalize_spec!, normalize_spec
       #
+      # @private
+      #
       def define_normalizer_methods(normalizer_class)
-        key = normalizer_class.name.split("::").last.underscore
-        normalizer_label = normalizer_class.label || key.humanize.downcase
+        name = normalizer_class.id
 
-        # default_spec, default_factory_reference, etc.
-        Normalizer.define_singleton_method(:"default_#{key}") do
+        Normalizer.define_singleton_method(:"default_#{name}") do
           normalizer_class.default
         end
 
-        # normalize_spec!, normalize_factory_reference!, etc.
-        Normalizer.define_singleton_method(:"normalize_#{key}!") do |input, **args|
-          raise_errors! { public_send(:"normalize_#{key}", input, **args) }
+        Normalizer.define_singleton_method(:"normalize_#{name}!") do |input, **args|
+          normalizer_class.normalize!(input, **args)
         end
 
-        # normalize_spec, normalize_factory_reference, etc.
-        Normalizer.define_singleton_method(:"normalize_#{key}") do |input, **args|
-          label = args[:label] || normalizer_label
-          raise Error::InvalidTypeError.new(input, Hash, for: label) if !Type.hash?(input)
-
-          normalizer_class.new(label, input).normalize
+        Normalizer.define_singleton_method(:"normalize_#{name}") do |input, **args|
+          normalizer_class.normalize(input, **args)
         end
       end
     end
@@ -309,7 +316,7 @@ module SpecForge
           value = normalize_substructure(new_label, value, substructure, errors)
         end
 
-        # Store
+        # Store the result
         output[key] = value
       rescue => e
         errors << e
