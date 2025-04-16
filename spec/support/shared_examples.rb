@@ -33,9 +33,9 @@ end
 # include_examples(
 #   "normalizer_raises_invalid_structure",
 #   {
-#     context: xxx,
-#     before: -> xxx,
-#     error: xxx
+#     context: placeholder,
+#     before: -> { placeholder},
+#     error: placeholder
 #   },
 # )
 RSpec.shared_examples("normalizer_raises_invalid_structure") do |*checks|
@@ -58,10 +58,10 @@ end
 # include_examples(
 #   "normalizer_defaults_value",
 #   {
-#     context: xxx,
-#     before: -> xxx,
-#     input: -> { xxx },
-#     default: xxx
+#     context: placeholder,
+#     before: -> { placeholder },
+#     input: -> { placeholder },
+#     default: placeholder
 #   },
 # )
 RSpec.shared_examples("normalizer_defaults_value") do |*checks|
