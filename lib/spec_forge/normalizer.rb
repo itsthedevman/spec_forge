@@ -403,6 +403,10 @@ module SpecForge
     #   # => {name: "Test", age: 25}
     #
     def normalize_substructure(new_label, value, substructure, errors)
+      if substructure.is_a?(Proc)
+        return substructure.call(value, errors:, label:)
+      end
+
       return value unless value.is_a?(Hash) || value.is_a?(Array)
 
       new_value, new_errors = self.class
