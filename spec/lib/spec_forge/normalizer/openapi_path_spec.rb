@@ -90,19 +90,59 @@ RSpec.describe SpecForge::Normalizer do
       }
     )
 
-    # Defaults
-
-    # Raises
-    # "when 'tags' is not an array"
-    # "when 'tags' is not an array of strings"
-    # "when 'parameters' is not an array"
-    # "when 'parameters' is not an array of hashes"
-    # "when 'parameters.name' is nil"
-    # "when 'parameters.name' is not a string"
-    # "when 'parameters.description' is not a string"
-    # "when 'parameters.required' is not true/false"
-    # "when 'security' is not an array"
-    # "when 'security' is not an array of hashes"
+    include_examples(
+      "normalizer_raises_invalid_structure",
+      {
+        context: "when 'tags' is not an array",
+        before: -> { input[:tags] = 1 },
+        error: "Expected Array, got Integer for \"tags\" in openapi paths"
+      },
+      {
+        context: "when 'tags' is not an array of strings",
+        before: -> { input[:tags] = [1] },
+        error: "Expected String, got Integer for index 0 of \"tags\" in openapi paths"
+      },
+      {
+        context: "when 'parameters' is not an array",
+        before: -> { input[:parameters] = 1 },
+        error: "Expected Array, got Integer for \"parameters\" in openapi paths"
+      },
+      {
+        context: "when 'parameters' is not an array of hashes",
+        before: -> { input[:parameters] = [1] },
+        error: "Expected Hash, got Integer for index 0 of \"parameters\" in openapi paths"
+      },
+      {
+        context: "when 'parameters.name' is nil",
+        before: -> { input[:parameters].first[:name] = nil },
+        error: "Expected String, got NilClass for \"name\" in index 0 of \"parameters\" in openapi paths"
+      },
+      {
+        context: "when 'parameters.name' is not a string",
+        before: -> { input[:parameters].first[:name] = 1 },
+        error: "Expected String, got Integer for \"name\" in index 0 of \"parameters\" in openapi paths"
+      },
+      {
+        context: "when 'parameters.description' is not a string",
+        before: -> { input[:parameters].first[:description] = 1 },
+        error: "Expected String, got Integer for \"description\" in index 0 of \"parameters\" in openapi paths"
+      },
+      {
+        context: "when 'parameters.required' is not true/false",
+        before: -> { input[:parameters].first[:required] = 1 },
+        error: "Expected TrueClass or FalseClass, got Integer for \"required\" in index 0 of \"parameters\" in openapi paths"
+      },
+      {
+        context: "when 'security' is not an array",
+        before: -> { input[:security] = 1 },
+        error: "Expected Array, got Integer for \"security\" in openapi paths"
+      },
+      {
+        context: "when 'security' is not an array of hashes",
+        before: -> { input[:security] = [1] },
+        error: "Expected Hash, got Integer for index 0 of \"security\" in openapi paths"
+      }
+    )
 
     # %w[get delete post patch put].each do |verb|
     #   # Defaults
@@ -123,24 +163,5 @@ RSpec.describe SpecForge::Normalizer do
     #   "when '#{verb}.description' is not a string"
     #   "when '#{verb}.description' is not a hash"
     # end
-
-    # include_examples(
-    #   "normalizer_defaults_value",
-    #   {
-    #     context: xxx,
-    #     before: -> xxx,
-    #     input: -> { xxx },
-    #     default: xxx
-    #   },
-    # )
-
-    # include_examples(
-    #   "normalizer_raises_invalid_structure",
-    #   {
-    #     context: xxx,
-    #     before: -> xxx,
-    #     error: xxx
-    #   },
-    # )
   end
 end
