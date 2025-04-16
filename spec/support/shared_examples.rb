@@ -72,7 +72,7 @@ RSpec.shared_examples("normalizer_defaults_value") do |*checks|
         instance_exec(&block)
       end
 
-      it "is expected to default its value" do
+      it do
         result = instance_exec(&check[:input])
 
         default = check[:default]
