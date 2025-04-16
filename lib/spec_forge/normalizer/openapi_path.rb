@@ -11,10 +11,9 @@ module SpecForge
     class OpenapiPath < Normalizer
       parameters = {
         type: Array,
-        default: [],
+        default: nil,
         structure: {
           type: Hash,
-          default: {},
           structure: {
             name: {type: String},
             description: {type: String, default: nil},
@@ -25,19 +24,19 @@ module SpecForge
 
       security = {
         type: Array,
-        default: [],
-        structure: {type: Hash, default: {}}
+        default: nil,
+        structure: {type: Hash}
       }
 
       tags = {
         type: Array,
-        default: [],
+        default: nil,
         structure: {type: String}
       }
 
       operation = {
         type: Hash,
-        default: {},
+        default: nil,
         structure: {
           tags:,
           security:,
