@@ -54,7 +54,18 @@ RSpec.describe SpecForge::Normalizer do
 
     subject(:normalized) { described_class.normalize_openapi_path!(input) }
 
-    context "when everything is valid"
+    context "when everything is valid" do
+      it "is expected to return a valid hash" do
+        expect(normalized[:tags]).to eq(input[:tags])
+        expect(normalized[:parameters]).to eq(input[:parameters])
+        expect(normalized[:security]).to eq(input[:security])
+        expect(normalized[:get]).to eq(input[:get])
+        expect(normalized[:delete]).to eq(input[:delete])
+        expect(normalized[:patch]).to eq(input[:patch])
+        expect(normalized[:post]).to eq(input[:post])
+        expect(normalized[:put]).to eq(input[:put])
+      end
+    end
 
     include_examples(
       "normalizer_defaults_value",
