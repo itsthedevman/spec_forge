@@ -62,13 +62,13 @@ RSpec.describe SpecForge::Normalizer do
         context: "when 'tags' is nil",
         before: -> { input[:tags] = nil },
         input: -> { normalized[:tags] },
-        default: []
+        default: nil
       },
       {
         context: "when 'parameters' is nil",
         before: -> { input[:parameters] = nil },
         input: -> { normalized[:parameters] },
-        default: []
+        default: nil
       },
       {
         context: "when 'parameters.description' is nil",
@@ -86,7 +86,7 @@ RSpec.describe SpecForge::Normalizer do
         context: "when 'security' is nil",
         before: -> { input[:security] = nil },
         input: -> { normalized[:security] },
-        default: []
+        default: nil
       }
     )
 
@@ -144,24 +144,91 @@ RSpec.describe SpecForge::Normalizer do
       }
     )
 
-    # %w[get delete post patch put].each do |verb|
-    #   # Defaults
-    #   "when '#{verb}' is nil"
-    #   "when '#{verb}.tags' is nil"
-    #   "when '#{verb}.security' is nil"
-    #   "when '#{verb}.parameters' is nil"
-    #   "when '#{verb}.summary' is nil"
-    #   "when '#{verb}.description' is nil"
-    #   "when '#{verb}.description' is nil"
+    %i[get delete post patch put].each do |verb|
+      include_examples(
+        "normalizer_defaults_value",
+        {
+          context: "when '#{verb}' is nil",
+          before: -> { input[verb] = nil },
+          input: -> { normalized[verb] },
+          default: nil
+        },
+        {
+          context: "when '#{verb}.tags' is nil",
+          before: -> { input[verb][:tags] = nil },
+          input: -> { normalized[verb][:tags] },
+          default: nil
+        },
+        {
+          context: "when '#{verb}.security' is nil",
+          before: -> { input[verb][:security] = nil },
+          input: -> { normalized[verb][:security] },
+          default: nil
+        },
+        {
+          context: "when '#{verb}.parameters' is nil",
+          before: -> { input[verb][:parameters] = nil },
+          input: -> { normalized[verb][:parameters] },
+          default: nil
+        },
+        {
+          context: "when '#{verb}.summary' is nil",
+          before: -> { input[verb][:summary] = nil },
+          input: -> { normalized[verb][:summary] },
+          default: nil
+        },
+        {
+          context: "when '#{verb}.description' is nil",
+          before: -> { input[verb][:description] = nil },
+          input: -> { normalized[verb][:description] },
+          default: nil
+        },
+        {
+          context: "when '#{verb}.responses' is nil",
+          before: -> { input[verb][:responses] = nil },
+          input: -> { normalized[verb][:responses] },
+          default: nil
+        }
+      )
 
-    #   # Raises
-    #   "when '#{verb}' is not a hash"
-    #   "when '#{verb}.tags' is not an array"
-    #   "when '#{verb}.security' is not an array"
-    #   "when '#{verb}.parameters' is not an array"
-    #   "when '#{verb}.summary' is not a string"
-    #   "when '#{verb}.description' is not a string"
-    #   "when '#{verb}.description' is not a hash"
-    # end
+      include_examples(
+        "normalizer_raises_invalid_structure",
+        {
+          context: "when '#{verb}' is not a hash",
+          before: -> { input[verb] = 1 },
+          error: "Expected Hash, got Integer for \"#{verb}\" in openapi paths"
+        },
+        {
+          context: "when '#{verb}.tags' is not an array",
+          before: -> { input[verb][:tags] = 1 },
+          error: "Expected Array, got Integer for \"tags\" in \"#{verb}\" in openapi paths"
+        },
+        {
+          context: "when '#{verb}.security' is not an array",
+          before: -> { input[verb][:security] = 1 },
+          error: "Expected Array, got Integer for \"security\" in \"#{verb}\" in openapi paths"
+        },
+        {
+          context: "when '#{verb}.parameters' is not an array",
+          before: -> { input[verb][:parameters] = 1 },
+          error: "Expected Array, got Integer for \"parameters\" in \"#{verb}\" in openapi paths"
+        },
+        {
+          context: "when '#{verb}.summary' is not a string",
+          before: -> { input[verb][:summary] = 1 },
+          error: "Expected String, got Integer for \"summary\" in \"#{verb}\" in openapi paths"
+        },
+        {
+          context: "when '#{verb}.description' is not a string",
+          before: -> { input[verb][:description] = 1 },
+          error: "Expected String, got Integer for \"description\" in \"#{verb}\" in openapi paths"
+        },
+        {
+          context: "when '#{verb}.responses' is not a hash",
+          before: -> { input[verb][:responses] = 1 },
+          error: "Expected Hash, got Integer for \"responses\" in \"#{verb}\" in openapi paths"
+        }
+      )
+    end
   end
 end
