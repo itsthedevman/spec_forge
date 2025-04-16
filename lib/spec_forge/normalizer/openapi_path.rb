@@ -18,7 +18,7 @@ module SpecForge
           structure: {
             name: {type: String},
             description: {type: String, default: nil},
-            required: {type: [true, false], default: nil}
+            required: {type: [TrueClass, FalseClass], default: nil}
           }
         }
       }
@@ -26,10 +26,7 @@ module SpecForge
       security = {
         type: Array,
         default: [],
-        structure: {
-          type: Hash,
-          default: {}
-        }
+        structure: {type: Hash, default: {}}
       }
 
       tags = {
