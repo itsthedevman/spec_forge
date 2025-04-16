@@ -28,7 +28,7 @@ module SpecForge
               output
             elsif file_extension == ".json"
               JSON.pretty_generate(output)
-            elsif file_extension == ".yml" || file_extension == ".yaml"
+            elsif file_extension == ".yml"
               output.to_yaml(stringify_names: true)
             end
 

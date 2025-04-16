@@ -47,18 +47,5 @@ RSpec.describe SpecForge::Documentation::Renderers::File do
         to_file
       end
     end
-
-    context "when the path extension is .yaml" do
-      let(:path) { Pathname.new("openapi.yaml") }
-
-      let(:render_output) { {foo: 1} }
-
-      it "is expected to write YAML to a file" do
-        expect(File).to receive(:write)
-          .with(be_kind_of(Pathname), render_output.to_yaml(stringify_names: true))
-
-        to_file
-      end
-    end
   end
 end
