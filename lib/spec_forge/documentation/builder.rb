@@ -245,7 +245,7 @@ module SpecForge
           parameters.merge!(params)
         end
 
-        parameters.transform_values!.with_key do |key, data|
+        parameters.transform_values!.with_key do |data, key|
           key_in_path = data[:url].include?("{#{key}}")
 
           {
