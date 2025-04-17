@@ -38,6 +38,7 @@ module SpecForge
         type: Hash,
         default: nil,
         structure: {
+          operation_id: {type: String, default: nil},
           tags:,
           security:,
           parameters:,

@@ -5,6 +5,7 @@ RSpec.describe SpecForge::Normalizer do
   describe ".normalize_openapi_path!" do
     let(:input) do
       {
+        operation_id: SecureRandom.uuid,
         tags: ["tag_1", "tag-2"],
         parameters: [
           {name: "id", description: Faker::String.random, required: true},
@@ -66,6 +67,7 @@ RSpec.describe SpecForge::Normalizer do
 
     context "when everything is valid" do
       it "is expected to return a valid hash" do
+        expect(normalized[:operation_id]).to eq(input[:operation_id])
         expect(normalized[:tags]).to eq(input[:tags])
         expect(normalized[:parameters]).to eq(input[:parameters])
         expect(normalized[:security]).to eq(input[:security])
@@ -79,6 +81,12 @@ RSpec.describe SpecForge::Normalizer do
 
     include_examples(
       "normalizer_defaults_value",
+      {
+        context: "when 'operation_id' is nil",
+        before: -> { input[:operation_id] = nil },
+        input: -> { normalized[:operation_id] },
+        default: nil
+      },
       {
         context: "when 'tags' is nil",
         before: -> { input[:tags] = nil },
