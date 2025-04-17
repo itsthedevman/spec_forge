@@ -1,7 +1,9 @@
 info:
-  title: SpecForge Integration Tests
-  version: 0.0.1
-  description: These are SpecForge's official integration tests
+  title: SpecForge Demo API
+  version: 1.0.0
+  description: |
+    A demo API to showcase SpecForge's OpenAPI generation capabilities.
+    This API includes endpoints for managing users, blog posts, and comments.
   contact:
     name: Bryan
     email: bryan@itsthedevman.com
@@ -11,14 +13,22 @@ info:
 
 servers:
 - url: http://localhost:3000
-  description: Testing
+  description: Local development server
+- url: https://api.example.com/v1
+  description: Production server
 
-# tags:
-#   users: User management
-#   posts: Post management
-#
-# security_schemes:
-#   bearer_auth:
-#     type: http
-#     scheme: bearer
-#     bearer_format: JWT
+tags:
+  Users:
+    description: User account management
+  Posts:
+    description: Blog post management
+  Comments:
+    description: Comment management for blog posts
+  Content:
+    description: Content management operations
+
+security_schemes:
+  bearerAuth:
+    type: http
+    scheme: bearer
+    bearerFormat: JWT
