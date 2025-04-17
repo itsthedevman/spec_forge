@@ -82,12 +82,6 @@ module SpecForge
 
       private
 
-      def flat_merge(array)
-        array.each_with_object({}) do |hash, output|
-          output.deep_merge!(hash)
-        end
-      end
-
       def determine_type(value)
         case value
         when true, false
@@ -187,7 +181,7 @@ module SpecForge
       #
       def merge_operations(operations)
         operations.group_by { |o| o[:response_status] }
-          .transform_values { |o| flat_merge(o) }
+          .transform_values { |o| o.to_merged_h }
           .values
       end
 
