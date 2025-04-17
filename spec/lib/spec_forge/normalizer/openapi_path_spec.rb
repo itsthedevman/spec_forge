@@ -19,35 +19,45 @@ RSpec.describe SpecForge::Normalizer do
           summary: Faker::String.random,
           description: Faker::String.random,
           security: [{bearerAuth: []}],
-          responses: {} # Normalized with openapi_response
+          responses: {
+            "201": {description: Faker::String.random}
+          }
         },
         delete: {
           tags: ["delete"],
           summary: Faker::String.random,
           description: Faker::String.random,
           security: [{bearerAuth: []}],
-          responses: {} # Normalized with openapi_response
+          responses: {
+            "201": {description: Faker::String.random}
+          }
         },
         post: {
           tags: ["post"],
           summary: Faker::String.random,
           description: Faker::String.random,
           security: [{bearerAuth: []}],
-          responses: {} # Normalized with openapi_response
+          responses: {
+            "201": {description: Faker::String.random}
+          }
         },
         patch: {
           tags: ["patch"],
           summary: Faker::String.random,
           description: Faker::String.random,
           security: [{bearerAuth: []}],
-          responses: {} # Normalized with openapi_response
+          responses: {
+            "201": {description: Faker::String.random}
+          }
         },
         put: {
           tags: ["put"],
           summary: Faker::String.random,
           description: Faker::String.random,
           security: [{bearerAuth: []}],
-          responses: {} # Normalized with openapi_response
+          responses: {
+            "201": {description: Faker::String.random}
+          }
         }
       }
     end
@@ -238,6 +248,25 @@ RSpec.describe SpecForge::Normalizer do
           context: "when '#{verb}.responses' is not a hash",
           before: -> { input[verb][:responses] = 1 },
           error: "Expected Hash, got Integer for \"responses\" in \"#{verb}\" in openapi paths"
+        },
+        {
+          context: "when a status code in '#{verb}.responses' is not a hash",
+          before: -> { input[verb][:responses]["201"] = 1 },
+          error: "Expected Hash, got Integer for \"201\" in \"#{verb}\" in openapi paths"
+        },
+        {
+          context: "when a status code in '#{verb}.responses.description' is nil",
+          before: lambda do
+            input[verb][:responses]["201"] = {description: nil}
+          end,
+          error: "Expected String, got NilClass for \"description\" in \"201\" in \"#{verb}\" in openapi paths"
+        },
+        {
+          context: "when a status code in '#{verb}.responses.description' is not a string",
+          before: lambda do
+            input[verb][:responses]["201"] = {description: 1}
+          end,
+          error: "Expected String, got Integer for \"description\" in \"201\" in \"#{verb}\" in openapi paths"
         }
       )
     end

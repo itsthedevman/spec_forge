@@ -43,7 +43,21 @@ module SpecForge
           parameters:,
           summary: {type: String, default: nil},
           description: {type: String, default: nil},
-          responses: {type: Hash, default: nil}
+          responses: {
+            type: Hash,
+            default: nil,
+            structure: lambda do |output, errors:, label:|
+              return output if output.blank?
+
+              output.transform_values.with_key do |hash, status_code|
+                new_label = "#{status_code.in_quotes} in #{label}"
+                hash, new_errors = Normalizer::OpenapiResponse.normalize(hash, label: new_label)
+
+                errors.merge(new_errors) if new_errors.size > 0
+                hash
+              end
+            end
+          }
         }
       }
 
