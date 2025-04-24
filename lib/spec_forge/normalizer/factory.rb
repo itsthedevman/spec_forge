@@ -31,48 +31,8 @@ module SpecForge
           default: {}
         }
       }.freeze
-    end
 
-    # On Normalizer
-    class << self
-      #
-      # Generates an empty factory hash
-      #
-      # @return [Hash] Default factory hash
-      #
-      def default_factory
-        Factory.default
-      end
-
-      #
-      # Normalizes a factory hash with validation
-      #
-      # @param input [Hash] The hash to normalize
-      #
-      # @return [Hash] A normalized hash with defaults applied
-      #
-      # @raise [Error::InvalidStructureError] If validation fails
-      #
-      def normalize_factory!(input)
-        raise_errors! do
-          normalize_factory(input)
-        end
-      end
-
-      #
-      # Normalize a factory hash
-      #
-      # @param factory [Hash] Factory hash
-      #
-      # @return [Array] [normalized_hash, errors]
-      #
-      # @private
-      #
-      def normalize_factory(factory)
-        raise Error::InvalidTypeError.new(factory, Hash, for: "factory") unless Type.hash?(factory)
-
-        Normalizer::Factory.new("factory", factory).normalize
-      end
+      define_normalizer_methods(self)
     end
   end
 end

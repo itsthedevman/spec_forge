@@ -10,6 +10,8 @@ Dir[SpecForge.root.join("spec/support/**/*.rb")].sort.each { |path| require path
 
 # See https://rubydoc.info/gems/rspec-core/RSpec/Core/Configuration
 RSpec.configure do |config|
+  config.exclude_pattern = "spec/integration/**/*.rb"
+
   config.expect_with :rspec do |expectations|
     expectations.include_chain_clauses_in_custom_matcher_descriptions = true
   end

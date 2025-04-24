@@ -13,6 +13,10 @@ module SpecForge
   #   output, errors = normalizer.normalize
   #
   class Normalizer
+    TYPES = {
+      boolean: [TrueClass, FalseClass]
+    }.freeze
+
     #
     # Shared attributes used by the various normalizers
     #
@@ -61,12 +65,13 @@ module SpecForge
         default: {}
       },
       debug: {
-        type: [TrueClass, FalseClass],
+        type: TYPES[:boolean],
         default: false,
         aliases: %i[pry breakpoint]
       },
       callback: {
-        type: [String, NilClass],
+        type: String,
+        default: nil,
         validator: lambda do |value|
           return if value.blank?
           return if SpecForge::Callbacks.registered?(value)
@@ -107,6 +112,47 @@ module SpecForge
     STRUCTURE = {}
 
     class << self
+      def id
+        @id ||= name.split("::").last.underscore
+      end
+
+      def label
+        @label ||= id.humanize.downcase
+      end
+
+      #
+      # Sets the default label for this normalizer class
+      #
+      # @param value [String] The label to use for this normalizer
+      #
+      # @return [String] The set label
+      #
+      def default_label(value)
+        @label = value
+      end
+
+      #
+      # Returns a default version of this normalizer
+      #
+      # @return [Hash] Default structure with default values
+      #
+      def default
+        new("", "").default
+      end
+
+      def normalize!(input, label: self.label)
+        raise_errors! { normalize(input, label:) }
+      end
+
+      #
+      # @api private
+      #
+      def normalize(input, label: self.label)
+        raise Error::InvalidTypeError.new(input, Hash, for: label) if !Type.hash?(input)
+
+        new(label, input).normalize
+      end
+
       #
       # Raises any errors collected by the block
       #
@@ -117,7 +163,7 @@ module SpecForge
       #
       # @raise [Error::InvalidStructureError] If any errors were encountered
       #
-      # @private
+      # @api private
       #
       def raise_errors!(&block)
         errors = Set.new
@@ -135,14 +181,35 @@ module SpecForge
       end
 
       #
-      # Returns a default version of this normalizer
+      # Defines the standard normalizer methods for a normalizer class
       #
-      # @return [Hash] Default structure with default values
+      # This method creates three methods on the Normalizer class for a given normalizer:
+      # - default_#{key} - Returns default values for this normalizer
+      # - normalize_#{key}! - Normalize with error handling
+      # - normalize_#{key} - Normalize without error handling
+      #
+      # @param normalizer_class [Class] The normalizer class to define methods for
+      #
+      # @example Defining methods for a spec normalizer
+      #   define_normalizer_methods(SpecForge::Normalizer::Spec)
+      #   # Creates methods: default_spec, normalize_spec!, normalize_spec
       #
       # @private
       #
-      def default
-        new("", "").default
+      def define_normalizer_methods(normalizer_class)
+        name = normalizer_class.id
+
+        Normalizer.define_singleton_method(:"default_#{name}") do
+          normalizer_class.default
+        end
+
+        Normalizer.define_singleton_method(:"normalize_#{name}!") do |input, **args|
+          normalizer_class.normalize!(input, **args)
+        end
+
+        Normalizer.define_singleton_method(:"normalize_#{name}") do |input, **args|
+          normalizer_class.normalize(input, **args)
+        end
       end
     end
 
@@ -254,7 +321,7 @@ module SpecForge
           value = normalize_substructure(new_label, value, substructure, errors)
         end
 
-        # Store
+        # Store the result
         output[key] = value
       rescue => e
         errors << e
@@ -341,6 +408,10 @@ module SpecForge
     #   # => {name: "Test", age: 25}
     #
     def normalize_substructure(new_label, value, substructure, errors)
+      if substructure.is_a?(Proc)
+        return substructure.call(value, errors:, label:)
+      end
+
       return value unless value.is_a?(Hash) || value.is_a?(Array)
 
       new_value, new_errors = self.class
