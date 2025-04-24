@@ -33,7 +33,7 @@ module SpecForge
       factories = []
 
       Dir[path].each do |file_path|
-        hash = YAML.load_file(file_path).deep_symbolize_keys
+        hash = YAML.load_file(file_path, symbolize_names: true)
 
         hash.each do |factory_name, factory_hash|
           factory_hash[:name] = factory_name

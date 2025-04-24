@@ -207,7 +207,7 @@ RSpec.describe SpecForge::Loader do
       YAML
     end
 
-    let(:hash) { YAML.load(content).deep_symbolize_keys }
+    let(:hash) { YAML.load(content, symbolize_names: true) }
 
     subject(:line_numbers) { described_class.extract_line_numbers(content, hash) }
 

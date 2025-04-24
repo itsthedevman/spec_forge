@@ -1,0 +1,50 @@
+id: string
+name: string
+line_number: integer
+base_url:
+  type: string
+  default: null
+url:
+  type: string
+  default: null
+  aliases:
+  - path
+http_verb:
+  type: string
+  default: nil  # Do not default this to "GET". Leave it nil. Seriously.
+  aliases:
+  - method
+  - http_method
+  validator: http_verb
+headers:
+  type: hash
+  default: {}
+query:
+  type:
+  - hash
+  - string
+  aliases:
+  - params
+  default: {}
+body:
+  type:
+  - hash
+  - string
+  aliases:
+  - data
+  default: {}
+variables:
+  type:
+  - hash
+  - string
+  default: {}
+debug:
+  type: boolean
+  aliases:
+  - pry
+  - breakpoint
+  default: false
+callback:
+  type: string
+  default: nil
+  validator: callback

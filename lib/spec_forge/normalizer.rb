@@ -81,76 +81,115 @@ module SpecForge
       }
     }.freeze
 
-    #
-    # Defines the normalized structure for validating and parsing input data
-    #
-    # Each key represents an attribute with its validation and transformation rules.
-    # The structure supports defining:
-    # - Expected data type(s)
-    # - Default values
-    # - Aliases for alternative key names
-    # - Optional validation logic
-    # - Nested sub-structures
-    #
-    # @return [Hash] A configuration hash defining attribute validation rules
-    #
-    # @example Basic structure definition
-    #   STRUCTURE = {
-    #     name: {
-    #       type: String,              # Must be a String
-    #       default: "",               # Default to empty string if not provided
-    #       aliases: [:title]          # Allows using 'title' as an alternative key
-    #     },
-    #     age: {
-    #       type: Integer,             # Must be an Integer
-    #       default: 0                 # Default to 0 if not provided
-    #     }
-    #   }
-    #
-    # @see Normalizer
-    #
-    STRUCTURE = {}
+    class Validators
+      include Singleton
+
+      def self.call(method_name, value)
+        instance.public_send(method_name, value)
+      end
+
+      def present?(value)
+        raise Error, "Value cannot be blank" if value.blank?
+      end
+
+      def http_verb(value)
+        valid_verbs = HTTP::Verb::VERBS.values
+        return if value.blank? || valid_verbs.include?(value.to_s.upcase)
+
+        raise Error, "Invalid HTTP verb: #{value}. Valid values are: #{valid_verbs.join(", ")}"
+      end
+
+      def callback(value)
+        return if value.blank?
+        return if SpecForge::Callbacks.registered?(value)
+
+        raise Error::UndefinedCallbackError.new(value, SpecForge::Callbacks.registered_names)
+      end
+    end
+
+    STRUCTURE = {
+      type: {
+        type: [String, Array],
+        default: nil,
+        validator: :present?
+      },
+      label: {
+        type: String,
+        default: nil
+      },
+      default: {
+        type: [String, NilClass, Numeric, Array, Hash, TrueClass, FalseClass],
+        default: nil
+      },
+      aliases: {
+        type: Array,
+        default: [],
+        structure: {type: String}
+      },
+      structure: {
+        type: Hash,
+        default: {}
+      },
+      validator: {
+        type: String,
+        default: nil
+      },
+      reference: {
+        type: String,
+        default: nil,
+        validator: :present?
+      }
+    }.freeze
 
     class << self
-      def id
-        @id ||= name.split("::").last.underscore
+      def default(structure_name: nil, structure: nil)
+        structure ||= @structures[structure_name]
+
+        if !structure.is_a?(Hash)
+          raise ArgumentError, "Invalid structure, provide either 'structure_name' or 'structure'"
+        end
+
+        structure.each_with_object({}) do |(key, value), hash|
+          if value[:type].instance_of?(Array) && !value.key?(:default)
+            raise Error,
+              "#{key.in_quotes} with #{value.inspect} must have a default set explicitly"
+          end
+
+          hash[key] =
+            if value.key?(:default)
+              default = value[:default]
+              next if default.nil?
+
+              default.dup
+            elsif value[:type] == Integer # Can't call new on int
+              0
+            elsif value[:type] == Proc # Sameeee
+              -> {}
+            else
+              value[:type].new
+            end
+        end
       end
 
-      def label
-        @label ||= id.humanize.downcase
-      end
-
-      #
-      # Sets the default label for this normalizer class
-      #
-      # @param value [String] The label to use for this normalizer
-      #
-      # @return [String] The set label
-      #
-      def default_label(value)
-        @label = value
-      end
-
-      #
-      # Returns a default version of this normalizer
-      #
-      # @return [Hash] Default structure with default values
-      #
-      def default
-        new("", "").default
-      end
-
-      def normalize!(input, label: self.label)
-        raise_errors! { normalize(input, label:) }
+      def normalize!(name, input, label: self.label)
+        raise_errors! { normalize(name, input, label) }
       end
 
       #
       # @api private
       #
-      def normalize(input, label: self.label)
+      def normalize(input, structure_name:, label: self.label)
         raise Error::InvalidTypeError.new(input, Hash, for: label) if !Type.hash?(input)
 
-        new(label, input).normalize
+        structure = @structures[structure_name]
+        if structure.nil?
+          structures = @structures.keys.to_or_sentence
+
+          raise ArgumentError,
+            "Invalid structure name. Expected #{structures}, got #{structure_name&.in_quotes}"
+        end
+
+        new(label, input, structure:).normalize
       end
 
       #
@@ -178,6 +217,75 @@ module SpecForge
         raise Error::InvalidStructureError.new(errors) if errors.size > 0
 
         output
+      end
+
+      #
+      # @api private
+      #
+      def define
+        @normalizers = load_from_files
+        structures = @normalizers.delete(:_shared).stringify_keys
+
+        @normalizers.each do |normalizer_name, structure|
+          structure.transform_values!.with_key do |attribute, key|
+            case attribute
+            when String
+              hash = default(structure: STRUCTURE)
+              hash[:type] = resolve_type(attribute)
+              hash
+            when Hash
+              # A reference replaces the entire hash
+              if (name = attribute[:reference])
+                attribute = structures[name] || @normalizers[name]
+
+                if attribute.nil?
+                  structures_names = (structures.keys + @normalizers.keys)
+                    .map(&:in_quotes)
+                    .to_or_sentence
+
+                  raise Error, "Invalid reference name. Got #{name&.in_quotes}, expected one of #{structures_names}"
+                end
+              end
+
+              hash = raise_errors! do
+                new(
+                  "#{key.in_quotes} in normalizer/#{normalizer_name}.yml",
+                  attribute,
+                  structure: STRUCTURE
+                ).normalize
+              end
+
+              hash[:type] = resolve_type(hash[:type])
+              hash
+            else
+              raise ArgumentError,
+                "Invalid normalizer attribute. Expected String or Hash, got #{attribute.inspect}"
+            end
+          end
+        end
+      end
+
+      def resolve_type(type)
+        if type == "boolean"
+          [TrueClass, FalseClass]
+        elsif type.instance_of?(Array)
+          type.map { |t| resolve_type(t) }
+        else
+          type.classify.constantize
+        end
+      end
+
+      #
+      # @api private
+      #
+      def load_from_files
+        base_path = Pathname.new(File.expand_path("normalizers", __dir__))
+        paths = Dir[base_path.join("**/*.yml")].sort
+
+        paths.each_with_object({}) do |path, hash|
+          name = Pathname.new(path).relative_path_from(base_path).basename(".yml").to_s.to_sym
+          hash[name] = YAML.safe_load_file(path, symbolize_names: true)
+        end
       end
 
       #
@@ -231,7 +339,7 @@ module SpecForge
     #
     # @return [Normalizer] A new normalizer instance
     #
-    def initialize(label, input, structure: self.class::STRUCTURE)
+    def initialize(label, input, structure:)
       @label = label
       @input = input
       @structure = structure
@@ -251,84 +359,7 @@ module SpecForge
       end
     end
 
-    #
-    # Returns a hash with the default structure
-    #
-    # @return [Hash] A hash with default values for all structure keys
-    #
-    def default
-      structure.each_with_object({}) do |(key, value), hash|
-        hash[key] =
-          if value.key?(:default)
-            default = value[:default]
-            next if default.nil?
-
-            default.dup
-          elsif value[:type] == Integer # Can't call new on int
-            0
-          elsif value[:type] == Proc # Sameeee
-            -> {}
-          else
-            value[:type].new
-          end
-      end
-    end
-
     protected
-
-    #
-    # Normalizes the input hash according to the structure definition
-    #
-    # @return [Array<Hash, Set>] Normalized hash and any errors
-    #
-    # @private
-    #
-    def normalize_hash
-      output, errors = {}, Set.new
-
-      structure.each do |key, attribute|
-        type_class = attribute[:type]
-        aliases = attribute[:aliases] || []
-        default = attribute[:default]
-
-        has_default = attribute.key?(:default)
-        nilable = has_default && default.nil?
-
-        # Get the value
-        value = value_from_keys(input, [key] + aliases)
-        next if nilable && value.nil?
-
-        # Default the value if needed
-        value = default.dup if has_default && value.nil?
-
-        # Type + existence check
-        if !valid_class?(value, type_class)
-          for_context = generate_error_label(key, aliases)
-
-          if (line_number = input[:line_number])
-            for_context += " (line #{line_number})"
-          end
-
-          raise Error::InvalidTypeError.new(value, type_class, for: for_context)
-        end
-
-        # Call the validator if it has one
-        attribute[:validator]&.call(value)
-
-        # Normalize any sub structures
-        if (substructure = attribute[:structure])
-          new_label = generate_error_label(key, aliases)
-          value = normalize_substructure(new_label, value, substructure, errors)
-        end
-
-        # Store the result
-        output[key] = value
-      rescue => e
-        errors << e
-      end
-
-      [output, errors]
-    end
 
     #
     # Extracts a value from a hash checking multiple keys
@@ -386,6 +417,62 @@ module SpecForge
       end
 
       error_label + " in #{label}"
+    end
+
+    #
+    # Normalizes the input hash according to the structure definition
+    #
+    # @return [Array<Hash, Set>] Normalized hash and any errors
+    #
+    # @private
+    #
+    def normalize_hash
+      output, errors = {}, Set.new
+
+      structure.each do |key, attribute|
+        type_class = attribute[:type]
+        aliases = attribute[:aliases] || []
+        default = attribute[:default]
+
+        has_default = attribute.key?(:default)
+        nilable = has_default && default.nil?
+
+        # Get the value
+        value = value_from_keys(input, [key] + aliases)
+        next if nilable && value.nil?
+
+        # Default the value if needed
+        value = default.dup if has_default && value.nil?
+
+        # Type + existence check
+        if !valid_class?(value, type_class)
+          for_context = generate_error_label(key, aliases)
+
+          if (line_number = input[:line_number])
+            for_context += " (line #{line_number})"
+          end
+
+          raise Error::InvalidTypeError.new(value, type_class, for: for_context)
+        end
+
+        # Call the validator if it has one
+        if (name = attribute[:validator]) && name.present?
+          Validators.call(name, value)
+        end
+
+        # Normalize any sub structures
+        if (substructure = attribute[:structure])
+          new_label = generate_error_label(key, aliases)
+          value = normalize_substructure(new_label, value, substructure, errors)
+        end
+
+        # Store the result
+        output[key] = value
+      rescue => e
+        errors << e
+      end
+
+      [output, errors]
     end
 
     #
@@ -448,7 +535,9 @@ module SpecForge
         end
 
         # Call the validator if it has one
-        structure[:validator]&.call(value)
+        if (name = structure[:validator]) && name.present?
+          Validators.call(name, value)
+        end
 
         if (substructure = structure[:structure])
           value = normalize_substructure("index #{index} of #{label}", value, substructure, errors)
@@ -461,11 +550,14 @@ module SpecForge
 
       [output, errors]
     end
+
+    # Define the normalizers
+    define
   end
 end
 
 ####################################################################################################
 # These need to be required after the base class due to them requiring constants on Normalizer
-Dir[File.expand_path("normalizer/*.rb", __dir__)].sort.each do |path|
-  require path
-end
+# Dir[File.expand_path("normalizer/*.rb", __dir__)].sort.each do |path|
+#   require path
+# end

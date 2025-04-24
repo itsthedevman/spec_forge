@@ -86,7 +86,7 @@ module SpecForge
         files.map do |file_path, content|
           relative_path = Pathname.new(file_path).relative_path_from(base_path)
 
-          hash = YAML.load(content).deep_symbolize_keys
+          hash = YAML.load(content, symbolize_names: true)
 
           file_line_numbers = extract_line_numbers(content, hash)
 
