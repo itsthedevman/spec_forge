@@ -28,7 +28,7 @@ module SpecForge
           default: {},
           structure: {
             auto_discover: {
-              type: [TrueClass, FalseClass],
+              type: TYPES[:boolean],
               default: true
             },
             paths: {

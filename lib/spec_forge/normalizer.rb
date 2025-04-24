@@ -13,6 +13,10 @@ module SpecForge
   #   output, errors = normalizer.normalize
   #
   class Normalizer
+    TYPES = {
+      boolean: [TrueClass, FalseClass]
+    }.freeze
+
     #
     # Shared attributes used by the various normalizers
     #
@@ -61,12 +65,13 @@ module SpecForge
         default: {}
       },
       debug: {
-        type: [TrueClass, FalseClass],
+        type: TYPES[:boolean],
         default: false,
         aliases: %i[pry breakpoint]
       },
       callback: {
-        type: [String, NilClass],
+        type: String,
+        default: nil,
         validator: lambda do |value|
           return if value.blank?
           return if SpecForge::Callbacks.registered?(value)

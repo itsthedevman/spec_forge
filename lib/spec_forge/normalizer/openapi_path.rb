@@ -17,7 +17,7 @@ module SpecForge
           structure: {
             name: {type: String},
             description: {type: String, default: nil},
-            required: {type: [TrueClass, FalseClass], default: nil}
+            required: {type: TYPES[:boolean], default: nil}
           }
         }
       }
@@ -40,10 +40,21 @@ module SpecForge
         structure: {
           operation_id: {type: String, default: nil},
           tags:,
-          security:,
-          parameters:,
           summary: {type: String, default: nil},
           description: {type: String, default: nil},
+          request_body: {
+            type: Hash,
+            default: nil,
+            structure: {
+              description: {},
+              content: {},
+              required: {
+                type: TYPES[:boolean]
+              }
+            }
+          },
+          security:,
+          parameters:,
           responses: {
             type: Hash,
             default: nil,
