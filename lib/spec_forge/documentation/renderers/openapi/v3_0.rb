@@ -62,25 +62,28 @@ module SpecForge
 
           # https://spec.openapis.org/oas/v3.0.4.html#paths-object
           def export_paths
+            paths_documentation = parse_user_defined_paths
             paths = input.endpoints.deep_dup
 
-            paths.each_value do |operations|
-              operations.transform_values! do |document|
+            paths.each do |path, operations|
+              operations.transform_values!.with_key do |document, operation|
+                documentation = paths_documentation.dig(path, operation) || {}
+
                 parameters =
                   document.parameters.values.map do |parameter|
                     params = parameter.to_deep_h
 
                     params[:schema] = type_to_schema(params.delete(:type))
-                    params[:required] = params[:in] == "path" || params[:required] || false
+                    params[:required] = params[:location] == "path" || params[:required] || false
 
                     params.rename_key_unordered!(:location, :in)
                     params
                   end
 
                 output = {
-                  operationId: camelize(document.id),
-                  summary: document.id.humanize,
-                  description: document.description,
+                  operationId: documentation[:operation_id] || camelize(document.id),
+                  summary: documentation[:summary] || document.id.humanize,
+                  description: documentation[:description] || document.description,
                   security: [{}],
                   parameters:
                 }

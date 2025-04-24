@@ -37,6 +37,17 @@ module SpecForge
             end
           end
 
+          def parse_user_defined_paths
+            path = SpecForge.openapi_path.join("config", "paths", "**", "*.yml")
+
+            paths = Dir[path].map do |path|
+              hash = YAML.safe_load_file(path, symbolize_names: true)
+              hash.transform_values! { |v| Normalizer.normalize_openapi_path!(v) }
+            end
+
+            paths.to_merged_h
+          end
+
           #
           # Converts a type string to an OpenAPI schema object
           #
