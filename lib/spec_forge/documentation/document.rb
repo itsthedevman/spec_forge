@@ -33,6 +33,8 @@ module SpecForge
             .transform_values! { |op| Operation.new(**op) }
         end
 
+        endpoints.deep_symbolize_keys!
+
         super
       end
     end
