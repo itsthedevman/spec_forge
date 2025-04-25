@@ -13,100 +13,6 @@ module SpecForge
   #   output, errors = normalizer.normalize
   #
   class Normalizer
-    TYPES = {
-      boolean: [TrueClass, FalseClass]
-    }.freeze
-
-    #
-    # Shared attributes used by the various normalizers
-    #
-    # @return [Hash<Symbol, Hash>]
-    #
-    SHARED_ATTRIBUTES = {
-      id: {type: String},
-      name: {type: String},
-      line_number: {type: Integer},
-      base_url: {
-        type: String,
-        default: nil
-      },
-      url: {
-        type: String,
-        aliases: %i[path],
-        default: nil
-      },
-      http_verb: {
-        type: String,
-        aliases: %i[method http_method],
-        default: nil, # Do not default this to "GET". Leave it nil. Seriously.
-        validator: lambda do |value|
-          valid_verbs = HTTP::Verb::VERBS.values
-          return if value.blank? || valid_verbs.include?(value.to_s.upcase)
-
-          raise Error, "Invalid HTTP verb: #{value}. Valid values are: #{valid_verbs.join(", ")}"
-        end
-      },
-      headers: {
-        type: Hash,
-        default: {}
-      },
-      query: {
-        type: [Hash, String],
-        aliases: %i[params],
-        default: {}
-      },
-      body: {
-        type: [Hash, String],
-        aliases: %i[data],
-        default: {}
-      },
-      variables: {
-        type: [Hash, String],
-        default: {}
-      },
-      debug: {
-        type: TYPES[:boolean],
-        default: false,
-        aliases: %i[pry breakpoint]
-      },
-      callback: {
-        type: String,
-        default: nil,
-        validator: lambda do |value|
-          return if value.blank?
-          return if SpecForge::Callbacks.registered?(value)
-
-          raise Error::UndefinedCallbackError.new(value, SpecForge::Callbacks.registered_names)
-        end
-      }
-    }.freeze
-
-    class Validators
-      include Singleton
-
-      def self.call(method_name, value)
-        instance.public_send(method_name, value)
-      end
-
-      def present?(value)
-        raise Error, "Value cannot be blank" if value.blank?
-      end
-
-      def http_verb(value)
-        valid_verbs = HTTP::Verb::VERBS.values
-        return if value.blank? || valid_verbs.include?(value.to_s.upcase)
-
-        raise Error, "Invalid HTTP verb: #{value}. Valid values are: #{valid_verbs.join(", ")}"
-      end
-
-      def callback(value)
-        return if value.blank?
-        return if SpecForge::Callbacks.registered?(value)
-
-        raise Error::UndefinedCallbackError.new(value, SpecForge::Callbacks.registered_names)
-      end
-    end
-
     STRUCTURE = {
       type: {
         type: [String, Array],
@@ -149,11 +55,19 @@ module SpecForge
           raise ArgumentError, "Invalid structure, provide either 'structure_name' or 'structure'"
         end
 
-        structure.each_with_object({}) do |(key, value), hash|
-          if value[:type].instance_of?(Array) && !value.key?(:default)
-            raise Error,
-              "#{key.in_quotes} with #{value.inspect} must have a default set explicitly"
+        default_type_value = lambda do |type_class|
+          case type_class
+          when Integer
+            0
+          when Proc
+            -> {}
+          else
+            type_class.new
           end
+        end
+
+        structure.each_with_object({}) do |(key, value), hash|
+          type = value[:type]
 
           hash[key] =
             if value.key?(:default)
@@ -161,12 +75,10 @@ module SpecForge
               next if default.nil?
 
               default.dup
-            elsif value[:type] == Integer # Can't call new on int
-              0
-            elsif value[:type] == Proc # Sameeee
-              -> {}
+            elsif type.instance_of?(Array)
+              default_type_value.call(type.first)
             else
-              value[:type].new
+              default_type_value.call(type)
             end
         end
       end
@@ -556,8 +468,4 @@ module SpecForge
   end
 end
 
-####################################################################################################
-# These need to be required after the base class due to them requiring constants on Normalizer
-# Dir[File.expand_path("normalizer/*.rb", __dir__)].sort.each do |path|
-#   require path
-# end
+require_relative "normalizer/validators"
