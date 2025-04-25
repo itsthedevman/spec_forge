@@ -39,9 +39,6 @@ module SpecForge
 
       private
 
-      #
-      # @api private
-      #
       def define
         @normalizers = load_from_files
         structures = @normalizers.delete(:_shared).stringify_keys
@@ -97,9 +94,6 @@ module SpecForge
         end
       end
 
-      #
-      # @api private
-      #
       def load_from_files
         base_path = Pathname.new(File.expand_path("../normalizers", __dir__))
         paths = Dir[base_path.join("**/*.yml")].sort

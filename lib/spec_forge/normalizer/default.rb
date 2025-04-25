@@ -12,17 +12,6 @@ module SpecForge
           raise ArgumentError, "Invalid structure, provide either 'structure_name' or 'structure'"
         end
 
-        default_type_value = lambda do |type_class|
-          case type_class
-          when Integer
-            0
-          when Proc
-            -> {}
-          else
-            type_class.new
-          end
-        end
-
         structure.each_with_object({}) do |(key, value), hash|
           type = value[:type]
 
@@ -33,10 +22,21 @@ module SpecForge
 
               default.dup
             elsif type.instance_of?(Array)
-              default_type_value.call(type.first)
+              default_value_for_type(type.first)
             else
-              default_type_value.call(type)
+              default_value_for_type(type)
             end
+        end
+      end
+
+      def default_value_for_type(type_class)
+        case type_class
+        when Integer
+          0
+        when Proc
+          -> {}
+        else
+          type_class.new
         end
       end
     end
