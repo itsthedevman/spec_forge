@@ -51,7 +51,6 @@ module SpecForge
 
         structures = normalizers.delete("_shared").to_h
         normalizers.transform_values! { |definition| definition.to_h(structures) }
-        binding.pry
         normalizers
       end
 
@@ -67,23 +66,23 @@ module SpecForge
 
         shared_structures = hash.merge(structures)
 
-        # First we'll replace any references, _shared basically skips this
+        # First, we'll deeply replace any references - _shared basically skips this
         replace_references(hash, shared_structures)
 
+        # Second, normalize the root level keys
         hash.transform_values!(with_key: true) do |attribute, name|
           next if STRUCTURE.key?(name)
 
-          puts "Normalizing root #{name.in_quotes} with #{attribute.inspect}"
           normalize_attribute(name, attribute)
         end
 
+        # Third, normalize the underlying structures
         hash.each do |name, attribute|
           next unless attribute.is_a?(Hash)
 
           structure = attribute[:structure]
           next if structure.blank?
 
-          puts "Normalizing structure for #{name.in_quotes} with #{attribute.inspect}"
           attribute[:structure] = normalize_structure(name, attribute)
         end
 
@@ -137,7 +136,6 @@ module SpecForge
           hash.merge!(Normalizer.default(structure: STRUCTURE))
           hash
         when Hash
-          binding.pry if attribute_name == :paths
           hash = Normalizer.raise_errors! do
             Normalizer.new(
               "#{attribute_name.in_quotes} in #{@path}",
@@ -146,8 +144,15 @@ module SpecForge
             ).normalize
           end
 
-          hash[:type] = resolve_type(hash[:type])
-          hash[:structure] = normalize_structure(attribute_name, hash) || {}
+          hash[:type] = resolve_type(attribute[:type])
+
+          hash[:structure] =
+            if hash[:structure].present?
+              normalize_structure(attribute_name, hash) || {}
+            else
+              {}
+            end
+
           hash
         else
           raise ArgumentError, "Attribute #{attribute_name.in_quotes}: Expected String or Hash, got #{attribute.inspect}"
