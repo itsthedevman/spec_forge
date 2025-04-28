@@ -21,6 +21,7 @@ RSpec.describe SpecForge::Normalizer do
     end
 
     it "is expected to normalize normally" do
+      binding.pry
       expect(normalized).to include(
         variables: {
           var_1: true,
