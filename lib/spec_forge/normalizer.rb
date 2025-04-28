@@ -7,6 +7,8 @@ require_relative "normalizer/validators"
 module SpecForge
   class Normalizer
     class << self
+      attr_reader :structures
+
       #
       # @api private
       #
