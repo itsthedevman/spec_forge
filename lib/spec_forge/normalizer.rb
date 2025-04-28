@@ -8,13 +8,50 @@ require_relative "normalizer/validators"
 module SpecForge
   class Normalizer
     class << self
-      include Default
-      include Definition
-      include Normalization
-
+      #
+      # @api private
+      #
       def normalize!(name, input, label: self.label)
         raise_errors! { normalize(name, input, label) }
       end
+
+      #
+      # @api private
+      #
+      def load_from_files
+        @normalizers = Definition.from_files
+      end
+
+      #
+      # Raises any errors collected by the block
+      #
+      # @yield Block that returns [output, errors]
+      # @yieldreturn [Array<Object, Set>] The result and any errors
+      #
+      # @return [Object] The normalized output if successful
+      #
+      # @raise [Error::InvalidStructureError] If any errors were encountered
+      #
+      # @api private
+      #
+      def raise_errors!(&block)
+        errors = Set.new
+
+        begin
+          output, new_errors = yield
+          errors.merge(new_errors) if new_errors.size > 0
+        rescue => e
+          errors << e
+        end
+
+        raise Error::InvalidStructureError.new(errors) if errors.size > 0
+
+        output
+      end
+
+      # Private methods
+      include Default
+      include Normalization
     end
 
     # @return [String] A label that describes the data itself
@@ -248,6 +285,6 @@ module SpecForge
     end
 
     # Define the normalizers
-    define
+    load_from_files
   end
 end

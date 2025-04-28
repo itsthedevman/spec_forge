@@ -11,7 +11,7 @@ url:
   - path
 http_verb:
   type: string
-  default: nil  # Do not default this to "GET". Leave it nil. Seriously.
+  default: null # Do not default this to "GET". Leave it null. Seriously.
   aliases:
   - method
   - http_method
@@ -46,5 +46,7 @@ debug:
   default: false
 callback:
   type: string
-  default: nil
+  default: null
   validator: callback
+  structure:
+    type: string

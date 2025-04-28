@@ -21,33 +21,6 @@ module SpecForge
 
         new(label, input, structure:).normalize
       end
-
-      #
-      # Raises any errors collected by the block
-      #
-      # @yield Block that returns [output, errors]
-      # @yieldreturn [Array<Object, Set>] The result and any errors
-      #
-      # @return [Object] The normalized output if successful
-      #
-      # @raise [Error::InvalidStructureError] If any errors were encountered
-      #
-      # @api private
-      #
-      def raise_errors!(&block)
-        errors = Set.new
-
-        begin
-          output, new_errors = yield
-          errors.merge(new_errors) if new_errors.size > 0
-        rescue => e
-          errors << e
-        end
-
-        raise Error::InvalidStructureError.new(errors) if errors.size > 0
-
-        output
-      end
     end
   end
 end

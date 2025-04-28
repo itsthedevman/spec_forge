@@ -3,8 +3,6 @@
 module SpecForge
   class Normalizer
     module Default
-      private
-
       def default(structure_name: nil, structure: nil)
         structure ||= @structures[structure_name]
 
@@ -28,6 +26,8 @@ module SpecForge
             end
         end
       end
+
+      private
 
       def default_value_for_type(type_class)
         case type_class
