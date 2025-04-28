@@ -3,7 +3,7 @@
 # This is more for organizational purposes
 RSpec.describe SpecForge::Normalizer do
   # This also tests normalize_expectation and normalize_constraint
-  describe ".normalize_spec!" do
+  describe "normalize using spec" do
     let(:expectation) do
       {
         id: SecureRandom.uuid,
@@ -67,7 +67,7 @@ RSpec.describe SpecForge::Normalizer do
       }
     end
 
-    subject(:normalized) { described_class.normalize_spec!(spec) }
+    subject(:normalized) { described_class.normalize!(spec, using: :spec) }
 
     it "is expected to normalize fully" do
       expect(normalized[:url]).to be_kind_of(String)

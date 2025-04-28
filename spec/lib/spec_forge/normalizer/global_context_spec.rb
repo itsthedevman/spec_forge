@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 RSpec.describe SpecForge::Normalizer do
-  describe ".normalize_global_context!" do
+  describe "normalize using global_context" do
     let(:global) do
       {
         variables: {
@@ -14,7 +14,7 @@ RSpec.describe SpecForge::Normalizer do
       }
     end
 
-    subject(:normalized) { described_class.normalize_global_context!(global) }
+    subject(:normalized) { described_class.normalize!(global, using: :global_context) }
 
     before do
       SpecForge::Callbacks.register("test_callback") {}

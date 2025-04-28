@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 RSpec.describe SpecForge::Normalizer do
-  describe "#normalize_to_structure" do
+  describe "#normalize" do
     let(:input) {}
 
     let(:structure) do

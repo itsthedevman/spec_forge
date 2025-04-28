@@ -2,7 +2,6 @@
 
 require_relative "normalizer/default"
 require_relative "normalizer/definition"
-require_relative "normalizer/normalization"
 require_relative "normalizer/validators"
 
 module SpecForge
@@ -11,8 +10,45 @@ module SpecForge
       #
       # @api private
       #
-      def normalize!(structure_name, input, label: self.label)
-        raise_errors! { normalize(input, structure_name:, label:) }
+      def normalize!(input, using:, label: nil)
+        raise_errors! { normalize(input, using:, label:) }
+      end
+
+      #
+      # @api private
+      #
+      def normalize(input, using:, label: nil)
+        label ||= using.to_s
+
+        raise Error::InvalidTypeError.new(input, Hash, for: label) if !Type.hash?(input)
+
+        structure = if using.is_a?(Hash)
+          using
+        else
+          @structures[using.to_s]
+        end
+
+        if structure.nil?
+          structures = @structures.keys.to_or_sentence
+
+          raise ArgumentError,
+            "Invalid structure or name. Got #{using.inspect}, expected #{structures}"
+        end
+
+        new(label, input, structure:).normalize
+      end
+
+      #
+      # @api private
+      #
+      def default(name = nil, structure: nil)
+        structure ||= @structures[name.to_s]
+
+        if !structure.is_a?(Hash)
+          raise ArgumentError, "Invalid structure. Provide either the name of the structure ('name') or a hash ('structure')"
+        end
+
+        default_from_structure(structure)
       end
 
       #
@@ -49,19 +85,8 @@ module SpecForge
         output
       end
 
-      def default(structure_name: nil, structure: nil)
-        structure ||= @structures[structure_name.to_s]
-
-        if !structure.is_a?(Hash)
-          raise ArgumentError, "Invalid structure, provide either 'structure_name' or 'structure'"
-        end
-
-        default_from_structure(structure)
-      end
-
       # Private methods
       include Default
-      include Normalization
     end
 
     # @return [String] A label that describes the data itself

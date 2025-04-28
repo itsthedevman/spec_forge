@@ -72,7 +72,7 @@ module SpecForge
     #
     def initialize(name:, **input)
       @name = name
-      input = Normalizer.normalize_factory!(input)
+      input = Normalizer.normalize!(input, using: :factory)
 
       @input = input
       @model_class = input[:model_class]
