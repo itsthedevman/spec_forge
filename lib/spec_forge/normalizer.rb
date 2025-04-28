@@ -11,15 +11,15 @@ module SpecForge
       #
       # @api private
       #
-      def normalize!(name, input, label: self.label)
-        raise_errors! { normalize(name, input, label) }
+      def normalize!(structure_name, input, label: self.label)
+        raise_errors! { normalize(input, structure_name:, label:) }
       end
 
       #
       # @api private
       #
       def load_from_files
-        @normalizers = Definition.from_files
+        @structures = Definition.from_files
       end
 
       #
@@ -47,6 +47,16 @@ module SpecForge
         raise Error::InvalidStructureError.new(errors) if errors.size > 0
 
         output
+      end
+
+      def default(structure_name: nil, structure: nil)
+        structure ||= @structures[structure_name.to_s]
+
+        if !structure.is_a?(Hash)
+          raise ArgumentError, "Invalid structure, provide either 'structure_name' or 'structure'"
+        end
+
+        default_from_structure(structure)
       end
 
       # Private methods

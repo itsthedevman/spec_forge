@@ -3,13 +3,9 @@
 module SpecForge
   class Normalizer
     module Default
-      def default(structure_name: nil, structure: nil)
-        structure ||= @structures[structure_name]
+      private
 
-        if !structure.is_a?(Hash)
-          raise ArgumentError, "Invalid structure, provide either 'structure_name' or 'structure'"
-        end
-
+      def default_from_structure(structure)
         structure.each_with_object({}) do |(key, value), hash|
           type = value[:type]
 
@@ -27,13 +23,10 @@ module SpecForge
         end
       end
 
-      private
-
       def default_value_for_type(type_class)
-        case type_class
-        when Integer
+        if type_class == Integer
           0
-        when Proc
+        elsif type_class == Proc
           -> {}
         else
           type_class.new
