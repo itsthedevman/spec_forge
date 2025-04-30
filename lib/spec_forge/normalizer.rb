@@ -215,13 +215,17 @@ module SpecForge
         type_class = attribute[:type]
         aliases = attribute[:aliases] || []
         default = attribute[:default]
+        required = attribute[:required] == true # Handle false with a default of true
         error_label = generate_error_label(key, aliases)
 
         has_default = attribute.key?(:default)
-        nilable = has_default && default.nil?
+        nilable = has_default && !required
 
         # Get the value
         value = value_from_keys(input, [key] + aliases)
+
+        # Drop the key if needed
+        next if value.nil? && !has_default && !required
 
         # Default the value if needed
         value = default.dup if has_default && value.nil?

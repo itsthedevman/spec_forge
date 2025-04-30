@@ -17,20 +17,20 @@ module SpecForge
         },
         default: {
           type: [String, NilClass, Numeric, Array, Hash, TrueClass, FalseClass],
-          default: nil
+          required: false
         },
         aliases: {
           type: Array,
-          default: [],
+          required: false,
           structure: {type: String}
         },
         structure: {
           type: Hash,
-          default: {}
+          required: false
         },
         validator: {
           type: String,
-          default: nil
+          required: false
         }
       }.freeze
 
@@ -141,10 +141,7 @@ module SpecForge
         when String, Array # Array is multiple types
           hash = {type: resolve_type(attribute)}
 
-          # Add a default, but remove any keys with default nil values
           default = Normalizer.default(structure: STRUCTURE)
-          default.reject! { |k, v| v.nil? }
-
           hash.merge!(default)
         when Hash
           hash = Normalizer.raise_errors! do

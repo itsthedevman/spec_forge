@@ -46,7 +46,5 @@ debug:
   default: false
 callback:
   type: string
-  default: null
+  required: false
   validator: callback
-  structure:
-    type: string
