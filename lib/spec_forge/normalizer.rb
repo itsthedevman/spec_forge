@@ -146,14 +146,14 @@ module SpecForge
     # Extracts a value from a hash checking multiple keys
     #
     # @param hash [Hash] The hash to extract from
-    # @param keys [Array<Symbol, String>] The keys to check
+    # @param keys [Array<String, String>] The keys to check
     #
     # @return [Object, nil] The value if found, nil otherwise
     #
     # @private
     #
     def value_from_keys(hash, keys)
-      hash.find { |k, v| keys.include?(k) }&.second
+      hash.find { |k, v| keys.include?(k.to_s) }&.second
     end
 
     #
@@ -222,7 +222,7 @@ module SpecForge
         nilable = has_default && !required
 
         # Get the value
-        value = value_from_keys(input, [key] + aliases)
+        value = value_from_keys(input, [key.to_s] + aliases)
 
         # Drop the key if needed
         next if value.nil? && !has_default && !required
@@ -245,7 +245,7 @@ module SpecForge
         end
 
         # Normalize any sub structures
-        if (substructure = attribute[:structure])
+        if (substructure = attribute[:structure]) && substructure.present?
           value = normalize_substructure(error_label, value, substructure, errors)
         end
 

@@ -21,8 +21,8 @@ RSpec.describe SpecForge::Normalizer do
     end
 
     it "is expected to normalize normally" do
-      binding.pry
-      expect(normalized).to include(
+      expect(normalized).to match(
+        callbacks: [{before_each: "test_callback"}],
         variables: {
           var_1: true,
           var_2: "faker.string.random"
