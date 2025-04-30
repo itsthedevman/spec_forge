@@ -41,17 +41,20 @@ module SpecForge
         normalizers =
           paths.each_with_object({}) do |path, hash|
             path = Pathname.new(path)
+            name = path.basename(".yml").to_s
 
-            definition = new(path)
-            hash[definition.normalizer_name] = definition
+            input = YAML.safe_load_file(path, symbolize_names: true)
+            raise Error, "Normalizer defined at #{path.to_s.in_quotes} is empty" if input.blank?
+
+            hash[name] = new(input)
           end
 
         # Pull the shared structures and prepare it
-        structures = normalizers.delete("_shared").to_h
+        structures = normalizers.delete("_shared").normalize
 
         # Now prepare all of the other definitions with access to references
         normalizers.transform_values!(with_key: true) do |definition, name|
-          structure = definition.to_h(structures)
+          structure = definition.normalize(structures)
 
           {
             label: LABELS[name.to_sym] || name.humanize.downcase,
@@ -62,20 +65,18 @@ module SpecForge
         normalizers
       end
 
-      attr_reader :normalizer_name
+      ##########################################################################
 
-      def initialize(path)
-        @path = path
-        @normalizer_name = path.basename(".yml").to_s
+      def initialize(input, label: "")
+        @input = input
+        @label = label
       end
 
-      def to_h(structures = {})
-        hash = load_from_file
+      def normalize(structures = {})
+        hash = @input.deep_dup
+        shared_structures = @input.merge(structures)
 
-        # Allow referencing other normalizers
-        shared_structures = hash.merge(structures)
-
-        # First, we'll deeply replace any references - _shared basically skips this
+        # First, we'll deeply replace any references
         replace_references(hash, shared_structures)
 
         # Second, normalize the root level keys
@@ -100,16 +101,10 @@ module SpecForge
 
       private
 
-      def load_from_file
-        hash = YAML.safe_load_file(@path, symbolize_names: true)
-        raise Error, "Normalizer defined at #{@path.to_s.in_quotes} is empty" if hash.blank?
-
-        hash
-      end
-
       def replace_references(attributes, shared_structures)
         return if shared_structures.blank?
 
+        # The goal is to walk down the hash and recursively replace any references
         attributes.each do |attribute_name, attribute|
           # Replace the top level reference
           replace_with_reference(attribute_name, attribute, shared_structures:)
@@ -145,8 +140,12 @@ module SpecForge
         case attribute
         when String, Array # Array is multiple types
           hash = {type: resolve_type(attribute)}
-          hash.merge!(Normalizer.default(structure: STRUCTURE))
-          hash
+
+          # Add a default, but remove any keys with default nil values
+          default = Normalizer.default(structure: STRUCTURE)
+          default.reject! { |k, v| v.nil? }
+
+          hash.merge!(default)
         when Hash
           hash = Normalizer.raise_errors! do
             Normalizer.new(
