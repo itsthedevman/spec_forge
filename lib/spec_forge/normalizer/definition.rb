@@ -9,10 +9,6 @@ module SpecForge
           default: nil,
           validator: :present?
         },
-        label: {
-          type: String,
-          default: nil
-        },
         default: {
           type: [String, NilClass, Numeric, Array, Hash, TrueClass, FalseClass],
           default: nil
@@ -29,11 +25,6 @@ module SpecForge
         validator: {
           type: String,
           default: nil
-        },
-        reference: {
-          type: String,
-          default: nil,
-          validator: :present?
         }
       }.freeze
 

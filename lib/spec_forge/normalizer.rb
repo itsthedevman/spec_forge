@@ -150,16 +150,17 @@ module SpecForge
     #
     # @param value [Object] The value to check
     # @param expected_type [Class, Array<Class>] The expected type(s)
+    # @param nilable [Boolean] Allow nil values
     #
     # @return [Boolean] Whether the value is of the expected type
     #
     # @private
     #
-    def valid_class?(value, expected_type)
+    def valid_class?(value, expected_type, nilable: false)
       if expected_type.instance_of?(Array)
         expected_type.any? { |type| value.is_a?(type) }
       else
-        value.is_a?(expected_type)
+        (nilable && value.nil?) || value.is_a?(expected_type)
       end
     end
 
@@ -203,21 +204,19 @@ module SpecForge
         type_class = attribute[:type]
         aliases = attribute[:aliases] || []
         default = attribute[:default]
+        error_label = generate_error_label(key, aliases)
 
         has_default = attribute.key?(:default)
         nilable = has_default && default.nil?
 
         # Get the value
         value = value_from_keys(input, [key] + aliases)
-        next if nilable && value.nil?
 
         # Default the value if needed
         value = default.dup if has_default && value.nil?
 
         # Type + existence check
-        if !valid_class?(value, type_class)
-          for_context = generate_error_label(key, aliases)
-
+        if !valid_class?(value, type_class, nilable:)
           if (line_number = input[:line_number])
             for_context += " (line #{line_number})"
           end
@@ -227,13 +226,12 @@ module SpecForge
 
         # Call the validator if it has one
         if (name = attribute[:validator]) && name.present?
-          Validators.call(name, value)
+          Validators.call(name, value, label: error_label)
         end
 
         # Normalize any sub structures
         if (substructure = attribute[:structure])
-          new_label = generate_error_label(key, aliases)
-          value = normalize_substructure(new_label, value, substructure, errors)
+          value = normalize_substructure(error_label, value, substructure, errors)
         end
 
         # Store the result
@@ -299,18 +297,19 @@ module SpecForge
 
       input.each_with_index do |value, index|
         type_class = structure[:type]
+        error_label = "index #{index} of #{label}"
 
         if !valid_class?(value, type_class)
-          raise Error::InvalidTypeError.new(value, type_class, for: "index #{index} of #{label}")
+          raise Error::InvalidTypeError.new(value, type_class, for: error_label)
         end
 
         # Call the validator if it has one
         if (name = structure[:validator]) && name.present?
-          Validators.call(name, value)
+          Validators.call(name, value, label: error_label)
         end
 
         if (substructure = structure[:structure])
-          value = normalize_substructure("index #{index} of #{label}", value, substructure, errors)
+          value = normalize_substructure(error_label, value, substructure, errors)
         end
 
         output << value
