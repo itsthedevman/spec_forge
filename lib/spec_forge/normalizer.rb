@@ -20,22 +20,33 @@ module SpecForge
       # @api private
       #
       def normalize(input, using:, label: nil)
-        label ||= using.to_s
+        # Since normalization is based on a structured hash, :using can be passed a Hash
+        # to skip using a predefined normalizer.
+        if using.is_a?(Hash)
+          structure = using
 
-        raise Error::InvalidTypeError.new(input, Hash, for: label) if !Type.hash?(input)
-
-        structure = if using.is_a?(Hash)
-          using
+          if label.blank?
+            raise ArgumentError, "A label must be provided when using a custom structure"
+          end
         else
-          @structures[using.to_s]
+          data = @structures[using.to_s]
+
+          # We have a predefined structure and structures all have labels
+          label ||= data[:label]
+          structure = data[:structure]
         end
 
-        if structure.nil?
-          structures = @structures.keys.to_or_sentence
+        # Ensure we have a structure
+        if !structure.is_a?(Hash)
+          structures = @structures.keys.map(&:in_quotes).to_or_sentence
 
           raise ArgumentError,
-            "Invalid structure or name. Got #{using.inspect}, expected #{structures}"
+            "Invalid structure or name. Got #{using}, expected one of #{structures}"
         end
+
+        # This is checked down here because it felt like it belonged...
+        # and because of that pesky label
+        raise Error::InvalidTypeError.new(input, Hash, for: label) if !Type.hash?(input)
 
         new(label, input, structure:).normalize
       end
@@ -218,10 +229,10 @@ module SpecForge
         # Type + existence check
         if !valid_class?(value, type_class, nilable:)
           if (line_number = input[:line_number])
-            for_context += " (line #{line_number})"
+            error_label += " (line #{line_number})"
           end
 
-          raise Error::InvalidTypeError.new(value, type_class, for: for_context)
+          raise Error::InvalidTypeError.new(value, type_class, for: error_label)
         end
 
         # Call the validator if it has one

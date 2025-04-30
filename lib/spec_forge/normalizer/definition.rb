@@ -3,6 +3,12 @@
 module SpecForge
   class Normalizer
     class Definition
+      LABELS = {
+        constraint: "expect",
+        factory_reference: "factory reference",
+        global_context: "global context"
+      }.freeze
+
       STRUCTURE = {
         type: {
           type: [String, Array, Class],
@@ -40,8 +46,19 @@ module SpecForge
             hash[definition.normalizer_name] = definition
           end
 
+        # Pull the shared structures and prepare it
         structures = normalizers.delete("_shared").to_h
-        normalizers.transform_values! { |definition| definition.to_h(structures) }
+
+        # Now prepare all of the other definitions with access to references
+        normalizers.transform_values!(with_key: true) do |definition, name|
+          structure = definition.to_h(structures)
+
+          {
+            label: LABELS[name.to_sym] || name.humanize.downcase,
+            structure:
+          }
+        end
+
         normalizers
       end
 
@@ -55,6 +72,7 @@ module SpecForge
       def to_h(structures = {})
         hash = load_from_file
 
+        # Allow referencing other normalizers
         shared_structures = hash.merge(structures)
 
         # First, we'll deeply replace any references - _shared basically skips this
@@ -93,9 +111,11 @@ module SpecForge
         return if shared_structures.blank?
 
         attributes.each do |attribute_name, attribute|
+          # Replace the top level reference
           replace_with_reference(attribute_name, attribute, shared_structures:)
           next unless attribute.is_a?(Hash) && attribute[:structure].present?
 
+          # Recursively replace any structures that have references
           if [Array, "array"].include?(attribute[:type])
             result = replace_references(attribute.slice(:structure), shared_structures)
             attribute.merge!(result)
@@ -117,12 +137,13 @@ module SpecForge
           raise Error, "Attribute #{attribute_name.in_quotes}: Invalid reference name. Got #{ref_name&.in_quotes}, expected one of #{structures_names} in #{@path}"
         end
 
+        # Allows overwriting data on the reference
         attribute.reverse_merge!(reference)
       end
 
       def normalize_attribute(attribute_name, attribute)
         case attribute
-        when String, Array
+        when String, Array # Array is multiple types
           hash = {type: resolve_type(attribute)}
           hash.merge!(Normalizer.default(structure: STRUCTURE))
           hash
