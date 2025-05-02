@@ -16,10 +16,10 @@ module SpecForge
       end
 
       def http_verb(value)
-        valid_verbs = HTTP::Verb::VERBS.values
+        valid_verbs = HTTP::Verb::VERBS.values.map(&:to_s)
         return if value.blank? || valid_verbs.include?(value.to_s.upcase)
 
-        raise Error, "Invalid HTTP verb #{value.inspect.in_quotes} for #{@label}. Valid values are: #{valid_verbs.join_map(", ", &:in_quotes)}"
+        raise Error, "Invalid HTTP verb #{value.in_quotes} for #{@label}. Valid values are: #{valid_verbs.join_map(", ", &:in_quotes)}"
       end
 
       def callback(value)
