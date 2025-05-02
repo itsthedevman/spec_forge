@@ -160,6 +160,8 @@ module SpecForge
         overlay.reject! { |_k, v| v.blank? }
 
         base = spec.extract!(*HTTP::REQUEST_ATTRIBUTES)
+        base.reject! { |_k, v| v.blank? }
+
         base = config.deep_merge(base)
         base[:http_verb] ||= "GET"
 
