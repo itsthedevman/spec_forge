@@ -5,13 +5,16 @@ module SpecForge
     module Default
       private
 
-      def default_from_structure(structure)
+      def default_from_structure(structure, include_optional: false)
         structure.each_with_object({}) do |(attribute_name, attribute), hash|
           type = attribute[:type]
-          next if !attribute[:required] && !attribute.key?(:default)
+          has_default = attribute.key?(:default)
+          required = attribute[:required]
+
+          next if !(include_optional || required || has_default)
 
           hash[attribute_name] =
-            if attribute.key?(:default)
+            if has_default
               default = attribute[:default]
               next if default.nil?
 

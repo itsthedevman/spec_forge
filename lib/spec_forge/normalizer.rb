@@ -54,14 +54,14 @@ module SpecForge
       #
       # @api private
       #
-      def default(name = nil, structure: nil, include_required: false)
+      def default(name = nil, structure: nil, include_optional: false)
         structure ||= @structures.dig(name.to_sym, :structure)
 
         if !structure.is_a?(Hash)
           raise ArgumentError, "Invalid structure. Provide either the name of the structure ('name') or a hash ('structure')"
         end
 
-        default_from_structure(structure, include_required:)
+        default_from_structure(structure, include_optional:)
       end
 
       #
