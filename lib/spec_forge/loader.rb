@@ -215,9 +215,9 @@ module SpecForge
       # @private
       #
       def build_expectation_name(spec_hash, expectation_hash)
-        # Create a structure for these two attributes
-        # Removing the defaults and validators to avoid issues
-        structure = Normalizer::SHARED_ATTRIBUTES.slice(:http_verb, :url)
+        # Create a structure for http_verb and url
+        # Removing the defaults and validators to avoid triggering extra logic
+        structure = Normalizer.structures[:spec][:structure].slice(:http_verb, :url)
           .transform_values { |v| v.except(:default, :validator) }
 
         # Ignore any errors. These will be validated later
