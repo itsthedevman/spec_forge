@@ -25,4 +25,47 @@ variables:
   reference: variables
 debug:
   reference: debug
-expectations: array
+expectations:
+  type: array
+  structure:
+    type: hash
+    structure:
+      # Internal
+      id:
+        reference: id
+      line_number:
+        reference: line_number
+
+      # User defined
+      name:
+        reference: name
+      base_url:
+        reference: base_url
+      url:
+        reference: url
+      http_verb:
+        reference: http_verb
+      headers:
+        reference: headers
+      query:
+        reference: query
+      body:
+        reference: body
+      variables:
+        reference: variables
+      debug:
+        reference: debug
+      store_as:
+        type: string
+        default: ""
+      expect:
+        type: hash
+        structure:
+          status:
+          - integer
+          - string
+          json:
+            type:
+            - hash
+            - array
+            default: {}
