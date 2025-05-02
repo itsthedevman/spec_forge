@@ -29,7 +29,7 @@ module SpecForge
             raise ArgumentError, "A label must be provided when using a custom structure"
           end
         else
-          data = @structures[using.to_s]
+          data = @structures[using.to_sym]
 
           # We have a predefined structure and structures all have labels
           label ||= data[:label]
@@ -54,14 +54,14 @@ module SpecForge
       #
       # @api private
       #
-      def default(name = nil, structure: nil)
-        structure ||= @structures[name.to_s]
+      def default(name = nil, structure: nil, include_required: false)
+        structure ||= @structures.dig(name.to_sym, :structure)
 
         if !structure.is_a?(Hash)
           raise ArgumentError, "Invalid structure. Provide either the name of the structure ('name') or a hash ('structure')"
         end
 
-        default_from_structure(structure)
+        default_from_structure(structure, include_required:)
       end
 
       #

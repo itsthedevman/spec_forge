@@ -44,7 +44,7 @@ module SpecForge
         normalizers =
           paths.each_with_object({}) do |path, hash|
             path = Pathname.new(path)
-            name = path.basename(".yml").to_s
+            name = path.basename(".yml").to_s.to_sym
 
             input = YAML.safe_load_file(path, symbolize_names: true)
             raise Error, "Normalizer defined at #{path.to_s.in_quotes} is empty" if input.blank?
@@ -53,14 +53,14 @@ module SpecForge
           end
 
         # Pull the shared structures and prepare it
-        structures = normalizers.delete("_shared").normalize
+        structures = normalizers.delete(:_shared).normalize
 
         # Now prepare all of the other definitions with access to references
         normalizers.transform_values!(with_key: true) do |definition, name|
           structure = definition.normalize(structures)
 
           {
-            label: LABELS[name.to_sym] || name.humanize.downcase,
+            label: LABELS[name] || name.to_s.humanize.downcase,
             structure:
           }
         end
