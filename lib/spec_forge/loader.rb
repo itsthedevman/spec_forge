@@ -221,8 +221,11 @@ module SpecForge
           .transform_values { |v| v.except(:default, :validator) }
 
         # Ignore any errors. These will be validated later
-        normalized_spec, _ = Normalizer.normalize(spec_hash, using: structure)
-        normalized_expectation, _ = Normalizer.normalize(expectation_hash, using: structure)
+        normalized_spec, _ = Normalizer.normalize(spec_hash, using: structure, label: "n/a")
+        normalized_expectation, _ = Normalizer.normalize(
+          expectation_hash,
+          using: structure, label: "n/a"
+        )
 
         request_data = normalized_spec.deep_merge(normalized_expectation)
 
