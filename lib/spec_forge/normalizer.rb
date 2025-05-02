@@ -218,26 +218,23 @@ module SpecForge
         aliases = attribute[:aliases] || []
         default = attribute[:default]
 
-        # Default required, unless explicitly set to false.
+        # Required by default, unless explicitly set to false.
         # Easier to think of it as !(required == false)
         required = attribute[:required] != false
-
-        nilable = has_default && !required
-
-        error_label = generate_error_label(key, aliases)
 
         # Get the value
         value = value_from_keys(input, [key.to_s] + aliases)
 
-        # binding.pry if key == :expect && !value.is_a?(Hash)
         # Drop the key if needed
         next if value.nil? && !has_default && !required
 
         # Default the value if needed
         value = default.dup if has_default && value.nil?
 
+        error_label = generate_error_label(key, aliases)
+
         # Type + existence check
-        if !valid_class?(value, type_class, nilable:)
+        if !valid_class?(value, type_class, nilable: has_default)
           if (line_number = input[:line_number])
             error_label += " (line #{line_number})"
           end
