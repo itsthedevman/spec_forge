@@ -212,18 +212,24 @@ module SpecForge
       output, errors = {}, Set.new
 
       structure.each do |key, attribute|
+        has_default = attribute.key?(:default)
+
         type_class = attribute[:type]
         aliases = attribute[:aliases] || []
         default = attribute[:default]
-        required = attribute[:required] == true # Handle false with a default of true
-        error_label = generate_error_label(key, aliases)
 
-        has_default = attribute.key?(:default)
+        # Default required, unless explicitly set to false.
+        # Easier to think of it as !(required == false)
+        required = attribute[:required] != false
+
         nilable = has_default && !required
+
+        error_label = generate_error_label(key, aliases)
 
         # Get the value
         value = value_from_keys(input, [key.to_s] + aliases)
 
+        # binding.pry if key == :expect && !value.is_a?(Hash)
         # Drop the key if needed
         next if value.nil? && !has_default && !required
 

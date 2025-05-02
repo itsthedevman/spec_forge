@@ -39,6 +39,8 @@ RSpec.describe SpecForge::Normalizer do
       }
     end
 
+    let(:constraint) { expectation[:expect] }
+
     let(:spec) do
       {
         id: SecureRandom.uuid,
@@ -68,8 +70,7 @@ RSpec.describe SpecForge::Normalizer do
     end
 
     let(:normalized_expectation) { normalized[:expectations].first }
-    let(:constraint) { expectation[:expect] }
-    let(:normalized_constraint) { normalized[:expectations].first[:expect] }
+    let(:normalized_constraint) { normalized_expectation[:expect] }
 
     subject(:normalized) { described_class.normalize!(spec, using: :spec) }
 
@@ -89,28 +90,26 @@ RSpec.describe SpecForge::Normalizer do
       expect(normalized[:variables][:variable_2]).to be_kind_of(String)
       expect(normalized[:expectations]).to be_kind_of(Array)
 
-      expectation = normalized[:expectations].first
-      expect(expectation[:name]).to be_kind_of(String)
-      expect(expectation[:url]).to be_kind_of(String)
-      expect(expectation[:http_verb]).to be_kind_of(String)
-      expect(expectation[:headers]).to be_kind_of(Hash)
-      expect(expectation[:headers][:some_header]).to be_kind_of(String)
-      expect(expectation[:query]).to be_kind_of(Hash)
-      expect(expectation[:query][:query_1]).to be_kind_of(String)
-      expect(expectation[:query][:query_2]).to be_kind_of(String)
-      expect(expectation[:body]).to be_kind_of(Hash)
-      expect(expectation[:body][:body_1]).to be_kind_of(String)
-      expect(expectation[:body][:body_2]).to be_kind_of(String)
-      expect(expectation[:variables]).to be_kind_of(Hash)
-      expect(expectation[:variables][:variable_1]).to be_kind_of(String)
-      expect(expectation[:variables][:variable_2]).to be_kind_of(String)
-      expect(expectation[:expect]).to be_kind_of(Hash)
+      expect(normalized_expectation[:name]).to be_kind_of(String)
+      expect(normalized_expectation[:url]).to be_kind_of(String)
+      expect(normalized_expectation[:http_verb]).to be_kind_of(String)
+      expect(normalized_expectation[:headers]).to be_kind_of(Hash)
+      expect(normalized_expectation[:headers][:some_header]).to be_kind_of(String)
+      expect(normalized_expectation[:query]).to be_kind_of(Hash)
+      expect(normalized_expectation[:query][:query_1]).to be_kind_of(String)
+      expect(normalized_expectation[:query][:query_2]).to be_kind_of(String)
+      expect(normalized_expectation[:body]).to be_kind_of(Hash)
+      expect(normalized_expectation[:body][:body_1]).to be_kind_of(String)
+      expect(normalized_expectation[:body][:body_2]).to be_kind_of(String)
+      expect(normalized_expectation[:variables]).to be_kind_of(Hash)
+      expect(normalized_expectation[:variables][:variable_1]).to be_kind_of(String)
+      expect(normalized_expectation[:variables][:variable_2]).to be_kind_of(String)
+      expect(normalized_expectation[:expect]).to be_kind_of(Hash)
 
-      constraint = expectation[:expect]
-      expect(constraint[:status]).to be_kind_of(Integer)
-      expect(constraint[:json]).to be_kind_of(Hash)
-      expect(constraint[:json][:json_1]).to be_kind_of(String)
-      expect(constraint[:json][:json_2]).to be_kind_of(String)
+      expect(normalized_constraint[:status]).to be_kind_of(Integer)
+      expect(normalized_constraint[:json]).to be_kind_of(Hash)
+      expect(normalized_constraint[:json][:json_1]).to be_kind_of(String)
+      expect(normalized_constraint[:json][:json_2]).to be_kind_of(String)
     end
 
     context "when aliases are used" do
@@ -296,7 +295,7 @@ RSpec.describe SpecForge::Normalizer do
       {
         context: "when 'status' is not an Integer",
         before: -> { constraint[:status] = nil },
-        error: "Expected Integer or String, got NilClass for \"status\" in expect (item 0)"
+        error: "Expected Integer or String, got NilClass for \"status\" in \"expect\" in index 0 of \"expectations\" in spec"
       }
     )
   end

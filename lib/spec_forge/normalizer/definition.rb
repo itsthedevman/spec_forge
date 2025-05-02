@@ -4,7 +4,6 @@ module SpecForge
   class Normalizer
     class Definition
       LABELS = {
-        constraint: "expect",
         factory_reference: "factory reference",
         global_context: "global context"
       }.freeze
@@ -17,6 +16,10 @@ module SpecForge
         },
         default: {
           type: [String, NilClass, Numeric, Array, Hash, TrueClass, FalseClass],
+          required: false
+        },
+        required: {
+          type: [TrueClass, FalseClass],
           required: false
         },
         aliases: {

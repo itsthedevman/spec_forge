@@ -6,12 +6,13 @@ module SpecForge
       private
 
       def default_from_structure(structure)
-        structure.each_with_object({}) do |(key, value), hash|
-          type = value[:type]
+        structure.each_with_object({}) do |(attribute_name, attribute), hash|
+          type = attribute[:type]
+          next if !attribute[:required] && !attribute.key?(:default)
 
-          hash[key] =
-            if value.key?(:default)
-              default = value[:default]
+          hash[attribute_name] =
+            if attribute.key?(:default)
+              default = attribute[:default]
               next if default.nil?
 
               default.dup
@@ -28,6 +29,10 @@ module SpecForge
           0
         elsif type_class == Proc
           -> {}
+        elsif type_class == TrueClass
+          true
+        elsif type_class == FalseClass
+          false
         else
           type_class.new
         end
