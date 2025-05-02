@@ -2,6 +2,12 @@
 
 module SpecForge
   class Normalizer
+    #
+    # Provides default value generation for Normalizer structures
+    #
+    # Contains helper methods for creating default values based on type
+    # definitions and structure specifications.
+    #
     module Default
       private
 

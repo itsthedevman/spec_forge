@@ -5,19 +5,74 @@ require_relative "normalizer/definition"
 require_relative "normalizer/validators"
 
 module SpecForge
+  #
+  # Provides data normalization and validation for SpecForge structures
+  #
+  # The Normalizer validates and transforms input data according to defined structures,
+  # handling type checking, default values, and nested validation. It enforces schema
+  # compliance and provides detailed error messages for validation failures.
+  #
+  # @example Normalizing a spec configuration
+  #   input = {http_verb: "get", url: "/users"}
+  #   normalized = SpecForge::Normalizer.normalize!(input, using: :spec)
+  #   # => {http_verb: "GET", url: "/users", debug: false, ...}
+  #
   class Normalizer
     class << self
+      #
+      # Collection of structure definitions used for validation
+      #
+      # Contains all the structure definitions loaded from YAML files,
+      # indexed by their name. Each structure defines the expected format,
+      # types, and validation rules for a specific data structure.
+      #
+      # @return [Hash<Symbol, Hash>] Hash mapping structure names to their definitions
+      #
+      # @example Accessing a structure definition
+      #   spec_structure = SpecForge::Normalizer.structures[:spec]
+      #   url_definition = spec_structure[:structure][:url]
+      #
       attr_reader :structures
 
       #
-      # @api private
+      # Normalizes input data against a structure with error raising
+      #
+      # Same as #normalize but raises an error if validation fails.
+      #
+      # @param input [Hash] The data to normalize
+      # @param using [Symbol, Hash] Either a predefined structure name or a custom structure
+      # @param label [String, nil] A descriptive label for error messages
+      #
+      # @return [Hash] The normalized data
+      #
+      # @raise [Error::InvalidStructureError] If validation fails
+      #
+      # @example Using a predefined structure
+      #   SpecForge::Normalizer.normalize!({url: "/users"}, using: :spec)
+      #
+      # @example Using a custom structure
+      #   structure = {name: {type: String}}
+      #   SpecForge::Normalizer.normalize!({name: "Test"}, using: structure, label: "custom")
       #
       def normalize!(input, using:, label: nil)
         raise_errors! { normalize(input, using:, label:) }
       end
 
       #
-      # @api private
+      # Normalizes input data against a structure without raising errors
+      #
+      # Validates and transforms input data according to a structure definition,
+      # collecting any validation errors rather than raising them. This method
+      # is the underlying implementation used by normalize! but returns errors
+      # instead of raising them.
+      #
+      # @param input [Hash] The data to normalize
+      # @param using [Symbol, Hash] Either a predefined structure name or a custom structure
+      # @param label [String, nil] A descriptive label for error messages
+      #
+      # @return [Array<Hash, Set>] A two-element array containing:
+      #   1. The normalized data
+      #   2. A set of any validation errors encountered
       #
       def normalize(input, using:, label: nil)
         # Since normalization is based on a structured hash, :using can be passed a Hash
@@ -52,7 +107,25 @@ module SpecForge
       end
 
       #
-      # @api private
+      # Returns the default values for a structure
+      #
+      # Creates a hash of defaults based on a structure definition. Handles optional
+      # values, nested structures, and type-specific default generation.
+      #
+      # @param name [Symbol, nil] Name of a predefined structure to use
+      # @param structure [Hash, nil] Custom structure definition (used if name not provided)
+      # @param include_optional [Boolean] Whether to include non-required fields with no default
+      #
+      # @return [Hash] A hash of default values based on the structure
+      #
+      # @example Getting defaults for a predefined structure
+      #   SpecForge::Normalizer.default(:spec)
+      #   # => {debug: false, variables: {}, headers: {}, ...}
+      #
+      # @example Getting defaults for a custom structure
+      #   structure = {name: {type: String, default: "Unnamed"}}
+      #   SpecForge::Normalizer.default(structure: structure)
+      #   # => {name: "Unnamed"}
       #
       def default(name = nil, structure: nil, include_optional: false)
         structure ||= @structures.dig(name.to_sym, :structure)
@@ -64,6 +137,13 @@ module SpecForge
         default_from_structure(structure, include_optional:)
       end
 
+      #
+      # Loads normalizer structure definitions from YAML files
+      #
+      # Reads YAML files in the normalizers directory and creates structure
+      # definitions for use in validation and normalization.
+      #
+      # @return [Hash] A hash of loaded structure definitions
       #
       # @api private
       #

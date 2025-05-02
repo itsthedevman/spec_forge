@@ -2,12 +2,34 @@
 
 module SpecForge
   class Normalizer
+    #
+    # Manages structure definitions for the Normalizer
+    #
+    # Handles loading structure definitions from YAML files, processing references
+    # between structures, and normalizing structure formats for consistent validation.
+    #
+    # @example Loading all structure definitions
+    #   structures = SpecForge::Normalizer::Definition.from_files
+    #
     class Definition
+      #
+      # Mapping of structure names to their human-readable labels
+      #
+      # @return [Hash<Symbol, String>]
+      #
       LABELS = {
         factory_reference: "factory reference",
         global_context: "global context"
       }.freeze
 
+      #
+      # Core structure definition used to validate other structures
+      #
+      # Defines the valid attributes and types for structure definitions,
+      # creating a meta-structure that validates other structure definitions.
+      #
+      # @return [Hash]
+      #
       STRUCTURE = {
         type: {
           type: [String, Array, Class],
@@ -37,6 +59,14 @@ module SpecForge
         }
       }.freeze
 
+      #
+      # Loads normalizer definitions from YAML files
+      #
+      # Reads all YAML files in the normalizers directory, processes shared
+      # references, and prepares them for use by the Normalizer.
+      #
+      # @return [Hash] A hash mapping structure names to their definitions
+      #
       def self.from_files
         base_path = Pathname.new(File.expand_path("../normalizers", __dir__))
         paths = Dir[base_path.join("**/*.yml")].sort
@@ -75,6 +105,16 @@ module SpecForge
         @label = label
       end
 
+      #
+      # Normalizes a structure definition
+      #
+      # Processes references, resolves types, and ensures all attributes
+      # have a consistent format for validation.
+      #
+      # @param structures [Hash] Optional shared structures for resolving references
+      #
+      # @return [Hash] The normalized structure definition
+      #
       def normalize(structures = {})
         hash = @input.deep_dup
         shared_structures = @input.merge(structures)

@@ -18,10 +18,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- New YAML-based normalizer architecture with structure definitions in `lib/spec_forge/normalizers/`
+- Support for structure references with `reference:` keyword for composition
+- Dedicated validators module for reusable validation logic
 
 ### Changed
+- Completely refactored Normalizer class for improved maintainability
+  - Moved from class-based to data-driven approach
+  - Consolidated shared attributes into `_shared.yml`
+  - Added unified public API through `.normalize!(input, using:)` method
+- Improved loader error reporting
 
 ### Removed
+- Individual normalizer class files in favor of YAML configuration
 
 ## [0.6.0] - 12025-03-25
 
