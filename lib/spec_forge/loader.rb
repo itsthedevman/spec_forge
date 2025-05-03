@@ -23,14 +23,14 @@ module SpecForge
         load_specs_from_files.map do |global, metadata, specs|
           global =
             begin
-              Normalizer.normalize_global_context!(global)
+              Normalizer.normalize!(global, using: :global_context)
             rescue => e
               raise Error::SpecLoadError.new(e, metadata[:relative_path])
             end
 
           specs =
             specs.map do |spec|
-              Normalizer.normalize_spec!(spec, label: "spec \"#{spec[:name]}\"")
+              Normalizer.normalize!(spec, using: :spec, label: "spec \"#{spec[:name]}\"")
             rescue => e
               raise Error::SpecLoadError.new(e, metadata[:relative_path], spec:)
             end
@@ -86,7 +86,7 @@ module SpecForge
         files.map do |file_path, content|
           relative_path = Pathname.new(file_path).relative_path_from(base_path)
 
-          hash = YAML.load(content).deep_symbolize_keys
+          hash = YAML.load(content, symbolize_names: true)
 
           file_line_numbers = extract_line_numbers(content, hash)
 
@@ -215,14 +215,17 @@ module SpecForge
       # @private
       #
       def build_expectation_name(spec_hash, expectation_hash)
-        # Create a structure for these two attributes
-        # Removing the defaults and validators to avoid issues
-        structure = Normalizer::SHARED_ATTRIBUTES.slice(:http_verb, :url)
+        # Create a structure for http_verb and url
+        # Removing the defaults and validators to avoid triggering extra logic
+        structure = Normalizer.structures[:spec][:structure].slice(:http_verb, :url)
           .transform_values { |v| v.except(:default, :validator) }
 
-        # Ignore any errors. It'll be caught above anyway
-        normalized_spec, _errors = Normalizer.new("", spec_hash, structure:).normalize
-        normalized_expectation, _errors = Normalizer.new("", expectation_hash, structure:).normalize
+        # Ignore any errors. These will be validated later
+        normalized_spec, _ = Normalizer.normalize(spec_hash, using: structure, label: "n/a")
+        normalized_expectation, _ = Normalizer.normalize(
+          expectation_hash,
+          using: structure, label: "n/a"
+        )
 
         request_data = normalized_spec.deep_merge(normalized_expectation)
 

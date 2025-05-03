@@ -1,112 +1,156 @@
 # frozen_string_literal: true
 
+require_relative "normalizer/default"
+require_relative "normalizer/definition"
+require_relative "normalizer/validators"
+
 module SpecForge
   #
-  # Base class for normalizing various data structures in SpecForge
+  # Provides data normalization and validation for SpecForge structures
   #
-  # The Normalizer validates and standardizes user input from YAML files,
-  # ensuring it meets the expected structure and types before processing.
-  # It supports default values, type checking, aliases, and nested structures.
+  # The Normalizer validates and transforms input data according to defined structures,
+  # handling type checking, default values, and nested validation. It enforces schema
+  # compliance and provides detailed error messages for validation failures.
   #
-  # @example Normalizing a hash
-  #   normalizer = Normalizer.new("spec", input_hash)
-  #   output, errors = normalizer.normalize
+  # @example Normalizing a spec configuration
+  #   input = {http_verb: "get", url: "/users"}
+  #   normalized = SpecForge::Normalizer.normalize!(input, using: :spec)
+  #   # => {http_verb: "GET", url: "/users", debug: false, ...}
   #
   class Normalizer
-    #
-    # Shared attributes used by the various normalizers
-    #
-    # @return [Hash<Symbol, Hash>]
-    #
-    SHARED_ATTRIBUTES = {
-      id: {type: String},
-      name: {type: String},
-      line_number: {type: Integer},
-      base_url: {
-        type: String,
-        default: nil
-      },
-      url: {
-        type: String,
-        aliases: %i[path],
-        default: nil
-      },
-      http_verb: {
-        type: String,
-        aliases: %i[method http_method],
-        default: nil, # Do not default this to "GET". Leave it nil. Seriously.
-        validator: lambda do |value|
-          valid_verbs = HTTP::Verb::VERBS.values
-          return if value.blank? || valid_verbs.include?(value.to_s.upcase)
-
-          raise Error, "Invalid HTTP verb: #{value}. Valid values are: #{valid_verbs.join(", ")}"
-        end
-      },
-      headers: {
-        type: Hash,
-        default: {}
-      },
-      query: {
-        type: [Hash, String],
-        aliases: %i[params],
-        default: {}
-      },
-      body: {
-        type: [Hash, String],
-        aliases: %i[data],
-        default: {}
-      },
-      variables: {
-        type: [Hash, String],
-        default: {}
-      },
-      debug: {
-        type: [TrueClass, FalseClass],
-        default: false,
-        aliases: %i[pry breakpoint]
-      },
-      callback: {
-        type: [String, NilClass],
-        validator: lambda do |value|
-          return if value.blank?
-          return if SpecForge::Callbacks.registered?(value)
-
-          raise Error::UndefinedCallbackError.new(value, SpecForge::Callbacks.registered_names)
-        end
-      }
-    }.freeze
-
-    #
-    # Defines the normalized structure for validating and parsing input data
-    #
-    # Each key represents an attribute with its validation and transformation rules.
-    # The structure supports defining:
-    # - Expected data type(s)
-    # - Default values
-    # - Aliases for alternative key names
-    # - Optional validation logic
-    # - Nested sub-structures
-    #
-    # @return [Hash] A configuration hash defining attribute validation rules
-    #
-    # @example Basic structure definition
-    #   STRUCTURE = {
-    #     name: {
-    #       type: String,              # Must be a String
-    #       default: "",               # Default to empty string if not provided
-    #       aliases: [:title]          # Allows using 'title' as an alternative key
-    #     },
-    #     age: {
-    #       type: Integer,             # Must be an Integer
-    #       default: 0                 # Default to 0 if not provided
-    #     }
-    #   }
-    #
-    # @see Normalizer
-    #
-    STRUCTURE = {}
-
     class << self
+      #
+      # Collection of structure definitions used for validation
+      #
+      # Contains all the structure definitions loaded from YAML files,
+      # indexed by their name. Each structure defines the expected format,
+      # types, and validation rules for a specific data structure.
+      #
+      # @return [Hash<Symbol, Hash>] Hash mapping structure names to their definitions
+      #
+      # @example Accessing a structure definition
+      #   spec_structure = SpecForge::Normalizer.structures[:spec]
+      #   url_definition = spec_structure[:structure][:url]
+      #
+      attr_reader :structures
+
+      #
+      # Normalizes input data against a structure with error raising
+      #
+      # Same as #normalize but raises an error if validation fails.
+      #
+      # @param input [Hash] The data to normalize
+      # @param using [Symbol, Hash] Either a predefined structure name or a custom structure
+      # @param label [String, nil] A descriptive label for error messages
+      #
+      # @return [Hash] The normalized data
+      #
+      # @raise [Error::InvalidStructureError] If validation fails
+      #
+      # @example Using a predefined structure
+      #   SpecForge::Normalizer.normalize!({url: "/users"}, using: :spec)
+      #
+      # @example Using a custom structure
+      #   structure = {name: {type: String}}
+      #   SpecForge::Normalizer.normalize!({name: "Test"}, using: structure, label: "custom")
+      #
+      def normalize!(input, using:, label: nil)
+        raise_errors! { normalize(input, using:, label:) }
+      end
+
+      #
+      # Normalizes input data against a structure without raising errors
+      #
+      # Validates and transforms input data according to a structure definition,
+      # collecting any validation errors rather than raising them. This method
+      # is the underlying implementation used by normalize! but returns errors
+      # instead of raising them.
+      #
+      # @param input [Hash] The data to normalize
+      # @param using [Symbol, Hash] Either a predefined structure name or a custom structure
+      # @param label [String, nil] A descriptive label for error messages
+      #
+      # @return [Array<Hash, Set>] A two-element array containing:
+      #   1. The normalized data
+      #   2. A set of any validation errors encountered
+      #
+      def normalize(input, using:, label: nil)
+        # Since normalization is based on a structured hash, :using can be passed a Hash
+        # to skip using a predefined normalizer.
+        if using.is_a?(Hash)
+          structure = using
+
+          if label.blank?
+            raise ArgumentError, "A label must be provided when using a custom structure"
+          end
+        else
+          data = @structures[using.to_sym]
+
+          # We have a predefined structure and structures all have labels
+          label ||= data[:label]
+          structure = data[:structure]
+        end
+
+        # Ensure we have a structure
+        if !structure.is_a?(Hash)
+          structures = @structures.keys.map(&:in_quotes).to_or_sentence
+
+          raise ArgumentError,
+            "Invalid structure or name. Got #{using}, expected one of #{structures}"
+        end
+
+        # This is checked down here because it felt like it belonged...
+        # and because of that pesky label
+        raise Error::InvalidTypeError.new(input, Hash, for: label) if !Type.hash?(input)
+
+        new(label, input, structure:).normalize
+      end
+
+      #
+      # Returns the default values for a structure
+      #
+      # Creates a hash of defaults based on a structure definition. Handles optional
+      # values, nested structures, and type-specific default generation.
+      #
+      # @param name [Symbol, nil] Name of a predefined structure to use
+      # @param structure [Hash, nil] Custom structure definition (used if name not provided)
+      # @param include_optional [Boolean] Whether to include non-required fields with no default
+      #
+      # @return [Hash] A hash of default values based on the structure
+      #
+      # @example Getting defaults for a predefined structure
+      #   SpecForge::Normalizer.default(:spec)
+      #   # => {debug: false, variables: {}, headers: {}, ...}
+      #
+      # @example Getting defaults for a custom structure
+      #   structure = {name: {type: String, default: "Unnamed"}}
+      #   SpecForge::Normalizer.default(structure: structure)
+      #   # => {name: "Unnamed"}
+      #
+      def default(name = nil, structure: nil, include_optional: false)
+        structure ||= @structures.dig(name.to_sym, :structure)
+
+        if !structure.is_a?(Hash)
+          raise ArgumentError, "Invalid structure. Provide either the name of the structure ('name') or a hash ('structure')"
+        end
+
+        default_from_structure(structure, include_optional:)
+      end
+
+      #
+      # Loads normalizer structure definitions from YAML files
+      #
+      # Reads YAML files in the normalizers directory and creates structure
+      # definitions for use in validation and normalization.
+      #
+      # @return [Hash] A hash of loaded structure definitions
+      #
+      # @api private
+      #
+      def load_from_files
+        @structures = Definition.from_files
+      end
+
       #
       # Raises any errors collected by the block
       #
@@ -117,7 +161,7 @@ module SpecForge
       #
       # @raise [Error::InvalidStructureError] If any errors were encountered
       #
-      # @private
+      # @api private
       #
       def raise_errors!(&block)
         errors = Set.new
@@ -134,16 +178,8 @@ module SpecForge
         output
       end
 
-      #
-      # Returns a default version of this normalizer
-      #
-      # @return [Hash] Default structure with default values
-      #
-      # @private
-      #
-      def default
-        new("", "").default
-      end
+      # Private methods
+      include Default
     end
 
     # @return [String] A label that describes the data itself
@@ -164,7 +200,7 @@ module SpecForge
     #
     # @return [Normalizer] A new normalizer instance
     #
-    def initialize(label, input, structure: self.class::STRUCTURE)
+    def initialize(label, input, structure:)
       @label = label
       @input = input
       @structure = structure
@@ -184,97 +220,20 @@ module SpecForge
       end
     end
 
-    #
-    # Returns a hash with the default structure
-    #
-    # @return [Hash] A hash with default values for all structure keys
-    #
-    def default
-      structure.each_with_object({}) do |(key, value), hash|
-        hash[key] =
-          if value.key?(:default)
-            default = value[:default]
-            next if default.nil?
-
-            default.dup
-          elsif value[:type] == Integer # Can't call new on int
-            0
-          elsif value[:type] == Proc # Sameeee
-            -> {}
-          else
-            value[:type].new
-          end
-      end
-    end
-
     protected
-
-    #
-    # Normalizes the input hash according to the structure definition
-    #
-    # @return [Array<Hash, Set>] Normalized hash and any errors
-    #
-    # @private
-    #
-    def normalize_hash
-      output, errors = {}, Set.new
-
-      structure.each do |key, attribute|
-        type_class = attribute[:type]
-        aliases = attribute[:aliases] || []
-        default = attribute[:default]
-
-        has_default = attribute.key?(:default)
-        nilable = has_default && default.nil?
-
-        # Get the value
-        value = value_from_keys(input, [key] + aliases)
-        next if nilable && value.nil?
-
-        # Default the value if needed
-        value = default.dup if has_default && value.nil?
-
-        # Type + existence check
-        if !valid_class?(value, type_class)
-          for_context = generate_error_label(key, aliases)
-
-          if (line_number = input[:line_number])
-            for_context += " (line #{line_number})"
-          end
-
-          raise Error::InvalidTypeError.new(value, type_class, for: for_context)
-        end
-
-        # Call the validator if it has one
-        attribute[:validator]&.call(value)
-
-        # Normalize any sub structures
-        if (substructure = attribute[:structure])
-          new_label = generate_error_label(key, aliases)
-          value = normalize_substructure(new_label, value, substructure, errors)
-        end
-
-        # Store
-        output[key] = value
-      rescue => e
-        errors << e
-      end
-
-      [output, errors]
-    end
 
     #
     # Extracts a value from a hash checking multiple keys
     #
     # @param hash [Hash] The hash to extract from
-    # @param keys [Array<Symbol, String>] The keys to check
+    # @param keys [Array<String, String>] The keys to check
     #
     # @return [Object, nil] The value if found, nil otherwise
     #
     # @private
     #
     def value_from_keys(hash, keys)
-      hash.find { |k, v| keys.include?(k) }&.second
+      hash.find { |k, v| keys.include?(k.to_s) }&.second
     end
 
     #
@@ -282,16 +241,17 @@ module SpecForge
     #
     # @param value [Object] The value to check
     # @param expected_type [Class, Array<Class>] The expected type(s)
+    # @param nilable [Boolean] Allow nil values
     #
     # @return [Boolean] Whether the value is of the expected type
     #
     # @private
     #
-    def valid_class?(value, expected_type)
+    def valid_class?(value, expected_type, nilable: false)
       if expected_type.instance_of?(Array)
         expected_type.any? { |type| value.is_a?(type) }
       else
-        value.is_a?(expected_type)
+        (nilable && value.nil?) || value.is_a?(expected_type)
       end
     end
 
@@ -322,6 +282,66 @@ module SpecForge
     end
 
     #
+    # Normalizes the input hash according to the structure definition
+    #
+    # @return [Array<Hash, Set>] Normalized hash and any errors
+    #
+    # @private
+    #
+    def normalize_hash
+      output, errors = {}, Set.new
+
+      structure.each do |key, attribute|
+        has_default = attribute.key?(:default)
+
+        type_class = attribute[:type]
+        aliases = attribute[:aliases] || []
+        default = attribute[:default]
+
+        # Required by default, unless explicitly set to false.
+        # Easier to think of it as !(required == false)
+        required = attribute[:required] != false
+
+        # Get the value
+        value = value_from_keys(input, [key.to_s] + aliases)
+
+        # Drop the key if needed
+        next if value.nil? && !has_default && !required
+
+        # Default the value if needed
+        value = default.dup if has_default && value.nil?
+
+        error_label = generate_error_label(key, aliases)
+
+        # Type + existence check
+        if !valid_class?(value, type_class, nilable: has_default)
+          if (line_number = input[:line_number])
+            error_label += " (line #{line_number})"
+          end
+
+          raise Error::InvalidTypeError.new(value, type_class, for: error_label)
+        end
+
+        # Call the validator if it has one
+        if (name = attribute[:validator]) && name.present?
+          Validators.call(name, value, label: error_label)
+        end
+
+        # Normalize any sub structures
+        if (substructure = attribute[:structure]) && substructure.present?
+          value = normalize_substructure(error_label, value, substructure, errors)
+        end
+
+        # Store the result
+        output[key] = value
+      rescue => e
+        errors << e
+      end
+
+      [output, errors]
+    end
+
+    #
     # Normalizes a nested substructure within a parent structure
     #
     # Recursively processes nested Hash or Array structures according to
@@ -341,6 +361,10 @@ module SpecForge
     #   # => {name: "Test", age: 25}
     #
     def normalize_substructure(new_label, value, substructure, errors)
+      if substructure.is_a?(Proc)
+        return substructure.call(value, errors:, label:)
+      end
+
       return value unless value.is_a?(Hash) || value.is_a?(Array)
 
       new_value, new_errors = self.class
@@ -371,16 +395,19 @@ module SpecForge
 
       input.each_with_index do |value, index|
         type_class = structure[:type]
+        error_label = "index #{index} of #{label}"
 
         if !valid_class?(value, type_class)
-          raise Error::InvalidTypeError.new(value, type_class, for: "index #{index} of #{label}")
+          raise Error::InvalidTypeError.new(value, type_class, for: error_label)
         end
 
         # Call the validator if it has one
-        structure[:validator]&.call(value)
+        if (name = structure[:validator]) && name.present?
+          Validators.call(name, value, label: error_label)
+        end
 
         if (substructure = structure[:structure])
-          value = normalize_substructure("index #{index} of #{label}", value, substructure, errors)
+          value = normalize_substructure(error_label, value, substructure, errors)
         end
 
         output << value
@@ -390,11 +417,8 @@ module SpecForge
 
       [output, errors]
     end
-  end
-end
 
-####################################################################################################
-# These need to be required after the base class due to them requiring constants on Normalizer
-Dir[File.expand_path("normalizer/*.rb", __dir__)].sort.each do |path|
-  require path
+    # Define the normalizers
+    load_from_files
+  end
 end

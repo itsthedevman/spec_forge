@@ -1,0 +1,13 @@
+attributes:
+  type: hash
+  default: {}
+build_strategy:
+  type: string
+  default: create
+  aliases:
+  - strategy
+size:
+  type: integer
+  default: 0
+  aliases:
+  - count

@@ -132,40 +132,38 @@ RSpec.describe SpecForge::Forge do
         spec_ids = specs.key_map(:id)
         expectation_ids = specs.second[:expectations].key_map(:id)
 
-        is_expected.to match(
-          spec_ids.first => {
-            base: {
-              base_url: "https://example.com",
-              url: "/example",
-              http_verb: "GET",
-              headers: {header_1: true},
-              query: {query_1: true},
-              body: {body_1: true}
-            },
-            overlay: {}
+        expect(request[spec_ids.first]).to match(
+          base: {
+            base_url: "https://example.com",
+            url: "/example",
+            http_verb: "GET",
+            headers: {header_1: true},
+            query: {query_1: true},
+            body: {body_1: true}
           },
-          spec_ids.second => {
-            base: {
-              base_url: "http://localhost", # This uses the default
-              url: "/example",
-              http_verb: "GET", # This uses the default
-              headers: {header_1: true},
-              query: {query_1: true},
-              body: {body_1: true}
-            },
-            overlay: {
-              expectation_ids.first => {
-                base_url: "https://example1.com",
-                url: "/example1",
-                http_verb: "POST",
-                headers: {header_1: false, header_2: true},
-                query: {query_1: false, query_2: true},
-                body: {body_1: false, body_2: true}
-              },
-              expectation_ids.second => {
-                headers: {header_1: false}
-              }
-            }
+          overlay: {}
+        )
+
+        expect(request[spec_ids.second][:base]).to match(
+          base_url: "http://localhost", # This uses the default
+          url: "/example",
+          http_verb: "GET", # This uses the default
+          headers: {header_1: true},
+          query: {query_1: true},
+          body: {body_1: true}
+        )
+
+        expect(request[spec_ids.second][:overlay]).to match(
+          expectation_ids.first => {
+            base_url: "https://example1.com",
+            url: "/example1",
+            http_verb: "POST",
+            headers: {header_1: false, header_2: true},
+            query: {query_1: false, query_2: true},
+            body: {body_1: false, body_2: true}
+          },
+          expectation_ids.second => {
+            headers: {header_1: false}
           }
         )
       end

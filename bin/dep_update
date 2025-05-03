@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+echo "Updating project gems..."
+bundle update
+
+cd spec/integration
+
+# Use direnv directly to load the environment
+eval "$(direnv export bash)"
+
+echo "Updating integration gems..."
+bundle update
