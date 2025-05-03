@@ -61,7 +61,7 @@ module SpecForge
             structure: lambda do |output, errors:, label:|
               return output if output.blank?
 
-              output.transform_values.with_key do |hash, status_code|
+              output.transform_values(with_key: true) do |hash, status_code|
                 new_label = "#{status_code.in_quotes} in #{label}"
                 hash, new_errors = Normalizer::OpenapiResponse.normalize(hash, label: new_label)
 

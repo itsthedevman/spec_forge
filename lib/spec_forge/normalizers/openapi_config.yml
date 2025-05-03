@@ -1,0 +1,23 @@
+info:
+  type: hash
+  default: {}
+  structure:
+    reference: openapi/info
+servers:
+  type: array
+  default: []
+  structure:
+    type: hash
+    structure:
+      url:
+        type: string
+        default: ""
+      description:
+        type: string
+        default: ""
+tags:
+  type: hash
+  default: {}
+security_schemes:
+  type: hash
+  default: {}
