@@ -74,7 +74,9 @@ module SpecForge
         normalizers =
           paths.each_with_object({}) do |path, hash|
             path = Pathname.new(path)
-            name = path.basename(".yml").to_s.to_sym
+
+            # Include the directory name in the path to include normalizers in directories
+            name = path.relative_path_from(base_path).to_s.delete_suffix(".yml").to_sym
 
             input = YAML.safe_load_file(path, symbolize_names: true)
             raise Error, "Normalizer defined at #{path.to_s.in_quotes} is empty" if input.blank?
@@ -84,6 +86,9 @@ module SpecForge
 
         # Pull the shared structures and prepare it
         structures = normalizers.delete(:_shared).normalize
+
+        # Merge in the normalizers to allow referencing other normalizers
+        structures.merge!(normalizers.transform_values(&:input))
 
         # Now prepare all of the other definitions with access to references
         normalizers.transform_values!(with_key: true) do |definition, name|
@@ -100,6 +105,8 @@ module SpecForge
 
       ##########################################################################
 
+      attr_reader :input
+
       def initialize(input, label: "")
         @input = input
         @label = label
@@ -111,13 +118,12 @@ module SpecForge
       # Processes references, resolves types, and ensures all attributes
       # have a consistent format for validation.
       #
-      # @param structures [Hash] Optional shared structures for resolving references
+      # @param shared_structures [Hash] Optional shared structures for resolving references
       #
       # @return [Hash] The normalized structure definition
       #
-      def normalize(structures = {})
+      def normalize(shared_structures = {})
         hash = @input.deep_dup
-        shared_structures = @input.merge(structures)
 
         # First, we'll deeply replace any references
         replace_references(hash, shared_structures)
@@ -153,8 +159,15 @@ module SpecForge
           replace_with_reference(attribute_name, attribute, shared_structures:)
           next unless attribute.is_a?(Hash) && attribute[:structure].present?
 
+          # Allow structures to reference other structures
+          if attribute.dig(:structure, :reference)
+            replace_with_reference(
+              "#{attribute_name}'s structure",
+              attribute[:structure],
+              shared_structures:
+            )
           # Recursively replace any structures that have references
-          if [Array, "array"].include?(attribute[:type])
+          elsif [Array, "array"].include?(attribute[:type])
             result = replace_references(attribute.slice(:structure), shared_structures)
             attribute.merge!(result)
           elsif [Hash, "hash"].include?(attribute[:type])
@@ -172,7 +185,7 @@ module SpecForge
         if reference.nil?
           structures_names = shared_structures.keys.map(&:in_quotes).to_or_sentence
 
-          raise Error, "Attribute #{attribute_name.in_quotes}: Invalid reference name. Got #{ref_name&.in_quotes}, expected one of #{structures_names} in #{@path}"
+          raise Error, "Attribute #{attribute_name.in_quotes}: Invalid reference name. Got #{reference_name&.in_quotes}, expected one of #{structures_names} in #{@path}"
         end
 
         # Allows overwriting data on the reference
