@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 RSpec.describe SpecForge::Normalizer do
-  describe ".normalize_global_context!" do
+  describe "normalize using global_context" do
     let(:global) do
       {
         variables: {
@@ -14,14 +14,15 @@ RSpec.describe SpecForge::Normalizer do
       }
     end
 
-    subject(:normalized) { described_class.normalize_global_context!(global) }
+    subject(:normalized) { described_class.normalize!(global, using: :global_context) }
 
     before do
       SpecForge::Callbacks.register("test_callback") {}
     end
 
     it "is expected to normalize normally" do
-      expect(normalized).to include(
+      expect(normalized).to match(
+        callbacks: [{before_each: "test_callback"}],
         variables: {
           var_1: true,
           var_2: "faker.string.random"
@@ -65,7 +66,7 @@ RSpec.describe SpecForge::Normalizer do
       {
         context: "when a callback name is not a String",
         before: -> { global[:callbacks] = [{before: 1}] },
-        error: %{Expected String or NilClass, got Integer for "before_each" (aliases "before") in index 0 of "callbacks" in global context}
+        error: %{Expected String, got Integer for "before_each" (aliases "before") in index 0 of "callbacks" in global context}
       },
       {
         context: "when a callback name is not defined",

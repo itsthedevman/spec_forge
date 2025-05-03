@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 RSpec.describe SpecForge::Normalizer do
-  describe "#normalize_to_structure" do
+  describe "#normalize" do
     let(:input) {}
 
     let(:structure) do
@@ -130,6 +130,45 @@ RSpec.describe SpecForge::Normalizer do
         expect(output[:array_of_strings]).to contain_exactly("hello", "world", "!")
         expect(output[:array_of_bools]).to contain_exactly(true, false, true, false)
         expect(output[:array_of_objects]).to contain_exactly({var: 1}, {var: 1}, {var: 1})
+      end
+    end
+
+    context "when an attribute is not required" do
+      let(:input) do
+        {callbacks: [{before: ""}]}
+      end
+
+      let(:structure) do
+        {
+          callbacks: {
+            type: Array,
+            default: [],
+            structure: {
+              type: Hash,
+              default: {},
+              structure: {
+                before: {
+                  type: String
+                },
+                after: {
+                  type: String,
+                  required: false
+                },
+                and_everything_in_between: {
+                  type: String,
+                  default: nil
+                }
+              }
+            }
+          }
+        }
+      end
+
+      it "is expected to not include the default empty structure" do
+        output, errors = normalized
+        expect(errors).to be_empty
+
+        expect(output).to eq(callbacks: [{before: "", and_everything_in_between: nil}])
       end
     end
   end

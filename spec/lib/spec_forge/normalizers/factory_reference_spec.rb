@@ -2,7 +2,7 @@
 
 # This is more for organizational purposes
 RSpec.describe SpecForge::Normalizer do
-  describe ".normalize_factory_reference!" do
+  describe "normalize using factory_reference" do
     let(:factory) do
       {
         build_strategy: "create",
@@ -13,7 +13,7 @@ RSpec.describe SpecForge::Normalizer do
       }
     end
 
-    subject(:normalized) { described_class.normalize_factory_reference!(factory) }
+    subject(:normalized) { described_class.normalize!(factory, using: :factory_reference) }
 
     it "is expected to normalize normally" do
       expect(normalized[:build_strategy]).to eq("create")

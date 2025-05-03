@@ -1,0 +1,25 @@
+variables:
+  reference: variables
+callbacks:
+  type: array
+  default: []
+  structure:
+    type: hash
+    default: {}
+    structure:
+      before_file:
+        reference: callback
+      before_spec:
+        reference: callback
+      before_each:
+        reference: callback
+        aliases:
+        - before
+      after_each:
+        reference: callback
+        aliases:
+        - after
+      after_spec:
+        reference: callback
+      after_file:
+        reference: callback

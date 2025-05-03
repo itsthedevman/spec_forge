@@ -33,7 +33,7 @@ module SpecForge
       factories = []
 
       Dir[path].each do |file_path|
-        hash = YAML.load_file(file_path).deep_symbolize_keys
+        hash = YAML.load_file(file_path, symbolize_names: true)
 
         hash.each do |factory_name, factory_hash|
           factory_hash[:name] = factory_name
@@ -72,7 +72,7 @@ module SpecForge
     #
     def initialize(name:, **input)
       @name = name
-      input = Normalizer.normalize_factory!(input)
+      input = Normalizer.normalize!(input, using: :factory)
 
       @input = input
       @model_class = input[:model_class]

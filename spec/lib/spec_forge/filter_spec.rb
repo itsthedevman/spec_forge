@@ -108,7 +108,7 @@ RSpec.describe SpecForge::Filter do
 
       forges.each do |_g, _m, specs|
         specs.map! do |spec|
-          SpecForge::Normalizer.normalize_spec!(spec, label: "spec \"#{spec[:name]}\"")
+          SpecForge::Normalizer.normalize!(spec, using: :spec, label: "spec \"#{spec[:name]}\"")
         end
       end
 

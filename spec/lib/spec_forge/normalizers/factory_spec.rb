@@ -2,7 +2,7 @@
 
 # This is more for organizational purposes
 RSpec.describe SpecForge::Normalizer do
-  describe ".normalize_factory!" do
+  describe "normalize using factory" do
     let(:factory) do
       {
         model_class: "User",
@@ -17,7 +17,7 @@ RSpec.describe SpecForge::Normalizer do
       }
     end
 
-    subject(:normalized) { described_class.normalize_factory!(factory) }
+    subject(:normalized) { described_class.normalize!(factory, using: :factory) }
 
     it "is expected to normalize fully" do
       expect(normalized[:model_class]).to eq("User")

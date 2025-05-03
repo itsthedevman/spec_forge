@@ -1,0 +1,10 @@
+model_class:
+  type: string
+  default: ""
+  aliases:
+  - class
+variables:
+  reference: variables
+attributes:
+  type: hash
+  default: {}
