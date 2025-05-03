@@ -66,7 +66,7 @@ module SpecForge
             paths = input.endpoints.deep_dup
 
             paths.each do |path, operations|
-              operations.transform_values!.with_key do |document, operation|
+              operations.transform_values!(with_key: true) do |document, operation|
                 documentation = paths_documentation.dig(path, operation) || {}
 
                 parameters =
