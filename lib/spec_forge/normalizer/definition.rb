@@ -213,12 +213,9 @@ module SpecForge
 
           hash[:type] = resolve_type(attribute[:type])
 
-          hash[:structure] =
-            if hash[:structure].present?
-              normalize_structure(attribute_name, hash) || {}
-            else
-              {}
-            end
+          if hash[:structure].present?
+            hash[:structure] = normalize_structure(attribute_name, hash) || {}
+          end
 
           hash
         else
