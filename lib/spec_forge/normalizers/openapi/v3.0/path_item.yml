@@ -1,0 +1,45 @@
+# Common fields
+summary:
+  type: string
+  default: null
+description:
+  type: string
+  default: null
+
+# HTTP operations
+get:
+  reference: openapi/v3.0/operation
+post:
+  reference: openapi/v3.0/operation
+put:
+  reference: openapi/v3.0/operation
+delete:
+  reference: openapi/v3.0/operation
+patch:
+  reference: openapi/v3.0/operation
+options:
+  reference: openapi/v3.0/operation
+head:
+  reference: openapi/v3.0/operation
+trace:
+  reference: openapi/v3.0/operation
+
+# Server overrides
+servers:
+  type: array
+  default: []
+  structure:
+    type: hash
+    structure:
+      url:
+        type: string
+      description:
+        type: string
+        default: ""
+
+# Parameters that apply to all operations in this path
+parameters:
+  type: array
+  default: []
+  structure:
+    reference: openapi/v3.0/parameter

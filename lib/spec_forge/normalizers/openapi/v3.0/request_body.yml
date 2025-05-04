@@ -1,0 +1,14 @@
+description:
+  type: string
+  default: null
+
+content:
+  type: hash
+  structure:
+    type: hash
+    structure:
+      reference: openapi/v3.0/media_type
+
+required:
+  type: boolean
+  default: false

@@ -1,0 +1,110 @@
+# Basic metadata
+title:
+  type: string
+  default: null
+
+description:
+  type: string
+  default: null
+
+# Value constraints
+type:
+  type: string
+  default: null
+
+format:
+  type: string
+  default: null
+
+default:
+  type: object
+  default: null
+
+# Numeric constraints
+multiple_of:
+  type: numeric
+  default: null
+  aliases:
+  - multipleOf
+
+maximum:
+  type: numeric
+  default: null
+
+exclusive_maximum:
+  type: boolean
+  default: null
+  aliases:
+  - exclusiveMaximum
+
+minimum:
+  type: numeric
+  default: null
+
+exclusive_minimum:
+  type: boolean
+  default: null
+  aliases:
+  - exclusiveMinimum
+
+# String constraints
+max_length:
+  type: integer
+  default: null
+  aliases:
+  - maxLength
+
+min_length:
+  type: integer
+  default: null
+  aliases:
+  - minLength
+
+pattern:
+  type: string
+  default: null
+
+# Array constraints
+max_items:
+  type: integer
+  default: null
+  aliases:
+  - maxItems
+
+min_items:
+  type: integer
+  default: null
+  aliases:
+  - minItems
+
+unique_items:
+  type: boolean
+  default: null
+  aliases:
+  - uniqueItems
+
+# Object constraints
+required:
+  type: array
+  default: []
+  structure:
+    type: string
+
+max_properties:
+  type: integer
+  default: null
+  aliases:
+  - maxProperties
+
+min_properties:
+  type: integer
+  default: null
+  aliases:
+  - minProperties
+
+# Other validations
+enum:
+  type: array
+  default: null
+  structure:
+    type: object

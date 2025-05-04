@@ -2,7 +2,31 @@ info:
   type: hash
   default: {}
   structure:
-    reference: openapi/info
+    title: string
+    version: string
+    description:
+      type: string
+      default: ""
+    contact:
+      type: hash
+      default: {}
+      structure:
+        name:
+          type: string
+          default: ""
+        email:
+          type: string
+          default: ""
+    license:
+      type: hash
+      default: {}
+      structure:
+        name:
+          type: string
+          default: ""
+        url:
+          type: string
+          default: ""
 servers:
   type: array
   default: []

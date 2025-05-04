@@ -1,0 +1,25 @@
+schema:
+  type: hash
+  default: null
+  structure:
+    reference: openapi/v3.0/schema
+
+example:
+  type: object
+  default: null
+
+examples:
+  type: hash
+  default: {}
+  structure:
+    type: hash
+    structure:
+      reference: openapi/v3.0/example
+
+encoding:
+  type: hash
+  default: {}
+  structure:
+    type: hash
+    structure:
+      reference: openapi/v3.0/encoding
