@@ -82,7 +82,7 @@ module SpecForge
             input = YAML.safe_load_file(path, symbolize_names: true)
             raise Error, "Normalizer defined at #{path.to_s.in_quotes} is empty" if input.blank?
 
-            hash[name] = new(input)
+            hash[name] = new(input, label: LABELS[name] || name.to_s.humanize.downcase)
           end
 
         # Pull the shared structures and prepare it
@@ -96,7 +96,7 @@ module SpecForge
           structure = definition.normalize(structures)
 
           {
-            label: LABELS[name] || name.to_s.humanize.downcase,
+            label: definition.label,
             structure:
           }
         end
@@ -106,7 +106,7 @@ module SpecForge
 
       ##########################################################################
 
-      attr_reader :input
+      attr_reader :input, :label
 
       def initialize(input, label: "")
         @input = input
@@ -167,8 +167,10 @@ module SpecForge
               attribute[:structure],
               shared_structures:
             )
+          end
+
           # Recursively replace any structures that have references
-          elsif [Array, "array"].include?(attribute[:type])
+          if [Array, "array"].include?(attribute[:type])
             result = replace_references(attribute.slice(:structure), shared_structures)
             attribute.merge!(result)
           elsif [Hash, "hash"].include?(attribute[:type])
@@ -186,7 +188,7 @@ module SpecForge
         if reference.nil?
           structures_names = shared_structures.keys.map(&:in_quotes).to_or_sentence
 
-          raise Error, "Attribute #{attribute_name.in_quotes}: Invalid reference name. Got #{reference_name&.in_quotes}, expected one of #{structures_names} in #{@path}"
+          raise Error, "Attribute #{attribute_name.in_quotes}: Invalid reference name. Got #{reference_name&.in_quotes}, expected one of #{structures_names} in #{@label}"
         end
 
         # Allows overwriting data on the reference
@@ -203,7 +205,7 @@ module SpecForge
         when Hash
           hash = Normalizer.raise_errors! do
             Normalizer.new(
-              "#{attribute_name.in_quotes} in #{@path}",
+              "#{attribute_name.in_quotes} in #{@label}",
               attribute,
               structure: STRUCTURE
             ).normalize
@@ -243,7 +245,7 @@ module SpecForge
           type
         end
       rescue NameError => e
-        raise Error, "#{e}. #{type.inspect.in_quotes} is not a valid type found in #{@path}"
+        raise Error, "#{e}. #{type.inspect} is not a valid type found in #{@label}"
       end
     end
   end
