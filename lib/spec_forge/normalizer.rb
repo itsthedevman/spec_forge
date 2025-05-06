@@ -6,16 +6,86 @@ require_relative "normalizer/validators"
 
 module SpecForge
   #
-  # Provides data normalization and validation for SpecForge structures
+  # This class provides a powerful system for validating and normalizing input data
+  # according to defined structures. It handles type checking, default values,
+  # references between structures, and custom validation logic.
   #
-  # The Normalizer validates and transforms input data according to defined structures,
-  # handling type checking, default values, and nested validation. It enforces schema
-  # compliance and provides detailed error messages for validation failures.
+  # == Structure Definitions
   #
-  # @example Normalizing a spec configuration
-  #   input = {http_verb: "get", url: "/users"}
-  #   normalized = SpecForge::Normalizer.normalize!(input, using: :spec)
-  #   # => {http_verb: "GET", url: "/users", debug: false, ...}
+  # Structures define validation rules as YAML files in the lib/spec_forge/normalizers directory:
+  #
+  #   # Example structure (users.yml)
+  #   name:
+  #     type: String
+  #     required: true
+  #
+  #   age:
+  #     type: Integer
+  #     default: 0
+  #
+  #   settings:
+  #     type: Hash
+  #     structure:
+  #       notifications:
+  #         type: Boolean
+  #         default: true
+  #
+  # == Core Attribute Behaviors
+  #
+  # 1. With 'default:' - Always included in output, using default if nil
+  # 2. With 'required: false' - Omitted from output if nil
+  # 3. Default behavior - Required, errors if missing/nil
+  #
+  # == Available Options
+  #
+  # * type: - Required. Class name or array of class names (string, integer, hash, etc.)
+  # * default: - Optional. Default value if attribute is nil
+  # * required: - Optional. Set to false to make attribute optional
+  # * aliases: - Optional. Alternative keys to check for value
+  # * structure: - Optional. Sub-structure for nested objects
+  # * validator: - Optional. Custom validation method (see Validators)
+  # * reference: - Optional. Reference another structure definition (e.g., reference: headers)
+  #
+  # == Structure References
+  #
+  # References allow reusing common structures:
+  #
+  #   # In your YAML definition:
+  #   user_id:
+  #     reference: id    # Will inherit all properties from the 'id' structure
+  #     required: false  # Can override specific properties
+  #
+  #   # Nested structure references:
+  #   settings:
+  #     type: Hash
+  #     structure:
+  #       email_prefs:
+  #         reference: email_preferences  # References another complete structure
+  #
+  # == Common Usage Patterns
+  #
+  # Basic Normalization:
+  #   result = SpecForge::Normalizer.normalize!({name: "Test"}, using: :user)
+  #
+  # Using Custom Structure:
+  #   structure = {count: {type: Integer, default: 0}}
+  #   result = SpecForge::Normalizer.normalize!({}, using: structure, label: "counter")
+  #
+  # Getting Default Values:
+  #   defaults = SpecForge::Normalizer.default(:user)
+  #
+  # == Error Handling
+  #
+  # Validation errors are collected during normalization and can be:
+  # - Raised via normalize! method
+  # - Returned as a set via normalize method
+  #
+  # == Creating Custom Structures
+  #
+  # Add YAML files to lib/spec_forge/normalizers/ directory:
+  # - Use '_shared.yml' for common structures that can be referenced
+  # - Create custom validators in Normalizer::Validators class
+  # - Specify labels for error messages with default_label method
   #
   class Normalizer
     class << self
@@ -298,15 +368,18 @@ module SpecForge
         aliases = attribute[:aliases] || []
         default = attribute[:default]
 
-        # Required by default, unless explicitly set to false.
-        # Easier to think of it as !(required == false)
-        required = attribute[:required] != false
+        # Attribute requirements:
+        #
+        # 1. With 'default:' - Always included in output, using default if nil
+        # 2. With 'required: false' - Omitted from output if nil
+        # 3. Default behavior - Required, errors if missing/nil
+        required = !has_default || attribute[:required] != false
 
         # Get the value
         value = value_from_keys(input, [key.to_s] + aliases)
 
         # Drop the key if needed
-        next if value.nil? && !has_default && !required
+        next if value.nil? && !required
 
         # Default the value if needed
         value = default.dup if has_default && value.nil?
