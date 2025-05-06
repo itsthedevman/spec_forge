@@ -27,6 +27,7 @@ info:
         url:
           type: string
           default: ""
+
 servers:
   type: array
   default: []
@@ -39,9 +40,11 @@ servers:
       description:
         type: string
         default: ""
+
 tags:
   type: hash
   default: {}
+
 security_schemes:
   type: hash
   default: {}
