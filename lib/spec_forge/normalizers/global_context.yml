@@ -1,12 +1,15 @@
 variables:
   reference: variables
+
 callbacks:
   type: array
   default: []
   structure:
+    ###########################################
     type: hash
     default: {}
     structure:
+      ###########################################
       before_file:
         reference: callback
       before_spec:
