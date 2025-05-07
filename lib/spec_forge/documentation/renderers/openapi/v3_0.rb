@@ -23,7 +23,7 @@ module SpecForge
 
           # https://spec.openapis.org/oas/v3.0.4.html#openapi-object
           def export_openapi_version
-            config[:version].presence || CURRENT_VERSION
+            CURRENT_VERSION
           end
 
           # https://spec.openapis.org/oas/v3.0.4.html#info-object
