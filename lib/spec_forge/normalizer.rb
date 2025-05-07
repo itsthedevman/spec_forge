@@ -352,66 +352,126 @@ module SpecForge
     end
 
     #
-    # Normalizes the input hash according to the structure definition
+    # Normalizes a hash according to the structure definition
     #
-    # @return [Array<Hash, Set>] Normalized hash and any errors
+    # Processes each key-value pair in the input hash according to the corresponding
+    # definition in the structure. Handles both explicitly defined keys and wildcard
+    # keys (specified with "*") that apply to any keys not otherwise defined.
+    #
+    # @return [Array<Hash, Set>] A two-element array containing:
+    #   1. The normalized hash with validated and transformed values
+    #   2. A set of any errors encountered during normalization
+    #
+    # @example Normalizing a hash with explicit definitions
+    #   structure = {name: {type: String}, age: {type: Integer}}
+    #   input = {name: "John", age: "25"}
+    #   normalize_hash # => [{name: "John", age: 25}, #<Set: {}>]
     #
     # @private
     #
     def normalize_hash
       output, errors = {}, Set.new
 
-      structure.each do |key, attribute|
-        has_default = attribute.key?(:default)
+      structure.each do |key, definition|
+        # Skip the wildcard key if it exists, handled below
+        next if key == :* || key == "*"
 
-        type_class = attribute[:type]
-        aliases = attribute[:aliases] || []
-        default = attribute[:default]
+        continue, value = normalize_attribute(key, definition, errors:)
+        next unless continue
 
-        # Attribute requirements:
-        #
-        # 1. With 'default:' - Always included in output, using default if nil
-        # 2. With 'required: false' - Omitted from output if nil
-        # 3. Default behavior - Required, errors if missing/nil
-        required = !has_default || attribute[:required] != false
-
-        # Get the value
-        value = value_from_keys(input, [key.to_s] + aliases)
-
-        # Drop the key if needed
-        next if value.nil? && !required
-
-        # Default the value if needed
-        value = default.dup if has_default && value.nil?
-
-        error_label = generate_error_label(key, aliases)
-
-        # Type + existence check
-        if !valid_class?(value, type_class, nilable: has_default)
-          if (line_number = input[:line_number])
-            error_label += " (line #{line_number})"
-          end
-
-          raise Error::InvalidTypeError.new(value, type_class, for: error_label)
-        end
-
-        # Call the validator if it has one
-        if (name = attribute[:validator]) && name.present?
-          Validators.call(name, value, label: error_label)
-        end
-
-        # Normalize any sub structures
-        if (substructure = attribute[:structure]) && substructure.present?
-          value = normalize_substructure(error_label, value, substructure, errors)
-        end
-
-        # Store the result
         output[key] = value
       rescue => e
         errors << e
       end
 
+      # A wildcard will normalize the rest of the keys in the input
+      wildcard_structure = structure[:*] || structure["*"]
+
+      if wildcard_structure.present?
+        # We need to determine which keys we need to check
+        structure_keys = (structure.keys + structure.values.key_map(:aliases))
+          .compact
+          .flatten
+          .map(&:to_sym)
+
+        # Once we have which keys the structure used, we can get the remaining keys
+        keys_to_normalize = (input.keys - structure_keys)
+
+        # They are checked against the wildcard's structure
+        keys_to_normalize.each do |key|
+          continue, value = normalize_attribute(key, wildcard_structure, errors:)
+          next unless continue
+
+          output[key] = value
+        rescue => e
+          errors << e
+        end
+      end
+
       [output, errors]
+    end
+
+    #
+    # Normalizes a single attribute according to its definition
+    #
+    # Validates the attribute against its type constraints, applies default values,
+    # runs custom validators, and recursively processes nested structures.
+    #
+    # @param key [Symbol, String] The attribute key to normalize
+    # @param definition [Hash] The definition specifying rules for the attribute
+    # @param errors [Set] A set to collect any errors encountered
+    #
+    # @return [Array<Boolean, Object>] A two-element array containing:
+    #   1. Boolean indicating if the attribute should be included in output
+    #   2. The normalized attribute value (if first element is true)
+    #
+    # @example Normalizing a simple attribute
+    #   key = :name
+    #   definition = {type: String, required: true}
+    #   normalize_attribute(key, definition, errors: Set.new)
+    #   # => [true, "John"]
+    #
+    # @private
+    #
+    def normalize_attribute(key, definition, errors:)
+      has_default = definition.key?(:default)
+
+      type_class = definition[:type]
+      aliases = definition[:aliases] || []
+      default = definition[:default]
+      required = definition[:required] != false
+
+      # Get the value
+      value = value_from_keys(input, [key.to_s] + aliases)
+
+      # Drop the key if needed
+      return [false] if value.nil? && !has_default && !required
+
+      # Default the value if needed
+      value = default.dup if has_default && value.nil?
+
+      error_label = generate_error_label(key, aliases)
+
+      # Type + existence check
+      if !valid_class?(value, type_class, nilable: has_default)
+        if (line_number = input[:line_number])
+          error_label += " (line #{line_number})"
+        end
+
+        raise Error::InvalidTypeError.new(value, type_class, for: error_label)
+      end
+
+      # Call the validator if it has one
+      if (name = definition[:validator]) && name.present?
+        Validators.call(name, value, label: error_label)
+      end
+
+      # Normalize any sub structures
+      if (substructure = definition[:structure]) && substructure.present?
+        value = normalize_substructure(error_label, value, substructure, errors)
+      end
+
+      [true, value]
     end
 
     #
