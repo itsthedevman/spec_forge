@@ -4,6 +4,7 @@
 info:
   type: hash
   structure:
+    ###########################################
     reference: openapi/v3.0/info
 
 servers:
@@ -18,7 +19,46 @@ servers:
 tags:
   type: hash
   default: {}
+  structure:
+    ###########################################
+    "*":
+      type: hash
+      structure:
+        ###########################################
+        # https://spec.openapis.org/oas/v3.0.4.html#tag-object
+
+        description:
+          type: string
+          required: false
+
+        external_docs:
+          type: hash
+          required: false
+          aliases: [ "externalDocs" ]
+          structure:
+            reference: openapi/v3.0/external_docs
 
 security_schemes:
   type: hash
   default: {}
+  structure:
+    ###########################################
+    "*":
+      type: hash
+      structure:
+        ###########################################
+        # https://spec.openapis.org/oas/v3.0.4.html#security-scheme-object-0
+
+        # Yes, they have a key called type
+        type:
+          type: string
+
+        description:
+          type: string
+          required: false
+
+        # The rest of these keys have specific requirements for openapi that are outside
+        # the normalizer's purview
+        "*":
+        - string
+        - hash
