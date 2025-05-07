@@ -171,5 +171,64 @@ RSpec.describe SpecForge::Normalizer do
         expect(output).to eq(callbacks: [{before: "", and_everything_in_between: nil}])
       end
     end
+
+    context "when the structure uses '*'" do
+      context "and it is used as a root key" do
+        let(:input) do
+          {
+            specific: "",
+            all: 1,
+            other: 2,
+            keys: 3
+          }
+        end
+
+        let(:structure) do
+          {
+            :specific => {type: String},
+            :* => {type: Integer}
+          }
+        end
+
+        it "is expected to normalize any extra keys" do
+          output, errors = normalized
+          expect(errors).to be_empty
+
+          expect(output).to eq(input)
+        end
+      end
+
+      context "and it is used in a nested structure" do
+        let(:input) do
+          {
+            specific: {
+              any: "",
+              key: nil,
+              works: ""
+            }
+          }
+        end
+
+        let(:structure) do
+          {
+            specific: {
+              type: Hash,
+              structure: {
+                "*" => {type: String, default: ""}
+              }
+            }
+          }
+        end
+
+        it "is expected to normalize any extra keys" do
+          output, errors = normalized
+          expect(errors).to be_empty
+
+          expect(output).to eq(specific: {
+            any: "", key: "", works: ""
+          })
+        end
+      end
+    end
   end
 end

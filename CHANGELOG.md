@@ -21,6 +21,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New YAML-based normalizer architecture with structure definitions in `lib/spec_forge/normalizers/`
 - Support for structure references with `reference:` keyword for composition
 - Dedicated validators module for reusable validation logic
+- Added wildcard key support to the Normalizer with `*` syntax
+  - Allows defining a catch-all schema for keys not explicitly defined in a structure
+    ```yaml
+    # Example structure definition
+    person:
+      type: hash
+      structure:
+        name:
+          type: string
+        age:
+          type: integer
+        "*": # Wildcard that catches all other keys
+          type: string
+    ```
 
 ### Changed
 - Completely refactored Normalizer class for improved maintainability
