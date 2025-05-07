@@ -1,0 +1,29 @@
+###########################################
+# https://spec.openapis.org/oas/v3.0.4.html#parameter-object
+
+"$ref":
+  type: string
+  required: false # The ref is required in OAS, but the normalizer can't require it or things break
+
+name:
+  type: string
+
+in:
+  type: string
+
+description:
+  type: string
+  required: false
+
+required:
+  type: boolean
+  required: false # lol
+
+deprecated:
+  type: boolean
+  required: false
+
+allow_empty_value:
+  type: boolean
+  required: false
+  aliases: [ "allowEmptyValues" ]

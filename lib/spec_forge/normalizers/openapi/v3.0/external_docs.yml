@@ -1,5 +1,6 @@
 ###########################################
 # https://spec.openapis.org/oas/v3.0.4.html#external-documentation-object
+
 url:
   type: string
 

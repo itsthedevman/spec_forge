@@ -19,6 +19,7 @@ variables:
       structure:
         ###########################################
         # https://spec.openapis.org/oas/v3.0.4.html#server-variable-object
+
         enum:
           type: array
           structure:

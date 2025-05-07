@@ -1,0 +1,75 @@
+###########################################
+# https://spec.openapis.org/oas/v3.0.4.html#path-item-object
+
+summary:
+  type: string
+  required: false
+
+description:
+  type: string
+  required: false
+
+get:
+  type: hash
+  required: false
+  structure:
+    ###########################################
+    reference: openapi/v3.0/operation
+
+put:
+  type: hash
+  required: false
+  structure:
+    ###########################################
+    reference: openapi/v3.0/operation
+
+post:
+  type: hash
+  required: false
+  structure:
+    ###########################################
+    reference: openapi/v3.0/operation
+
+delete:
+  type: hash
+  required: false
+  structure:
+    ###########################################
+    reference: openapi/v3.0/operation
+
+options:
+  type: hash
+  required: false
+  structure:
+    ###########################################
+    reference: openapi/v3.0/operation
+
+head:
+  type: hash
+  required: false
+  structure:
+    ###########################################
+    reference: openapi/v3.0/operation
+
+patch:
+  type: hash
+  required: false
+  structure:
+    ###########################################
+    reference: openapi/v3.0/operation
+
+trace:
+  type: hash
+  required: false
+  structure:
+    ###########################################
+    reference: openapi/v3.0/operation
+
+servers:
+  type: array
+  required: false
+  structure:
+    type: hash
+    structure:
+      ###########################################
+      reference: openapi/v3.0/server

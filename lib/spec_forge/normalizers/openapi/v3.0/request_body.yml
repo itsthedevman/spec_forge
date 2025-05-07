@@ -1,0 +1,20 @@
+###########################################
+# https://spec.openapis.org/oas/v3.0.4.html#request-body-object
+
+"$ref":
+  type: string
+  required: false # The ref is required in OAS, but the normalizer can't require it or things break
+
+description:
+  type: string
+  required: false
+
+content:
+  type: hash
+  structure:
+    ###########################################
+    "*":
+      type: hash
+      structure:
+        ###########################################
+        reference: openapi/v3.0/media_type

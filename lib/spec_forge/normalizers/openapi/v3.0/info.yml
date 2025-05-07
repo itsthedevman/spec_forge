@@ -22,6 +22,7 @@ contact:
   structure:
     ###########################################
     # https://spec.openapis.org/oas/v3.0.4.html#contact-object
+
     name:
       type: string
       required: false
@@ -40,6 +41,7 @@ license:
   structure:
     ###########################################
     # https://spec.openapis.org/oas/v3.0.4.html#license-object
+
     name:
       type: string
 
