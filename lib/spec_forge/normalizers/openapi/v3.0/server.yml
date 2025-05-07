@@ -1,0 +1,33 @@
+###########################################
+# https://spec.openapis.org/oas/v3.0.4.html#server-object
+
+url:
+  type: string
+
+description:
+  type: string
+  required: false
+
+variables:
+  type: hash
+  required: false
+  structure:
+    ###########################################
+    "*":
+      type: hash
+      required: false
+      structure:
+        ###########################################
+        # https://spec.openapis.org/oas/v3.0.4.html#server-variable-object
+        enum:
+          type: array
+          structure:
+            type: string
+          required: false
+
+        default:
+          type: string
+
+        description:
+          type: string
+          required: false

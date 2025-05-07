@@ -1,45 +1,19 @@
+###########################################
+# https://spec.openapis.org/oas/v3.0.4.html#info-object
+
 info:
   type: hash
-  default: {}
   structure:
-    title: string
-    version: string
-    description:
-      type: string
-      default: ""
-    contact:
-      type: hash
-      default: {}
-      structure:
-        name:
-          type: string
-          default: ""
-        email:
-          type: string
-          default: ""
-    license:
-      type: hash
-      default: {}
-      structure:
-        name:
-          type: string
-          default: ""
-        url:
-          type: string
-          default: ""
+    reference: openapi/v3.0/info
 
 servers:
   type: array
   default: []
   structure:
+    ###########################################
     type: hash
     structure:
-      url:
-        type: string
-        default: ""
-      description:
-        type: string
-        default: ""
+      reference: openapi/v3.0/server
 
 tags:
   type: hash

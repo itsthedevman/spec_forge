@@ -1,0 +1,48 @@
+###########################################
+# https://spec.openapis.org/oas/v3.0.4.html#info-object
+
+title:
+  type: string
+
+version:
+  type: string
+
+description:
+  type: string
+  required: false
+
+terms_of_service:
+  type: string
+  aliases: [ "termsOfService" ]
+  required: false
+
+contact:
+  type: hash
+  required: false
+  structure:
+    ###########################################
+    # https://spec.openapis.org/oas/v3.0.4.html#contact-object
+    name:
+      type: string
+      required: false
+
+    email:
+      type: string
+      required: false
+
+    url:
+      type: string
+      required: false
+
+license:
+  type: hash
+  required: false
+  structure:
+    ###########################################
+    # https://spec.openapis.org/oas/v3.0.4.html#license-object
+    name:
+      type: string
+
+    url:
+      type: string
+      required: false
