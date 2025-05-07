@@ -1,10 +1,6 @@
 ###########################################
 # https://spec.openapis.org/oas/v3.0.4.html#parameter-object
 
-"$ref":
-  type: string
-  required: false # The ref is required in OAS, but the normalizer can't require it or things break
-
 name:
   type: string
 

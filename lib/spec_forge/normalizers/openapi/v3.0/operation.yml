@@ -34,6 +34,11 @@ parameters:
   required: false
   structure:
     ###########################################
+
+    "$ref":
+      type: string
+      required: false
+
     reference: openapi/v3.0/parameters
 
 request_body:
@@ -42,6 +47,11 @@ request_body:
   aliases: [ "requestBody" ]
   structure:
     ###########################################
+
+    "$ref":
+      type: string
+      required: false
+
     reference: openapi/v3.0/request_body
 
 responses:
@@ -52,6 +62,11 @@ responses:
       type: hash
       structure:
         ###########################################
+
+        "$ref":
+          type: string
+          required: false
+
         reference: openapi/v3.0/response
 
 callbacks:
@@ -63,6 +78,11 @@ callbacks:
       type: hash
       structure:
         ###########################################
+
+        "$ref":
+          type: string
+          required: false
+
         reference: openapi/v3.0/callback
 
 deprecated:
