@@ -33,16 +33,20 @@ module SpecForge
               path = SpecForge.openapi_path.join("config", "openapi.yml")
               hash = YAML.safe_load_file(path, symbolize_names: true)
 
-              Normalizer.normalize_openapi_config!(hash)
+              Normalizer.normalize!(hash, using: :openapi_config)
             end
           end
 
           def parse_user_defined_paths
             path = SpecForge.openapi_path.join("config", "paths", "**", "*.yml")
+            version = self.class.to_sem_version.morph { |v| "#{v.major}.#{v.minor}" }
 
             paths = Dir[path].map do |path|
               hash = YAML.safe_load_file(path, symbolize_names: true)
-              hash.transform_values! { |v| Normalizer.normalize_openapi_path!(v) }
+
+              hash.transform_values! do |value|
+                Normalizer.normalize!(value, using: "openapi/v#{version}/path")
+              end
             end
 
             paths.to_merged_h
