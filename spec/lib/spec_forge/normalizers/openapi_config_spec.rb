@@ -12,10 +12,21 @@ RSpec.describe SpecForge::Normalizer do
           contact: {name: "My API Team", email: "api@example.com"},
           license: {name: "MIT", url: "https://opensource.org/licenses/MIT"}
         },
-        servers: [{url: "http://localhost:3000", description: "Test"}],
-        tags: {tag_1: "Tag 1"},
+        servers: [{url: "http://localhost:3000", description: Faker::String.random}],
+        tags: {
+          tag_1: {
+            description: Faker::String.random,
+            external_docs: {
+              url: Faker::Internet.url,
+              description: Faker::String.random
+            }
+          }
+        },
         security_schemes: {
-          bearer_auth: {}
+          bearer_auth: {
+            type: "http",
+            scheme: "basic"
+          }
         }
       }
     end
@@ -36,8 +47,19 @@ RSpec.describe SpecForge::Normalizer do
 
       expect(normalized[:servers]).to be_kind_of(Array)
       expect(normalized[:servers].first).to eq(config.dig(:servers, 0))
+
       expect(normalized[:tags]).to be_kind_of(Hash)
+      expect(normalized[:tags][:tag_1]).to be_kind_of(Hash)
+      expect(normalized[:tags][:tag_1][:description]).to eq(config.dig(:tags, :tag_1, :description))
+      expect(normalized[:tags][:tag_1][:external_docs]).to eq(
+        config.dig(:tags, :tag_1, :external_docs)
+      )
+
       expect(normalized[:security_schemes]).to be_kind_of(Hash)
+      expect(normalized[:security_schemes][:bearer_auth]).to eq(
+        type: "http",
+        scheme: "basic"
+      )
     end
 
     context "when the bare minimum is given" do
@@ -47,9 +69,6 @@ RSpec.describe SpecForge::Normalizer do
 
       it "is expected to normalize" do
         expect(normalized[:info]).to be_kind_of(Hash)
-        expect(normalized[:info][:contact]).to be_kind_of(Hash)
-        expect(normalized[:info][:license]).to be_kind_of(Hash)
-
         expect(normalized[:servers]).to be_kind_of(Array)
         expect(normalized[:tags]).to be_kind_of(Hash)
         expect(normalized[:security_schemes]).to be_kind_of(Hash)
@@ -61,10 +80,7 @@ RSpec.describe SpecForge::Normalizer do
       {
         context: "when 'info' is nil",
         before: -> { config[:info] = nil },
-        errors: [
-          "Expected String, got NilClass for \"title\" in \"info\" in openapi/config/openapi.yml",
-          "Expected String, got NilClass for \"version\" in \"info\" in openapi/config/openapi.yml"
-        ]
+        error: "Expected Hash, got NilClass for \"info\" in openapi/config/openapi.yml"
       },
       {
         context: "when 'info' is not a Hash",

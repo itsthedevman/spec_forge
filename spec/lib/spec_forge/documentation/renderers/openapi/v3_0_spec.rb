@@ -16,7 +16,7 @@ RSpec.describe SpecForge::Documentation::Renderers::OpenAPI::V3_0 do
     it "is expected to return the OAS 3.0 structure" do
       is_expected.to match(
         openapi: described_class::CURRENT_VERSION,
-        info: {}, # This has whatever the config contains
+        info: nil, # This has whatever the config contains
         servers: [],
         tags: [],
         security: [],
