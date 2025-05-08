@@ -36,10 +36,9 @@ examples:
 encoding:
   type: hash
   required: false
-  structure:
-    ###########################################
-    "*":
-      type: hash
-      structure:
-        ###########################################
-        reference: openapi/v3.0/encoding
+  ## This causes a circular reference
+  # structure:
+  #   "*":
+  #     type: hash
+  #     structure:
+  #       reference: openapi/v3.0/encoding

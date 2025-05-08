@@ -34,12 +34,15 @@ parameters:
   required: false
   structure:
     ###########################################
+    type: hash
+    structure:
+      ###########################################
 
-    "$ref":
-      type: string
-      required: false
+      "$ref":
+        type: string
+        required: false
 
-    reference: openapi/v3.0/parameters
+      reference: openapi/v3.0/parameters
 
 request_body:
   type: hash
@@ -104,4 +107,7 @@ servers:
   required: false
   structure:
     ###########################################
-    reference: openapi/v3.0/server
+    type: hash
+    structure:
+      ###########################################
+      reference: openapi/v3.0/server

@@ -34,15 +34,11 @@ content:
 links:
   type: hash
   required: false
-  structure:
-    ###########################################
-    "*":
-      type: hash
-      structure:
-        ###########################################
-
-        "$ref":
-          type: string
-          required: false
-
-        reference: openapi/v3.0/link
+  # structure:
+  #   "*":
+  #     type: hash
+  #     structure:
+  #       "$ref":
+  #         type: string
+  #         required: false
+  #       reference: openapi/v3.0/link

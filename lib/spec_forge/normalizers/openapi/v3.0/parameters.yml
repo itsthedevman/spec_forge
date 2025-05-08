@@ -3,9 +3,11 @@
 
 name:
   type: string
+  required: false
 
 in:
   type: string
+  required: false
 
 description:
   type: string

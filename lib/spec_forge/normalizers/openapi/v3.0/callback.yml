@@ -3,5 +3,6 @@
 
 "*":
   type: hash
-  structure:
-    reference: openapi/v3.0/path_item
+  ## This causes a circular reference
+  # structure:
+  #   reference: openapi/v3.0/path_item
