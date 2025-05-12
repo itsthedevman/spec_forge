@@ -81,7 +81,7 @@ module SpecForge
                   end
 
                 output = {
-                  operationId: documentation[:operation_id] || camelize(document.id),
+                  operationId: documentation[:operation_id] || document.id.to_camelcase(:lower),
                   summary: documentation[:summary] || document.id.humanize,
                   description: documentation[:description] || document.description,
                   security: [{}],
@@ -89,7 +89,10 @@ module SpecForge
                 }
 
                 if (requests = document.requests) && requests.present?
-                  output[:requestBody] = export_request_body(requests)
+                  output[:requestBody] = export_request_body(
+                    requests,
+                    documentation[:request_body] || {}
+                  )
                 end
 
                 output[:responses] = {}
@@ -102,33 +105,41 @@ module SpecForge
             end
           end
 
-          def export_request_body(requests)
+          def export_request_body(requests, documentation)
+            # Requests may have multiple entries for the same content_type
             content = requests.group_by(&:content_type)
+            content_docs = documentation[:content]
 
-            content.transform_values! do |grouped_requests|
+            # We'll convert those to examples
+            content.transform_values!(with_key: true) do |grouped_requests, content_type|
+              docs = content_docs[content_type]
               request = grouped_requests.first
 
               content = request.content
 
+              # Create a schema from the types
               schema = type_to_schema(request.type)
-              schema.merge!(content_to_schema(request.content))
+              schema.merge!(content_to_schema(content))
 
               {
-                required: true,
                 schema:,
                 examples: grouped_requests.to_h do |request|
                   [
-                    camelize(request.name),
+                    request.name.to_camelcase(:lower),
                     {
                       summary: request.name,
-                      value: request.content
+                      value: content
                     }
                   ]
                 end
-              }
+              }.merge(docs)
             end
 
-            {content:}
+            {
+              required: documentation[:required] == true,
+              description: documentation[:description],
+              content:
+            }
           end
 
           def export_responses(responses)
