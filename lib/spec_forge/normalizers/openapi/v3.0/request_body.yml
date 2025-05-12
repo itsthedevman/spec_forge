@@ -18,3 +18,7 @@ content:
       structure:
         ###########################################
         reference: openapi/v3.0/media_type
+
+required:
+  type: boolean
+  required: false
