@@ -47,8 +47,15 @@ module SpecForge
       renderer = renderer_class.new(document)
       return renderer unless path
 
-      puts "Writing to #{path.relative_path_from(SpecForge.openapi_path)}"
       renderer.to_file(path)
+
+      puts "==============================================="
+      puts "Finished!"
+      puts ""
+      puts "Wrote output to #{path.relative_path_from(SpecForge.openapi_path)}"
+      puts ""
+
+      renderer
     end
   end
 end
@@ -56,4 +63,5 @@ end
 require_relative "documentation/builder"
 require_relative "documentation/document"
 require_relative "documentation/loader"
+require_relative "documentation/openapi"
 require_relative "documentation/renderers"
