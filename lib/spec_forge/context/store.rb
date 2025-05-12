@@ -41,10 +41,6 @@ module SpecForge
         # @return [Entry] A new immutable entry instance
         #
         def initialize(request:, variables:, response:, scope: :file)
-          request = request.deep_freeze
-          variables = variables.deep_freeze
-          response = response.deep_freeze
-
           super
         end
 
