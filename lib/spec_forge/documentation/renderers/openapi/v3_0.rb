@@ -64,21 +64,10 @@ module SpecForge
 
           # https://spec.openapis.org/oas/v3.0.4.html#tag-object
           def export_tags
-            tags = config[:tags] || {}
+            tags = config[:tags]
+            return if tags.blank?
 
-            tags.map do |name, description_or_hash|
-              tag = {name: name.to_s}
-
-              case description_or_hash
-              when String
-                tag[:description] = description_or_hash
-              when Hash
-                description_or_hash.rename_key_unordered!(:external_docs, :externalDocs)
-                tag.merge!(description_or_hash)
-              end
-
-              tag
-            end
+            tags.map { |name, data| OpenAPI::V3_0::Tag.new(name, data).to_h }
           end
 
           # https://spec.openapis.org/oas/v3.0.4.html#external-documentation-object
