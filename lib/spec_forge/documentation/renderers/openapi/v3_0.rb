@@ -62,105 +62,16 @@ module SpecForge
 
           # https://spec.openapis.org/oas/v3.0.4.html#paths-object
           def export_paths
-            paths_documentation = parse_user_defined_paths
+            path_documentation = parse_user_defined_paths
             paths = input.endpoints.deep_dup
 
             paths.each do |path, operations|
               operations.transform_values!(with_key: true) do |document, operation|
-                documentation = paths_documentation.dig(path, operation) || {}
+                documentation = path_documentation.dig(path, operation) || {}
 
-                parameters =
-                  document.parameters.values.map do |parameter|
-                    params = parameter.to_deep_h
-
-                    params[:schema] = type_to_schema(params.delete(:type))
-                    params[:required] = params[:location] == "path" || params[:required] || false
-
-                    params.rename_key_unordered!(:location, :in)
-                    params
-                  end
-
-                output = {
-                  operationId: documentation[:operation_id] || document.id.to_camelcase(:lower),
-                  summary: documentation[:summary] || document.id.humanize,
-                  description: documentation[:description] || document.description,
-                  security: [{}],
-                  parameters:
-                }
-
-                if (requests = document.requests) && requests.present?
-                  output[:requestBody] = export_request_body(
-                    requests,
-                    documentation[:request_body] || {}
-                  )
-                end
-
-                output[:responses] = {}
-                # if (responses = document.responses) && responses.present?
-                #   output[:responses] = export_responses(responses)
-                # end
-
-                output
+                Documentation::OpenAPI::V3_0::Operation.new(document, documentation:).to_h
               end
             end
-          end
-
-          def export_request_body(requests, documentation)
-            # Requests may have multiple entries for the same content_type
-            content = requests.group_by(&:content_type)
-            content_docs = documentation[:content]
-
-            # We'll convert those to examples
-            content.transform_values!(with_key: true) do |grouped_requests, content_type|
-              docs = content_docs[content_type]
-              request = grouped_requests.first
-
-              content = request.content
-
-              # Create a schema from the types
-              schema = type_to_schema(request.type)
-              schema.merge!(content_to_schema(content))
-
-              {
-                schema:,
-                examples: grouped_requests.to_h do |request|
-                  [
-                    request.name.to_camelcase(:lower),
-                    {
-                      summary: request.name,
-                      value: content
-                    }
-                  ]
-                end
-              }.merge(docs)
-            end
-
-            {
-              required: documentation[:required] == true,
-              description: documentation[:description],
-              content:
-            }
-          end
-
-          def export_responses(responses)
-            responses.group_by(&:status)
-              .stringify_keys
-              .transform_values! do |responses|
-                # I was trying to figure out how to get body content into the schema hash
-                # in a way that makes it easy so I don't have to check for `items` or `properties`
-                # But at the same time, content needs to have their types converted as well
-                response = responses.first
-                schema = type_to_schema(response.body.type)
-                schema.merge!(content_to_schema(response.body.content))
-
-                {
-                  headers: response.headers,
-                  description: "",
-                  content: {
-                    response.content_type => {schema:}
-                  }
-                }
-              end
           end
         end
       end

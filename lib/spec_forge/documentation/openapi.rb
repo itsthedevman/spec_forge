@@ -7,4 +7,5 @@ module SpecForge
   end
 end
 
+require_relative "openapi/v3_0/operation"
 require_relative "openapi/v3_0/schema"

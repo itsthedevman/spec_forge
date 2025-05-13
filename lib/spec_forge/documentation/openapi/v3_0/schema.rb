@@ -8,7 +8,8 @@ module SpecForge
           def self.from_document(document)
           end
 
-          def initialize
+          def initialize(options = {})
+            @type = options[:type]
           end
 
           private
