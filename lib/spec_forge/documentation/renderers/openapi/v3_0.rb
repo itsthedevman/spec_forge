@@ -11,12 +11,14 @@ module SpecForge
             {
               openapi: export_openapi_version,
               info: export_info,
+              paths: export_paths
+            }.merge_compact(
               servers: export_servers,
-              tags: export_tags,
+              components: export_components,
               security: export_security,
-              paths: export_paths,
-              components: {}
-            }
+              tags: export_tags,
+              externalDocs: export_external_docs
+            )
           end
 
           protected
@@ -33,7 +35,31 @@ module SpecForge
 
           # https://spec.openapis.org/oas/v3.0.4.html#server-object
           def export_servers
-            config[:servers] || []
+            config[:servers]
+          end
+
+          # https://spec.openapis.org/oas/v3.0.4.html#paths-object
+          def export_paths
+            path_documentation = parse_user_defined_paths
+            paths = input.endpoints.deep_dup
+
+            paths.each do |path, operations|
+              operations.transform_values!(with_key: true) do |document, operation|
+                documentation = path_documentation.dig(path, operation) || {}
+
+                Documentation::OpenAPI::V3_0::Operation.new(document, documentation:).to_h
+              end
+            end
+          end
+
+          # https://spec.openapis.org/oas/v3.0.4.html#components-object
+          def export_components
+            nil
+          end
+
+          # https://spec.openapis.org/oas/v3.0.4.html#security-requirement-object
+          def export_security
+            config[:security]
           end
 
           # https://spec.openapis.org/oas/v3.0.4.html#tag-object
@@ -55,23 +81,9 @@ module SpecForge
             end
           end
 
-          # https://spec.openapis.org/oas/v3.0.4.html#security-requirement-object
-          def export_security
-            config[:security] || []
-          end
-
-          # https://spec.openapis.org/oas/v3.0.4.html#paths-object
-          def export_paths
-            path_documentation = parse_user_defined_paths
-            paths = input.endpoints.deep_dup
-
-            paths.each do |path, operations|
-              operations.transform_values!(with_key: true) do |document, operation|
-                documentation = path_documentation.dig(path, operation) || {}
-
-                Documentation::OpenAPI::V3_0::Operation.new(document, documentation:).to_h
-              end
-            end
+          # https://spec.openapis.org/oas/v3.0.4.html#external-documentation-object
+          def export_external_docs
+            nil
           end
         end
       end
