@@ -1,6 +1,8 @@
-#!/usr/bin/env bash
+#!/usr/bin/env ruby
 
-# Exit the script if any command fails
-set -e
+require "bundler/setup" # Set up gems listed in the Gemfile.
 
-bundle exec spec_forge "$@"
+require "pry"
+require "spec_forge"
+
+SpecForge::CLI.new.run
