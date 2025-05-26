@@ -4,12 +4,7 @@ module SpecForge
   module Documentation
     module OpenAPI
       module V3_0 # standard:disable Naming/ClassAndModuleCamelCase
-        class Operation
-          def initialize(document, documentation: {})
-            @document = document
-            @documentation = documentation
-          end
-
+        class Operation < OpenAPI::Base
           def to_h
             {
               # Required
@@ -53,13 +48,13 @@ module SpecForge
           end
 
           def external_docs
-            nil
+            @documentation[:external_docs]
           end
 
           alias_method :externalDocs, :external_docs
 
           def deprecated
-            nil
+            @documentation[:deprecated]
           end
 
           def servers
@@ -67,85 +62,76 @@ module SpecForge
           end
 
           def callbacks
-            nil
+            @documentation[:callbacks]
           end
 
           def parameters
             @document.parameters.values.map do |parameter|
-              schema = OpenAPI::V3_0::Schema.create_hash(type: params.delete(:type))
+              schema = Schema.new(type: parameter.type).to_h
 
               {
+                schema:,
                 name: parameter.name,
                 in: parameter.location,
-                schema:,
                 required: parameter.location == "path" || false
               }
             end
           end
 
           def request_body
-          end
+            requests = @document.requests
+            return if requests.blank?
 
-          alias_method :requestBody, :request_body
+            request_docs = @documentation[:request_body] || {}
+            content_docs = request_docs[:content] || {}
 
-          private
+            requests = requests.group_by(&:content_type)
 
-          def export_request_body(requests, documentation)
-            # Requests may have multiple entries for the same content_type
-            content = requests.group_by(&:content_type)
-            content_docs = documentation[:content]
+            content =
+              requests.transform_values(with_key: true) do |grouped_requests, content_type|
+                docs = content_docs[content_type] || {}
 
-            # We'll convert those to examples
-            content.transform_values!(with_key: true) do |grouped_requests, content_type|
-              docs = content_docs[content_type]
-              request = grouped_requests.first
-
-              content = request.content
-
-              # Create a schema from the types
-              schema = type_to_schema(request.type)
-              schema.merge!(content_to_schema(content))
-
-              {
-                schema:,
-                examples: grouped_requests.to_h do |request|
-                  [
-                    request.name.to_camelcase(:lower),
-                    {
-                      summary: request.name,
-                      value: content
-                    }
-                  ]
-                end
-              }.merge(docs)
-            end
+                media_type_from_requests(grouped_requests, docs)
+              end
 
             {
-              required: documentation[:required] == true,
-              description: documentation[:description],
+              required: request_docs[:required] == true,
+              description: request_docs[:description],
               content:
             }
           end
 
-          def export_responses(responses)
-            responses.group_by(&:status)
-              .stringify_keys
-              .transform_values! do |responses|
-                # I was trying to figure out how to get body content into the schema hash
-                # in a way that makes it easy so I don't have to check for `items` or `properties`
-                # But at the same time, content needs to have their types converted as well
-                response = responses.first
-                schema = type_to_schema(response.body.type)
-                schema.merge!(content_to_schema(response.body.content))
+          alias_method :requestBody, :request_body
 
-                {
-                  headers: response.headers,
-                  description: "",
-                  content: {
-                    response.content_type => {schema:}
-                  }
-                }
+          def responses
+            response_docs = @documentation[:responses] || {}
+
+            @document.responses
+              .group_by(&:status)
+              .stringify_keys
+              .transform_values!(with_key: true) do |responses, status_code|
+                docs = response_docs[status_code] || {}
+
+                response = responses.first
+                Response.from_document(response, docs)
               end
+          end
+
+          private
+
+          def media_type_from_requests(requests, docs)
+            request = requests.first
+            schema = Schema.to_h(type: request.type, content: request.content)
+
+            examples =
+              requests.to_h do |request|
+                example_name = request.name.to_camelcase(:lower)
+                example = Example.new(summary: request.name, value: request.content).to_h
+
+                [example_name, example]
+              end
+
+            MediaType.new(schema:, examples:, **docs).to_h
           end
         end
       end
