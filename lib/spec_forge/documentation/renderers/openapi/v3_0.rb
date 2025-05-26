@@ -6,6 +6,7 @@ module SpecForge
       module OpenAPI
         class V3_0 < Base # standard:disable Naming/ClassAndModuleCamelCase
           CURRENT_VERSION = "3.0.4"
+          OAS = Documentation::OpenAPI::V3_0
 
           def render
             {
@@ -47,7 +48,7 @@ module SpecForge
               operations.transform_values!(with_key: true) do |document, operation|
                 documentation = path_documentation.dig(path, operation) || {}
 
-                Documentation::OpenAPI::V3_0::Operation.new(document, documentation:).to_h
+                OAS::Operation.new(document, documentation:).to_h
               end
             end
           end
@@ -67,7 +68,7 @@ module SpecForge
             tags = config[:tags]
             return if tags.blank?
 
-            tags.map { |name, data| OpenAPI::V3_0::Tag.new(name, data).to_h }
+            tags.map { |name, data| OAS::Tag.new(name, data).to_h }
           end
 
           # https://spec.openapis.org/oas/v3.0.4.html#external-documentation-object
