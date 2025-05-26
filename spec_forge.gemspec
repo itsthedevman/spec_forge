@@ -38,7 +38,7 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency "activesupport", ">= 7.1"
   spec.add_dependency "commander", "~> 5.0"
-  spec.add_dependency "everythingrb", "~> 0.2"
+  spec.add_dependency "everythingrb", "~> 0.8"
   spec.add_dependency "factory_bot", "~> 6.5"
   spec.add_dependency "faker", "~> 3.5"
   spec.add_dependency "faraday", "~> 2.12"
