@@ -5,25 +5,23 @@ module SpecForge
     module OpenAPI
       module V3_0 # standard:disable Naming/ClassAndModuleCamelCase
         class Schema
-          def self.from_document(document)
-          end
+          attr_reader :type, :content
 
           def initialize(options = {})
-            @type = options[:type]
+            @type = transform_type(options[:type])
+            @content = transform_content(options[:content])
+          end
+
+          def to_h
+            {
+              type:,
+              content:
+            }
           end
 
           private
 
-          #
-          # Converts a type string to an OpenAPI schema object
-          #
-          # @param format [String] Type format string
-          #
-          # @return [Hash] OpenAPI schema definition
-          #
-          # @api private
-          #
-          def type_to_schema(format)
+          def transform_type(format)
             case format
             when "datetime", "time"
               {type: "string", format: "date-time"}
@@ -44,16 +42,7 @@ module SpecForge
             end
           end
 
-          #
-          # Converts content to an OpenAPI schema object
-          #
-          # @param content [Hash, Array] The content to convert
-          #
-          # @return [Hash] OpenAPI schema properties or items
-          #
-          # @api private
-          #
-          def content_to_schema(content)
+          def transform_content(content)
             case content
             when Hash
               {properties: content}
