@@ -35,6 +35,7 @@ group :development, :test do
 end
 
 group :test do
-  gem "database_cleaner-active_record"
+  # WTF, nice bug fix
+  gem "database_cleaner-active_record", "= 2.2.0"
   gem "rspec", "~> 3"
 end
