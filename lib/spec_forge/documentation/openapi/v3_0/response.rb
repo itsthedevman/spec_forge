@@ -7,9 +7,11 @@ module SpecForge
         class Response < OpenAPI::Base
           def to_h
             {
+              # Required
               description:,
               content:
             }.merge_compact(
+              # Optional
               headers:,
               links:
             )
