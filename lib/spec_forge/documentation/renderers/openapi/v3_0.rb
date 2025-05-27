@@ -68,7 +68,7 @@ module SpecForge
             tags = config[:tags]
             return if tags.blank?
 
-            tags.map { |name, data| OAS::Tag.new(name, data).to_h }
+            tags.map { |name, data| OAS::Tag.parse(name, data).to_h }
           end
 
           # https://spec.openapis.org/oas/v3.0.4.html#external-documentation-object
