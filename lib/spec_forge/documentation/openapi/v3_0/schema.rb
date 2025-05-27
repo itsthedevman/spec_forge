@@ -5,17 +5,15 @@ module SpecForge
     module OpenAPI
       module V3_0 # standard:disable Naming/ClassAndModuleCamelCase
         class Schema
-          attr_reader :type, :content
+          attr_reader :type
 
           def initialize(options = {})
             @type = transform_type(options[:type])
-            @content = transform_content(options[:content])
           end
 
           def to_h
             {
-              type:,
-              content:
+              type:
             }
           end
 
@@ -39,17 +37,6 @@ module SpecForge
               {type: format}
             else
               {type: "string", format:}
-            end
-          end
-
-          def transform_content(content)
-            case content
-            when Hash
-              {properties: content}
-            when Array
-              {items: content}
-            else
-              {}
             end
           end
         end
