@@ -34,6 +34,7 @@ global:
 # SECTION 1: USING GLOBAL VARIABLES
 using_global_variables:
   path: "/status"
+  documentation: false
   expectations:
   - name: "Accessing global variables directly"
     expect:
@@ -106,6 +107,7 @@ spec_scoped_data:
 
 # SECTION 5: COMBINED USAGE
 combined_workflow:
+  documentation: false
   variables:
     # Reference both global variables and stored data
     new_user_data:
@@ -142,6 +144,7 @@ request_response_metadata:
       status: 201
 
   - name: "Access various parts of stored request/response"
+    documentation: false
     path: "/status"
     variables:
       # Access different parts of the stored data

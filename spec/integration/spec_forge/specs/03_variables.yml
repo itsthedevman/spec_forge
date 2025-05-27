@@ -19,6 +19,7 @@
 # SECTION 1: BASIC VARIABLE USAGE
 basic_variables:
   path: /data/types
+  documentation: false
   variables:
     # Simple variable definitions
     expected_status: 200
@@ -36,6 +37,7 @@ basic_variables:
 # SECTION 2: VARIABLE SCOPING AND OVERRIDES
 variable_scoping:
   path: /status # Default path for the spec
+  documentation: false
   variables:
     # Spec level variables
     expected_status: 200
@@ -56,6 +58,7 @@ variable_scoping:
 # SECTION 3: VARIABLE CHAINING
 variable_chaining:
   path: /users
+  documentation: false
   variables:
     # Create a user to reference
     new_user: factories.user
@@ -80,6 +83,7 @@ variable_chaining:
 
 # SECTION 4: VARIABLES IN REQUEST BUILDING
 request_variables:
+  documentation: false
   variables:
     # Variables for constructing the request
     user: factories.user
@@ -121,6 +125,7 @@ request_variables:
 
 # SECTION 5: COMPUTED VARIABLES
 computed_variables:
+  documentation: false
   variables:
     # Basic values
     first_name: faker.name.first_name

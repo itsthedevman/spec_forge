@@ -23,6 +23,7 @@
 # SECTION 1: BASIC FAKER USAGE
 basic_faker:
   path: /status
+  documentation: false
   variables:
     # Simple Faker examples showing different providers
     person_name: faker.name.name
@@ -42,6 +43,7 @@ basic_faker:
 # SECTION 2: ADVANCED FAKER PATTERNS
 advanced_faker:
   path: /data/types
+  documentation: false
   variables:
     # Faker with arguments
     words:
@@ -116,6 +118,7 @@ custom_factory:
 
 # SECTION 5: COMBINING DYNAMIC DATA
 combined_data:
+  documentation: false
   variables:
     # Generate realistic user data
     first_name: faker.name.first_name

@@ -24,6 +24,7 @@
 # PART 1: BASIC MATCHERS
 basic_matchers:
   path: /data/types
+  documentation: false
   expectations:
   - name: "Basic equality and type matching"
     expect:
@@ -47,6 +48,7 @@ basic_matchers:
 # PART 2: SIMPLE COMPOSITE MATCHERS
 composite_matchers:
   path: /data/types
+  documentation: false
   expectations:
   - name: "Simple composite matchers"
     expect:
@@ -69,6 +71,7 @@ composite_matchers:
 # PART 3: NESTED STRUCTURE MATCHING
 nested_structure:
   path: /data/types
+  documentation: false
   expectations:
   - name: "Matching nested structures"
     expect:
@@ -93,6 +96,7 @@ nested_structure:
 # PART 4: COMPOUND MATCHERS WITH MATCHER.AND
 compound_matchers_and:
   path: /data/types
+  documentation: false
   expectations:
   - name: "Compound matchers with matcher.and"
     expect:
@@ -121,6 +125,7 @@ compound_matchers_and:
 # PART 5: STRING PATTERN MATCHING
 string_pattern_matching:
   path: /data/types
+  documentation: false
   expectations:
   - name: "Complex string pattern matching"
     expect:
@@ -135,6 +140,7 @@ string_pattern_matching:
 # PART 6: ARRAY AND COLLECTION MATCHERS
 array_matching:
   path: /data/types
+  documentation: false
   expectations:
   - name: "Array content and size matching"
     expect:
@@ -151,6 +157,7 @@ array_matching:
 # Featured tags in array objects
 tags_matching:
   path: /data/types
+  documentation: false
   expectations:
   - name: "Finding specific content in nested arrays"
     expect:
@@ -166,6 +173,7 @@ tags_matching:
 # PART 7: HEADER MATCHING
 header_matching:
   path: /data/headers
+  documentation: false
   headers:
     X-Client-ID: "test-client"
     Accept: "application/json"
@@ -207,6 +215,7 @@ header_matching:
 # PART 8: REAL-WORLD APPLICATION WITH USERS ENDPOINT
 users_data_validation:
   path: /data/users
+  documentation: false
   variables:
     min_count: 1
   expectations:
