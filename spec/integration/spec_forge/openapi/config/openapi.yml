@@ -12,16 +12,16 @@ info:
     url: https://opensource.org/licenses/MIT
 
 servers:
-- url: http://localhost:3000
-  description: Local development server
-- url: https://api.example.com/v1
+- url: https://devapi.itsthedevman.com
+  description: Development server
+- url: https://prodapi.itsthedevman.com
   description: Production server
 
 tags:
   Users:
     description: User account management
     external_docs:
-      url: "https://localhost:3001"
+      url: "https://docs.prodapi.itsthedevman.com"
       description: "Internal user account management"
   Posts:
     description: Blog post management
