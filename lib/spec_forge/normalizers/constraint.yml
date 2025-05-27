@@ -1,0 +1,8 @@
+status:
+- integer
+- string
+json:
+  type:
+  - hash
+  - array
+  default: {}

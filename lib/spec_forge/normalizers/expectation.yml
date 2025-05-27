@@ -2,17 +2,13 @@
 id:
   reference: id
 
-name:
-  reference: name
-
-file_name: string
-
-file_path: string
-
 line_number:
   reference: line_number
 
 # User defined
+name:
+  reference: name
+
 base_url:
   reference: base_url
 
@@ -37,11 +33,12 @@ variables:
 debug:
   reference: debug
 
-expectations:
-  type: array
+store_as:
+  type: string
+  default: ""
+
+expect:
+  type: hash
   structure:
     ###########################################
-    type: hash
-    structure:
-      ###########################################
-      reference: expectation
+    reference: constraint
