@@ -37,6 +37,9 @@ store_as:
   type: string
   default: ""
 
+documentation:
+  reference: documentation
+
 expect:
   type: hash
   structure:

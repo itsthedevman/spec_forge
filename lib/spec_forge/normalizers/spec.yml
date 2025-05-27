@@ -37,6 +37,9 @@ variables:
 debug:
   reference: debug
 
+documentation:
+  reference: documentation
+
 expectations:
   type: array
   structure:

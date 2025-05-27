@@ -48,6 +48,8 @@ module SpecForge
         @successes.clear
 
         Callbacks.register(@callback_name) do |context|
+          next if context.expectation.documentation == false || context.spec.documentation == false
+
           @successes << context if context.example.execution_result.status == :passed
         end
 

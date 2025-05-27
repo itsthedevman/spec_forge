@@ -67,3 +67,8 @@ callback:
   type: string
   required: false
   validator: callback
+
+documentation:
+  type: boolean
+  required: false
+  default: true
