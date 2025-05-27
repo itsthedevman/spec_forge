@@ -3,6 +3,6 @@
 # Exit the script if any command fails
 set -e
 
-bin/spec_forge docs generate --use-cache
+bin/spec_forge docs generate --use-cache --format=json
 
-docker run --rm -v $PWD:/spec redocly/cli lint spec_forge/docs/export/openapi.json "$@"
+docker run --rm -v $PWD:/spec redocly/cli lint spec_forge/openapi/generated/openapi.json "$@"
