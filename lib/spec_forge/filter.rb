@@ -69,10 +69,9 @@ module SpecForge
             # Expectation filter
             next spec unless expectation_name
 
-            expectations = spec.expectations.select { |e| e.name == expectation_name }
-            next if expectations.empty?
+            spec.expectations.select! { |e| e.name == expectation_name }
+            next if spec.expectations.empty?
 
-            spec.expectations = expectations
             spec
           end
 

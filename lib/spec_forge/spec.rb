@@ -14,60 +14,14 @@ module SpecForge
   #     - expect:
   #         status: 200
   #
-  class Spec
+  class Spec < Data.define(
+    :id, :name, :file_path, :file_name, :line_number,
+    :debug, :documentation, :expectations
+  )
     #
     # @return [Boolean] True if debugging is enabled
     #
     attr_predicate :debug
-
-    #
-    # Unique identifier for this spec
-    #
-    # @return [String] The spec ID
-    #
-    attr_reader :id
-
-    #
-    # Human-readable name for this spec
-    #
-    # @return [String] The spec name
-    #
-    attr_reader :name
-
-    #
-    # Absolute path to the file containing this spec
-    #
-    # @return [String] The file path
-    #
-    attr_reader :file_path
-
-    #
-    # Base name of the file without path or extension
-    #
-    # @return [String] The file name
-    #
-    attr_reader :file_name
-
-    #
-    # Whether to enable debugging for this spec
-    #
-    # @return [Boolean] Debug flag
-    #
-    attr_reader :debug
-
-    #
-    # Line number in the source file where this spec is defined
-    #
-    # @return [Integer] The line number
-    #
-    attr_reader :line_number
-
-    #
-    # The expectations to test for this spec
-    #
-    # @return [Array<Expectation>] The expectations
-    #
-    attr_accessor :expectations
 
     #
     # Creates a new spec instance
@@ -78,18 +32,18 @@ module SpecForge
     # @param file_name [String] Base name of file
     # @param debug [Boolean] Whether to enable debugging
     # @param line_number [Integer] Line number in source
+    # @param documentation [Boolean] Whether to include in documentation generation
     # @param expectations [Array<Hash>] Expectation configurations
     #
     # @return [Spec] A new spec instance
     #
-    def initialize(id:, name:, file_path:, file_name:, debug:, line_number:, expectations:)
-      @id = id
-      @name = name
-      @file_path = file_path
-      @file_name = file_name
-      @debug = debug
-      @line_number = line_number
-      @expectations = expectations.map { |e| Expectation.new(**e) }
+    def initialize(
+      id:, name:, file_path:, file_name:, line_number:,
+      debug:, documentation:, expectations:
+    )
+      expectations = expectations.map { |e| Expectation.new(**e) }
+
+      super
     end
 
     #
@@ -104,6 +58,7 @@ module SpecForge
         file_name:,
         debug:,
         line_number:,
+        documentation:,
         expectations: expectations.map(&:to_h)
       }
     end
