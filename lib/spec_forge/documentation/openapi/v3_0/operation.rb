@@ -26,47 +26,53 @@ module SpecForge
           end
 
           def id
-            @documentation[:operation_id] || @document.id.to_camelcase(:lower)
+            id = documentation[:operation_id] || document.id.to_camelcase(:lower)
+            id.presence
           end
 
           alias_method :operationId, :id
 
           def summary
-            @documentation[:summary] || @document.id.humanize
+            summary = documentation[:summary] || document.id.humanize
+            summary.presence
           end
 
           def description
-            @documentation[:description] || @document.description
+            description = documentation[:description] || document.description
+            description.presence
           end
 
           def security
-            [{}]
+            documentation[:security]
           end
 
           def tags
-            nil
+            tags = documentation[:tags] || {}
+            tags = tags.map { |name, data| Tag.parse(name, data).to_h }
+
+            tags.presence
           end
 
           def external_docs
-            @documentation[:external_docs]
+            documentation[:external_docs].presence
           end
 
           alias_method :externalDocs, :external_docs
 
           def deprecated
-            @documentation[:deprecated]
+            documentation[:deprecated] ? true : nil
           end
 
           def servers
-            nil
+            documentation[:servers]
           end
 
           def callbacks
-            @documentation[:callbacks]
+            documentation[:callbacks]
           end
 
           def parameters
-            @document.parameters.values.map do |parameter|
+            document.parameters.values.map do |parameter|
               schema = Schema.new(type: parameter.type).to_h
 
               {
@@ -79,10 +85,10 @@ module SpecForge
           end
 
           def request_body
-            requests = @document.requests
+            requests = document.requests
             return if requests.blank?
 
-            request_docs = @documentation[:request_body] || {}
+            request_docs = documentation[:request_body] || {}
             content_docs = request_docs[:content] || {}
 
             requests = requests.group_by(&:content_type)
@@ -104,9 +110,9 @@ module SpecForge
           alias_method :requestBody, :request_body
 
           def responses
-            response_docs = @documentation[:responses] || {}
+            response_docs = documentation[:responses] || {}
 
-            @document.responses
+            document.responses
               .group_by(&:status)
               .stringify_keys
               .transform_values!(with_key: true) do |responses, status_code|
