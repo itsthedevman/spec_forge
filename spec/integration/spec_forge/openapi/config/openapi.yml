@@ -20,6 +20,9 @@ servers:
 tags:
   Users:
     description: User account management
+    external_docs:
+      url: "https://localhost:3001"
+      description: "Internal user account management"
   Posts:
     description: Blog post management
   Comments:
