@@ -8,6 +8,10 @@ module SpecForge
           def initialize(schema: nil, example: nil, examples: nil, encoding: nil)
             super
           end
+
+          def to_h
+            super.compact_blank!
+          end
         end
       end
     end
