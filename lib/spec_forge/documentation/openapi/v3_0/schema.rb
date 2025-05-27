@@ -5,16 +5,17 @@ module SpecForge
     module OpenAPI
       module V3_0 # standard:disable Naming/ClassAndModuleCamelCase
         class Schema
-          attr_reader :type
+          attr_reader :type, :format
 
           def initialize(options = {})
-            @type = transform_type(options[:type])
+            @type, @format = transform_type(options[:type])
           end
 
           def to_h
             {
-              type:
-            }
+              type:,
+              format:
+            }.compact_blank!
           end
 
           private
@@ -22,21 +23,21 @@ module SpecForge
           def transform_type(format)
             case format
             when "datetime", "time"
-              {type: "string", format: "date-time"}
+              ["string", "date-time"]
             when "int64", "i64"
-              {type: "integer", format: "int64"}
+              ["integer", "int64"]
             when "int32", "i32"
-              {type: "integer", format: "int32"}
+              ["integer", "int32"]
             when "double", "float"
-              {type: "number", format:}
+              ["number", format]
             when "object"
-              {type: "object"}
+              ["object"]
             when "array"
-              {type: "array"}
+              ["array"]
             when "boolean", "number", "integer", "string"
-              {type: format}
+              [format]
             else
-              {type: "string", format:}
+              ["string", format]
             end
           end
         end
