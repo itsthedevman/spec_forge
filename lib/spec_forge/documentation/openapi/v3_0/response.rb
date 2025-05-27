@@ -22,11 +22,11 @@ module SpecForge
           end
 
           def content
-            schema = Schema.new(type: document.body.type, content: document.body.content).to_h
+            schema = Schema.new(type: document.body.type).to_h
 
             {
-              document.content_type => {schema:}
-            }.merge(documentation)
+              document.content_type => MediaType.new(schema:).to_h
+            }.deep_merge(documentation)
           end
 
           def headers
