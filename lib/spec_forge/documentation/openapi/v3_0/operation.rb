@@ -113,7 +113,7 @@ module SpecForge
                 docs = response_docs[status_code] || {}
 
                 response = responses.first
-                Response.from_document(response, docs)
+                Response.new(response, documentation: docs).to_h
               end
           end
 
@@ -121,7 +121,7 @@ module SpecForge
 
           def media_type_from_requests(requests, docs)
             request = requests.first
-            schema = Schema.to_h(type: request.type, content: request.content)
+            schema = Schema.new(type: request.type, content: request.content).to_h
 
             examples =
               requests.to_h do |request|
