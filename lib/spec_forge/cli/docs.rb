@@ -69,7 +69,7 @@ module SpecForge
         renderer_class = Documentation::Renderers::OpenAPI["3.0"]
 
         # Determine output format and path
-        file_format = options.format&.downcase || "json"
+        file_format = options.format&.downcase || "yml"
         validate_format!(file_format)
 
         Documentation.render(
