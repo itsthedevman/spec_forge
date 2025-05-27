@@ -47,9 +47,7 @@ module SpecForge
           end
 
           def tags
-            tags = documentation[:tags] || {}
-            tags = tags.map { |name, data| Tag.parse(name, data).to_h }
-
+            tags = documentation[:tags] || []
             tags.presence
           end
 
