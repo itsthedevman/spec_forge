@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-RSpec.describe SpecForge::Documentation::Renderers::OpenAPI::Base do
-  describe "#type_to_schema" do
+RSpec.describe SpecForge::Documentation::OpenAPI::V3_0::Schema do
+  describe "converting type to schema hash" do
     let(:type) {}
 
-    subject(:schema) { described_class.new("").send(:type_to_schema, type) }
+    subject(:schema) { described_class.new(type:).type }
 
     context "when the type is 'datetime'" do
       let(:type) { "datetime" }
