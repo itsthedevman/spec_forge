@@ -15,17 +15,39 @@ module SpecForge
     #   spec_forge docs serve
     #
     class Docs < Command
+      VALID_FORMATS = %w[yml yaml json].freeze
+
       command_name "docs"
       syntax "docs <action>"
-      summary "TODO"
+      summary "Generate and serve API documentation from SpecForge tests"
+      description "Generate OpenAPI specifications from your SpecForge tests or serve them through a web interface. Supports multiple output formats and caching for faster regeneration."
 
-      option "--use-cache", "Use cached test data instead of running tests again"
-      option "--format=FORMAT", "The file format of the output: yml/yaml or json"
+      example "docs generate",
+        "Generates OpenAPI documentation from all tests"
+
+      example "docs generate --use-cache",
+        "Uses cached test data if available, otherwise runs tests first"
+
+      example "docs generate --format=json",
+        "Generates documentation in JSON format instead of YAML"
+
+      example "docs serve",
+        "Starts a local server to view the generated documentation"
+
+      option "--use-cache",
+        "Use cached test data if available, otherwise run tests to generate cache"
+
+      option "--format=FORMAT",
+        "The file format of the output: yml/yaml or json (default: yml)"
+
+      option "--output=PATH",
+        "Custom output path for generated documentation"
 
       #
       # Executes the docs command with the specified action
       #
       # Supports 'generate' to create OpenAPI files and 'serve' to start a documentation server.
+      # The generate action can output in multiple formats and supports caching for performance.
       #
       # @return [void]
       # @raise [ArgumentError] If an invalid action is provided
@@ -33,17 +55,9 @@ module SpecForge
       def call
         case (action = arguments.first)
         when "generate"
-          renderer_class = Documentation::Renderers::OpenAPI["3.0"]
-
-          format = validate_option_format
-
-          Documentation.render(
-            renderer_class,
-            path: SpecForge.openapi_path.join("generated", "openapi.#{format}"),
-            use_cache: options.use_cache
-          )
+          generate_documentation
         when "serve"
-          nil
+          serve_documentation
         else
           raise ArgumentError, "Unexpected action #{action&.in_quotes}. Expected \"generate\" or \"serve\""
         end
@@ -51,11 +65,40 @@ module SpecForge
 
       private
 
-      def validate_option_format
-        if options.format.downcase == "json"
-          "json"
+      def generate_documentation
+        renderer_class = Documentation::Renderers::OpenAPI["3.0"]
+
+        # Determine output format and path
+        file_format = options.format&.downcase || "json"
+        validate_format!(file_format)
+
+        Documentation.render(
+          renderer_class,
+          path: determine_output_path(file_format),
+          use_cache: options.use_cache,
+          file_format:
+        )
+      end
+
+      def serve_documentation
+        # This would be implemented later - placeholder for now
+        puts "Documentation server functionality coming soon!"
+        puts "For now, you can generate docs with 'spec_forge docs generate'"
+      end
+
+      def validate_format!(format)
+        return if VALID_FORMATS.include?(format)
+
+        raise ArgumentError,
+          "Invalid format #{format.in_quotes}. Valid formats: #{VALID_FORMATS.join_map(", ", &:in_quotes)}"
+      end
+
+      def determine_output_path(format)
+        if options.output
+          Pathname.new(options.output)
         else
-          "yml"
+          extension = (format == "json") ? "json" : "yml"
+          SpecForge.openapi_path.join("generated", "openapi.#{extension}")
         end
       end
     end
