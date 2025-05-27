@@ -20,6 +20,7 @@ module SpecForge
       summary "TODO"
 
       option "--use-cache", "Use cached test data instead of running tests again"
+      option "--format=FORMAT", "The file format of the output: yml/yaml or json"
 
       #
       # Executes the docs command with the specified action
@@ -34,15 +35,27 @@ module SpecForge
         when "generate"
           renderer_class = Documentation::Renderers::OpenAPI["3.0"]
 
+          format = validate_option_format
+
           Documentation.render(
             renderer_class,
-            path: SpecForge.openapi_path.join("generated", "openapi.yml"),
+            path: SpecForge.openapi_path.join("generated", "openapi.#{format}"),
             use_cache: options.use_cache
           )
         when "serve"
           nil
         else
           raise ArgumentError, "Unexpected action #{action&.in_quotes}. Expected \"generate\" or \"serve\""
+        end
+      end
+
+      private
+
+      def validate_option_format
+        if options.format.downcase == "json"
+          "json"
+        else
+          "yml"
         end
       end
     end
