@@ -12,7 +12,7 @@ module SpecForge
           def to_h
             super
               .rename_key_unordered!(:external_value, :externalValue)
-              .compact_blank
+              .compact_blank!
           end
         end
       end
