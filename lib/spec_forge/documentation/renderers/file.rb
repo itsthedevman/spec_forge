@@ -19,21 +19,18 @@ module SpecForge
         #
         # @param file_path [String, Pathname] Path to write the file to
         #
-        def to_file(file_path)
+        def to_file(file_path, file_format:)
           output = render
 
-          file_extension = file_path.extname
           content =
-            if output.is_a?(String)
-              output
-            elsif file_extension == ".json"
-              JSON.pretty_generate(output)
-            elsif file_extension == ".yml"
+            if file_format == "yml"
               # Psych will automatically convert same objects to aliases
               # Psych provides no functionality to disable that
               # So this is the workaround. Convert to JSON, convert back from JSON, then to YAML.
               # Merp.
               output.to_json.to_h.to_yaml(stringify_names: true)
+            else
+              JSON.pretty_generate(output)
             end
 
           ::File.write(file_path, content)

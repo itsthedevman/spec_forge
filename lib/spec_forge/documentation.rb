@@ -25,10 +25,11 @@ module SpecForge
     # @param renderer_class [Class] The renderer class to use
     # @param use_cache [Boolean] Whether to use cached test data instead of running tests
     # @param path [String, Pathname] Optional file path to write the output to
+    # @param format [String] The format to render.
     #
     # @return [Renderers::Base] The renderer instance with results
     #
-    def self.render(renderer_class, use_cache: false, path: nil)
+    def self.render(renderer_class, use_cache: false, path: nil, file_format: nil)
       cache_path = SpecForge.openapi_path.join("generated", ".cache", "loader.yml")
 
       endpoints =
@@ -47,7 +48,7 @@ module SpecForge
       renderer = renderer_class.new(document)
       return renderer unless path
 
-      renderer.to_file(path)
+      renderer.to_file(path, file_format:)
 
       puts "==============================================="
       puts "Finished!"
