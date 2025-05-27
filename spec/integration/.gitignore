@@ -33,3 +33,5 @@
 
 /.direnv/
 /vendor/bundle
+
+/spec_forge/openapi/generated/*
