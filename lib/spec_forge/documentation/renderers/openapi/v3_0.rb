@@ -55,7 +55,9 @@ module SpecForge
 
           # https://spec.openapis.org/oas/v3.0.4.html#components-object
           def export_components
-            nil
+            {
+              securitySchemes: config[:security_schemes]
+            }
           end
 
           # https://spec.openapis.org/oas/v3.0.4.html#security-requirement-object
