@@ -6,17 +6,37 @@ module SpecForge
       module V3_0 # standard:disable Naming/ClassAndModuleCamelCase
         class Response < OpenAPI::Base
           def to_h
+            {
+              description:,
+              content:
+            }.merge_compact(
+              headers:,
+              links:
+            )
+          end
+
+          def description
+            documentation[:description]
+          end
+
+          def content
             schema = Schema.new(type: document.body.type, content: document.body.content).to_h
 
             {
-              description: documentation[:description],
-              content: {
-                document.content_type => {schema:}
-              }.merge(documentation)
-            }.merge_compact(
-              headers: document.headers.merge(documentation[:headers]).presence,
-              links: documentation[:links].presence
-            )
+              document.content_type => {schema:}
+            }.merge(documentation)
+          end
+
+          def headers
+            docs = documentation[:headers] || {}
+
+            document.headers
+              .merge(docs)
+              .presence
+          end
+
+          def links
+            documentation[:links].presence
           end
         end
       end
