@@ -18,7 +18,7 @@ module SpecForge
           end
 
           def description
-            documentation[:description]
+            documentation[:description] || ""
           end
 
           def content

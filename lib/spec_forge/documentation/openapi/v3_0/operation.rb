@@ -8,7 +8,8 @@ module SpecForge
           def to_h
             {
               # Required
-              responses:
+              responses:,
+              security:
             }.merge_compact(
               # All optional
               tags:,
@@ -20,13 +21,13 @@ module SpecForge
               requestBody:,
               callbacks:,
               deprecated:,
-              security:,
               servers:
             )
           end
 
           def id
-            id = documentation[:operation_id] || document.id.to_camelcase(:lower)
+            # The object ID is added to make every ID unique
+            id = documentation[:operation_id] || document.id.to_camelcase(:lower) + object_id.to_s
             id.presence
           end
 
@@ -43,7 +44,7 @@ module SpecForge
           end
 
           def security
-            documentation[:security]
+            documentation[:security] || []
           end
 
           def tags
@@ -100,7 +101,7 @@ module SpecForge
 
             {
               required: request_docs[:required] == true,
-              description: request_docs[:description],
+              description: request_docs[:description] || "",
               content:
             }
           end
