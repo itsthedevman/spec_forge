@@ -6,25 +6,16 @@ RSpec.describe SpecForge::Documentation::Renderers::File do
   describe "#to_file" do
     let(:render_output) {}
     let(:file_output) {}
+    let(:file_format) { "json" }
     let(:path) { Pathname.new("some/file/path/openapi.json") }
 
-    subject(:to_file) { file.to_file(path) }
+    subject(:to_file) { file.to_file(path, file_format:) }
 
     before do
       expect(file).to receive(:render).and_return(render_output)
     end
 
-    context "when the rendered output is a String" do
-      let(:render_output) { "hello" }
-
-      it "is expected to write to a file" do
-        expect(File).to receive(:write).with(be_kind_of(Pathname), render_output)
-
-        to_file
-      end
-    end
-
-    context "when the path ends in .json" do
+    context "when the file_format is 'json'" do
       let(:render_output) { {foo: 1} }
 
       it "is expected to write JSON to a file" do
@@ -35,8 +26,8 @@ RSpec.describe SpecForge::Documentation::Renderers::File do
       end
     end
 
-    context "when the path extension is .yml" do
-      let(:path) { Pathname.new("openapi.yml") }
+    context "when the file_format is 'yml'" do
+      let(:file_format) { "yml" }
 
       let(:render_output) { {foo: 1} }
 

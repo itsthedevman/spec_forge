@@ -4,7 +4,7 @@ RSpec.describe SpecForge::Documentation::OpenAPI::V3_0::Schema do
   describe "converting type to schema hash" do
     let(:type) {}
 
-    subject(:schema) { described_class.new(type:).type }
+    subject(:schema) { described_class.new(type:).to_h }
 
     context "when the type is 'datetime'" do
       let(:type) { "datetime" }
