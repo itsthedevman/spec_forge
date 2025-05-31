@@ -1,8 +1,0 @@
-###########################################
-# https://spec.openapis.org/oas/v3.0.4.html#callback-object
-
-"*":
-  type: hash
-  ## This causes a circular reference
-  # structure:
-  #   reference: openapi/v3.0/path_item

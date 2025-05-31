@@ -1,7 +1,0 @@
-###########################################
-# https://spec.openapis.org/oas/v3.0.4.html#security-requirement-object
-
-"*":
-  type: array
-  structure:
-    type: string
