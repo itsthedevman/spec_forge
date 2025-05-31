@@ -2,6 +2,12 @@
 
 module SpecForge
   module Documentation
+    #
+    # Documentation rendering functionality
+    #
+    # Contains renderer classes for transforming SpecForge documents
+    # into various output formats like OpenAPI specifications.
+    #
     module Renderers
     end
   end

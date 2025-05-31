@@ -5,9 +5,28 @@ module SpecForge
     module Renderers
       module OpenAPI
         class V3_0 < Base # standard:disable Naming/ClassAndModuleCamelCase
+          #
+          # Current OpenAPI 3.0 version supported by this renderer
+          #
+          # @api private
+          #
           CURRENT_VERSION = "3.0.4"
+
+          #
+          # Alias for OpenAPI V3.0 classes for cleaner code
+          #
+          # @api private
+          #
           OAS = Documentation::OpenAPI::V3_0
 
+          #
+          # Renders the complete OpenAPI 3.0 specification
+          #
+          # Builds the full OpenAPI document with all required sections
+          # and optional components based on configuration and test data.
+          #
+          # @return [Hash] Complete OpenAPI 3.0 specification
+          #
           def render
             {
               openapi: export_openapi_version,

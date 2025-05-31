@@ -15,6 +15,14 @@ module SpecForge
     #   spec_forge docs serve
     #
     class Docs < Command
+      #
+      # Valid file formats for documentation output
+      #
+      # Supported formats include YAML variants (yml, yaml) and JSON.
+      # Used for validation when users specify the --format option.
+      #
+      # @api private
+      #
       VALID_FORMATS = %w[yml yaml json].freeze
 
       command_name "docs"

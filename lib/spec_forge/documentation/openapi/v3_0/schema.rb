@@ -4,13 +4,46 @@ module SpecForge
   module Documentation
     module OpenAPI
       module V3_0 # standard:disable Naming/ClassAndModuleCamelCase
+        #
+        # Represents an OpenAPI 3.0 Schema object
+        #
+        # Handles schema definitions for data types, converting internal type
+        # representations to OpenAPI-compliant schema objects.
+        #
+        # @see https://spec.openapis.org/oas/v3.0.4.html#schema-object
+        #
         class Schema
-          attr_reader :type, :format
+          #
+          # The schema type (string, integer, object, etc.)
+          #
+          # @return [String, nil] The OpenAPI schema type
+          #
+          attr_reader :type
 
+          #
+          # The schema format (date-time, int64, etc.)
+          #
+          # @return [String, nil] The OpenAPI schema format
+          #
+          attr_reader :format
+
+          #
+          # Creates a new OpenAPI schema object
+          #
+          # @param options [Hash] Schema configuration options
+          # @option options [String] :type The data type to convert to OpenAPI format
+          #
+          # @return [Schema] A new schema instance
+          #
           def initialize(options = {})
             @type, @format = transform_type(options[:type])
           end
 
+          #
+          # Converts the schema to an OpenAPI-compliant hash
+          #
+          # @return [Hash] OpenAPI-formatted schema object
+          #
           def to_h
             {
               type:,

@@ -14,7 +14,25 @@ module SpecForge
     class Builder
       # Source: https://gist.github.com/johnelliott/cf77003f72f889abbc3f32785fa3df8d
       UUID_REGEX = /^[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$/i
+
+      #
+      # Regular expression for matching floating point numbers in strings
+      #
+      # Matches decimal numbers with optional negative sign, used for type detection
+      # when analyzing API response data.
+      #
+      # @api private
+      #
       INTEGER_REGEX = /^-?\d+$/
+
+      #
+      # Regular expression for matching integer numbers in strings
+      #
+      # Matches whole numbers with optional negative sign, used for type detection
+      # when analyzing API response data.
+      #
+      # @api private
+      #
       FLOAT_REGEX = /^-?\d+\.\d+$/
 
       #
@@ -28,6 +46,14 @@ module SpecForge
         new(endpoints).export_as_document
       end
 
+      #
+      # The processed endpoints organized by path and HTTP method
+      #
+      # Contains all endpoint data after grouping, sanitizing, merging,
+      # and flattening operations for document generation.
+      #
+      # @return [Hash] Processed endpoints ready for document creation
+      #
       attr_reader :endpoints
 
       #

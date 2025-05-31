@@ -13,8 +13,23 @@ module SpecForge
       # for selecting the appropriate renderer.
       #
       module OpenAPI
+        #
+        # Current OpenAPI version used as default
+        #
+        # Points to the latest supported OpenAPI version for new specifications.
+        #
+        # @api private
+        #
         CURRENT_VERSION = V3_0::CURRENT_VERSION
 
+        #
+        # Mapping of OpenAPI versions to their renderer classes
+        #
+        # Used for version selection when generating OpenAPI documentation.
+        # Keys are SemVersion objects, values are renderer classes.
+        #
+        # @api private
+        #
         VERSIONS = {
           V3_0.to_sem_version => V3_0
         }.freeze

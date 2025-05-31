@@ -7,6 +7,18 @@ module SpecForge
   #
   class Runner
     class << self
+      #
+      # Prepares forge objects for test execution
+      #
+      # Loads the forge helper, registers factories, loads specs from files,
+      # applies filtering, and returns ready-to-run forge objects.
+      #
+      # @param file_name [String, nil] Optional file name filter
+      # @param spec_name [String, nil] Optional spec name filter
+      # @param expectation_name [String, nil] Optional expectation name filter
+      #
+      # @return [Array<Forge>] Array of prepared forge objects
+      #
       def prepare(file_name: nil, spec_name: nil, expectation_name: nil)
         load_forge_helper
 
@@ -25,6 +37,17 @@ module SpecForge
         forges
       end
 
+      #
+      # Runs the prepared forges through RSpec
+      #
+      # Sets up the RSpec adapter and executes all tests, with optional
+      # exit behavior for CLI usage.
+      #
+      # @param forges [Array<Forge>] The forge objects to run
+      # @param exit_on_finish [Boolean] Whether to exit the process when complete
+      #
+      # @return [Integer, nil] Exit status if exit_on_finish is false
+      #
       def run(forges, exit_on_finish: true)
         Adapter.setup(forges)
         Adapter.run(exit_on_finish:)

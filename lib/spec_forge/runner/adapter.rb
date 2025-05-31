@@ -2,9 +2,22 @@
 
 module SpecForge
   class Runner
+    #
+    # Bridges SpecForge specs with RSpec execution
+    #
+    # Converts SpecForge forge objects into RSpec test structures
+    # and manages the test execution lifecycle.
+    #
     class Adapter
       include Singleton
 
+      #
+      # Configures RSpec with forge definitions
+      #
+      # Sets up RSpec and prepares everything for running tests
+      #
+      # @param forges [Array<Forge>] The forges to set up for testing
+      #
       def self.setup(forges)
         # Defines the forges with RSpec
         forges.each { |forge| instance.describe(forge) }
@@ -22,6 +35,15 @@ module SpecForge
         )
       end
 
+      #
+      # Executes the configured RSpec tests
+      #
+      # Runs all configured tests through RSpec with optional exit behavior.
+      #
+      # @param exit_on_finish [Boolean] Whether to exit the process when done
+      #
+      # @return [Integer, nil] Exit status if exit_on_finish is false
+      #
       def self.run(exit_on_finish: false)
         if exit_on_finish
           status = RSpec::Core::Runner.run([]).to_i
