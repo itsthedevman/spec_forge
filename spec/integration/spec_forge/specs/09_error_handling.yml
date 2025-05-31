@@ -82,7 +82,6 @@ authenticate_users:
 # SECTION 2: VALIDATION ERRORS
 # Testing proper error responses for invalid input
 validation_errors:
-  documentation: false
   variables:
     admin_token:
       transform.join:
@@ -179,7 +178,6 @@ validation_errors:
 # SECTION 3: PERMISSION ERRORS
 # Testing proper error responses for unauthorized access
 permission_errors:
-  documentation: false
   variables:
     user_token:
       transform.join:
@@ -266,7 +264,6 @@ permission_errors:
 # SECTION 4: NOT FOUND ERRORS
 # Testing proper error responses for non-existent resources
 not_found_errors:
-  documentation: false
   variables:
     admin_token:
       transform.join:
@@ -353,7 +350,6 @@ not_found_errors:
 # SECTION 5: BAD REQUEST SCENARIOS
 # Testing API responses to malformed requests
 bad_request_scenarios:
-  documentation: false
   variables:
     admin_token:
       transform.join:
@@ -432,7 +428,6 @@ bad_request_scenarios:
 authentication_errors:
   path: "/auth/login"
   method: post
-  documentation: false
   expectations:
   # Test: Login with non-existent user
   - name: "Error: Login with non-existent user"
