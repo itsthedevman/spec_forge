@@ -19,8 +19,7 @@ module SpecForge
       #
       LABELS = {
         factory_reference: "factory reference",
-        global_context: "global context",
-        openapi_config: "openapi/config/openapi.yml"
+        global_context: "global context"
       }.freeze
 
       #
