@@ -35,6 +35,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
         "*": # Wildcard that catches all other keys
           type: string
     ```
+- New `docs` CLI command for generating OpenAPI specifications from test data
+- Support for multiple output formats (YAML and JSON) via `--format` flag
+- Initial implementation of caching system with `--use-cache` flag to avoid re-running tests
+- Custom output paths via `--output` option
+- Complete OpenAPI 3.0.4 specification generation support
+- Documentation filtering with `documentation: false` attribute
+- New `headers` constraint type for testing HTTP response headers
+- Header matching with exact values, regex patterns, and RSpec matchers
+- Support for compound matchers on headers (e.g., `matcher.and`, `matcher.include`)
+- `--skip-docs` and `--skip-factories` flags for `init` command
+- Auto-generation of complete OpenAPI directory structure during initialization
+- New `Runner::Adapter` class for better RSpec integration
+- `Array#to_merged_h` utility method for merging arrays of hashes
 
 ### Changed
 - Completely refactored Normalizer class for improved maintainability
@@ -42,6 +55,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Consolidated shared attributes into `_shared.yml`
   - Added unified public API through `.normalize!(input, using:)` method
 - Improved loader error reporting
+- Test runner split into preparation and execution phases for better reusability
+- Improved error messages with better context and resolution paths
+- Enhanced constraint validation system to support headers alongside JSON/status
+- Expectation filtering now uses in-place operations for better performance
 
 ### Removed
 - Individual normalizer class files in favor of YAML configuration
