@@ -1,0 +1,37 @@
+info:
+  title: SpecForge Demo API
+  version: 1.0.0
+  description: |
+    A demo API to showcase SpecForge's OpenAPI generation capabilities.
+    This API includes endpoints for managing users, blog posts, and comments.
+  contact:
+    name: Bryan
+    email: bryan@itsthedevman.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+- url: https://devapi.itsthedevman.com
+  description: Development server
+- url: https://prodapi.itsthedevman.com
+  description: Production server
+
+tags:
+  Users:
+    description: User account management
+    external_docs:
+      url: "https://docs.prodapi.itsthedevman.com"
+      description: "Internal user account management"
+  Posts:
+    description: Blog post management
+  Comments:
+    description: Comment management for blog posts
+  Content:
+    description: Content management operations
+
+security_schemes:
+  bearerAuth:
+    type: http
+    scheme: bearer
+    bearerFormat: JWT

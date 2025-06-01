@@ -1,0 +1,313 @@
+# Posts API paths
+# Contains all blog post-related endpoint specifications
+
+/posts:
+  get:
+    tags: [ "Posts", "Content" ]
+    summary: "List blog posts"
+    description: "Returns a paginated and filterable list of blog posts"
+    parameters:
+    - name: limit
+      in: query
+      description: "Maximum number of results to return"
+      schema:
+        type: integer
+        default: 20
+    - name: offset
+      in: query
+      description: "Number of results to skip"
+      schema:
+        type: integer
+        default: 0
+    - name: published
+      in: query
+      description: "Filter by publication status"
+      schema:
+        type: boolean
+    - name: user_id
+      in: query
+      description: "Filter posts by author ID"
+      schema:
+        type: integer
+    - name: sort
+      in: query
+      description: "Field to sort by"
+      schema:
+        type: string
+        enum: [ "created_at", "title", "published" ]
+        default: "created_at"
+    - name: direction
+      in: query
+      description: "Sort direction"
+      schema:
+        type: string
+        enum: [ "asc", "desc" ]
+        default: "desc"
+    responses:
+      "200":
+        description: "List of posts"
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                total:
+                  type: integer
+                  description: "Total number of posts matching the query"
+                posts:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/Post"
+
+  post:
+    tags: [ "Posts", "Content" ]
+    summary: "Create a blog post"
+    description: "Creates a new blog post with the provided information"
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [ "title", "content" ]
+            properties:
+              title:
+                type: string
+                example: "My New Blog Post"
+              content:
+                type: string
+                example: "This is the content of my blog post."
+              published:
+                type: boolean
+                default: false
+                example: true
+              tags:
+                type: array
+                items:
+                  type: string
+                example: [ "technology", "programming" ]
+    responses:
+      "201":
+        description: "Post created successfully"
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                post:
+                  $ref: "#/components/schemas/Post"
+      "400":
+        description: "Bad request - Invalid post data"
+    security:
+    - bearerAuth: []
+
+/posts/{id}:
+  parameters:
+  - name: id
+    in: path
+    description: "Unique identifier of the post"
+    required: true
+    schema:
+      type: integer
+
+  get:
+    tags: [ "Posts", "Content" ]
+    summary: "Get post details"
+    description: "Returns detailed information about a specific blog post"
+    responses:
+      "200":
+        description: "Post details"
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                post:
+                  $ref: "#/components/schemas/Post"
+      "404":
+        description: "Post not found"
+
+  patch:
+    tags: [ "Posts", "Content" ]
+    summary: "Update post"
+    description: "Updates a blog post's information"
+    requestBody:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              title:
+                type: string
+              content:
+                type: string
+              published:
+                type: boolean
+              tags:
+                type: array
+                items:
+                  type: string
+    responses:
+      "200":
+        description: "Post updated successfully"
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                post:
+                  $ref: "#/components/schemas/Post"
+      "400":
+        description: "Bad request - Invalid data"
+      "403":
+        description: "Forbidden - User does not have permission to update this post"
+      "404":
+        description: "Post not found"
+    security:
+    - bearerAuth: []
+
+  delete:
+    tags: [ "Posts", "Content" ]
+    summary: "Delete post"
+    description: "Permanently deletes a blog post"
+    responses:
+      "204":
+        description: "Post deleted successfully"
+      "403":
+        description: "Forbidden - User does not have permission to delete this post"
+      "404":
+        description: "Post not found"
+    security:
+    - bearerAuth: []
+
+/posts/{post_id}/comments:
+  parameters:
+  - name: post_id
+    in: path
+    description: "Unique identifier of the post"
+    required: true
+    schema:
+      type: integer
+
+  get:
+    tags: [ "Comments", "Content" ]
+    summary: "List comments"
+    description: "Returns all comments for a specific blog post"
+    parameters:
+    - name: limit
+      in: query
+      description: "Maximum number of results to return"
+      schema:
+        type: integer
+        default: 20
+    - name: offset
+      in: query
+      description: "Number of results to skip"
+      schema:
+        type: integer
+        default: 0
+    responses:
+      "200":
+        description: "List of comments"
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                total:
+                  type: integer
+                comments:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/Comment"
+      "404":
+        description: "Post not found"
+
+  post:
+    tags: [ "Comments", "Content" ]
+    summary: "Add comment"
+    description: "Adds a new comment to a blog post"
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [ "content" ]
+            properties:
+              content:
+                type: string
+                example: "Great post, thanks for sharing!"
+    responses:
+      "201":
+        description: "Comment added successfully"
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                comment:
+                  $ref: "#/components/schemas/Comment"
+      "400":
+        description: "Bad request - Invalid comment data"
+      "404":
+        description: "Post not found"
+    security:
+    - bearerAuth: []
+
+/comments/{id}:
+  parameters:
+  - name: id
+    in: path
+    description: "Unique identifier of the comment"
+    required: true
+    schema:
+      type: integer
+
+  patch:
+    tags: [ "Comments", "Content" ]
+    summary: "Update comment"
+    description: "Updates a comment's content"
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [ "content" ]
+            properties:
+              content:
+                type: string
+                example: "Updated comment content"
+    responses:
+      "200":
+        description: "Comment updated successfully"
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                comment:
+                  $ref: "#/components/schemas/Comment"
+      "400":
+        description: "Bad request - Invalid data"
+      "403":
+        description: "Forbidden - User does not have permission to update this comment"
+      "404":
+        description: "Comment not found"
+    security:
+    - bearerAuth: []
+
+  delete:
+    tags: [ "Comments", "Content" ]
+    summary: "Delete comment"
+    description: "Permanently deletes a comment"
+    responses:
+      "204":
+        description: "Comment deleted successfully"
+      "403":
+        description: "Forbidden - User does not have permission to delete this comment"
+      "404":
+        description: "Comment not found"
+    security:
+    - bearerAuth: []

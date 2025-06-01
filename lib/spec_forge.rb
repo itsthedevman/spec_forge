@@ -13,6 +13,7 @@ require "faraday"
 require "mime/types"
 require "pathname"
 require "rspec"
+require "sem_version"
 require "singleton"
 require "thor"
 require "yaml"
@@ -58,28 +59,8 @@ module SpecForge
     # @param expectation_name [String, nil] Optional name of expectation to run
     #
     def run(file_name: nil, spec_name: nil, expectation_name: nil)
-      # Load spec_helper.rb
-      forge_helper = SpecForge.forge_path.join("forge_helper.rb")
-      require_relative forge_helper if File.exist?(forge_helper)
-
-      # Validate in case anything was changed
-      configuration.validate
-
-      # Load factories
-      Factory.load_and_register
-
-      # Load the specs from their files and create forges from them
-      forges = Loader.load_from_files.map { |f| Forge.new(*f) }
-
-      # Filter out the specs and expectations
-      forges = Filter.apply(forges, file_name:, spec_name:, expectation_name:)
-
-      # Tell the user that we filtered if we did
-      Filter.announce(forges, file_name:, spec_name:, expectation_name:)
-
-      # Define and run everything
-      Runner.define(forges)
-      Runner.run
+      forges = Runner.prepare(file_name:, spec_name:, expectation_name:)
+      Runner.run(forges, exit_on_finish: true)
     end
 
     #
@@ -98,6 +79,15 @@ module SpecForge
     #
     def forge_path
       @forge_path ||= root.join("spec_forge")
+    end
+
+    #
+    # Returns SpecForge's openapi directory
+    #
+    # @return [Pathname] The spec_forge openapi directory path
+    #
+    def openapi_path
+      @openapi_path ||= forge_path.join("openapi")
     end
 
     #
@@ -169,6 +159,19 @@ module SpecForge
     def register_callback(name, &)
       Callbacks.register(name, &)
     end
+
+    #
+    # Generates a unique ID for an object based on hash and object_id
+    #
+    # @param object [Object] The object to generate an ID for
+    #
+    # @return [String] A unique ID string
+    #
+    # @private
+    #
+    def generate_id(object)
+      "#{object.hash.abs.to_s(36)}_#{object.object_id.to_s(36)}"
+    end
   end
 end
 
@@ -179,6 +182,7 @@ require_relative "spec_forge/cli"
 require_relative "spec_forge/configuration"
 require_relative "spec_forge/context"
 require_relative "spec_forge/core_ext"
+require_relative "spec_forge/documentation"
 require_relative "spec_forge/error"
 require_relative "spec_forge/factory"
 require_relative "spec_forge/filter"

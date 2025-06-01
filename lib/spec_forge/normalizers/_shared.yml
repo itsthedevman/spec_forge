@@ -1,16 +1,21 @@
 id: string
+
 name: string
+
 line_number: integer
+
 base_url:
   type: string
   default: null
   required: false
+
 url:
   type: string
   default: null
   required: false
   aliases:
   - path
+
 http_verb:
   type: string
   default: null # Do not default this to "GET". Leave it null. Seriously.
@@ -19,10 +24,12 @@ http_verb:
   - method
   - http_method
   validator: http_verb
+
 headers:
   type: hash
   default: {}
   required: false
+
 query:
   type:
   - hash
@@ -31,6 +38,7 @@ query:
   - params
   default: {}
   required: false
+
 body:
   type:
   - hash
@@ -39,12 +47,14 @@ body:
   - data
   default: {}
   required: false
+
 variables:
   type:
   - hash
   - string
   default: {}
   required: false
+
 debug:
   type: boolean
   aliases:
@@ -52,7 +62,13 @@ debug:
   - breakpoint
   default: false
   required: false
+
 callback:
   type: string
   required: false
   validator: callback
+
+documentation:
+  type: boolean
+  required: false
+  default: true

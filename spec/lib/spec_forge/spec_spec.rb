@@ -14,6 +14,7 @@ RSpec.describe SpecForge::Spec do
     described_class.new(
       name:,
       expectations:,
+      documentation: true,
       id: "", debug: false,
       file_path: "", file_name: "", line_number: 0
     )

@@ -1,17 +1,23 @@
 base_url: string
+
 headers:
   reference: headers
+
 query:
   reference: query
+
 factories:
   type: hash
   default: {}
   structure:
+    ###########################################
     auto_discover:
       type: boolean
       default: true
+
     paths:
       type: array
       default: []
+
 on_debug:
   type: proc

@@ -15,7 +15,10 @@ module SpecForge
     #       json:
     #         name: kind_of.string
     #
-    class Expectation < Data.define(:id, :name, :line_number, :debug, :store_as, :constraints)
+    class Expectation < Data.define(
+      :id, :name, :line_number,
+      :debug, :store_as, :documentation, :constraints
+    )
       #
       # @return [Boolean] True if debugging is enabled
       #
@@ -34,14 +37,15 @@ module SpecForge
       # @param line_number [Integer] Line number in source
       # @param debug [Boolean] Whether to enable debugging
       # @param store_as [String] Unique Context::Store identifier
+      # @param documentation [Boolean] Whether to include in documentation generation
       # @param expect [Hash] Expected constraints
       #
       # @return [Expectation] A new expectation instance
       #
-      def initialize(id:, name:, line_number:, debug:, store_as:, expect:)
+      def initialize(id:, name:, line_number:, debug:, store_as:, expect:, documentation:)
         constraints = Constraint.new(**expect)
 
-        super(id:, name:, line_number:, debug:, store_as:, constraints:)
+        super(id:, name:, line_number:, debug:, store_as:, documentation:, constraints:)
       end
 
       #

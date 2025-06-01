@@ -12,21 +12,24 @@ module SpecForge
       # @example In code
       #   constraint = Constraint.new(
       #     status: 200,
-      #     json: {name: "matcher.eq" => "John"}
+      #     headers: {response_header: "kind_of.string"},
+      #     json: {name: {"matcher.eq" => "John"}}
       #   )
       #
-      class Constraint < Data.define(:status, :json) # :xml, :html
+      class Constraint < Data.define(:status, :headers, :json) # :xml, :html
         #
         # Creates a new constraint
         #
         # @param status [Integer, String] The expected HTTP status code, or reference to one
+        # @param headers [Hash] The expected headers with matchers
         # @param json [Hash, Array] The expected JSON with matchers
         #
         # @return [Constraint] A new constraint instance
         #
-        def initialize(status:, json: {})
+        def initialize(status:, headers: {}, json: {})
           super(
             status: Attribute.from(status),
+            headers: Attribute.from(headers),
             json: Attribute.from(json)
           )
         end
@@ -58,7 +61,8 @@ module SpecForge
         def as_matchers
           {
             status: status.resolve_as_matcher,
-            json: resolve_json_matcher
+            json: resolve_json_matcher,
+            headers: resolve_hash_matcher(headers)
           }
         end
 
@@ -108,10 +112,14 @@ module SpecForge
         def resolve_json_matcher
           case json
           when HashLike
-            json.transform_values(&:resolve_as_matcher).stringify_keys
+            resolve_hash_matcher(json)
           else
             json.resolve_as_matcher
           end
+        end
+
+        def resolve_hash_matcher(hash)
+          hash.transform_values(&:resolve_as_matcher).stringify_keys
         end
       end
     end

@@ -2,6 +2,7 @@
 
 require_relative "cli/actions"
 require_relative "cli/command"
+require_relative "cli/docs"
 require_relative "cli/init"
 require_relative "cli/new"
 require_relative "cli/run"
@@ -23,7 +24,7 @@ module SpecForge
     #
     # @return [Array<SpecForge::CLI::Command>] All available commands
     #
-    COMMANDS = [Init, New, Run].freeze
+    COMMANDS = [Docs, Init, New, Run].freeze
 
     #
     # Runs the CLI application, setting up program information and registering commands

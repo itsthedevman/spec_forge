@@ -8,3 +8,4 @@
 /tmp/
 /vendor/
 /.direnv/
+/spec/integration/spec_forge/openapi/generated/.cache

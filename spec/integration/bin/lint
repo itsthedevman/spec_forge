@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+# Exit the script if any command fails
+set -e
+
+bin/spec_forge docs generate --use-cache --format=yml
+
+docker run --rm -v $PWD:/spec redocly/cli lint spec_forge/openapi/generated/openapi.yml "$@"

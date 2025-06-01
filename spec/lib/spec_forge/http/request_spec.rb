@@ -19,6 +19,10 @@ RSpec.describe SpecForge::HTTP::Request do
       expect(request.http_verb).to be_kind_of(SpecForge::HTTP::Verb::Get)
     end
 
+    it "defaults content_type to \"application/json\"" do
+      expect(request.content_type).to eq("application/json")
+    end
+
     context "when 'headers' are provided" do
       let(:headers) { {:content_type => 1, "Custom-Header-2" => 2} }
 

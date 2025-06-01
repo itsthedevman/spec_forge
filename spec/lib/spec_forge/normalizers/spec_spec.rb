@@ -11,6 +11,7 @@ RSpec.describe SpecForge::Normalizer do
         line_number: 5,
         url: Faker::String.random,
         http_verb: SpecForge::HTTP::Verb::VERBS.keys.sample.to_s,
+        documentation: true,
         headers: {
           some_header: Faker::String.random
         },
@@ -50,6 +51,7 @@ RSpec.describe SpecForge::Normalizer do
         line_number: 1,
         url: Faker::String.random,
         http_verb: SpecForge::HTTP::Verb::VERBS.keys.sample.to_s,
+        documentation: true,
         headers: {
           some_header: Faker::String.random
         },
@@ -89,6 +91,7 @@ RSpec.describe SpecForge::Normalizer do
       expect(normalized[:variables][:variable_1]).to be_kind_of(String)
       expect(normalized[:variables][:variable_2]).to be_kind_of(String)
       expect(normalized[:expectations]).to be_kind_of(Array)
+      expect(normalized[:documentation]).to be(true)
 
       expect(normalized_expectation[:name]).to be_kind_of(String)
       expect(normalized_expectation[:url]).to be_kind_of(String)
@@ -105,6 +108,7 @@ RSpec.describe SpecForge::Normalizer do
       expect(normalized_expectation[:variables][:variable_1]).to be_kind_of(String)
       expect(normalized_expectation[:variables][:variable_2]).to be_kind_of(String)
       expect(normalized_expectation[:expect]).to be_kind_of(Hash)
+      expect(normalized_expectation[:documentation]).to be(true)
 
       expect(normalized_constraint[:status]).to be_kind_of(Integer)
       expect(normalized_constraint[:json]).to be_kind_of(Hash)
@@ -147,73 +151,85 @@ RSpec.describe SpecForge::Normalizer do
     include_examples(
       "normalizer_defaults_value",
       {
-        context: "when 'headers' is nil",
+        context: "when 'headers' on spec is nil",
         before: -> { spec[:headers] = nil },
         input: -> { normalized[:headers] },
         default: {}
       },
       {
-        context: "when 'query' is nil",
+        context: "when 'query' on spec is nil",
         before: -> { spec[:query] = nil },
         input: -> { normalized[:query] },
         default: {}
       },
       {
-        context: "when 'body' is nil",
+        context: "when 'body' on spec is nil",
         before: -> { spec[:body] = nil },
         input: -> { normalized[:body] },
         default: {}
       },
       {
-        context: "when 'variables' is nil",
+        context: "when 'variables' on spec is nil",
         before: -> { spec[:variables] = nil },
         input: -> { normalized[:variables] },
         default: {}
       },
       {
-        context: "when 'headers' is not a String",
+        context: "when 'documentation' on spec is nil",
+        before: -> { spec[:documentation] = nil },
+        input: -> { normalized[:documentation] },
+        default: true
+      },
+      {
+        context: "when 'headers' on expectation is not a String",
         before: -> { expectation[:headers] = nil },
         input: -> { normalized_expectation[:headers] },
         default: {}
       },
       {
-        context: "when 'query' is not a Hash",
+        context: "when 'query' on expectation is not a Hash",
         before: -> { expectation[:query] = nil },
         input: -> { normalized_expectation[:query] },
         default: {}
       },
       {
-        context: "when 'body' is not a Hash",
+        context: "when 'body' on expectation is not a Hash",
         before: -> { expectation[:body] = nil },
         input: -> { normalized_expectation[:body] },
         default: {}
       },
       {
-        context: "when 'variables' is not a Hash",
+        context: "when 'variables' on expectation is not a Hash",
         before: -> { expectation[:variables] = nil },
         input: -> { normalized_expectation[:variables] },
         default: {}
       },
       {
-        context: "when 'store_as' is nil",
+        context: "when 'store_as' on expectation is nil",
         before: -> { expectation[:store_as] = nil },
         input: -> { normalized_expectation[:store_as] },
         default: ""
       },
       {
-        context: "when 'status' is a String",
+        context: "when 'documentation' on expectation is nil",
+        before: -> { expectation[:documentation] = nil },
+        input: -> { normalized_expectation[:documentation] },
+        default: true
+      },
+      {
+        context: "when 'status' on constraint is a String",
         before: -> { constraint[:status] = "global.variables.status" },
         input: -> { normalized_constraint[:status] },
         default: "global.variables.status"
       },
       {
-        context: "when 'json' is not a Hash",
+        context: "when 'json' on constraint is not a Hash",
         before: -> { constraint[:json] = nil },
         input: -> { normalized_constraint[:json] },
         default: {}
       },
       {
-        context: "when 'json' is an Array",
+        context: "when 'json' on constraint is an Array",
         before: -> { constraint[:json] = [] },
         input: -> { normalized_constraint[:json] },
         default: []
@@ -223,77 +239,77 @@ RSpec.describe SpecForge::Normalizer do
     include_examples(
       "normalizer_raises_invalid_structure",
       {
-        context: "when 'base_url' is not a String",
+        context: "when 'base_url' on spec is not a String",
         before: -> { spec[:base_url] = 1 },
         error: "Expected String, got Integer for \"base_url\" in spec (line 1)"
       },
       {
-        context: "when 'url' is not a String",
+        context: "when 'url' on spec is not a String",
         before: -> { spec[:url] = 1 },
         error: "Expected String, got Integer for \"url\" (aliases \"path\") in spec (line 1)"
       },
       {
-        context: "when 'http_verb' is not a String",
+        context: "when 'http_verb' on spec is not a String",
         before: -> { spec[:http_verb] = 1 },
         error: "Expected String, got Integer for \"http_verb\" (aliases \"method\", \"http_method\") in spec (line 1)"
       },
       {
-        context: "when 'headers' is not a Hash",
+        context: "when 'headers' on spec is not a Hash",
         before: -> { spec[:headers] = 1 },
         error: "Expected Hash, got Integer for \"headers\" in spec (line 1)"
       },
       {
-        context: "when 'query' is not a Hash",
+        context: "when 'query' on spec is not a Hash",
         before: -> { spec[:query] = 1 },
         error: "Expected Hash or String, got Integer for \"query\" (aliases \"params\") in spec (line 1)"
       },
       {
-        context: "when 'body' is not a Hash",
+        context: "when 'body' on spec is not a Hash",
         before: -> { spec[:body] = 1 },
         error: "Expected Hash or String, got Integer for \"body\" (aliases \"data\") in spec (line 1)"
       },
       {
-        context: "when 'variables' is not a Hash",
+        context: "when 'variables' on spec is not a Hash",
         before: -> { spec[:variables] = 1 },
         error: "Expected Hash or String, got Integer for \"variables\" in spec (line 1)"
       },
       {
-        context: "when 'expectations' is nil",
+        context: "when 'expectations' on spec is nil",
         before: -> { spec[:expectations] = nil },
         error: "Expected Array, got NilClass for \"expectations\" in spec (line 1)"
       },
       {
-        context: "when 'expectations' is not an Array",
+        context: "when 'expectations' on spec is not an Array",
         before: -> { spec[:expectations] = 1 },
         error: "Expected Array, got Integer for \"expectations\" in spec (line 1)"
       },
       {
-        context: "when 'url' is not a String",
+        context: "when 'url' on expectation is not a String",
         before: -> { expectation[:url] = 1 },
         error: "Expected String, got Integer for \"url\" (aliases \"path\") in index 0 of \"expectations\" in spec (line 5)"
       },
       {
-        context: "when 'http_verb' is not a String",
+        context: "when 'http_verb' on expectation is not a String",
         before: -> { expectation[:http_verb] = 1 },
         error: "Expected String, got Integer for \"http_verb\" (aliases \"method\", \"http_method\") in index 0 of \"expectations\" in spec (line 5)"
       },
       {
-        context: "when 'http_verb' is not a valid verb",
+        context: "when 'http_verb' on expectation is not a valid verb",
         before: -> { expectation[:http_verb] = "TEG" },
         error: "Invalid HTTP verb \"TEG\" for \"http_verb\" (aliases \"method\", \"http_method\") in index 0 of \"expectations\" in spec. Valid values are: \"DELETE\", \"GET\", \"PATCH\", \"POST\", \"PUT\""
       },
       {
-        context: "when 'expect' is not a Hash",
+        context: "when 'expect' on expectation is not a Hash",
         before: -> { expectation[:expect] = nil },
         error: "Expected Hash, got NilClass for \"expect\" in index 0 of \"expectations\" in spec (line 5)"
       },
       {
-        context: "when 'store_as' is not a String",
+        context: "when 'store_as' on expectation is not a String",
         before: -> { expectation[:store_as] = 1 },
         error: "Expected String, got Integer for \"store_as\" in index 0 of \"expectations\" in spec (line 5)"
       },
       {
-        context: "when 'status' is not an Integer",
+        context: "when 'status' on constraint is not an Integer",
         before: -> { constraint[:status] = nil },
         error: "Expected Integer or String, got NilClass for \"status\" in \"expect\" in index 0 of \"expectations\" in spec"
       }

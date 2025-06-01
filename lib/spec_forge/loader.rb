@@ -86,7 +86,7 @@ module SpecForge
         files.map do |file_path, content|
           relative_path = Pathname.new(file_path).relative_path_from(base_path)
 
-          hash = YAML.load(content, symbolize_names: true)
+          hash = YAML.safe_load(content, symbolize_names: true)
 
           file_line_numbers = extract_line_numbers(content, hash)
 
@@ -103,7 +103,7 @@ module SpecForge
             hash.map do |spec_name, spec_hash|
               line_number, *expectation_line_numbers = file_line_numbers[spec_name]
 
-              spec_hash[:id] = "spec_#{generate_id(spec_hash)}"
+              spec_hash[:id] = "spec_#{SpecForge.generate_id(spec_hash)}"
               spec_hash[:name] = spec_name.to_s
               spec_hash[:file_path] = metadata[:file_path]
               spec_hash[:file_name] = metadata[:file_name]
@@ -112,7 +112,7 @@ module SpecForge
               # Check for expectations instead of defaulting. I want it to error
               if (expectations = spec_hash[:expectations])
                 expectations.zip(expectation_line_numbers) do |expectation_hash, line_number|
-                  expectation_hash[:id] = "expect_#{generate_id(expectation_hash)}"
+                  expectation_hash[:id] = "expect_#{SpecForge.generate_id(expectation_hash)}"
                   expectation_hash[:name] = build_expectation_name(spec_hash, expectation_hash)
                   expectation_hash[:line_number] = line_number
                 end
@@ -189,19 +189,6 @@ module SpecForge
         end
 
         keys
-      end
-
-      #
-      # Generates a unique ID for an object based on hash and object_id
-      #
-      # @param object [Object] The object to generate an ID for
-      #
-      # @return [String] A unique ID string
-      #
-      # @private
-      #
-      def generate_id(object)
-        "#{object.hash.abs.to_s(36)}_#{object.object_id.to_s(36)}"
       end
 
       #

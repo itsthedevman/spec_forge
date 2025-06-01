@@ -117,8 +117,7 @@ module SpecForge
       # }
       #
       specs.each_with_object({}) do |spec, hash|
-        overlay = spec[:expectations].to_h { |e| [e[:id], e.delete(:variables)] }
-          .reject { |_k, v| v.blank? }
+        overlay = spec[:expectations].to_h { |e| [e[:id], e.delete(:variables)] }.compact_blank
 
         hash[spec[:id]] = {base: spec.delete(:variables), overlay:}
       end
@@ -153,14 +152,14 @@ module SpecForge
         overlay = spec[:expectations].to_h do |expectation|
           [
             expectation[:id],
-            expectation.extract!(*HTTP::REQUEST_ATTRIBUTES).reject { |_k, v| v.blank? }
+            expectation.extract!(*HTTP::REQUEST_ATTRIBUTES).compact_blank
           ]
         end
 
-        overlay.reject! { |_k, v| v.blank? }
+        overlay.compact_blank!
 
         base = spec.extract!(*HTTP::REQUEST_ATTRIBUTES)
-        base.reject! { |_k, v| v.blank? }
+        base.compact_blank!
 
         base = config.deep_merge(base)
         base[:http_verb] ||= "GET"

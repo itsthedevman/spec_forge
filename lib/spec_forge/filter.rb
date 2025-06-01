@@ -22,7 +22,7 @@ module SpecForge
       # @param expectation_name [String, nil] Optional expectation name that was used by the filter
       #
       def announce(forges, file_name:, spec_name:, expectation_name:)
-        filters = {file_name:, spec_name:, expectation_name:}.reject { |k, v| v.blank? }
+        filters = {file_name:, spec_name:, expectation_name:}.compact_blank
         return if filters.size == 0
 
         filters_display = filters.join_map(", ") { |k, v| "#{k.in_quotes} => #{v.in_quotes}" }
@@ -69,10 +69,9 @@ module SpecForge
             # Expectation filter
             next spec unless expectation_name
 
-            expectations = spec.expectations.select { |e| e.name == expectation_name }
-            next if expectations.empty?
+            spec.expectations.select! { |e| e.name == expectation_name }
+            next if spec.expectations.empty?
 
-            spec.expectations = expectations
             spec
           end
 

@@ -37,6 +37,15 @@ module SpecForge
       end
 
       #
+      # Deregisters a callback
+      #
+      # @param name [String, Symbol] The name of the callback
+      #
+      def deregister(name)
+        instance.delete(name.to_s)
+      end
+
+      #
       # Checks if a callback is registered for the given event
       #
       # @param name [String, Symbol] The name of the callback event

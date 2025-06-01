@@ -3,8 +3,10 @@ model_class:
   default: ""
   aliases:
   - class
+
 variables:
   reference: variables
+
 attributes:
   type: hash
   default: {}

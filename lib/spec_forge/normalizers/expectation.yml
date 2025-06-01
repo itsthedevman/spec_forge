@@ -1,0 +1,47 @@
+# Internal
+id:
+  reference: id
+
+line_number:
+  reference: line_number
+
+# User defined
+name:
+  reference: name
+
+base_url:
+  reference: base_url
+
+url:
+  reference: url
+
+http_verb:
+  reference: http_verb
+
+headers:
+  reference: headers
+
+query:
+  reference: query
+
+body:
+  reference: body
+
+variables:
+  reference: variables
+
+debug:
+  reference: debug
+
+store_as:
+  type: string
+  default: ""
+
+documentation:
+  reference: documentation
+
+expect:
+  type: hash
+  structure:
+    ###########################################
+    reference: constraint

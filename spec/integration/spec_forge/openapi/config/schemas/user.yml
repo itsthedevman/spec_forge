@@ -1,0 +1,42 @@
+User:
+  type: object
+  required:
+  - id
+  - name
+  - email
+  - role
+  properties:
+    id:
+      type: integer
+      format: int64
+      description: "Unique identifier for the user"
+      example: 42
+    name:
+      type: string
+      description: "Full name of the user"
+      example: "Jane Smith"
+    email:
+      type: string
+      format: email
+      description: "Email address of the user"
+      example: "jane@example.com"
+    role:
+      type: string
+      enum: [ "admin", "user", "guest" ]
+      description: "User role that determines permissions"
+      example: "user"
+    active:
+      type: boolean
+      description: "Whether the user account is active"
+      default: true
+      example: true
+    created_at:
+      type: string
+      format: date-time
+      description: "Timestamp when the user was created"
+      example: "2023-01-15T14:30:00Z"
+    updated_at:
+      type: string
+      format: date-time
+      description: "Timestamp when the user was last updated"
+      example: "2023-01-20T09:15:00Z"
