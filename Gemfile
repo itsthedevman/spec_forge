@@ -7,7 +7,7 @@ gem "rails", "~> 8.0"
 # Specify your gem's dependencies in spec_forge.gemspec
 gemspec
 
-gem "rake", "~> 13.0"
+gem "rake", "~> 13.3"
 
 gem "standard", "~> 1.49"
 
