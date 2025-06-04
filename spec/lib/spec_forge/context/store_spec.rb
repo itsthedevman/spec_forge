@@ -27,6 +27,18 @@ RSpec.describe SpecForge::Context::Store do
 
       expect(store["my_id"]).to be_kind_of(described_class::Entry)
     end
+
+    it "is expected to allow any key and attributes" do
+      store.set("my_data", scope: :file, foo: 1, bar: 2, baz: {key: 3})
+
+      expect(store["my_data"]).to be_kind_of(described_class::Entry)
+      expect(store["my_data"]).to have_attributes(
+        scope: :file,
+        foo: 1,
+        bar: 2,
+        baz: {key: 3}
+      )
+    end
   end
 
   describe "#clear" do
