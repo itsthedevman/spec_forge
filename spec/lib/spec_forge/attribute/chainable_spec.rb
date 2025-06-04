@@ -25,7 +25,8 @@ RSpec.describe SpecForge::Attribute::Chainable do
             store: SpecForge::Context::Store::Entry.new(
               request: {},
               variables: {},
-              response: {body: {id: ""}}
+              response: {},
+              body: {id: ""}
             )
           }
         end
@@ -62,7 +63,7 @@ RSpec.describe SpecForge::Attribute::Chainable do
 
           Resolution path:
           1. key.header --> Hash with keys: "key_1", "nested", "items", "methods", "store"
-          2. key.header.store --> Store with attributes: "scope", "request", "variables", "response", "status", "body", "headers"
+          2. key.header.store --> Store with attributes: "request", "variables", "response", "body", "scope"
           3. key.header.store.body --> Hash with key: "id"
           4. key.header.store.body.name --> Error: Cannot invoke "name" on Hash
         STRING

@@ -48,6 +48,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Auto-generation of complete OpenAPI directory structure during initialization
 - New `Runner::Adapter` class for better RSpec integration
 - `Array#to_merged_h` utility method for merging arrays of hashes
+- **Flexible Store System**: Completely redesigned `Context::Store::Entry` to accept arbitrary data structures via callbacks
+  - Store entries now use OpenStruct instead of rigid Data structure for maximum flexibility
+  - Callbacks can store custom configuration, test metadata, computed values, or any other data needed between tests
+  - Stored data accessible via same `store.id.attribute` syntax as API responses
+  - Example usage:
+    ```ruby
+    # In forge_helper.rb
+    config.register_callback(:setup_test_data) do |context|
+      SpecForge.context.store.set(
+        "app_config",
+        api_version: "v2.1",
+        feature_flags: { advanced_search: true }
+      )
+    end
+    ```
+    ```yaml
+    # In tests
+    headers:
+      X-API-Version: store.app_config.api_version
+    query:
+      search_enabled: store.app_config.feature_flags.advanced_search
+    ```
 
 ### Changed
 - Completely refactored Normalizer class for improved maintainability
@@ -59,6 +81,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improved error messages with better context and resolution paths
 - Enhanced constraint validation system to support headers alongside JSON/status
 - Expectation filtering now uses in-place operations for better performance
+- Automatic header value conversion to strings in HTTP backend to handle non-string store values (booleans, numbers, etc.)
 
 ### Removed
 - Individual normalizer class files in favor of YAML configuration

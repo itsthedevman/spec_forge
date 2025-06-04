@@ -5,7 +5,7 @@
 #
 # SHARED CONTEXT OVERVIEW:
 # -----------------------
-# SpecForge provides two powerful ways to share data between tests:
+# SpecForge provides three powerful ways to share data between tests:
 #
 # 1. GLOBAL VARIABLES:
 #    - Defined at the file level with 'global.variables'
@@ -18,6 +18,11 @@
 #    - Two scopes available:
 #      - File scope (default): Available throughout the entire file
 #      - Spec scope: Only available within the current spec
+#
+# 3. CUSTOM STORE DATA:
+#    - Store arbitrary data via callbacks using any structure
+#    - Access custom data using the same 'store.' syntax
+#    - Perfect for test configuration, metadata, and complex setup data
 
 # Define global variables that will be accessible to all specs in this file
 global:
@@ -26,10 +31,11 @@ global:
     environment: "test"
     base_path: "global.variables.api_version"
     admin_role: "admin"
-  # Add database cleanup to prevent test interference
+  # Add database cleanup and custom data setup
   callbacks:
   - before_file: prepare_database_state
     after_file: cleanup_database_state
+  - before_file: setup_custom_store_data
 
 # SECTION 1: USING GLOBAL VARIABLES
 using_global_variables:
@@ -79,20 +85,51 @@ store_creation:
     expect:
       status: 201
 
-# Let's make access_file_scoped_data more flexible to handle different response structures
+# SECTION 3: USING CUSTOM STORE DATA
+custom_store_usage:
+  path: "/users/{id}"
+  query:
+    # Using the stored user's actual ID instead of hardcoded
+    id: store.user_data.body.user.id
+  headers:
+    X-API-Version: store.app_config.api_version
+    X-Environment: store.test_metadata.environment
+  expectations:
+  - name: "Accessing endpoints with custom store configuration"
+    expect:
+      status: 200
+      json:
+        user:
+          # Verify we got the right user
+          id: store.user_data.body.user.id
+
+# SECTION 4: FEATURE FLAGS AND CONDITIONAL TESTING
+feature_flag_testing:
+  path: "/status"
+  headers:
+    # Use custom store data to demonstrate feature flag checking
+    X-API-Version: store.app_config.api_version
+    X-Features-Enabled: store.app_config.feature_flags.advanced_search
+  expectations:
+  - name: "Testing with feature flag data in headers"
+    expect:
+      status: 200
+      json:
+        status: "ok"
+
+# SECTION 5: ACCESSING STORED DATA (FILE SCOPE)
 access_file_scoped_data:
   path: "/users/{id}"
   query:
-    # Try to access id directly assuming it might be at the top level
     id: store.user_data.body.user.id
   variables:
     stored_user: store.user_data.body
   expectations:
-  - name: "Retrieving user with stored ID (attempt with direct structure)"
+  - name: "Retrieving user with stored ID"
     expect:
       status: 200
 
-# SECTION 4: ACCESSING STORED DATA (SPEC SCOPE)
+# SECTION 6: ACCESSING STORED DATA (SPEC SCOPE)
 spec_scoped_data:
   path: "/users"
   expectations:
@@ -105,20 +142,24 @@ spec_scoped_data:
       # We expect this to work regardless of whether we can access the spec-scoped data
       status: 200
 
-# SECTION 5: COMBINED USAGE
+# SECTION 7: COMBINED USAGE WITH CUSTOM DATA
 combined_workflow:
   documentation: false
   variables:
-    # Reference both global variables and stored data
+    # Reference global variables, stored responses, AND custom store data
     new_user_data:
       name: "Combined Workflow User"
       email: "combined@example.com"
       role: global.variables.admin_role
       password: "password12345"
   expectations:
-  - name: "Create a user referencing global variables"
+  - name: "Create a user with custom environment settings"
     path: "/users"
     method: post
+    headers:
+      # Use custom store data for API versioning
+      X-API-Version: store.app_config.api_version
+      X-Environment: store.test_metadata.environment
     body: variables.new_user_data
     store_as: combined_user
     expect:
@@ -127,7 +168,7 @@ combined_workflow:
         user:
           name: variables.new_user_data.name
 
-# SECTION 6: ACCESSING REQUEST/RESPONSE METADATA
+# SECTION 8: ACCESSING REQUEST/RESPONSE METADATA
 request_response_metadata:
   expectations:
   - name: "Store complete request/response metadata"
@@ -143,15 +184,35 @@ request_response_metadata:
     expect:
       status: 201
 
-  - name: "Access various parts of stored request/response"
+  - name: "Access various parts of stored data (responses AND custom data)"
     documentation: false
     path: "/status"
+    headers:
+      # Mix of custom store data and response data
+      X-API-Version: store.app_config.api_version
+      X-Environment: store.test_metadata.environment
     variables:
-      # Access different parts of the stored data
+      # Access different parts of stored data
       stored_status: store.metadata_example.status
       stored_headers: store.metadata_example.headers
       request_body: store.metadata_example.request.body
       response_body: store.metadata_example.body
+      # Access custom store data
+      current_api_version: store.app_config.api_version
+      test_environment: store.test_metadata.environment
+    expect:
+      status: 200
+      json:
+        status: "ok"
+
+# SECTION 9: DYNAMIC CONFIGURATION TESTING
+dynamic_configuration:
+  path: "/status"
+  headers:
+    X-API-Version: store.app_config.api_version
+    X-Environment: store.test_metadata.environment
+  expectations:
+  - name: "Verify API status with our custom configuration data"
     expect:
       status: 200
       json:

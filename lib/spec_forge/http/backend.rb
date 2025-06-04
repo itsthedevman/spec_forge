@@ -144,6 +144,8 @@ module SpecForge
       #
       def update_request(request, headers, query, body)
         request.headers.merge!(headers)
+        request.headers.transform_values!(&:to_s)
+
         request.params.merge!(query)
         request.body = body.to_json
       end

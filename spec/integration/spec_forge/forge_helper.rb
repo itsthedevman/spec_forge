@@ -76,6 +76,31 @@ SpecForge.configure do |config|
     end
   end
 
+  # Storing custom data
+  #------------------------------------------------------------
+  config.define_callback :setup_custom_store_data do |context|
+    SpecForge.context.store.set(
+      "test_ids",
+      admin_user: 1001,
+      regular_user: 1002
+    )
+
+    SpecForge.context.store.set(
+      "app_config",
+      api_version: "v2.1",
+      feature_flags: {
+        advanced_search: true,
+        beta_ui: false
+      }
+    )
+
+    SpecForge.context.store.set(
+      "test_metadata",
+      test_run_id: SecureRandom.uuid,
+      environment: "integration"
+    )
+  end
+
   # Debugging support
   config.on_debug = -> { binding.pry } # standard:disable Lint/Debugger
 end

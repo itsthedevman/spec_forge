@@ -120,7 +120,10 @@ RSpec.describe SpecForge::Runner::Callbacks do
         scope: :file,
         request: include(:base_url, :url, :headers, :body, :http_verb, :query),
         variables: match(var_1: be_kind_of(String), var_2: [2]),
-        response: include(:headers, :status, :body)
+        response: be_kind_of(Faraday::Response),
+        headers: be_kind_of(Hash),
+        status: be(nil),
+        body: be(nil)
       )
 
       ##########################################################################
@@ -153,7 +156,10 @@ RSpec.describe SpecForge::Runner::Callbacks do
         scope: :spec,
         request: include(:base_url, :url, :headers, :body, :http_verb, :query),
         variables: match(var_1: be_kind_of(Regexp), var_2: 1),
-        response: include(:headers, :status, :body)
+        response: be_kind_of(Faraday::Response),
+        headers: be_kind_of(Hash),
+        status: be(nil),
+        body: be(nil)
       )
 
       ##########################################################################

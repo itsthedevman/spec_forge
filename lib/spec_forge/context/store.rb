@@ -19,51 +19,38 @@ module SpecForge
     #
     class Store
       #
-      # Represents a single stored entry with request, variables, and response data
+      # Represents a stored entry containing arbitrary data from test execution
       #
-      # Entries are immutable once created and contain a deep-frozen
-      # snapshot of the test state at the time of storage.
+      # Entries are created during test execution to store custom data that can be
+      # accessed in subsequent tests. Unlike the original rigid Data structure, this
+      # OpenStruct-based approach allows storing any key-value pairs, making it perfect
+      # for complex test scenarios that need custom configuration, metadata, or
+      # computed values.
       #
-      # @example Accessing stored entry data
-      #   entry = store["user_creation"]
-      #   entry.status    # => 201
-      #   entry.body.id   # => 42
+      # @example Storing custom configuration data
+      #   SpecForge.context.store.set(
+      #     "app_config",
+      #     api_version: "v2.1",
+      #     feature_flags: { advanced_search: true }
+      #   )
       #
-      class Entry < Data.define(:scope, :request, :variables, :response)
+      # @example Accessing stored data in tests
+      #   headers:
+      #     X-API-Version: store.app_config.api_version
+      #   query:
+      #     search_enabled: store.app_config.feature_flags.advanced_search
+      #
+      class Entry < OpenStruct
         #
-        # Creates a new immutable store entry
+        # Creates a new store entry
         #
-        # @param request [Hash] The HTTP request that was executed
-        # @param variables [Hash] Variables from the test context
-        # @param response [Hash] The HTTP response received
         # @param scope [Symbol] Scope of this entry, either :file or :spec
         #
-        # @return [Entry] A new immutable entry instance
+        # @return [Entry] A new entry instance
         #
-        def initialize(request:, variables:, response:, scope: :file)
+        def initialize(scope: :file, **)
           super
         end
-
-        #
-        # Shorthand accessor for the HTTP status code
-        #
-        # @return [Integer] The response status code
-        #
-        def status = response[:status]
-
-        #
-        # Shorthand accessor for the response body
-        #
-        # @return [Hash, Array, String] The parsed response body
-        #
-        def body = response[:body]
-
-        #
-        # Shorthand accessor for the response headers
-        #
-        # @return [Hash] The response headers
-        #
-        def headers = response[:headers]
 
         #
         # Returns all available methods that can be called
@@ -71,7 +58,7 @@ module SpecForge
         # @return [Array] The method names
         #
         def available_methods
-          members + [:status, :body, :headers]
+          @table.keys
         end
       end
 
