@@ -81,14 +81,12 @@ SpecForge.configure do |config|
   config.define_callback :setup_custom_store_data do |context|
     SpecForge.context.store.set(
       "test_ids",
-      scope: :file,
       admin_user: 1001,
       regular_user: 1002
     )
 
     SpecForge.context.store.set(
       "app_config",
-      scope: :file,
       api_version: "v2.1",
       feature_flags: {
         advanced_search: true,
@@ -98,7 +96,6 @@ SpecForge.configure do |config|
 
     SpecForge.context.store.set(
       "test_metadata",
-      scope: :file,
       test_run_id: SecureRandom.uuid,
       environment: "integration"
     )
