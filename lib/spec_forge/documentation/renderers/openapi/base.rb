@@ -30,20 +30,30 @@ module SpecForge
           #
           def config
             @config ||= begin
-              path = SpecForge.openapi_path.join("config", "openapi.yml")
-              YAML.safe_load_file(path, symbolize_names: true)
+              file_extension_glob = "*.{yml,yaml}"
+              base_path = SpecForge.openapi_path.join("config")
+
+              root_paths = base_path.join(file_extension_glob)
+              path_paths = base_path.join("paths", "**", file_extension_glob)
+              component_paths = base_path.join("components", "**", file_extension_glob)
+
+              config = load_yml_from_paths(root_paths).to_merged_h
+              paths_config = load_yml_from_paths(path_paths).to_merged_h
+              component_config = load_yml_from_paths(component_paths).to_merged_h
+
+              (config["paths"] ||= {}).deep_merge!(paths_config)
+              (config["components"] ||= {}).deep_merge!(component_config)
+
+              config
             end
           end
 
-          def parse_user_defined_paths
-            path = SpecForge.openapi_path.join("config", "paths", "**", "*.yml")
+          private
 
-            paths = Dir[path].map do |path|
-              path = Pathname.new(path)
-              YAML.safe_load_file(path, symbolize_names: true)
+          def load_yml_from_paths(paths)
+            Dir[paths].map do |path|
+              YAML.safe_load_file(path)
             end
-
-            paths.to_merged_h
           end
         end
       end
