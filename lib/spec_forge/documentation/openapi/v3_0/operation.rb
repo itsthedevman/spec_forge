@@ -146,7 +146,6 @@ module SpecForge
           def responses
             document.responses
               .group_by(&:status)
-              .stringify_keys
               .transform_values! do |responses|
                 response = responses.first
                 Response.new(response).to_h
