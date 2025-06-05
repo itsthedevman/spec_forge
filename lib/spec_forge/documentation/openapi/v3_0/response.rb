@@ -24,25 +24,12 @@ module SpecForge
           def to_h
             {
               # Required
-              description:,
+              description: "",
               content:
             }.merge_compact(
               # Optional
-              headers:,
-              links:
+              headers:
             )
-          end
-
-          #
-          # Returns the response description
-          #
-          # Uses documentation-provided description or defaults to empty string
-          # (required by OpenAPI spec).
-          #
-          # @return [String] Response description
-          #
-          def description
-            documentation[:description] || ""
           end
 
           #
@@ -58,7 +45,7 @@ module SpecForge
 
             {
               document.content_type => MediaType.new(schema:).to_h
-            }.deep_merge(documentation)
+            }
           end
 
           #
@@ -69,20 +56,7 @@ module SpecForge
           # @return [Hash, nil] Header definitions
           #
           def headers
-            docs = documentation[:headers] || {}
-
-            document.headers
-              .merge(docs)
-              .presence
-          end
-
-          #
-          # Returns link definitions for the response
-          #
-          # @return [Hash, nil] Link definitions from documentation
-          #
-          def links
-            documentation[:links].presence
+            document.headers.presence
           end
         end
       end
