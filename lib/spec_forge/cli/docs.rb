@@ -39,8 +39,11 @@ module SpecForge
       example "docs generate --format=json",
         "Generates documentation in JSON format instead of YAML"
 
-      example "docs serve",
-        "Starts a local server to view the generated documentation"
+      example "docs generate --skip-validation",
+        "Generates documentation without validating the OpenAPI specification"
+
+      # example "docs serve",
+      #   "Starts a local server to view the generated documentation"
 
       option "--use-cache",
         "Use cached test data if available, otherwise run tests to generate cache"
@@ -50,6 +53,9 @@ module SpecForge
 
       option "--output=PATH",
         "Custom output path for generated documentation"
+
+      option "--skip-validation",
+        "Skip OpenAPI specification validation during generation"
 
       #
       # Executes the docs command with the specified action
@@ -64,8 +70,8 @@ module SpecForge
         case (action = arguments.first)
         when "generate"
           generate_documentation
-        when "serve"
-          serve_documentation
+        # when "serve"
+        #   serve_documentation
         else
           raise ArgumentError, "Unexpected action #{action&.in_quotes}. Expected \"generate\" or \"serve\""
         end
@@ -74,18 +80,31 @@ module SpecForge
       private
 
       def generate_documentation
-        renderer_class = Documentation::Renderers::OpenAPI["3.0"]
+        renderer = Documentation::Renderers::OpenAPI["3.0"]
+        output = renderer.render(use_cache: options.use_cache)
+
+        renderer.validate!(output) unless options.skip_validation
 
         # Determine output format and path
         file_format = options.format&.downcase || "yml"
         validate_format!(file_format)
 
-        Documentation.render(
-          renderer_class,
-          path: determine_output_path(file_format),
-          use_cache: options.use_cache,
-          file_format:
-        )
+        file_path = determine_output_path(file_format)
+
+        content =
+          if file_format == "json"
+            JSON.pretty_generate(output)
+          else
+            output.to_yaml(stringify_names: true)
+          end
+
+        ::File.write(file_path, content)
+
+        puts "==============================================="
+        puts "Finished!"
+        puts ""
+        puts "Wrote output to #{file_path.relative_path_from(SpecForge.openapi_path)}"
+        puts ""
       end
 
       def serve_documentation
