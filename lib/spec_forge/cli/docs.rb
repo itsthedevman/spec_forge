@@ -100,11 +100,15 @@ module SpecForge
 
         ::File.write(file_path, content)
 
-        puts "==============================================="
-        puts "Finished!"
-        puts ""
-        puts "Wrote output to #{file_path.relative_path_from(SpecForge.openapi_path)}"
-        puts ""
+        puts <<~STRING
+
+          ========================================
+          🎉 Success!
+          ========================================
+
+          Your OpenAPI specification is valid and ready to use.
+          Output written to: #{file_path.relative_path_from(SpecForge.forge_path)}
+        STRING
       end
 
       def serve_documentation

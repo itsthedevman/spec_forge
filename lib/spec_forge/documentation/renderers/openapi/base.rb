@@ -41,9 +41,13 @@ module SpecForge
 
           def self.validate!(output)
             document = Openapi3Parser.load(output)
-            return if document.valid?
+            if document.valid?
+              puts "✅ No validation errors found!"
+              return
+            end
 
             puts ErrorFormatter.format(document.errors.errors)
+            raise Error::InvalidOASDocument
           end
 
           protected

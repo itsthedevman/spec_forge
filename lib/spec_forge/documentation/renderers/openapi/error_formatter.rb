@@ -17,18 +17,31 @@ module SpecForge
           end
 
           def format
-            return "✅ No validation errors found!" if @errors.blank?
+            return if @errors.blank?
 
-            errors =
-              @errors.map.with_index do |error, index|
-                format_single_error(error, index + 1)
-              end
+            unexpected_errors, errors = @errors.partition { |e| e.message.include?("Unexpected") }
+
+            unexpected_errors = format_errors(unexpected_errors)
+            errors = format_errors(errors, start_index: unexpected_errors.size)
+
+            if unexpected_errors.size > 0
+              unexpected_message = <<~STRING
+
+                Field errors (resolve these first):
+
+                #{unexpected_errors.join("\n\n")}
+
+                -------
+
+                Other validation errors:
+              STRING
+            end
 
             <<~STRING
               ========================================
               🚨 Validation Errors
               ========================================
-
+              #{unexpected_message}
               #{errors.join("\n\n")}
 
               Total errors: #{errors.size}
@@ -36,6 +49,12 @@ module SpecForge
           end
 
           private
+
+          def format_errors(errors, start_index: 0)
+            errors.map.with_index do |error, index|
+              format_single_error(error, start_index + index + 1)
+            end
+          end
 
           def format_single_error(error, number)
             context_path = simplify_context_path(error.context.to_s)
