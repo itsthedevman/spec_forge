@@ -9,7 +9,7 @@ module SpecForge
         #
         # Provides common functionality for OpenAPI renderers of different versions.
         #
-        class Base < File
+        class Base < Base
           #
           # Converts the renderer's version to a semantic version object
           #
@@ -17,6 +17,33 @@ module SpecForge
           #
           def self.to_sem_version
             SemVersion.new(CURRENT_VERSION)
+          end
+
+          def self.render(use_cache: false)
+            cache_path = SpecForge.openapi_path.join("generated", ".cache", "endpoints.yml")
+
+            endpoints =
+              if use_cache && File.exist?(cache_path)
+                YAML.safe_load_file(cache_path, symbolize_names: true)
+              else
+                endpoints = Documentation::Loader.extract_from_tests
+
+                # Write out the cache
+                File.write(cache_path, endpoints.to_yaml(stringify_names: true))
+
+                endpoints
+              end
+
+            document = Documentation::Builder.document_from_endpoints(endpoints)
+
+            new(document).render
+          end
+
+          def self.validate!(output)
+            document = Openapi3Parser.load(output)
+            return if document.valid?
+
+            puts ErrorFormatter.format(document.errors.errors)
           end
 
           protected
