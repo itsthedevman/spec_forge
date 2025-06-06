@@ -28,7 +28,6 @@ schemas:
         example: 42
       author:
         $ref: "#/components/schemas/User"
-        description: "The user who created the post"
       published:
         type: boolean
         description: "Whether the post is publicly visible"

@@ -23,7 +23,6 @@ schemas:
         example: 42
       author:
         $ref: "#/components/schemas/User"
-        description: "The user who created the comment"
       post_id:
         type: integer
         format: int64
@@ -31,7 +30,6 @@ schemas:
         example: 123
       post:
         $ref: "#/components/schemas/Post"
-        description: "The post this comment belongs to"
       created_at:
         type: string
         format: date-time
