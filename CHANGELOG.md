@@ -35,16 +35,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
         "*": # Wildcard that catches all other keys
           type: string
     ```
-- New `docs` CLI command for generating OpenAPI specifications from test data
-- Support for multiple output formats (YAML and JSON) via `--format` flag
-- Initial implementation of caching system with `--use-cache` flag to avoid re-running tests
-- Custom output paths via `--output` option
-- Complete OpenAPI 3.0.4 specification generation support
-- Documentation filtering with `documentation: false` attribute
+- OpenAPI documentation generation system that automatically creates specifications from your test data
+  - New `docs` CLI command with support for multiple output formats (YAML and JSON) via `--format` flag
+  - Built-in validation using `openapi3_parser` gem with user-friendly error messages
+  - Flexible configuration system - add your own YAML files in the `config/` directory to supplement/overwrite generated specs
+  - Caching support with `--use-cache` flag to speed up regeneration
+  - Custom output paths via `--output` option
+  - `--skip-validation` flag for edge cases where you need to bypass validation
 - New `headers` constraint type for testing HTTP response headers
 - Header matching with exact values, regex patterns, and RSpec matchers
 - Support for compound matchers on headers (e.g., `matcher.and`, `matcher.include`)
-- `--skip-docs` and `--skip-factories` flags for `init` command
+- `--skip-openapi` and `--skip-factories` flags for `init` command
 - Auto-generation of complete OpenAPI directory structure during initialization
 - New `Runner::Adapter` class for better RSpec integration
 - `Array#to_merged_h` utility method for merging arrays of hashes
