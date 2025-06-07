@@ -2,7 +2,7 @@
 
 module SpecForge
   module Documentation
-    module Renderers
+    module Generators
       module OpenAPI
         class ErrorFormatter
           PATHS_REGEX = %r{#/paths/(.+?)/(get|post|put|patch|delete|head|options)/responses/(.+)}i

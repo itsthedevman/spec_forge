@@ -2,16 +2,16 @@
 
 module SpecForge
   module Documentation
-    module Renderers
+    module Generators
       module OpenAPI
         #
-        # Base class for OpenAPI renderers
+        # Base class for OpenAPI generators
         #
-        # Provides common functionality for OpenAPI renderers of different versions.
+        # Provides common functionality for OpenAPI generators of different versions.
         #
-        class Base < Renderers::Base
+        class Base < Generators::Base
           #
-          # Converts the renderer's version to a semantic version object
+          # Converts the generator's version to a semantic version object
           #
           # @return [SemVersion] The semantic version
           #
@@ -19,7 +19,7 @@ module SpecForge
             SemVersion.new(CURRENT_VERSION)
           end
 
-          def self.render(use_cache: false)
+          def self.generate(use_cache: false)
             cache_path = SpecForge.openapi_path.join("generated", ".cache", "endpoints.yml")
 
             endpoints =
@@ -36,7 +36,7 @@ module SpecForge
 
             document = Documentation::Builder.document_from_endpoints(endpoints)
 
-            new(document).render
+            new(document).generate
           end
 
           def self.validate!(output)

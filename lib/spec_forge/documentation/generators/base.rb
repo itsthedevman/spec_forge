@@ -2,9 +2,9 @@
 
 module SpecForge
   module Documentation
-    module Renderers
+    module Generators
       class Base
-        def self.render(use_cache: false)
+        def self.generate(use_cache: false)
           raise "not implemented"
         end
 
@@ -15,24 +15,24 @@ module SpecForge
         attr_reader :input
 
         #
-        # Initializes a new renderer
+        # Initializes a new generators
         #
-        # @param input [Hash, Document] The document to render
+        # @param input [Hash, Document] The document to generate
         #
-        # @return [Base] A new renderer instance
+        # @return [Base] A new generator instance
         #
         def initialize(input = {})
           @input = input
         end
 
         #
-        # Renders the document into a specific format
+        # Generates the document into a specific format
         #
         # @raise [RuntimeError] Must be implemented by subclasses
         #
-        # @return [Object] The rendered document
+        # @return [Object] The generated document
         #
-        def render
+        def generate
           raise "not implemented"
         end
       end

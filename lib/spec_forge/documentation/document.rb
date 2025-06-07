@@ -7,7 +7,7 @@ module SpecForge
     #
     # This class is the central data structure for API documentation,
     # containing all endpoints organized by path and HTTP method.
-    # It serves as the bridge between extracted test data and renderers.
+    # It serves as the bridge between extracted test data and generators.
     #
     # @example Creating a document
     #   document = Document.new(

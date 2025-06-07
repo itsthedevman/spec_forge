@@ -2,12 +2,12 @@
 
 module SpecForge
   module Documentation
-    module Renderers
+    module Generators
       module OpenAPI
         # https://spec.openapis.org/oas/v3.0.4.html
         class V3_0 < Base # standard:disable Naming/ClassAndModuleCamelCase
           #
-          # Current OpenAPI 3.0 version supported by this renderer
+          # Current OpenAPI 3.0 version supported by this generator
           #
           # @api private
           #
@@ -20,7 +20,7 @@ module SpecForge
           #
           OAS = Documentation::OpenAPI::V3_0
 
-          def render
+          def generate
             output = {
               openapi: CURRENT_VERSION,
               paths:
