@@ -9,7 +9,7 @@ module SpecForge
         #
         # Provides common functionality for OpenAPI renderers of different versions.
         #
-        class Base < Base
+        class Base < Renderers::Base
           #
           # Converts the renderer's version to a semantic version object
           #
