@@ -16,11 +16,7 @@ info:
 #   description: Staging
 #
 # tags:
-#   users: User management
-#   posts: Post management
-#
-# security_schemes:
-#   bearer_auth:
-#     type: http
-#     scheme: bearer
-#     bearer_format: JWT
+# - name: users
+#   description: User account management
+# - name: posts
+#   description: Blog post management

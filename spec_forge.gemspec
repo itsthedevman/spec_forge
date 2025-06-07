@@ -43,6 +43,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency "faker", "~> 3.5"
   spec.add_dependency "faraday", "~> 2.12"
   spec.add_dependency "mime-types", "~> 3.6"
+  spec.add_dependency "openapi3_parser", "~> 0.10.1"
   spec.add_dependency "rspec", "~> 3.13"
   spec.add_dependency "sem_version", "~> 2.0"
   spec.add_dependency "thor", "~> 1.3"

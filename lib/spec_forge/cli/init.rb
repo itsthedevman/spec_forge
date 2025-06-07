@@ -13,7 +13,7 @@ module SpecForge
       syntax "init"
       summary "Initializes directory structure and configuration files"
 
-      option "--skip-docs", "Skip generating the \"docs\" directory"
+      option "--skip-openapi", "Skip generating the \"openapi\" directory"
       option "--skip-factories", "Skip generating the \"factories\" directory"
 
       #
@@ -21,31 +21,37 @@ module SpecForge
       # Also creates the "spec_forge.rb" initialization file
       #
       def call
+        initialize_forge
+        initialize_openapi unless options.skip_openapi
+      end
+
+      private
+
+      def initialize_forge
         base_path = SpecForge.forge_path
         actions.empty_directory(base_path.join("specs"))
         actions.empty_directory(base_path.join("factories")) unless options.skip_factories
-
         actions.template("forge_helper.tt", base_path.join("forge_helper.rb"))
+      end
 
-        unless options.skip_docs
-          # spec_forge/openapi
-          openapi_path = SpecForge.openapi_path
-          actions.empty_directory(openapi_path)
+      def initialize_openapi
+        # spec_forge/openapi
+        openapi_path = SpecForge.openapi_path
+        actions.empty_directory(openapi_path)
 
-          # spec_forge/openapi/config
-          config_path = openapi_path.join("config")
+        # spec_forge/openapi/config
+        config_path = openapi_path.join("config")
 
-          actions.empty_directory(config_path)
-          actions.empty_directory(config_path.join("paths")) # openapi/config/paths
-          actions.empty_directory(config_path.join("schemas")) # openapi/config/schemas
+        actions.empty_directory(config_path)
+        actions.empty_directory(config_path.join("paths")) # openapi/config/paths
+        actions.empty_directory(config_path.join("components")) # openapi/config/components
 
-          # openapi/config/openapi.yml
-          actions.template("openapi.tt", config_path.join("openapi.yml"))
+        # openapi/config/openapi.yml
+        actions.template("openapi.tt", config_path.join("openapi.yml"))
 
-          # spec_forge/openapi/generated
-          generated_path = openapi_path.join("generated")
-          actions.empty_directory(generated_path.join(".cache")) # openapi/generated/.cache
-        end
+        # spec_forge/openapi/generated
+        generated_path = openapi_path.join("generated")
+        actions.empty_directory(generated_path.join(".cache")) # openapi/generated/.cache
       end
     end
   end

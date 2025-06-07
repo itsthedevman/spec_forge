@@ -3,20 +3,15 @@
 module SpecForge
   module Documentation
     module Renderers
-      #
-      # Base class for all documentation renderers
-      #
-      # Provides common functionality for transforming document objects
-      # into specific documentation formats.
-      #
-      # @example Implementing a custom renderer
-      #   class MyRenderer < Base
-      #     def render
-      #       # Transform @input into desired format
-      #     end
-      #   end
-      #
       class Base
+        def self.render(use_cache: false)
+          raise "not implemented"
+        end
+
+        def self.validate!(input)
+          raise "not implemented"
+        end
+
         attr_reader :input
 
         #

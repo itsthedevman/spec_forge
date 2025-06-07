@@ -1,0 +1,42 @@
+schemas:
+  Comment:
+    type: object
+    required:
+    - id
+    - content
+    - user_id
+    - post_id
+    properties:
+      id:
+        type: integer
+        format: int64
+        description: "Unique identifier for the comment"
+        example: 456
+      content:
+        type: string
+        description: "Content of the comment"
+        example: "Great post, thanks for sharing!"
+      user_id:
+        type: integer
+        format: int64
+        description: "ID of the user who created the comment"
+        example: 42
+      author:
+        $ref: "#/components/schemas/User"
+      post_id:
+        type: integer
+        format: int64
+        description: "ID of the post this comment belongs to"
+        example: 123
+      post:
+        $ref: "#/components/schemas/Post"
+      created_at:
+        type: string
+        format: date-time
+        description: "Timestamp when the comment was created"
+        example: "2023-01-15T14:30:00Z"
+      updated_at:
+        type: string
+        format: date-time
+        description: "Timestamp when the comment was last updated"
+        example: "2023-01-20T09:15:00Z"

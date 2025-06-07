@@ -4,6 +4,7 @@ module SpecForge
   module Documentation
     module Renderers
       module OpenAPI
+        # https://spec.openapis.org/oas/v3.0.4.html
         class V3_0 < Base # standard:disable Naming/ClassAndModuleCamelCase
           #
           # Current OpenAPI 3.0 version supported by this renderer
@@ -19,82 +20,26 @@ module SpecForge
           #
           OAS = Documentation::OpenAPI::V3_0
 
-          #
-          # Renders the complete OpenAPI 3.0 specification
-          #
-          # Builds the full OpenAPI document with all required sections
-          # and optional components based on configuration and test data.
-          #
-          # @return [Hash] Complete OpenAPI 3.0 specification
-          #
           def render
-            {
-              openapi: export_openapi_version,
-              info: export_info,
-              paths: export_paths
-            }.merge_compact(
-              servers: export_servers,
-              components: export_components,
-              security: export_security,
-              tags: export_tags,
-              externalDocs: export_external_docs
-            )
+            output = {
+              openapi: CURRENT_VERSION,
+              paths:
+            }
+
+            output.deep_stringify_keys!
+            output.deep_merge!(config)
+
+            output
           end
 
-          protected
-
-          # https://spec.openapis.org/oas/v3.0.4.html#openapi-object
-          def export_openapi_version
-            CURRENT_VERSION
-          end
-
-          # https://spec.openapis.org/oas/v3.0.4.html#info-object
-          def export_info
-            config[:info]
-          end
-
-          # https://spec.openapis.org/oas/v3.0.4.html#server-object
-          def export_servers
-            config[:servers]
-          end
-
-          # https://spec.openapis.org/oas/v3.0.4.html#paths-object
-          def export_paths
-            path_documentation = parse_user_defined_paths
+          def paths
             paths = input.endpoints.deep_dup
 
             paths.each do |path, operations|
-              operations.transform_values!(with_key: true) do |document, operation|
-                documentation = path_documentation.dig(path, operation) || {}
-
-                OAS::Operation.new(document, documentation:).to_h
+              operations.transform_values! do |document|
+                OAS::Operation.new(document).to_h
               end
             end
-          end
-
-          # https://spec.openapis.org/oas/v3.0.4.html#components-object
-          def export_components
-            {
-              securitySchemes: config[:security_schemes]
-            }
-          end
-
-          # https://spec.openapis.org/oas/v3.0.4.html#security-requirement-object
-          def export_security
-            config[:security]
-          end
-
-          # https://spec.openapis.org/oas/v3.0.4.html#tag-object
-          def export_tags
-            tags = config[:tags]
-            return if tags.blank?
-
-            tags.map { |name, data| OAS::Tag.parse(name, data).to_h }
-          end
-
-          # https://spec.openapis.org/oas/v3.0.4.html#external-documentation-object
-          def export_external_docs
-            nil
           end
         end
       end

@@ -18,20 +18,14 @@ servers:
   description: Production server
 
 tags:
-  Users:
-    description: User account management
-    external_docs:
-      url: "https://docs.prodapi.itsthedevman.com"
-      description: "Internal user account management"
-  Posts:
-    description: Blog post management
-  Comments:
-    description: Comment management for blog posts
-  Content:
-    description: Content management operations
-
-security_schemes:
-  bearerAuth:
-    type: http
-    scheme: bearer
-    bearerFormat: JWT
+- name: users
+  description: User account management
+  externalDocs:
+    url: "https://docs.prodapi.itsthedevman.com"
+    description: "Internal user account management"
+- name: posts
+  description: Blog post management
+- name: comments
+  description: Comment management for blog posts
+- name: content
+  description: Content management operations

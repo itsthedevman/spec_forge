@@ -72,9 +72,6 @@
               echo "Creating database user ${db_user}..."
               psql postgres -c "CREATE USER ${db_user} WITH SUPERUSER PASSWORD '${db_pass}';"
             fi
-
-            echo "Pulling redocs CLI"
-            docker pull redocly/cli
           '';
         };
       }

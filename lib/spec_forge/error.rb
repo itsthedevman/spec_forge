@@ -300,5 +300,8 @@ module SpecForge
         super(message)
       end
     end
+
+    class InvalidOASDocument < Error
+    end
   end
 end
