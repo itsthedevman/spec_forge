@@ -301,6 +301,20 @@ module SpecForge
       end
     end
 
+    #
+    # Raised when an OpenAPI specification fails validation
+    #
+    # This error indicates that the generated OpenAPI document contains
+    # validation errors according to the OpenAPI specification standards.
+    # It's typically raised after attempting to validate a generated specification.
+    #
+    # @example
+    #   begin
+    #     generator.validate!(openapi_spec)
+    #   rescue SpecForge::Error::InvalidOASDocument
+    #     puts "Generated specification has validation errors"
+    #   end
+    #
     class InvalidOASDocument < Error
     end
   end

@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative "loader/cache"
+
 module SpecForge
   module Documentation
     #
@@ -12,7 +14,35 @@ module SpecForge
     #   endpoints = Loader.extract_from_tests
     #
     class Loader
-      include Singleton
+      #
+      # Loads a documentation document with optional caching
+      #
+      # Extracts endpoint data from SpecForge tests, either from cache (if valid
+      # and requested) or by running fresh tests. Returns a structured document
+      # ready for generator consumption.
+      #
+      # @param use_cache [Boolean] Whether to use cached data if available
+      #
+      # @return [Document] Structured document containing endpoint data
+      #
+      def self.load_document(use_cache: false)
+        cache = Cache.new
+
+        endpoints =
+          if use_cache && cache.valid?
+            puts "Loading from cache..."
+            cache.read
+          else
+            puts "Cache invalid - Regenerating..." if use_cache
+
+            endpoints = extract_from_tests
+            cache.create(endpoints)
+
+            endpoints
+          end
+
+        Builder.document_from_endpoints(endpoints)
+      end
 
       #
       # Runs tests and extracts endpoint data
@@ -20,7 +50,7 @@ module SpecForge
       # @return [Array<Hash>] Extracted endpoint data from successful tests
       #
       def self.extract_from_tests
-        instance
+        new
           .run_tests
           .extract_and_normalize_data
       end

@@ -2,16 +2,16 @@
 
 module SpecForge
   module Documentation
-    module Renderers
+    module Generators
       module OpenAPI
         #
-        # Base class for OpenAPI renderers
+        # Base class for OpenAPI generators
         #
-        # Provides common functionality for OpenAPI renderers of different versions.
+        # Provides common functionality for OpenAPI generators of different versions.
         #
-        class Base < Renderers::Base
+        class Base < Generators::Base
           #
-          # Converts the renderer's version to a semantic version object
+          # Converts the generator's version to a semantic version object
           #
           # @return [SemVersion] The semantic version
           #
@@ -19,26 +19,33 @@ module SpecForge
             SemVersion.new(CURRENT_VERSION)
           end
 
-          def self.render(use_cache: false)
-            cache_path = SpecForge.openapi_path.join("generated", ".cache", "endpoints.yml")
-
-            endpoints =
-              if use_cache && File.exist?(cache_path)
-                YAML.safe_load_file(cache_path, symbolize_names: true)
-              else
-                endpoints = Documentation::Loader.extract_from_tests
-
-                # Write out the cache
-                File.write(cache_path, endpoints.to_yaml(stringify_names: true))
-
-                endpoints
-              end
-
-            document = Documentation::Builder.document_from_endpoints(endpoints)
-
-            new(document).render
+          #
+          # Generates OpenAPI documentation from test data with optional caching
+          #
+          # Loads endpoint data from tests (either fresh or cached), creates a document,
+          # and generates the OpenAPI specification using the appropriate version generator.
+          #
+          # @param use_cache [Boolean] Whether to use cached test data if available
+          #
+          # @return [Hash] The generated OpenAPI specification
+          #
+          def self.generate(use_cache: false)
+            document = Documentation::Loader.load_document(use_cache:)
+            new(document).generate
           end
 
+          #
+          # Validates an OpenAPI specification against the standard
+          #
+          # Uses the openapi3_parser gem to validate the generated specification
+          # and provides detailed error reporting if validation fails.
+          #
+          # @param output [Hash] The OpenAPI specification to validate
+          #
+          # @return [void]
+          #
+          # @raise [Error::InvalidOASDocument] If the specification is invalid
+          #
           def self.validate!(output)
             document = Openapi3Parser.load(output)
             if document.valid?

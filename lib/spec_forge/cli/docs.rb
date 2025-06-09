@@ -80,10 +80,10 @@ module SpecForge
       private
 
       def generate_documentation
-        renderer = Documentation::Renderers::OpenAPI["3.0"]
-        output = renderer.render(use_cache: options.use_cache)
+        generator = Documentation::Generators::OpenAPI["3.0"]
+        output = generator.generate(use_cache: options.use_cache)
 
-        renderer.validate!(output) unless options.skip_validation
+        generator.validate!(output) unless options.skip_validation
 
         # Determine output format and path
         file_format = options.format&.downcase || "yml"

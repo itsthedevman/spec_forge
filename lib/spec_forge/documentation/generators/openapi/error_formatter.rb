@@ -2,20 +2,72 @@
 
 module SpecForge
   module Documentation
-    module Renderers
+    module Generators
       module OpenAPI
+        #
+        # Formats OpenAPI validation errors into human-readable messages
+        #
+        # Takes validation errors from OpenAPI parsers and transforms them into
+        # structured, easy-to-understand error messages with context information
+        # and suggestions for resolution.
+        #
+        # @example Formatting validation errors
+        #   errors = openapi_parser.errors
+        #   formatted = ErrorFormatter.format(errors)
+        #   puts formatted
+        #
         class ErrorFormatter
+          #
+          # Regular expression for matching path-related validation errors
+          #
+          # Captures path, HTTP method, and response code from OpenAPI error contexts
+          # to provide meaningful location information in error messages.
+          #
+          # @api private
+          #
           PATHS_REGEX = %r{#/paths/(.+?)/(get|post|put|patch|delete|head|options)/responses/(.+)}i
+
+          #
+          # Regular expression for matching schema-related validation errors
+          #
+          # Captures schema name and field path from OpenAPI error contexts
+          # to identify specific schema validation failures.
+          #
+          # @api private
+          #
           SCHEMA_REGEX = %r{#/components/schemas/(.+?)/(.+)}i
 
+          #
+          # Formats an array of validation errors into a readable string
+          #
+          # @param errors [Array] Array of validation error objects
+          #
+          # @return [String, nil] Formatted error message or nil if no errors
+          #
           def self.format(errors)
             new(errors).format
           end
 
+          #
+          # Creates a new error formatter
+          #
+          # @param errors [Array] Array of validation error objects to format
+          #
+          # @return [ErrorFormatter] A new formatter instance
+          #
           def initialize(errors)
             @errors = errors
           end
 
+          #
+          # Formats the errors into a structured, readable message
+          #
+          # Groups errors by type (unexpected vs validation), formats each error
+          # with context and location information, and returns a comprehensive
+          # error report with resolution guidance.
+          #
+          # @return [String, nil] Formatted error message or nil if no errors
+          #
           def format
             return if @errors.blank?
 

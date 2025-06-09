@@ -6,12 +6,12 @@ require_relative "openapi/v3_0"
 
 module SpecForge
   module Documentation
-    module Renderers
+    module Generators
       #
-      # Namespace for OpenAPI renderers
+      # Namespace for OpenAPI generators
       #
-      # Contains version-specific OpenAPI renderers and helper methods
-      # for selecting the appropriate renderer.
+      # Contains version-specific OpenAPI generators and helper methods
+      # for selecting the appropriate generator.
       #
       module OpenAPI
         #
@@ -24,10 +24,10 @@ module SpecForge
         CURRENT_VERSION = V3_0::CURRENT_VERSION
 
         #
-        # Mapping of OpenAPI versions to their renderer classes
+        # Mapping of OpenAPI versions to their generator classes
         #
         # Used for version selection when generating OpenAPI documentation.
-        # Keys are SemVersion objects, values are renderer classes.
+        # Keys are SemVersion objects, values are generator classes.
         #
         # @api private
         #
@@ -36,22 +36,22 @@ module SpecForge
         }.freeze
 
         #
-        # Selects an OpenAPI renderer by version
+        # Selects an OpenAPI generator by version
         #
         # @param version [String] OpenAPI version (e.g., "3.0")
         #
-        # @return [Class] The appropriate renderer class
+        # @return [Class] The appropriate generator class
         # @raise [ArgumentError] If the version is not supported
         #
         def self.[](version)
           version = SemVersion.from_loose_version(version)
-          renderer = VERSIONS.value_where { |k, _v| k.satisfies?("~> #{version}") }
+          generator = VERSIONS.value_where { |k, _v| k.satisfies?("~> #{version}") }
 
-          if renderer.nil?
+          if generator.nil?
             raise ArgumentError, "Invalid OpenAPI version provided: #{version.to_s.in_quotes}"
           end
 
-          renderer
+          generator
         end
       end
     end
