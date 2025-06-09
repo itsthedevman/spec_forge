@@ -20,6 +20,15 @@ module SpecForge
           #
           OAS = Documentation::OpenAPI::V3_0
 
+          #
+          # Generates an OpenAPI 3.0 specification from the input document
+          #
+          # Creates a complete OpenAPI specification by combining the document's
+          # endpoint data with configuration files and ensuring compliance with
+          # OpenAPI 3.0.4 standards.
+          #
+          # @return [Hash] Complete OpenAPI 3.0 specification
+          #
           def generate
             output = {
               openapi: CURRENT_VERSION,
@@ -32,6 +41,14 @@ module SpecForge
             output
           end
 
+          #
+          # Transforms document endpoints into OpenAPI paths structure
+          #
+          # Converts the internal endpoint representation into the OpenAPI paths
+          # format, with each path containing operations organized by HTTP method.
+          #
+          # @return [Hash] OpenAPI paths object with operations
+          #
           def paths
             paths = input.endpoints.deep_dup
 

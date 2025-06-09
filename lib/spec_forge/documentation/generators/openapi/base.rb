@@ -19,11 +19,33 @@ module SpecForge
             SemVersion.new(CURRENT_VERSION)
           end
 
+          #
+          # Generates OpenAPI documentation from test data with optional caching
+          #
+          # Loads endpoint data from tests (either fresh or cached), creates a document,
+          # and generates the OpenAPI specification using the appropriate version generator.
+          #
+          # @param use_cache [Boolean] Whether to use cached test data if available
+          #
+          # @return [Hash] The generated OpenAPI specification
+          #
           def self.generate(use_cache: false)
             document = Documentation::Loader.load_document(use_cache:)
             new(document).generate
           end
 
+          #
+          # Validates an OpenAPI specification against the standard
+          #
+          # Uses the openapi3_parser gem to validate the generated specification
+          # and provides detailed error reporting if validation fails.
+          #
+          # @param output [Hash] The OpenAPI specification to validate
+          #
+          # @return [void]
+          #
+          # @raise [Error::InvalidOASDocument] If the specification is invalid
+          #
           def self.validate!(output)
             document = Openapi3Parser.load(output)
             if document.valid?

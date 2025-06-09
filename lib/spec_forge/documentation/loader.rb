@@ -14,6 +14,17 @@ module SpecForge
     #   endpoints = Loader.extract_from_tests
     #
     class Loader
+      #
+      # Loads a documentation document with optional caching
+      #
+      # Extracts endpoint data from SpecForge tests, either from cache (if valid
+      # and requested) or by running fresh tests. Returns a structured document
+      # ready for generator consumption.
+      #
+      # @param use_cache [Boolean] Whether to use cached data if available
+      #
+      # @return [Document] Structured document containing endpoint data
+      #
       def self.load_document(use_cache: false)
         cache = Cache.new
 

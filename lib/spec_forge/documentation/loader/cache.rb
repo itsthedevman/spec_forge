@@ -3,25 +3,82 @@
 module SpecForge
   module Documentation
     class Loader
+      #
+      # Manages caching of test execution data for documentation generation
+      #
+      # Provides caching of endpoint data extracted from tests,
+      # checking file modification times to determine cache validity and
+      # avoiding unnecessary test re-execution when specs haven't changed.
+      #
+      # @example Using the cache
+      #   cache = Cache.new
+      #   if cache.valid?
+      #     endpoints = cache.read
+      #   else
+      #     endpoints = run_tests_and_extract_data
+      #     cache.create(endpoints)
+      #   end
+      #
       class Cache
+        #
+        # Creates a new cache manager
+        #
+        # Sets up file paths for endpoint and spec caches in the OpenAPI
+        # generated directory structure.
+        #
+        # @return [Cache] A new cache instance
+        #
         def initialize
           @endpoint_cache = SpecForge.openapi_path.join("generated", ".cache", "endpoints.yml")
           @spec_cache = SpecForge.openapi_path.join("generated", ".cache", "specs.yml")
         end
 
+        #
+        # Checks if the cache is valid and can be used
+        #
+        # Determines cache validity by checking if endpoint cache exists
+        # and whether any spec files have been modified since the cache
+        # was created.
+        #
+        # @return [Boolean] true if cache is valid and can be used
+        #
         def valid?
           endpoint_cache? && !specs_updated?
         end
 
+        #
+        # Creates a cache entry with endpoint data and spec file metadata
+        #
+        # Writes both the endpoint data and current spec file modification times
+        # to enable cache invalidation when specs change.
+        #
+        # @param endpoints [Array<Hash>] Endpoint data to cache
+        #
+        # @return [void]
+        #
         def create(endpoints)
           write_spec_cache
           write(endpoints)
         end
 
+        #
+        # Writes endpoint data to the cache file
+        #
+        # @param endpoints [Array<Hash>] Endpoint data to write
+        #
+        # @return [void]
+        #
         def write(endpoints)
           write_to_file(endpoints, @endpoint_cache)
         end
 
+        #
+        # Reads cached endpoint data from disk
+        #
+        # @return [Array<Hash>] Previously cached endpoint data
+        #
+        # @raise [StandardError] If cache file is missing or corrupted
+        #
         def read
           read_from_file(@endpoint_cache)
         end
