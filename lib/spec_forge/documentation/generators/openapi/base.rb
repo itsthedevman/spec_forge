@@ -20,22 +20,7 @@ module SpecForge
           end
 
           def self.generate(use_cache: false)
-            cache_path = SpecForge.openapi_path.join("generated", ".cache", "endpoints.yml")
-
-            endpoints =
-              if use_cache && File.exist?(cache_path)
-                YAML.safe_load_file(cache_path, symbolize_names: true)
-              else
-                endpoints = Documentation::Loader.extract_from_tests
-
-                # Write out the cache
-                File.write(cache_path, endpoints.to_yaml(stringify_names: true))
-
-                endpoints
-              end
-
-            document = Documentation::Builder.document_from_endpoints(endpoints)
-
+            document = Documentation::Loader.load_document(use_cache:)
             new(document).generate
           end
 
