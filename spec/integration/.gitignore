@@ -35,3 +35,4 @@
 /vendor/bundle
 
 /spec_forge/openapi/generated/*
+/spec_forge/openapi/server/*

@@ -17,6 +17,7 @@ require "rspec"
 require "sem_version"
 require "singleton"
 require "thor"
+require "webrick"
 require "yaml"
 
 #

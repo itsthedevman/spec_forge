@@ -31,7 +31,7 @@ module SpecForge
         base_path = SpecForge.forge_path
         actions.empty_directory(base_path.join("specs"))
         actions.empty_directory(base_path.join("factories")) unless options.skip_factories
-        actions.template("forge_helper.tt", base_path.join("forge_helper.rb"))
+        actions.template("forge_helper.rb.tt", base_path.join("forge_helper.rb"))
       end
 
       def initialize_openapi
@@ -47,11 +47,7 @@ module SpecForge
         actions.empty_directory(config_path.join("components")) # openapi/config/components
 
         # openapi/config/openapi.yml
-        actions.template("openapi.tt", config_path.join("openapi.yml"))
-
-        # spec_forge/openapi/generated
-        generated_path = openapi_path.join("generated")
-        actions.empty_directory(generated_path.join(".cache")) # openapi/generated/.cache
+        actions.template("openapi.yml.tt", config_path.join("openapi.yml"))
       end
     end
   end
