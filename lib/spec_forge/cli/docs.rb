@@ -161,7 +161,11 @@ module SpecForge
         )
 
         # And serve it!
-        server = WEBrick::HTTPServer.new(Port: 8080, DocumentRoot: server_path)
+        server = WEBrick::HTTPServer.new(
+          Port: options.port || 8080,
+          DocumentRoot: server_path
+        )
+
         trap("INT") { server.shutdown }
         server.start
       end
