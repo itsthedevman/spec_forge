@@ -207,6 +207,9 @@ module SpecForge
         file_name
       end
 
+      #
+      # Helper class for passing template variables to Thor templates
+      #
       class Proxy < Struct.new(:spec_url)
         #
         # Returns a binding for use in templates
