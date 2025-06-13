@@ -42,8 +42,11 @@ module SpecForge
       example "docs generate --skip-validation",
         "Generates documentation without validating the OpenAPI specification"
 
-      # example "docs serve",
-      #   "Starts a local server to view the generated documentation"
+      example "docs serve",
+        "Starts a local server to view the generated documentation"
+
+      example "docs serve --ui redoc",
+        "Starts server with Redoc interface instead of Swagger UI"
 
       option "--use-cache",
         "Use cached test data if available, otherwise run tests to generate cache"
@@ -56,6 +59,9 @@ module SpecForge
 
       option "--skip-validation",
         "Skip OpenAPI specification validation during generation"
+
+      option "--ui=UI",
+        "Documentation interface to use (swagger, redoc) [default: swagger]"
 
       #
       # Executes the docs command with the specified action
@@ -70,8 +76,8 @@ module SpecForge
         case (action = arguments.first)
         when "generate"
           generate_documentation
-        # when "serve"
-        #   serve_documentation
+        when "serve"
+          serve_documentation
         else
           raise ArgumentError, "Unexpected action #{action&.in_quotes}. Expected \"generate\" or \"serve\""
         end
@@ -79,7 +85,16 @@ module SpecForge
 
       private
 
+      def create_generated_directories
+        # spec_forge/openapi/generated
+        generated_path = SpecForge.openapi_path.join("generated")
+        actions.empty_directory(generated_path, verbose: false)
+        actions.empty_directory(generated_path.join(".cache"), verbose: false)
+      end
+
       def generate_documentation
+        create_generated_directories
+
         generator = Documentation::Generators::OpenAPI["3.0"]
         output = generator.generate(use_cache: options.use_cache)
 
@@ -112,9 +127,34 @@ module SpecForge
       end
 
       def serve_documentation
-        # This would be implemented later - placeholder for now
-        puts "Documentation server functionality coming soon!"
-        puts "For now, you can generate docs with 'spec_forge docs generate'"
+        server_path = SpecForge.openapi_path.join("server")
+        actions.empty_directory(server_path, verbose: false) # spec_forge/openapi/server
+
+        # Remove existing files
+        index_path = server_path.join("index.html")
+        index_path.delete if index_path.exist?
+
+        # Recreate the index based on the UI
+        template_name =
+          if options.ui == "redoc"
+            "redoc.html.tt"
+          else
+            "swagger.html.tt"
+          end
+
+        path = SpecForge.openapi_path.join("generated", "openapi.yml")
+        actions.copy_file(path, server_path.join("openapi.yml"), verbose: false)
+
+        actions.template(
+          template_name,
+          index_path,
+          context: Proxy.new(spec_url: "openapi.yml").call,
+          verbose: false
+        )
+
+        server = WEBrick::HTTPServer.new(Port: 8080, DocumentRoot: server_path)
+        trap("INT") { server.shutdown }
+        server.start
       end
 
       def validate_format!(format)
@@ -130,6 +170,17 @@ module SpecForge
         else
           extension = (format == "json") ? "json" : "yml"
           SpecForge.openapi_path.join("generated", "openapi.#{extension}")
+        end
+      end
+
+      class Proxy < Struct.new(:spec_url)
+        #
+        # Returns a binding for use in templates
+        #
+        # @return [Binding] A binding containing template variables
+        #
+        def call
+          binding
         end
       end
     end
