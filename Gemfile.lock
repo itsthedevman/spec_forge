@@ -13,6 +13,7 @@ PATH
       rspec (~> 3.13)
       sem_version (~> 2.0)
       thor (~> 1.3)
+      webrick (~> 1.9)
 
 GEM
   remote: https://rubygems.org/
@@ -307,7 +308,6 @@ DEPENDENCIES
   rake (~> 13.0)
   spec_forge!
   standard (~> 1.49)
-  webrick (~> 1.9)
   yard
 
 BUNDLED WITH
