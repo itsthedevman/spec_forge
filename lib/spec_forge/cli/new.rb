@@ -51,7 +51,7 @@ module SpecForge
 
       def create_new_spec(name)
         actions.template(
-          "new_spec.tt",
+          "new_spec.yml.tt",
           SpecForge.forge_path.join("specs", "#{name}.yml"),
           context: Proxy.new(name).call
         )
@@ -59,7 +59,7 @@ module SpecForge
 
       def create_new_factory(name)
         actions.template(
-          "new_factory.tt",
+          "new_factory.yml.tt",
           SpecForge.forge_path.join("factories", "#{name}.yml"),
           context: Proxy.new(name).call
         )
