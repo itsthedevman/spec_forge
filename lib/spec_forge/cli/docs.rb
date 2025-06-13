@@ -45,8 +45,11 @@ module SpecForge
       example "docs serve",
         "Starts a local server to view the generated documentation"
 
-      example "docs serve --ui redoc",
-        "Starts server with Redoc interface instead of Swagger UI"
+      example "docs serve --ui redoc --port 3001",
+        "Serves with Redoc interface on port 3001"
+
+      example "docs serve --use-cache --force --format json",
+        "Uses cached test data but regenerates docs as JSON, serves with Swagger UI"
 
       option "--use-cache",
         "Use cached test data if available, otherwise run tests to generate cache"
@@ -62,6 +65,12 @@ module SpecForge
 
       option "--ui=UI",
         "Documentation interface to use (swagger, redoc) [default: swagger]"
+
+      option "--force",
+        "Regenerate documentation even if it already exists"
+
+      option "--port=PORT",
+        "Port to serve documentation on [default: 8080]"
 
       #
       # Executes the docs command with the specified action
@@ -101,9 +110,7 @@ module SpecForge
         generator.validate!(output) unless options.skip_validation
 
         # Determine output format and path
-        file_format = options.format&.downcase || "yml"
-        validate_format!(file_format)
-
+        file_format = determine_file_format
         file_path = determine_output_path(file_format)
 
         content =
@@ -130,11 +137,10 @@ module SpecForge
         server_path = SpecForge.openapi_path.join("server")
         actions.empty_directory(server_path, verbose: false) # spec_forge/openapi/server
 
-        # Remove existing files
-        index_path = server_path.join("index.html")
-        index_path.delete if index_path.exist?
+        # Generate or copy the spec over
+        file_name = generate_or_copy_spec
 
-        # Recreate the index based on the UI
+        # Determine which template file to use
         template_name =
           if options.ui == "redoc"
             "redoc.html.tt"
@@ -142,19 +148,29 @@ module SpecForge
             "swagger.html.tt"
           end
 
-        path = SpecForge.openapi_path.join("generated", "openapi.yml")
-        actions.copy_file(path, server_path.join("openapi.yml"), verbose: false)
+        # Remove the index if it exists
+        index_path = server_path.join("index.html")
+        index_path.delete if index_path.exist?
 
+        # Generate index.html
         actions.template(
           template_name,
           index_path,
-          context: Proxy.new(spec_url: "openapi.yml").call,
+          context: Proxy.new(spec_url: file_name).call,
           verbose: false
         )
 
+        # And serve it!
         server = WEBrick::HTTPServer.new(Port: 8080, DocumentRoot: server_path)
         trap("INT") { server.shutdown }
         server.start
+      end
+
+      def determine_file_format
+        file_format = options.format&.downcase || "yml"
+        validate_format!(file_format)
+
+        file_format
       end
 
       def validate_format!(format)
@@ -171,6 +187,20 @@ module SpecForge
           extension = (format == "json") ? "json" : "yml"
           SpecForge.openapi_path.join("generated", "openapi.#{extension}")
         end
+      end
+
+      def generate_or_copy_spec
+        server_path = SpecForge.openapi_path.join("server")
+
+        file_format = determine_file_format
+        file_path = determine_output_path(file_format)
+
+        generate_documentation if options.force || !file_path.exist?
+
+        file_name = "openapi.#{file_format}"
+        actions.copy_file(file_path, server_path.join(file_name), verbose: false)
+
+        file_name
       end
 
       class Proxy < Struct.new(:spec_url)
