@@ -18,71 +18,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- New YAML-based normalizer architecture with structure definitions in `lib/spec_forge/normalizers/`
-- Support for structure references with `reference:` keyword for composition
-- Dedicated validators module for reusable validation logic
-- Added wildcard key support to the Normalizer with `*` syntax
-  - Allows defining a catch-all schema for keys not explicitly defined in a structure
-    ```yaml
-    # Example structure definition
-    person:
-      type: hash
-      structure:
-        name:
-          type: string
-        age:
-          type: integer
-        "*": # Wildcard that catches all other keys
-          type: string
-    ```
-- OpenAPI documentation generation system that automatically creates specifications from your test data
-  - New `docs` CLI command with support for multiple output formats (YAML and JSON) via `--format` flag
-  - Built-in validation using `openapi3_parser` gem with user-friendly error messages
-  - Flexible configuration system - add your own YAML files in the `config/` directory to supplement/overwrite generated specs
-  - Caching support with `--use-cache` flag to speed up regeneration
+
+#### Documentation System
+- **Documentation Server**: New `docs serve` command starts a local web server for viewing API documentation
+- **UI Options**: Support for Swagger UI (default) and Redoc via `--ui` flag
+- **Server Configuration**: Added `--port` flag to customize server port (defaults to 8080)
+- **Integrated Workflow**: All generation flags (`--use-cache`, `--force`, `--format`) work with serve command
+- **OpenAPI Generation**: Automatically creates OpenAPI specifications from test data
+  - Multiple output formats (YAML/JSON) via `--format` flag
+  - Built-in validation with user-friendly error messages
+  - Flexible configuration system with custom YAML files
+  - Caching support via `--use-cache` flag for faster regeneration
   - Custom output paths via `--output` option
-  - `--skip-validation` flag for edge cases where you need to bypass validation
-- New `headers` constraint type for testing HTTP response headers
-- Header matching with exact values, regex patterns, and RSpec matchers
-- Support for compound matchers on headers (e.g., `matcher.and`, `matcher.include`)
-- `--skip-openapi` and `--skip-factories` flags for `init` command
-- Auto-generation of complete OpenAPI directory structure during initialization
-- New `Runner::Adapter` class for better RSpec integration
-- `Array#to_merged_h` utility method for merging arrays of hashes
-- **Flexible Store System**: Completely redesigned `Context::Store::Entry` to accept arbitrary data structures via callbacks
-  - Store entries now use OpenStruct instead of rigid Data structure for maximum flexibility
-  - Callbacks can store custom configuration, test metadata, computed values, or any other data needed between tests
-  - Stored data accessible via same `store.id.attribute` syntax as API responses
-  - Example usage:
-    ```ruby
-    # In forge_helper.rb
-    config.register_callback(:setup_test_data) do |context|
-      SpecForge.context.store.set(
-        "app_config",
-        api_version: "v2.1",
-        feature_flags: { advanced_search: true }
-      )
-    end
-    ```
-    ```yaml
-    # In tests
-    headers:
-      X-API-Version: store.app_config.api_version
-    query:
-      search_enabled: store.app_config.feature_flags.advanced_search
-    ```
+
+#### Testing Features
+- **Header Testing**: New `headers` constraint for testing HTTP response headers
+  - Support for exact values, regex patterns, and RSpec matchers
+  - Compound matcher support (e.g., `matcher.and`, `matcher.include`)
+- **Flexible Store System**: Redesigned store to accept arbitrary data via callbacks
+  - Uses OpenStruct for maximum flexibility instead of rigid data structures
+  - Store custom configuration, metadata, or computed values between tests
+  - Access via same `store.id.attribute` syntax as API responses
+
+#### Architecture Improvements
+- **YAML-based Normalizer**: New architecture with structure definitions in config files
+  - Structure references via `reference:` keyword for composition
+  - Wildcard key support with `*` syntax for catch-all schemas
+  - Dedicated validators module for reusable validation logic
+- **Enhanced CLI**: `--skip-openapi` and `--skip-factories` flags for `init` command
+- **Utility Methods**: Added `Array#to_merged_h` for merging arrays of hashes
 
 ### Changed
-- Completely refactored Normalizer class for improved maintainability
-  - Moved from class-based to data-driven approach
+- **Normalizer Refactor**: Moved from class-based to data-driven approach
   - Consolidated shared attributes into `_shared.yml`
-  - Added unified public API through `.normalize!(input, using:)` method
-- Improved loader error reporting
-- Test runner split into preparation and execution phases for better reusability
-- Improved error messages with better context and resolution paths
-- Enhanced constraint validation system to support headers alongside JSON/status
-- Expectation filtering now uses in-place operations for better performance
-- Automatic header value conversion to strings in HTTP backend to handle non-string store values (booleans, numbers, etc.)
+  - Unified public API through `.normalize!(input, using:)` method
+- **Test Runner**: Split into preparation and execution phases for better reusability
+- **Error Handling**: Improved error messages with better context and resolution paths
+- **HTTP Backend**: Automatic header value conversion to strings for non-string store values
 
 ### Removed
 - Individual normalizer class files in favor of YAML configuration
