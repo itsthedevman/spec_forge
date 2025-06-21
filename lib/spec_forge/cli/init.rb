@@ -48,6 +48,11 @@ module SpecForge
 
         # openapi/config/openapi.yml
         actions.template("openapi.yml.tt", config_path.join("openapi.yml"))
+
+        # spec_forge/openapi/generated
+        generated_path = SpecForge.openapi_path.join("generated")
+        actions.empty_directory(generated_path, verbose: false)
+        actions.empty_directory(generated_path.join(".cache"), verbose: false)
       end
     end
   end
