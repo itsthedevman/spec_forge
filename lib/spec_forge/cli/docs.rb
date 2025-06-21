@@ -1,20 +1,12 @@
 # frozen_string_literal: true
 
+require_relative "docs/generate"
+
 module SpecForge
   class CLI
-    #
-    # Command for generating and serving API documentation
-    #
-    # Provides CLI commands for generating OpenAPI specifications from tests
-    # and serving them through a web interface.
-    #
-    # @example Generating OpenAPI documentation
-    #   spec_forge docs generate
-    #
-    # @example Starting documentation server
-    #   spec_forge docs serve
-    #
     class Docs < Command
+      include Docs::Generate
+
       #
       # Valid file formats for documentation output
       #
@@ -26,30 +18,21 @@ module SpecForge
       VALID_FORMATS = %w[yml yaml json].freeze
 
       command_name "docs"
-      syntax "docs <action>"
-      summary "Generate and serve API documentation from SpecForge tests"
-      description "Generate OpenAPI specifications from your SpecForge tests or serve them through a web interface. Supports multiple output formats and caching for faster regeneration."
+      syntax "docs"
+      summary ""
+      description ""
 
       example "docs generate",
         "Generates OpenAPI documentation from all tests"
 
-      example "docs generate --use-cache",
+      example "docs --use-cache",
         "Uses cached test data if available, otherwise runs tests first"
 
-      example "docs generate --format=json",
+      example "docs --format=json",
         "Generates documentation in JSON format instead of YAML"
 
-      example "docs generate --skip-validation",
+      example "docs --skip-validation",
         "Generates documentation without validating the OpenAPI specification"
-
-      example "docs serve",
-        "Starts a local server to view the generated documentation"
-
-      example "docs serve --ui redoc --port 3001",
-        "Serves with Redoc interface on port 3001"
-
-      example "docs serve --use-cache --force --format json",
-        "Uses cached test data but regenerates docs as JSON, serves with Swagger UI"
 
       option "--use-cache",
         "Use cached test data if available, otherwise run tests to generate cache"
@@ -63,64 +46,8 @@ module SpecForge
       option "--skip-validation",
         "Skip OpenAPI specification validation during generation"
 
-      option "--ui=UI",
-        "Documentation interface to use (swagger, redoc) [default: swagger]"
-
-      option "--force",
-        "Regenerate documentation even if it already exists"
-
-      option "--port=PORT",
-        "Port to serve documentation on [default: 8080]"
-
-      #
-      # Executes the docs command with the specified action
-      #
-      # Supports 'generate' to create OpenAPI files and 'serve' to start a documentation server.
-      # The generate action can output in multiple formats and supports caching for performance.
-      #
-      # @return [void]
-      # @raise [ArgumentError] If an invalid action is provided
-      #
       def call
-        case (action = arguments.first)
-        when "generate"
-          generate_documentation
-        when "serve"
-          serve_documentation
-        else
-          raise ArgumentError, "Unexpected action #{action&.in_quotes}. Expected \"generate\" or \"serve\""
-        end
-      end
-
-      private
-
-      def create_generated_directories
-        # spec_forge/openapi/generated
-        generated_path = SpecForge.openapi_path.join("generated")
-        actions.empty_directory(generated_path, verbose: false)
-        actions.empty_directory(generated_path.join(".cache"), verbose: false)
-      end
-
-      def generate_documentation
-        create_generated_directories
-
-        generator = Documentation::Generators::OpenAPI["3.0"]
-        output = generator.generate(use_cache: options.use_cache)
-
-        generator.validate!(output) unless options.skip_validation
-
-        # Determine output format and path
-        file_format = determine_file_format
-        file_path = determine_output_path(file_format)
-
-        content =
-          if file_format == "json"
-            JSON.pretty_generate(output)
-          else
-            output.to_yaml(stringify_names: true)
-          end
-
-        ::File.write(file_path, content)
+        file_path = generate_documentation
 
         puts <<~STRING
 
@@ -131,107 +58,6 @@ module SpecForge
           Your OpenAPI specification is valid and ready to use.
           Output written to: #{file_path.relative_path_from(SpecForge.forge_path)}
         STRING
-      end
-
-      def serve_documentation
-        server_path = SpecForge.openapi_path.join("server")
-        actions.empty_directory(server_path, verbose: false) # spec_forge/openapi/server
-
-        # Generate or copy the spec over
-        file_name = generate_or_copy_spec
-
-        # Determine which template file to use
-        template_name =
-          if options.ui == "redoc"
-            "redoc.html.tt"
-          else
-            "swagger.html.tt"
-          end
-
-        # Remove the index if it exists
-        index_path = server_path.join("index.html")
-        index_path.delete if index_path.exist?
-
-        # Generate index.html
-        actions.template(
-          template_name,
-          index_path,
-          context: Proxy.new(spec_url: file_name).call,
-          verbose: false
-        )
-
-        # And serve it!
-        port = options.port || 8080
-        server = WEBrick::HTTPServer.new(
-          Port: port,
-          DocumentRoot: server_path
-        )
-
-        puts <<~STRING
-          ========================================
-          🚀 SpecForge Documentation Server
-          ========================================
-          Server running at: http://localhost:#{port}
-          Press Ctrl+C to stop
-          ========================================
-        STRING
-
-        trap("INT") { server.shutdown }
-        server.start
-      end
-
-      def determine_file_format
-        file_format = options.format&.downcase || "yml"
-        validate_format!(file_format)
-
-        file_format
-      end
-
-      def validate_format!(format)
-        return if VALID_FORMATS.include?(format)
-
-        raise ArgumentError,
-          "Invalid format #{format.in_quotes}. Valid formats: #{VALID_FORMATS.join_map(", ", &:in_quotes)}"
-      end
-
-      def determine_output_path(format)
-        if options.output
-          Pathname.new(options.output)
-        else
-          extension = (format == "json") ? "json" : "yml"
-          SpecForge.openapi_path.join("generated", "openapi.#{extension}")
-        end
-      end
-
-      def generate_or_copy_spec
-        server_path = SpecForge.openapi_path.join("server")
-
-        file_format = determine_file_format
-        file_path = determine_output_path(file_format)
-
-        generate_documentation if options.force || !file_path.exist?
-
-        file_name = "openapi.#{file_format}"
-        path = server_path.join(file_name)
-        path.delete if path.exist?
-
-        actions.copy_file(file_path, path, verbose: false)
-
-        file_name
-      end
-
-      #
-      # Helper class for passing template variables to Thor templates
-      #
-      class Proxy < Struct.new(:spec_url)
-        #
-        # Returns a binding for use in templates
-        #
-        # @return [Binding] A binding containing template variables
-        #
-        def call
-          binding
-        end
       end
     end
   end
