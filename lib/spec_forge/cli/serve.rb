@@ -97,9 +97,7 @@ module SpecForge
         file_format = determine_file_format
         file_path = determine_output_path(file_format)
 
-        if options.force || !file_path.exist?
-          CLI::Docs.new([], options).generate_documentation
-        end
+        generate_documentation if options.force || !file_path.exist?
 
         file_name = "openapi.#{file_format}"
         path = server_path.join(file_name)
