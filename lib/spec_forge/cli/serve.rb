@@ -40,6 +40,8 @@ module SpecForge
       option "--port=PORT",
         "Port to serve documentation on [default: 8080]"
 
+      aliases :s
+
       def call
         server_path = SpecForge.openapi_path.join("server")
         actions.empty_directory(server_path, verbose: false) # spec_forge/openapi/server
