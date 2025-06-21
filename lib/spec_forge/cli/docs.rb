@@ -161,10 +161,20 @@ module SpecForge
         )
 
         # And serve it!
+        port = options.port || 8080
         server = WEBrick::HTTPServer.new(
-          Port: options.port || 8080,
+          Port: port,
           DocumentRoot: server_path
         )
+
+        puts <<~STRING
+          ========================================
+          🚀 SpecForge Documentation Server
+          ========================================
+          Server running at: http://localhost:#{port}
+          Press Ctrl+C to stop
+          ========================================
+        STRING
 
         trap("INT") { server.shutdown }
         server.start
@@ -202,7 +212,10 @@ module SpecForge
         generate_documentation if options.force || !file_path.exist?
 
         file_name = "openapi.#{file_format}"
-        actions.copy_file(file_path, server_path.join(file_name), verbose: false)
+        path = server_path.join(file_name)
+        path.delete if path.exist?
+
+        actions.copy_file(file_path, path, verbose: false)
 
         file_name
       end
