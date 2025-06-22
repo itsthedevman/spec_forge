@@ -147,9 +147,9 @@ echo "Running SpecForge tests..."
 echo ""
 
 if [ -z "$SPEC_FORGE_ARGS" ]; then
-    bundle exec spec_forge
+    bundle exec spec_forge --trace
 else
-    bundle exec spec_forge $SPEC_FORGE_ARGS
+    bundle exec spec_forge $SPEC_FORGE_ARGS --trace
 fi
 
 SPEC_FORGE_EXIT_CODE=$?
