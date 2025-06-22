@@ -34,29 +34,25 @@ module SpecForge
       summary "Generate OpenAPI documentation from your tests"
       description "Runs your SpecForge tests and generates OpenAPI documentation. This is the primary workflow for creating API documentation through testing."
 
-      example "docs generate",
-        "Generates OpenAPI documentation from all tests"
+      example "docs",
+        "Generates OpenAPI specifications from your tests using smart caching"
 
-      example "docs --use-cache",
-        "Uses cached test data if available, otherwise runs tests first"
+      example "docs --fresh",
+        "Forces test re-execution and regenerates OpenAPI specs ignoring cache"
 
-      example "docs --format=json",
-        "Generates documentation in JSON format instead of YAML"
+      example "docs --format json",
+        "Generates OpenAPI specifications in JSON format instead of YAML"
+
+      example "docs --output ./build/api.yml",
+        "Generates OpenAPI specs to a custom file path"
 
       example "docs --skip-validation",
         "Generates documentation without validating the OpenAPI specification"
 
-      option "--use-cache",
-        "Use cached test data if available, otherwise run tests to generate cache"
-
-      option "--format=FORMAT",
-        "The file format of the output: yml/yaml or json (default: yml)"
-
-      option "--output=PATH",
-        "Custom output path for generated documentation"
-
-      option "--skip-validation",
-        "Skip OpenAPI specification validation during generation"
+      option "--fresh", "Re-run all tests ignoring cache"
+      option "--format=FORMAT", "Output format: yml/yaml or json (default: yml)"
+      option "--output=PATH", "Full file path for generated documentation"
+      option "--skip-validation", "Skip OpenAPI specification validation during generation"
 
       #
       # Generates OpenAPI documentation from tests

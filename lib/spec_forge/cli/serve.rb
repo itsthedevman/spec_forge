@@ -32,26 +32,29 @@ module SpecForge
       summary "Generate and serve your API documentation"
       description "Generates OpenAPI documentation from tests and serves it through a local web interface. Perfect for reviewing your API docs during development."
 
-      option "--use-cache",
-        "Use cached test data if available, otherwise run tests to generate cache"
+      example "serve",
+        "Generates docs (if needed) and starts documentation server at localhost:8080"
 
-      option "--format=FORMAT",
-        "The file format of the output: yml/yaml or json (default: yml)"
+      example "serve --fresh",
+        "Re-runs tests, regenerates docs, and starts the documentation server"
 
-      option "--output=PATH",
-        "Custom output path for generated documentation"
+      example "serve --ui redoc",
+        "Starts server with Redoc interface instead of Swagger UI"
 
-      option "--skip-validation",
-        "Skip OpenAPI specification validation during generation"
+      example "serve --port 3001",
+        "Starts documentation server on port 3001"
 
-      option "--ui=UI",
-        "Documentation interface to use (swagger, redoc) [default: swagger]"
+      example "serve --fresh --ui redoc --port 3001",
+        "Re-runs tests and serves fresh docs with Redoc on custom port"
 
-      option "--force",
-        "Regenerate documentation even if it already exists"
+      # Generation options
+      option "--fresh", "Re-run all tests before starting server"
+      option "--format=FORMAT", "Output format: yml/yaml or json (default: yml)"
+      option "--skip-validation", "Skip OpenAPI specification validation during generation"
 
-      option "--port=PORT",
-        "Port to serve documentation on [default: 8080]"
+      # Server options
+      option "--ui=UI", "Documentation interface: swagger or redoc (default: swagger)"
+      option "--port=PORT", "Port to serve documentation on (default: 8080)"
 
       aliases :s
 
@@ -67,8 +70,8 @@ module SpecForge
         server_path = SpecForge.openapi_path.join("server")
         actions.empty_directory(server_path, verbose: false) # spec_forge/openapi/server
 
-        # Generate or copy the spec over
-        file_name = generate_or_copy_spec
+        # Generate and copy the OpenAPI spec file
+        file_name = generate_and_copy_openapi_spec
 
         # Determine which template file to use
         template_name =
@@ -112,16 +115,16 @@ module SpecForge
 
       private
 
-      def generate_or_copy_spec
+      def generate_and_copy_openapi_spec
         server_path = SpecForge.openapi_path.join("server")
 
-        file_format = determine_file_format
-        file_path = determine_output_path(file_format)
+        file_path = generate_documentation
 
-        generate_documentation if options.force || !file_path.exist?
-
-        file_name = "openapi.#{file_format}"
+        file_name = file_path.basename
         path = server_path.join(file_name)
+
+        # If the file already exists, delete it
+        # This ensures we always have the latest spec
         path.delete if path.exist?
 
         actions.copy_file(file_path, path, verbose: false)

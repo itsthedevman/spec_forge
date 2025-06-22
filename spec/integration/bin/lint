@@ -3,4 +3,4 @@
 # Exit the script if any command fails
 set -e
 
-bin/spec_forge docs generate --use-cache --format=yml --trace
+bin/spec_forge docs --format=yml --trace

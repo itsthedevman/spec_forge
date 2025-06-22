@@ -34,7 +34,7 @@ module SpecForge
 
       register_commands
 
-      default_command :docs
+      default_command :help
 
       run!
     end

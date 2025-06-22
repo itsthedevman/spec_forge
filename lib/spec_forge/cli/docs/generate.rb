@@ -22,7 +22,7 @@ module SpecForge
         #
         def generate_documentation
           generator = Documentation::Generators::OpenAPI["3.0"]
-          output = generator.generate(use_cache: options.use_cache)
+          output = generator.generate(use_cache: !options.fresh)
 
           generator.validate!(output) unless options.skip_validation
 
