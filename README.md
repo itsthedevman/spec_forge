@@ -1,10 +1,10 @@
 # SpecForge
 
 [![Gem Version](https://badge.fury.io/rb/spec_forge.svg)](https://badge.fury.io/rb/spec_forge)
-![Ruby Version](https://img.shields.io/badge/ruby-3.3.7-ruby)
+![Ruby Version](https://img.shields.io/badge/ruby-3.3.8-ruby)
 [![Tests](https://github.com/itsthedevman/spec_forge/actions/workflows/main.yml/badge.svg)](https://github.com/itsthedevman/spec_forge/actions/workflows/main.yml)
 
-> Note: The code in this repository represents the latest development version with new features and improvements that are being prepared for future releases. For the current stable version, check out [v0.6.0](https://github.com/itsthedevman/spec_forge/releases/tag/v0.6.0) on GitHub releases.
+> Note: The code in this repository represents the latest development version with new features and improvements that are being prepared for future releases. For the current stable version, check out [v0.7.0](https://github.com/itsthedevman/spec_forge/releases/tag/v0.7.0) on GitHub releases.
 
 Write API tests in YAML that read like documentation and generate OpenAPI specifications:
 
