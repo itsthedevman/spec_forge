@@ -6,7 +6,7 @@
 
 > Note: The code in this repository represents the latest development version with new features and improvements that are being prepared for future releases. For the current stable version, check out [v0.6.0](https://github.com/itsthedevman/spec_forge/releases/tag/v0.6.0) on GitHub releases.
 
-Write API tests in YAML that read like documentation:
+Write API tests in YAML that read like documentation and generate OpenAPI specifications:
 
 ```yaml
 show_user:
@@ -25,22 +25,39 @@ show_user:
           matcher.and:
           - kind_of.string
           - /@/
+      headers:
+        Content-Type: "application/json"
+        X-Request-ID: /^[0-9a-f-]{36}$/
 ```
 
-That's a complete test. No Ruby code, no configuration files, no HTTP client setup - just a clear description of what you're testing. Under the hood, you get all the power of RSpec's matchers, Faker's data generation, and FactoryBot's test objects.
+That's a complete test that validates your API and creates OpenAPI documentation. No Ruby code, no configuration files, no HTTP client setup - just clear, executable specifications.
 
 ## Why SpecForge?
 
-1. **Living Documentation**: Your tests should serve as clear, readable documentation of your API's behavior.
-2. **Reduce Boilerplate**: Write tests without repetitive setup code and HTTP configuration.
-3. **Quick Setup**: Start testing APIs in minutes instead of spending hours on test infrastructure.
-4. **Gradual Adoption**: Use alongside your existing test suite, introducing it incrementally where it makes sense.
-5. **Developer & QA Collaboration**: Create a testing format that everyone can understand and maintain, regardless of Ruby expertise.
+**For Testing:**
+
+- **Reduce Boilerplate**: Write tests without repetitive setup code and HTTP configuration
+- **Quick Setup**: Start testing APIs in minutes instead of spending hours on test infrastructure
+- **Clear Syntax**: Tests that everyone can read and understand, regardless of Ruby expertise
+
+**For Documentation:**
+
+- **OpenAPI Generation**: Generate OpenAPI specifications from your test structure, with full customization through configuration files
+- **Living Documentation**: Your tests ensure the documentation always matches your actual API behavior
+- **Professional Output**: View your API docs in Swagger UI or Redoc with minimal setup
+
+**For Teams:**
+
+- **Developer & QA Collaboration**: Create specifications that both developers and QA can maintain
+- **Gradual Adoption**: Use alongside your existing test suite, introducing it incrementally where it makes sense
 
 ## Key Features
 
+- **Automatic Documentation Generation**: Transform tests into OpenAPI specifications with customizable configuration
+- **Live Documentation Server**: Local development server for viewing generated documentation
 - **YAML-Based Tests**: Write clear, declarative tests that read like documentation
 - **RSpec Integration**: Leverage all the power of RSpec matchers and expectations
+- **Header Testing**: Comprehensive HTTP header validation with compound matchers
 - **FactoryBot Integration**: Generate test data with FactoryBot integration
 - **Faker Integration**: Create realistic test data with Faker
 - **Variable System**: Define and reference variables for dynamic test data
@@ -48,6 +65,23 @@ That's a complete test. No Ruby code, no configuration files, no HTTP client set
 - **Compound Matchers**: Combine multiple validations with `matcher.and` for precise expectations
 - **Global Variables**: Define shared configuration at the file level
 - **Callback System**: Hook into the test lifecycle using Ruby for setup, teardown, and much more!
+
+## Quick Start
+
+Get started with SpecForge in 3 commands:
+
+```bash
+# 1. Initialize SpecForge
+spec_forge init
+
+# 2. Create your first test
+spec_forge new spec users
+
+# 3. View your documentation
+spec_forge serve
+```
+
+Then visit `http://localhost:8080` to see your API documentation!
 
 ## When Not to Use SpecForge
 
@@ -92,11 +126,102 @@ Create your first test:
 spec_forge new spec users
 ```
 
-Run your tests:
+Generate documentation (default command):
+
+```bash
+spec_forge
+```
+
+Or start the live documentation server:
+
+```bash
+spec_forge serve
+```
+
+Run tests only (no documentation):
 
 ```bash
 spec_forge run
 ```
+
+## Documentation Workflow
+
+SpecForge provides multiple ways to work with your API documentation:
+
+```bash
+# Generate OpenAPI specifications
+spec_forge docs                    # Smart caching
+spec_forge docs --fresh            # Force regeneration
+spec_forge docs --format json      # Output as JSON instead of YAML
+
+# View documentation in browser
+spec_forge serve                   # Generate if needed + serve
+spec_forge serve --fresh           # Force regeneration + serve
+spec_forge serve --ui redoc        # Use Redoc instead
+spec_forge serve --port 3001       # Custom port
+
+# Traditional testing
+spec_forge run                     # Pure testing mode
+spec_forge run users:show_user     # Run specific tests
+```
+
+## Example: Complete User API
+
+```yaml
+# spec_forge/specs/users.yml
+global:
+  variables:
+    admin_role: "admin"
+
+list_users:
+  path: /users
+  expectations:
+  - expect:
+      status: 200
+      headers:
+        Content-Type: "application/json"
+      json:
+        users:
+          matcher.have_size:
+            be.greater_than: 0
+
+create_user:
+  path: /users
+  method: POST
+  variables:
+    username: faker.internet.username
+    email: faker.internet.email
+  body:
+    name: variables.username
+    email: variables.email
+    role: global.variables.admin_role
+  store_as: new_user
+  expectations:
+  - expect:
+      status: 201
+      headers:
+        Location: /\/users\/\d+/
+      json:
+        id: kind_of.integer
+        name: variables.username
+        email: variables.email
+        role: global.variables.admin_role
+
+show_user:
+  path: /users/{id}
+  query:
+    id: store.new_user.body.id
+  expectations:
+  - expect:
+      status: 200
+      json:
+        id: store.new_user.body.id
+        name: store.new_user.body.name
+        email: store.new_user.body.email
+        role: global.variables.admin_role
+```
+
+This automatically generates a complete OpenAPI specification with all endpoints, request/response schemas, and examples!
 
 ## Documentation
 
