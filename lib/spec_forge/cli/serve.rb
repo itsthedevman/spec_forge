@@ -2,6 +2,19 @@
 
 module SpecForge
   class CLI
+    #
+    # Command for generating and serving API documentation
+    #
+    # Combines documentation generation with a local web server to provide
+    # an easy way to view and interact with your generated API documentation.
+    # Perfect for development and review workflows.
+    #
+    # @example Start documentation server
+    #   spec_forge serve
+    #
+    # @example Serve with Redoc UI
+    #   spec_forge serve --ui redoc
+    #
     class Serve < Command
       include Docs::Generate
       #
@@ -16,8 +29,8 @@ module SpecForge
 
       command_name "serve"
       syntax "serve"
-      summary ""
-      description ""
+      summary "Generate and serve your API documentation"
+      description "Generates OpenAPI documentation from tests and serves it through a local web interface. Perfect for reviewing your API docs during development."
 
       option "--use-cache",
         "Use cached test data if available, otherwise run tests to generate cache"
@@ -42,6 +55,14 @@ module SpecForge
 
       aliases :s
 
+      #
+      # Generates documentation and starts a local web server
+      #
+      # Creates OpenAPI documentation from tests and serves it through a local
+      # HTTP server with either Swagger UI or Redoc interface for easy viewing.
+      #
+      # @return [void]
+      #
       def call
         server_path = SpecForge.openapi_path.join("server")
         actions.empty_directory(server_path, verbose: false) # spec_forge/openapi/server

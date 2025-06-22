@@ -4,6 +4,18 @@ require_relative "docs/generate"
 
 module SpecForge
   class CLI
+    #
+    # Command for generating OpenAPI documentation from SpecForge tests
+    #
+    # This is the primary SpecForge workflow - it runs your tests and generates
+    # OpenAPI documentation, making your tests serve as living API documentation.
+    #
+    # @example Generate documentation
+    #   spec_forge docs
+    #
+    # @example Generate with caching
+    #   spec_forge docs --use-cache
+    #
     class Docs < Command
       include Docs::Generate
 
@@ -19,8 +31,8 @@ module SpecForge
 
       command_name "docs"
       syntax "docs"
-      summary ""
-      description ""
+      summary "Generate OpenAPI documentation from your tests"
+      description "Runs your SpecForge tests and generates OpenAPI documentation. This is the primary workflow for creating API documentation through testing."
 
       example "docs generate",
         "Generates OpenAPI documentation from all tests"
@@ -46,6 +58,14 @@ module SpecForge
       option "--skip-validation",
         "Skip OpenAPI specification validation during generation"
 
+      #
+      # Generates OpenAPI documentation from tests
+      #
+      # Runs all SpecForge tests and creates OpenAPI specifications from the
+      # successful test results. This is the main entry point for the docs workflow.
+      #
+      # @return [void]
+      #
       def call
         file_path = generate_documentation
 

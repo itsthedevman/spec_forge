@@ -3,7 +3,23 @@
 module SpecForge
   class CLI
     class Docs < Command
+      #
+      # Shared functionality for generating OpenAPI documentation
+      #
+      # This module contains the core logic for running tests, extracting endpoint
+      # data, and generating OpenAPI specifications. It's used by both the Docs
+      # and Serve commands to avoid duplication.
+      #
       module Generate
+        #
+        # Generates OpenAPI documentation and writes it to disk
+        #
+        # Runs the documentation generation pipeline: executes tests, extracts
+        # endpoint data, generates OpenAPI spec, validates it, and writes the
+        # output file in the specified format.
+        #
+        # @return [Pathname] The path to the generated documentation file
+        #
         def generate_documentation
           generator = Documentation::Generators::OpenAPI["3.0"]
           output = generator.generate(use_cache: options.use_cache)
