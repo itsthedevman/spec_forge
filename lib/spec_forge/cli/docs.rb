@@ -7,14 +7,15 @@ module SpecForge
     #
     # Command for generating OpenAPI documentation from SpecForge tests
     #
-    # This is the primary SpecForge workflow - it runs your tests and generates
-    # OpenAPI documentation, making your tests serve as living API documentation.
+    # Runs tests and extracts endpoint data to create OpenAPI specifications.
+    # Uses intelligent caching to avoid unnecessary test re-execution when
+    # specs haven't changed.
     #
     # @example Generate documentation
     #   spec_forge docs
     #
-    # @example Generate with caching
-    #   spec_forge docs --use-cache
+    # @example Generate with fresh test run
+    #   spec_forge docs --fresh
     #
     class Docs < Command
       include Docs::Generate
@@ -31,8 +32,14 @@ module SpecForge
 
       command_name "docs"
       syntax "docs"
-      summary "Generate OpenAPI documentation from your tests"
-      description "Runs your SpecForge tests and generates OpenAPI documentation. This is the primary workflow for creating API documentation through testing."
+      summary "Generate OpenAPI documentation from test results"
+
+      description <<~DESC
+        Generate OpenAPI documentation from test results.
+
+        Uses caching to avoid re-running tests unless specs
+        have changed. Output format can be YAML or JSON.
+      DESC
 
       example "docs",
         "Generates OpenAPI specifications from your tests using smart caching"

@@ -30,7 +30,16 @@ module SpecForge
     def run
       program :name, "SpecForge"
       program :version, SpecForge::VERSION
-      program :description, "Write expressive API tests in YAML with the power of RSpec matchers"
+      program :description, <<~DESC.strip
+        Write expressive API tests in YAML with the power of RSpec matchers.
+
+        Quick Start:
+          spec_forge init              # Set up your project
+          spec_forge new spec users    # Create your first test
+          spec_forge run               # Execute tests
+          spec_forge docs              # Generate API docs
+          spec_forge serve             # Serve API docs locally
+      DESC
 
       register_commands
 

@@ -11,7 +11,17 @@ module SpecForge
     class Init < Command
       command_name "init"
       syntax "init"
-      summary "Initializes directory structure and configuration files"
+      summary "Set up your SpecForge project (creates folders and config files)"
+
+      description <<~DESC
+        Creates the SpecForge project structure.
+
+        Sets up:
+          • spec_forge/specs/ for test files
+          • spec_forge/factories/ for test data (optional)
+          • spec_forge/openapi/ for documentation config (optional)
+          • forge_helper.rb for configuration
+      DESC
 
       option "--skip-openapi", "Skip generating the \"openapi\" directory"
       option "--skip-factories", "Skip generating the \"factories\" directory"

@@ -13,7 +13,17 @@ module SpecForge
     #
     class New < Command
       command_name "new"
-      summary "Create a new spec or factory"
+      summary "Create new test specs or data factories"
+
+      description <<~DESC
+        Generate new files from templates.
+
+        Types:
+          • spec - Creates YAML test files with common patterns
+          • factory - Creates FactoryBot factories for test data
+
+        Files are created in the appropriate spec_forge/ subdirectory.
+      DESC
 
       syntax "new <type> <name>"
 

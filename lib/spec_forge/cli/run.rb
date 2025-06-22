@@ -21,8 +21,18 @@ module SpecForge
       command_name "run"
       syntax "run [target]"
 
-      summary "Runs specs loaded from spec_forge/specs/"
-      description "Runs specs loaded from spec_forge/specs/. The optional target argument allows running specific files, specs, or expectations."
+      summary "Execute your API tests with smart filtering options"
+
+      description <<~DESC
+        Execute API tests with filtering options.
+
+        Target formats:
+          • file_name - Run all specs in a file
+          • file:spec - Run specific spec
+          • file:spec:"expectation" - Run individual expectation
+
+        Uses RSpec for execution with detailed error reporting.
+      DESC
 
       example "spec_forge run",
         "Run all specs in spec_forge/specs/"

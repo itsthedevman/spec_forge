@@ -6,8 +6,8 @@ module SpecForge
     # Command for generating and serving API documentation
     #
     # Combines documentation generation with a local web server to provide
-    # an easy way to view and interact with your generated API documentation.
-    # Perfect for development and review workflows.
+    # an easy way to view and interact with generated API documentation.
+    # Supports both Swagger UI and Redoc interfaces.
     #
     # @example Start documentation server
     #   spec_forge serve
@@ -29,8 +29,13 @@ module SpecForge
 
       command_name "serve"
       syntax "serve"
-      summary "Generate and serve your API documentation"
-      description "Generates OpenAPI documentation from tests and serves it through a local web interface. Perfect for reviewing your API docs during development."
+      summary "Start a local server to preview your API documentation"
+      description <<~DESC
+        Generate documentation and start a local preview server.
+
+        Combines docs generation with a web interface. Choose between
+        Swagger UI or Redoc for viewing the documentation.
+      DESC
 
       example "serve",
         "Generates docs (if needed) and starts documentation server at localhost:8080"
