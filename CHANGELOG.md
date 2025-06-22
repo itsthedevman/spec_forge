@@ -15,52 +15,113 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 -->
 
-## [Unreleased]
+## [0.7.0] - 12025-06-22
 
 ### Added
 
-#### Documentation System
-- **Documentation Server**: New `docs serve` command starts a local web server for viewing API documentation
-- **UI Options**: Support for Swagger UI (default) and Redoc via `--ui` flag
-- **Server Configuration**: Added `--port` flag to customize server port (defaults to 8080)
-- **Integrated Workflow**: All generation flags (`--use-cache`, `--force`, `--format`) work with serve command
-- **OpenAPI Generation**: Automatically creates OpenAPI specifications from test data
-  - Multiple output formats (YAML/JSON) via `--format` flag
-  - Built-in validation with user-friendly error messages
-  - Flexible configuration system with custom YAML files
-  - Caching support via `--use-cache` flag for faster regeneration
-  - Custom output paths via `--output` option
+#### 🚀 Documentation-First Architecture
+**The Big Picture**: SpecForge now generates OpenAPI documentation from your tests automatically!
 
-#### Testing Features
-- **Header Testing**: New `headers` constraint for testing HTTP response headers
-  - Support for exact values, regex patterns, and RSpec matchers
-  - Compound matcher support (e.g., `matcher.and`, `matcher.include`)
-- **Flexible Store System**: Redesigned store to accept arbitrary data via callbacks
-  - Uses OpenStruct for maximum flexibility instead of rigid data structures
-  - Store custom configuration, metadata, or computed values between tests
-  - Access via same `store.id.attribute` syntax as API responses
+- **Primary Documentation Workflow**: New `docs` command (now the default!) generates OpenAPI specs from test execution
+  - Smart caching system with `--fresh` flag for forced regeneration
+  - Multiple output formats: YAML (default) or JSON via `--format`
+  - Custom output paths with `--output` option
+  - Built-in OpenAPI 3.0.4 validation with detailed, helpful error messages
+  - Optional validation skip with `--skip-validation` for faster iterations
 
-#### Architecture Improvements
-- **YAML-based Normalizer**: New architecture with structure definitions in config files
-  - Structure references via `reference:` keyword for composition
-  - Wildcard key support with `*` syntax for catch-all schemas
-  - Dedicated validators module for reusable validation logic
-- **Enhanced CLI**: `--skip-openapi` and `--skip-factories` flags for `init` command
-- **Utility Methods**: Added `Array#to_merged_h` for merging arrays of hashes
-- **Unified Public API**: All normalizers now use `.normalize!(input, using:)` method for consistency
+- **Live Documentation Server**: `spec_forge serve` command for immediate feedback
+  - Local web server with Swagger UI (default) or Redoc (`--ui redoc`)
+  - Configurable port with `--port` (defaults to 8080)
+  - Auto-generated HTML templates for both UI options
+  - Perfect for development and API review workflows
+
+- **Flexible Configuration System**:
+  - Directory-based config: `config/components/`, `config/paths/`, etc.
+  - Template-based initialization with sensible defaults
+  - Enhanced YAML merging with `$ref` support
+  - Full OpenAPI customization through configuration files
+
+#### 🧪 Enhanced Testing Capabilities
+
+- **HTTP Header Testing**: Comprehensive header validation
+  ```yaml
+  headers:
+    Content-Type: "application/json"
+    X-Request-ID: /^[0-9a-f-]{36}$/
+    Cache-Control:
+      matcher.and:
+      - matcher.include: "max-age="
+      - matcher.include: "private"
+  ```
+
+- **Flexible Store System**: Store anything, access everything
+  - OpenStruct-based entries for maximum flexibility
+  - Custom data via callbacks (config, metadata, computed values)
+  - Same familiar `store.id.attribute` syntax
+  - Perfect for complex test scenarios and feature flags
+
+- **Documentation Control**: Fine-grained control over what gets documented
+  - New `documentation: true/false` attribute for specs and expectations
+  - Exclude test-only scenarios from API docs while keeping functionality
+
+#### ⚙️ Architecture Improvements
+
+- **YAML-Driven Normalizers**: Configuration over code
+  - Structure definitions in `lib/spec_forge/normalizers/*.yml`
+  - Powerful `reference:` system for reusable components
+  - Wildcard support (`*`) for catch-all schemas
+  - Centralized validation logic in dedicated module
+
+- **Enhanced CLI Experience**:
+  - Improved `init` command with `--skip-openapi` and `--skip-factories` flags
+  - Better help text and examples throughout
+  - Clearer error messages with actionable context
+
+- **Developer Utilities**:
+  - `Array#to_merged_h` for cleaner hash merging
+  - Unified `.normalize!(input, using:)` API across normalizers
+  - Separated test preparation (`Runner.prepare`) from execution
 
 ### Changed
-- **Default Command**: `docs` is now the default command (was `run`)
-- **Normalizer Refactor**: Moved from class-based to data-driven YAML approach
-  - Consolidated shared attributes into `_shared.yml`
-  - Simplified maintenance and extensibility
-- **Test Runner**: Split into preparation and execution phases for better reusability
-- **Error Handling**: Improved error messages with better context and resolution paths
-- **HTTP Backend**: Automatic header value conversion to strings for non-string store values
-- **CLI Organization**: Better command structure with clearer aliases and flags
+
+#### 🎯 User Experience Overhaul
+
+- **New Default Behavior**: `spec_forge` without arguments now shows help instead of running tests
+  - **Breaking Change**: Use `spec_forge docs` for documentation or `spec_forge run` for test-only execution
+  - Safer default that guides users to the right command for their needs
+
+- **Streamlined Commands**:
+  - Better command organization and help text
+  - Consistent flag naming across commands
+  - Enhanced error handling with helpful suggestions
+
+#### 🏗️ Internal Refactoring
+
+- **Normalizer Architecture**: YAML-based instead of class-heavy approach
+  - Consolidated shared definitions in `_shared.yml`
+  - Easier maintenance and extension
+  - Better error context with attribute path tracking
+
+- **Test Execution Pipeline**:
+  - Clean separation between test preparation and execution
+  - Enhanced RSpec adapter pattern
+  - Better reusability for documentation generation
+
+- **HTTP & Store Improvements**:
+  - Automatic header value string conversion
+  - Simplified store entry structure with OpenStruct flexibility
+  - Enhanced request/response handling
 
 ### Removed
-- Individual normalizer class files in favor of YAML configuration
+
+- **Legacy Architecture**: Individual normalizer class files (replaced with YAML config)
+
+---
+
+**Migration Notes**:
+- Update any scripts using bare `spec_forge` - now shows help instead of running tests
+- Use `spec_forge docs` for documentation generation or `spec_forge run` for testing
+- Store access patterns remain the same, but internal structure is more flexible
 
 ## [0.6.0] - 12025-03-25
 
@@ -278,7 +339,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial commit
 
-[unreleased]: https://github.com/itsthedevman/spec_forge/compare/v0.6.0...HEAD
+[unreleased]: https://github.com/itsthedevman/spec_forge/compare/v0.7.0...HEAD
+[0.7.0]: https://github.com/itsthedevman/spec_forge/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/itsthedevman/spec_forge/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/itsthedevman/spec_forge/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/itsthedevman/spec_forge/compare/v0.3.2...v0.4.0
