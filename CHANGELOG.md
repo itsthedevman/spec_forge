@@ -47,14 +47,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Dedicated validators module for reusable validation logic
 - **Enhanced CLI**: `--skip-openapi` and `--skip-factories` flags for `init` command
 - **Utility Methods**: Added `Array#to_merged_h` for merging arrays of hashes
+- **Unified Public API**: All normalizers now use `.normalize!(input, using:)` method for consistency
 
 ### Changed
-- **Normalizer Refactor**: Moved from class-based to data-driven approach
+- **Default Command**: `docs` is now the default command (was `run`)
+- **Normalizer Refactor**: Moved from class-based to data-driven YAML approach
   - Consolidated shared attributes into `_shared.yml`
-  - Unified public API through `.normalize!(input, using:)` method
+  - Simplified maintenance and extensibility
 - **Test Runner**: Split into preparation and execution phases for better reusability
 - **Error Handling**: Improved error messages with better context and resolution paths
 - **HTTP Backend**: Automatic header value conversion to strings for non-string store values
+- **CLI Organization**: Better command structure with clearer aliases and flags
 
 ### Removed
 - Individual normalizer class files in favor of YAML configuration
