@@ -45,12 +45,13 @@ module SpecForge
       #
       # @param forges [Array<Forge>] The forge objects to run
       # @param exit_on_finish [Boolean] Whether to exit the process when complete
+      # @param exit_on_failure [Boolean] Whether to exit the process if any test fails
       #
       # @return [Integer, nil] Exit status if exit_on_finish is false
       #
-      def run(forges, exit_on_finish: true)
+      def run(forges, **)
         Adapter.setup(forges)
-        Adapter.run(exit_on_finish:)
+        Adapter.run(**)
       end
 
       private

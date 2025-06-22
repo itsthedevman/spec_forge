@@ -41,16 +41,16 @@ module SpecForge
       # Runs all configured tests through RSpec with optional exit behavior.
       #
       # @param exit_on_finish [Boolean] Whether to exit the process when done
+      # @param exit_on_failure [Boolean] Whether to exit the process if any test fails
       #
       # @return [Integer, nil] Exit status if exit_on_finish is false
       #
-      def self.run(exit_on_finish: false)
-        if exit_on_finish
-          status = RSpec::Core::Runner.run([]).to_i
-          exit(status)
-        else
-          RSpec::Core::Runner.run([])
-        end
+      def self.run(exit_on_finish: false, exit_on_failure: false)
+        status = RSpec::Core::Runner.run([]).to_i
+
+        exit(status) if exit_on_finish || (exit_on_failure && status != 0)
+
+        status
       end
 
       ##########################################################################

@@ -85,7 +85,7 @@ module SpecForge
 
         forges = prepare_forges
 
-        Runner.run(forges, exit_on_finish: false)
+        Runner.run(forges, exit_on_finish: false, exit_on_failure: true)
 
         self
       ensure
