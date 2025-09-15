@@ -9,7 +9,7 @@ gemspec
 
 gem "rake", "~> 13.0"
 
-gem "standard", "~> 1.49"
+gem "standard", "~> 1.51"
 
 gem "pry"
 
