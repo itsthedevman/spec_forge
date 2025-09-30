@@ -26,7 +26,7 @@ module SpecForge
               # Required
               description: "",
               content:
-            }.merge_compact(
+            }.compact_merge(
               # Optional
               headers:
             )
