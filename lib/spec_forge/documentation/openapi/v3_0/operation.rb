@@ -26,7 +26,7 @@ module SpecForge
               # Required
               responses:,
               security:
-            }.merge_compact(
+            }.compact_merge(
               # All optional
               tags:,
               summary:,

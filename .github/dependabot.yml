@@ -5,8 +5,6 @@ updates:
   schedule:
     interval: "weekly"
   open-pull-requests-limit: 10
-  labels:
-  - "dependencies"
   versioning-strategy: auto
   allow:
   - dependency-type: "development"
@@ -21,6 +19,3 @@ updates:
   schedule:
     interval: "monthly"
   open-pull-requests-limit: 5
-  labels:
-  - "dependencies"
-  - "ci"

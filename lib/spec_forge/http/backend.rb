@@ -166,6 +166,9 @@ module SpecForge
       # @private
       #
       def normalize_url(url, query)
+        # Strip leading slash so paths properly append to base URL
+        url = url.delete_prefix("/")
+
         # /users/<user_id>
         url = replace_url_placeholder(url, query, CURLY_PLACEHOLDER)
 

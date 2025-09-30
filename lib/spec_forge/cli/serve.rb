@@ -17,6 +17,7 @@ module SpecForge
     #
     class Serve < Command
       include Docs::Generate
+
       #
       # Valid file formats for documentation output
       #
