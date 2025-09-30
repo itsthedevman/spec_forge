@@ -15,14 +15,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 -->
 
+## [Unreleased]
+
+### Added
+
+### Changed
+
+- **Fixed path handling in HTTP requests**: Paths with leading slashes (e.g., `/users`) now properly append to base URLs instead of replacing the entire path
+  - Previously, a base URL like `http://api.example.com/v1` with path `/users` would incorrectly resolve to `http://api.example.com/users`
+  - Now correctly resolves to `http://api.example.com/v1/users`
+  - This matches user expectations and common API patterns
+  - **Note**: If you need to replace the entire path, use absolute URLs like `https://api.example.com/users`
+
+### Removed
+
 ## [0.7.0] - 12025-06-22
 
 ### Added
 
 #### 🚀 Documentation-First Architecture
+
 **The Big Picture**: SpecForge now generates OpenAPI documentation from your tests automatically!
 
 - **Primary Documentation Workflow**: New `docs` command (now the default!) generates OpenAPI specs from test execution
+
   - Smart caching system with `--fresh` flag for forced regeneration
   - Multiple output formats: YAML (default) or JSON via `--format`
   - Custom output paths with `--output` option
@@ -30,6 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Optional validation skip with `--skip-validation` for faster iterations
 
 - **Live Documentation Server**: `spec_forge serve` command for immediate feedback
+
   - Local web server with Swagger UI (default) or Redoc (`--ui redoc`)
   - Configurable port with `--port` (defaults to 8080)
   - Auto-generated HTML templates for both UI options
@@ -44,17 +61,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### 🧪 Enhanced Testing Capabilities
 
 - **HTTP Header Testing**: Comprehensive header validation
+
   ```yaml
   headers:
     Content-Type: "application/json"
     X-Request-ID: /^[0-9a-f-]{36}$/
     Cache-Control:
       matcher.and:
-      - matcher.include: "max-age="
-      - matcher.include: "private"
+        - matcher.include: "max-age="
+        - matcher.include: "private"
   ```
 
 - **Flexible Store System**: Store anything, access everything
+
   - OpenStruct-based entries for maximum flexibility
   - Custom data via callbacks (config, metadata, computed values)
   - Same familiar `store.id.attribute` syntax
@@ -67,12 +86,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### ⚙️ Architecture Improvements
 
 - **YAML-Driven Normalizers**: Configuration over code
+
   - Structure definitions in `lib/spec_forge/normalizers/*.yml`
   - Powerful `reference:` system for reusable components
   - Wildcard support (`*`) for catch-all schemas
   - Centralized validation logic in dedicated module
 
 - **Enhanced CLI Experience**:
+
   - Improved `init` command with `--skip-openapi` and `--skip-factories` flags
   - Better help text and examples throughout
   - Clearer error messages with actionable context
@@ -87,6 +108,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### 🎯 User Experience Overhaul
 
 - **New Default Behavior**: `spec_forge` without arguments now shows help instead of running tests
+
   - **Breaking Change**: Use `spec_forge docs` for documentation or `spec_forge run` for test-only execution
   - Safer default that guides users to the right command for their needs
 
@@ -98,11 +120,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### 🏗️ Internal Refactoring
 
 - **Normalizer Architecture**: YAML-based instead of class-heavy approach
+
   - Consolidated shared definitions in `_shared.yml`
   - Easier maintenance and extension
   - Better error context with attribute path tracking
 
 - **Test Execution Pipeline**:
+
   - Clean separation between test preparation and execution
   - Enhanced RSpec adapter pattern
   - Better reusability for documentation generation
@@ -119,6 +143,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ---
 
 **Migration Notes**:
+
 - Update any scripts using bare `spec_forge` - now shows help instead of running tests
 - Use `spec_forge docs` for documentation generation or `spec_forge run` for testing
 - Store access patterns remain the same, but internal structure is more flexible
@@ -134,6 +159,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - `Context::Variables` for managing variables with overlay support
     - `Context::Store` for storing the results of the tests
 - Added support for defining and referencing global variables
+
   ```yaml
   global:
     variables:
@@ -145,13 +171,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     query:
       api_version: "global.variables.api_version"
   ```
+
 - Added compound matcher support via `matcher.and` for combining multiple matchers
   ```yaml
   email:
     matcher.and:
-    - kind_of.string
-    - /@/
-    - matcher.end_with: ".com"
+      - kind_of.string
+      - /@/
+      - matcher.end_with: ".com"
   ```
 - Added custom RSpec matcher `have_size` for checking an object's size via `matcher.have_size`
 - Added new `Loader` class for improved spec file processing
@@ -159,6 +186,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added normalizer for global context validation
 - Added line number tracking for specs and expectations
 - Added support for defining and referencing callbacks
+
   ```ruby
   # Configuration level
   SpecForge.configure do |config|
@@ -171,14 +199,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   # Module level (no aliases)
   SpecForge.register_callback("callback_name") { |context| }
   ```
+
   Once defined, callbacks can be referenced in spec files via the global context
+
   ```yaml
   global:
     callbacks:
-    - before: callback_name
-      after: cleanup_database_state
+      - before: callback_name
+        after: cleanup_database_state
   ```
+
 - Added support for storing and retrieving test data via the `store_as` directive and `store` attribute
+
   ```yaml
   create_user:
     path: "/users"
@@ -198,6 +230,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - expect:
         status: 200
   ```
+
 - Added `UndefinedMatcherError` for clearer error messaging when invalid matchers are used
 - Enhanced debugging capabilities with improved DebugProxy methods and store access
 - Added HTTP status descriptions for better error messages
@@ -248,7 +281,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   variables:
     users:
       factory.user:
-        size: 10  # Creates 10 user records
+        size: 10 # Creates 10 user records
   ```
   - All FactoryBot list methods now supported:
     - `create_list` (default)
@@ -307,6 +340,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Core Infrastructure
+
   - Configuration management
   - User input validation and normalization
   - Factory registration
@@ -316,11 +350,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Debugging tooling
 
 - CLI
+
   - Project initialization (`init`)
   - Spec/factory generation (`new`)
   - Test execution (`run`)
 
 - Attributes
+
   - Chainable attribute handling (through `Chainable`)
   - Expanded attribute handling (through `Parameterized`)
   - Factory (with chainable support) - `factories.`
