@@ -59,7 +59,7 @@ module SpecForge
         case function
         when "join"
           # Technically supports any attribute, but I ain't gonna test all them edge cases
-          arguments[:positional].resolved.join
+          arguments[:positional].resolve.join
         end
       end
     end
