@@ -152,8 +152,6 @@ module SpecForge
                     ############################################################
                     # JSON check
                     if match_json.present?
-                      expect(response.body).to match_json_class
-
                       case match_json
                       when Hash
                         match_json.each do |key, matcher|
