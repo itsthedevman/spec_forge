@@ -9,6 +9,7 @@ RSpec.describe SpecForge::Normalizer do
         id: SecureRandom.uuid,
         name: Faker::String.random,
         line_number: 5,
+        base_url: Faker::String.random,
         url: Faker::String.random,
         http_verb: SpecForge::HTTP::Verb::VERBS.keys.sample.to_s,
         documentation: true,
@@ -49,6 +50,7 @@ RSpec.describe SpecForge::Normalizer do
         file_name: "",
         file_path: "",
         line_number: 1,
+        base_url: Faker::String.random,
         url: Faker::String.random,
         http_verb: SpecForge::HTTP::Verb::VERBS.keys.sample.to_s,
         documentation: true,
@@ -118,11 +120,13 @@ RSpec.describe SpecForge::Normalizer do
 
     context "when aliases are used" do
       before do
+        spec[:base_path] = spec.delete(:base_url)
         spec[:path] = spec.delete(:url)
         spec[:method] = spec.delete(:http_verb)
         spec[:params] = spec.delete(:query)
         spec[:data] = spec.delete(:body)
 
+        expectation[:base_path] = expectation.delete(:base_url)
         expectation[:path] = expectation.delete(:url)
         expectation[:method] = expectation.delete(:http_verb)
         expectation[:params] = expectation.delete(:query)
@@ -131,6 +135,7 @@ RSpec.describe SpecForge::Normalizer do
 
       it "normalizes them" do
         expect(normalized).to include(
+          base_url: spec[:base_path],
           url: spec[:path],
           http_verb: spec[:method],
           query: spec[:params],
@@ -138,6 +143,7 @@ RSpec.describe SpecForge::Normalizer do
           variables: spec[:variables],
           expectations: [
             include(
+              base_url: expectation[:base_path],
               url: expectation[:path],
               http_verb: expectation[:method],
               query: expectation[:params],
@@ -241,7 +247,8 @@ RSpec.describe SpecForge::Normalizer do
       {
         context: "when 'base_url' on spec is not a String",
         before: -> { spec[:base_url] = 1 },
-        error: "Expected String, got Integer for \"base_url\" in spec (line 1)"
+        error:
+          "Expected String, got Integer for \"base_url\" (aliases \"base_path\") in spec (line 1)"
       },
       {
         context: "when 'url' on spec is not a String",

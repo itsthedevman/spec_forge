@@ -8,6 +8,8 @@ base_url:
   type: string
   default: null
   required: false
+  aliases:
+  - base_path
 
 url:
   type: string
