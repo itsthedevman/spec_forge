@@ -19,5 +19,5 @@ factories:
       type: array
       default: []
 
-on_debug:
+on_debug_proc:
   type: proc

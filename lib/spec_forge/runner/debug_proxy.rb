@@ -30,7 +30,46 @@ module SpecForge
       # @return [Proc] The default debugging handler that outputs JSON state information
       #
       def self.default
-        -> { puts inspect }
+        lambda do
+          puts <<~STRING
+
+            Debug triggered for:
+            > #{example.metadata[:rerun_file_path]} on line #{expectation.line_number}
+
+            Available debugging contexts:
+            - spec: Current spec details
+            - expectation: Current expectation being tested
+            - variables: Variables defined for this test
+            - global: Global context shared across tests
+            - store: Stored data from expectations
+
+            Request & Response:
+            - request: HTTP request details (method, url, headers, body)
+            - response: HTTP response with headers, status and body
+
+            Expectations:
+            - expected_status: Expected HTTP status code
+            - expected_json: Expected response body structure
+
+            Matchers:
+            - match_status: Matcher used to test status
+            - match_json: Matcher used to test response body
+
+            Helper objects:
+            - http_client: The HTTP client used for the request
+            - request_data: Raw request configuration data
+            - example_group: Current RSpec example group
+            - example: Current RSpec example
+            - forge: Current file being tested
+
+            💡 Pro tips:
+              - Type 'self' or 'inspect' for a pretty-printed JSON overview
+              - Use 'to_h' for the hash representation
+              - Access the shared context with 'SpecForge.context'
+          STRING
+
+          puts inspect
+        end
       end
 
       # @return [RSpec::Forge] The current Forge that is being tested
@@ -67,7 +106,7 @@ module SpecForge
       # @return [SpecForge::Runner::DebugProxy]
       #
       def initialize(forge, spec, expectation, example_group)
-        @callback = SpecForge.configuration.on_debug
+        @callback = SpecForge.configuration.on_debug_proc
 
         @forge = forge
         @spec = spec
@@ -90,43 +129,6 @@ module SpecForge
       # @return [void]
       #
       def call
-        puts <<~STRING
-
-          Debug triggered for:
-          > #{example.metadata[:rerun_file_path]} on line #{expectation.line_number}
-
-          Available debugging contexts:
-          - spec: Current spec details
-          - expectation: Current expectation being tested
-          - variables: Variables defined for this test
-          - global: Global context shared across tests
-          - store: Stored data from expectations
-
-          Request & Response:
-          - request: HTTP request details (method, url, headers, body)
-          - response: HTTP response with headers, status and body
-
-          Expectations:
-          - expected_status: Expected HTTP status code
-          - expected_json: Expected response body structure
-
-          Matchers:
-          - match_status: Matcher used to test status
-          - match_json: Matcher used to test response body
-
-          Helper objects:
-          - http_client: The HTTP client used for the request
-          - request_data: Raw request configuration data
-          - example_group: Current RSpec example group
-          - example: Current RSpec example
-          - forge: Current file being tested
-
-          💡 Pro tips:
-            - Type 'self' or 'inspect' for a pretty-printed JSON overview
-            - Use 'to_h' for the hash representation
-            - Access the shared context with 'SpecForge.context'
-        STRING
-
         instance_exec(&@callback)
       end
 

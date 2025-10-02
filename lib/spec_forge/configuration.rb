@@ -5,7 +5,7 @@ module SpecForge
   # Configuration container for SpecForge settings
   # Defines default values and validation for all configuration options
   #
-  class Configuration < Struct.new(:base_url, :headers, :query, :factories, :on_debug)
+  class Configuration < Struct.new(:base_url, :headers, :query, :factories, :on_debug_proc)
     #
     # Manages factory configuration settings
     # Controls auto-discovery behavior and custom factory paths
@@ -44,7 +44,7 @@ module SpecForge
 
       config[:base_url] = "http://localhost:3000"
       config[:factories] = Factories.new
-      config[:on_debug] = Runner::DebugProxy.default
+      config[:on_debug_proc] = Runner::DebugProxy.default
 
       super(**config)
     end
@@ -66,6 +66,10 @@ module SpecForge
       self.headers = output[:headers] if headers.blank?
 
       self
+    end
+
+    def on_debug(&block)
+      self.on_debug_proc = block
     end
 
     #
@@ -107,11 +111,6 @@ module SpecForge
     #   on which hook the callback is triggered from.
     #
     # @return [Proc] The registered callback
-    #
-    # @example Registering a custom debug handler
-    #   SpecForge.configure do |config|
-    #     config.register_callback(:on_debug) { binding.pry }
-    #   end
     #
     # @example Cleaning database after each test
     #   SpecForge.configure do |config|

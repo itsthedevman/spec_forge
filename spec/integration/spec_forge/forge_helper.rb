@@ -102,5 +102,5 @@ SpecForge.configure do |config|
   end
 
   # Debugging support
-  config.on_debug = -> { binding.pry } # standard:disable Lint/Debugger
+  config.on_debug { binding.pry } # standard:disable Lint/Debugger
 end
