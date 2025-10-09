@@ -15,9 +15,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 -->
 
-## [Unreleased]
+## [0.7.1] - 12025-10-08
 
 ### Added
+
+- **Configuration alias**: `base_path` can now be used as an alias for `base_url` in spec definitions
+- **Improved debug configuration**: New `config.on_debug { }` block syntax for cleaner configuration
+
+  ```ruby
+  # New cleaner syntax (recommended)
+  config.on_debug { binding.pry }
+
+  # Old syntax still works with deprecation warning
+  config.on_debug = -> { binding.pry }
+  ```
 
 ### Changed
 
@@ -26,8 +37,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Now correctly resolves to `http://api.example.com/v1/users`
   - This matches user expectations and common API patterns
   - **Note**: If you need to replace the entire path, use absolute URLs like `https://api.example.com/users`
+- **CI/CD improvements**: Updated to GitHub Actions checkout v5 and streamlined Ruby version testing
 
-### Removed
+### Fixed
+
+- **Transform.join resolution**: Now properly generates fresh values instead of using cached results
+- **Test adapter optimization**: Removed JSON class validation check to allow matchers to be used
+
+### Deprecated
+
+- `config.on_debug = proc` syntax - use `config.on_debug { }` block syntax instead
 
 ## [0.7.0] - 12025-06-22
 
@@ -375,7 +394,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial commit
 
-[unreleased]: https://github.com/itsthedevman/spec_forge/compare/v0.7.0...HEAD
+[unreleased]: https://github.com/itsthedevman/spec_forge/compare/v0.7.1...HEAD
+[0.7.1]: https://github.com/itsthedevman/spec_forge/compare/v0.7.0...v0.7.1
 [0.7.0]: https://github.com/itsthedevman/spec_forge/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/itsthedevman/spec_forge/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/itsthedevman/spec_forge/compare/v0.4.0...v0.5.0
