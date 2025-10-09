@@ -157,4 +157,27 @@ RSpec.describe SpecForge::Configuration do
     it { is_expected.to respond_to(:specs) }
     it { expect(configuration.specs).to be_kind_of(RSpec::Core::Configuration) }
   end
+
+  describe "#on_debug" do
+    it { is_expected.to respond_to(:on_debug) }
+
+    it "is expected to allow assignment" do
+      debug_proc = proc {}
+
+      configuration.on_debug(&debug_proc)
+      expect(configuration.on_debug_proc).to eql(debug_proc)
+    end
+  end
+
+  # Deprecated
+  describe "#on_debug=" do
+    it { is_expected.to respond_to(:on_debug=) }
+
+    # it "is expected to allow deprecated assignment" do
+    #   debug_proc = proc {}
+
+    #   expect { configuration.on_debug = debug_proc }.not_to raise_error
+    #   expect(configuration.on_debug_proc).to eql(debug_proc)
+    # end
+  end
 end

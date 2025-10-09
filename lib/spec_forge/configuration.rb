@@ -72,6 +72,11 @@ module SpecForge
       self.on_debug_proc = block
     end
 
+    def on_debug=(block)
+      warn("SpecForge::Configuration#on_debug= is deprecated. Use #on_debug instead")
+      self.on_debug_proc = block
+    end
+
     #
     # Recursively converts the configuration to a hash representation
     #
