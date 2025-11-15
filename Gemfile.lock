@@ -2,7 +2,7 @@ PATH
   remote: .
   specs:
     spec_forge (0.7.1)
-      activesupport (>= 7.1)
+      activesupport (>= 6.1)
       commander (~> 5.0)
       everythingrb (~> 0.8)
       factory_bot (~> 6.5)

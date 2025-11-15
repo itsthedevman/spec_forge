@@ -36,7 +36,7 @@ Gem::Specification.new do |spec|
   spec.executables = ["spec_forge"]
   spec.require_paths = ["lib"]
 
-  spec.add_dependency "activesupport", ">= 7.1"
+  spec.add_dependency "activesupport", ">= 6.1"
   spec.add_dependency "commander", "~> 5.0"
   spec.add_dependency "everythingrb", "~> 0.8"
   spec.add_dependency "factory_bot", "~> 6.5"
