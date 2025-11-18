@@ -1,6 +1,0 @@
-#!/usr/bin/env bash
-
-# Exit the script if any command fails
-set -e
-
-bin/spec_forge docs --format=yml --trace
