@@ -64,5 +64,3 @@ module SpecForge
     end
   end
 end
-
-require_relative "expectation/constraint"

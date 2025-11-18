@@ -66,10 +66,3 @@ module SpecForge
     end
   end
 end
-
-require_relative "runner/adapter"
-require_relative "runner/callbacks"
-require_relative "runner/debug_proxy"
-require_relative "runner/listener"
-require_relative "runner/metadata"
-require_relative "runner/state"

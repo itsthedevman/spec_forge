@@ -1,13 +1,5 @@
 # frozen_string_literal: true
 
-require_relative "cli/actions"
-require_relative "cli/command"
-require_relative "cli/docs"
-require_relative "cli/init"
-require_relative "cli/new"
-require_relative "cli/run"
-require_relative "cli/serve"
-
 module SpecForge
   #
   # Command-line interface for SpecForge that provides the overall command structure

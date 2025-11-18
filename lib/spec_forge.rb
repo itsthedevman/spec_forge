@@ -19,6 +19,12 @@ require "singleton"
 require "thor"
 require "webrick"
 require "yaml"
+require "zeitwerk"
+
+loader = Zeitwerk::Loader.for_gem
+loader.inflector.inflect("cli" => "CLI")
+loader.log!
+loader.setup
 
 #
 # SpecForge: Write expressive API tests in YAML with the power of RSpec matchers
@@ -150,23 +156,3 @@ module SpecForge
     end
   end
 end
-
-require_relative "spec_forge/attribute"
-require_relative "spec_forge/backtrace_formatter"
-require_relative "spec_forge/blueprint"
-require_relative "spec_forge/callbacks"
-require_relative "spec_forge/cli"
-require_relative "spec_forge/configuration"
-require_relative "spec_forge/context"
-require_relative "spec_forge/core_ext"
-require_relative "spec_forge/documentation"
-require_relative "spec_forge/error"
-require_relative "spec_forge/factory"
-require_relative "spec_forge/filter"
-require_relative "spec_forge/http"
-require_relative "spec_forge/loader"
-require_relative "spec_forge/matchers"
-require_relative "spec_forge/normalizer"
-require_relative "spec_forge/runner"
-require_relative "spec_forge/type"
-require_relative "spec_forge/version"

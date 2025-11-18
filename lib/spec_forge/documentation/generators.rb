@@ -12,6 +12,3 @@ module SpecForge
     end
   end
 end
-
-require_relative "generators/base"
-require_relative "generators/openapi"

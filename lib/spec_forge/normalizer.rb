@@ -1,9 +1,5 @@
 # frozen_string_literal: true
 
-require_relative "normalizer/default"
-require_relative "normalizer/definition"
-require_relative "normalizer/validators"
-
 module SpecForge
   #
   # This class provides a powerful system for validating and normalizing input data

@@ -48,4 +48,5 @@ Gem::Specification.new do |spec|
   spec.add_dependency "sem_version", "~> 2.0"
   spec.add_dependency "thor", "~> 1.3"
   spec.add_dependency "webrick", "~> 1.9"
+  spec.add_dependency "zeitwerk", "~> 2.7"
 end

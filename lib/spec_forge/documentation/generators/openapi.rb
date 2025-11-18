@@ -1,9 +1,5 @@
 # frozen_string_literal: true
 
-require_relative "openapi/base"
-require_relative "openapi/error_formatter"
-require_relative "openapi/v3_0"
-
 module SpecForge
   module Documentation
     module Generators
