@@ -5,17 +5,6 @@ module SpecForge
   # Base error class for all SpecForge-specific exceptions
   #
   class Error < StandardError
-    # Pass into to_sentence
-    OR_CONNECTOR = {
-      last_word_connector: ", or ",
-      two_words_connector: " or ",
-      # This is a minor performance improvement to avoid locales being loaded
-      # This will need to be removed if locales are added
-      locale: false
-    }.freeze
-
-    private_constant :OR_CONNECTOR
-
     #
     # Raised when a provided Faker class name doesn't exist
     # Provides helpful suggestions for similar class names
@@ -151,7 +140,7 @@ module SpecForge
     class InvalidTypeError < Error
       def initialize(object, expected_type, **opts)
         if expected_type.instance_of?(Array)
-          expected_type = expected_type.to_sentence(**OR_CONNECTOR)
+          expected_type = expected_type.to_or_sentence
         end
 
         message = "Expected #{expected_type}, got #{object.class}"
@@ -195,7 +184,7 @@ module SpecForge
     #
     class InvalidBuildStrategy < Error
       def initialize(build_strategy)
-        valid_strategies = Attribute::Factory::BUILD_STRATEGIES.to_sentence(**OR_CONNECTOR)
+        valid_strategies = Attribute::Factory::BUILD_STRATEGIES.to_or_sentence
 
         super(<<~STRING.chomp
           Unknown build strategy "#{build_strategy}" referenced in spec.
@@ -206,18 +195,9 @@ module SpecForge
       end
     end
 
-    #
-    # Raised when a spec file cannot be loaded
-    # Provides detailed information about the cause of the loading error
-    #
-    class SpecLoadError < Error
-      def initialize(error, file_path, spec: nil)
-        message =
-          if spec
-            "Error loading spec #{spec[:name].in_quotes} in file #{file_path.in_quotes} (line #{spec[:line_number]})"
-          else
-            "Error loading spec file #{file_path.in_quotes}"
-          end
+    class LoadStepError < Error
+      def initialize(error, step)
+        message = "TODO: #{step.inspect}"
 
         causes = error.message.split("\n").map(&:strip).reject(&:empty?)
 

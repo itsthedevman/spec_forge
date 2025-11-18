@@ -41,6 +41,8 @@ module SpecForge
   # * structure: - Optional. Sub-structure for nested objects
   # * validator: - Optional. Custom validation method (see Validators)
   # * reference: - Optional. Reference another structure definition (e.g., reference: headers)
+  # * description: - Optional. TODO
+  # * examples: - Optional. TODO
   #
   # == Structure References
   #

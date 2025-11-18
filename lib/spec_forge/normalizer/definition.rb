@@ -56,6 +56,15 @@ module SpecForge
         validator: {
           type: String,
           required: false
+        },
+        description: {
+          type: String,
+          required: false
+        },
+        examples: {
+          type: Array,
+          required: false,
+          structure: {type: String}
         }
       }.freeze
 

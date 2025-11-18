@@ -27,7 +27,6 @@ module SpecForge
       # description ""
       # example "spec_forge run", "Run all specs in spec_forge/blueprints/"
 
-      argument "PATH"
       option "--tags", "TODO"
       option "--skip-tags", "TODO"
 
@@ -36,6 +35,7 @@ module SpecForge
         skip_tags = parse_tags(options.skip_tags)
 
         loader = SpecForge::Loader.new(path:, tags:, skip_tags:)
+        # loader.blueprints.each(&:run)
       end
     end
   end
