@@ -37,34 +37,8 @@ require "yaml"
 #           name: kind_of.string
 #           email: /@/
 #
-# @example Running specs
-#   # Run all specs
-#   SpecForge.run
-#
-#   # Run specific file
-#   SpecForge.run(file_name: "users")
-#
-#   # Run specific spec
-#   SpecForge.run(file_name: "users", spec_name: "create_user")
-#
 module SpecForge
   class << self
-    #
-    # Loads all factories and specs and runs the tests with optional filtering
-    #
-    # This is the main entry point for running SpecForge tests. It loads the
-    # forge_helper.rb file if it exists, configures the environment, loads
-    # factories and specs, and runs the tests through RSpec.
-    #
-    # @param file_name [String, nil] Optional name of spec file to run
-    # @param spec_name [String, nil] Optional name of spec to run
-    # @param expectation_name [String, nil] Optional name of expectation to run
-    #
-    def run(file_name: nil, spec_name: nil, expectation_name: nil)
-      forges = Runner.prepare(file_name:, spec_name:, expectation_name:)
-      Runner.run(forges, exit_on_finish: true)
-    end
-
     #
     # Returns the directory root for the working directory
     #
