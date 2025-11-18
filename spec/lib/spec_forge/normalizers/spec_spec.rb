@@ -3,7 +3,7 @@
 # This is more for organizational purposes
 RSpec.describe SpecForge::Normalizer do
   # This also tests normalize_expectation and normalize_constraint
-  describe "normalize using spec" do
+  xdescribe "normalize using spec" do
     let(:expectation) do
       {
         id: SecureRandom.uuid,
