@@ -107,7 +107,7 @@ module SpecForge
         end
 
         def generate_spec_cache
-          paths = SpecForge.forge_path.join("specs", "**", "*.{yml,yaml}")
+          paths = SpecForge.forge_path.join("blueprints", "**", "*.{yml,yaml}")
 
           Dir[paths].each_with_object({}) do |path, hash|
             hash[path.to_sym] = File.mtime(path)

@@ -62,7 +62,7 @@ module SpecForge
       def create_new_spec(name)
         actions.template(
           "new_spec.yml.tt",
-          SpecForge.forge_path.join("specs", "#{name}.yml"),
+          SpecForge.forge_path.join("blueprints", "#{name}.yml"),
           context: Proxy.new(name).call
         )
       end
