@@ -242,7 +242,6 @@ module SpecForge
             hash[name] = Structure.new(input, label: LABELS[name] || name.to_s.humanize.downcase)
           end
 
-        binding.pry
         # # Pull the shared structures and prepare it
         # references = structures.delete(:_shared).normalize
 
