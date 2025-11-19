@@ -1,0 +1,169 @@
+name:
+  type: string
+  default: null
+
+verbose:
+  type: boolean
+  default: false
+
+debug:
+  type: boolean
+  aliases:
+  - pry
+  - breakpoint
+  default: false
+  required: false
+
+tags:
+  type: array
+  default: []
+  structure:
+    type: string
+
+documentation:
+  type: hash
+  default: {}
+
+request:
+  type: hash
+  default: {}
+  structure:
+    base_url:
+      type: string
+      default: null
+      aliases:
+      - base_path
+
+    url:
+      type: string
+      default: null
+      aliases:
+      - path
+
+    http_verb:
+      type: string
+      default: null # Do not default this to "GET". Leave it null. Seriously.
+      aliases:
+      - method
+      - http_method
+      validator: http_verb
+
+    headers:
+      type: hash
+      default: {}
+
+    query:
+      type:
+      - hash
+      - string
+      default: {}
+      aliases:
+      - params
+
+    raw:
+      type: string
+      default: null
+      aliases:
+      - body
+      - data
+
+    json:
+      type: hash
+      default: {}
+    # xml:
+    #   type: hash
+    #   default: {}
+
+expect:
+  type: array
+  default: []
+  structure:
+    type: hash
+    default: {}
+    structure:
+      name:
+        type: string
+
+      status:
+        type:
+        - string
+        - integer
+
+      headers:
+        type: hash
+        default: {}
+
+      raw:
+        type: string
+        default: null
+        aliases:
+        - body
+        - data
+
+      json:
+        type: hash
+        default: {}
+        structure:
+          size:
+            type:
+            - string
+            - integer
+
+          structure:
+            type:
+            - array
+            - hash
+
+          content:
+            type:
+            - array
+            - hash
+      # xml:
+      #   type: hash
+      #   default: {}
+
+store:
+  type: hash
+  default: {}
+
+hooks:
+  type: hash
+  default: {}
+  structure:
+    before_file:
+      type: string
+      validator: callback
+
+    before_each:
+      type: string
+      validator: callback
+      aliases:
+      - before
+
+    after_each:
+      type: string
+      validator: callback
+      aliases:
+      - after
+
+    after_file:
+      type: string
+      validator: callback
+
+call:
+  type: array
+  default: []
+  structure:
+    type: string
+
+steps:
+  type: array
+  default: []
+  structure:
+    reference: step
+
+include:
+  type: array
+  default: []
+  structure:
+    type: string

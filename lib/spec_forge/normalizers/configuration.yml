@@ -1,10 +1,17 @@
-base_url: string
+base_url:
+  type: string
 
 headers:
-  reference: headers
+  type: hash
+  default: {}
 
 query:
-  reference: query
+  type:
+  - hash
+  - string
+  default: {}
+  aliases:
+  - params
 
 factories:
   type: hash

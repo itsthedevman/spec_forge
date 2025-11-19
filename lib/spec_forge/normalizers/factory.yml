@@ -5,7 +5,8 @@ model_class:
   - class
 
 variables:
-  reference: variables
+  type: hash
+  default: {}
 
 attributes:
   type: hash
