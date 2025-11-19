@@ -437,7 +437,7 @@ module SpecForge
       type_class = definition[:type]
       aliases = definition[:aliases] || []
       default = definition[:default]
-      required = definition[:required] != false
+      required = definition[:required] == true
 
       # Get the value
       value = value_from_keys(input, [key.to_s] + aliases)
