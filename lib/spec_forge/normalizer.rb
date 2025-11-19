@@ -216,7 +216,41 @@ module SpecForge
       # @api private
       #
       def load_from_files
-        @structures = Definition.from_files
+        base_path = Pathname.new(File.expand_path("../normalizers", __dir__))
+        paths = Dir[base_path.join("**/*.yml")].sort
+
+        structures =
+          paths.each_with_object({}) do |path, hash|
+            path = Pathname.new(path)
+
+            # Include the directory name in the path to include normalizers in directories
+            name = path.relative_path_from(base_path).to_s.delete_suffix(".yml").to_sym
+
+            input = YAML.safe_load_file(path, symbolize_names: true)
+            raise Error, "Normalizer defined at #{path.to_s.in_quotes} is empty" if input.blank?
+
+            hash[name] = Structure.new(input, label: LABELS[name] || name.to_s.humanize.downcase)
+          end
+
+        # # Pull the shared structures and prepare it
+        # references = structures.delete(:_shared).normalize
+
+        # # Merge in the normalizers to allow referencing other normalizers
+        # references.merge!(structures.transform_values(&:input))
+
+        # # Now prepare all of the other definitions with access to references
+        # normalizers.transform_values!(with_key: true) do |definition, name|
+        #   structure = definition.normalize(references)
+
+        #   {
+        #     label: definition.label,
+        #     structure:
+        #   }
+        # end
+
+        # normalizers
+
+        @structures = structures
       end
 
       #
@@ -250,15 +284,6 @@ module SpecForge
       include Default
     end
 
-    # @return [String] A label that describes the data itself
-    attr_reader :label
-
-    # @return [Hash] The data to normalize
-    attr_reader :input
-
-    # @return [Hash] The structure to normalize the data to
-    attr_reader :structure
-
     #
     # Creates a normalizer for normalizing Hash data based on a structure
     #
@@ -280,7 +305,7 @@ module SpecForge
     # @return [Array<Hash, Set>] The normalized data and any errors
     #
     def normalize
-      case input
+      case @input
       when Hash
         normalize_hash
       when Array
@@ -346,7 +371,51 @@ module SpecForge
         error_label += " (aliases #{aliases})"
       end
 
-      error_label + " in #{label}"
+      error_label + " in #{@label}"
+    end
+
+    def replace_references(attributes, references)
+      return if references.blank?
+
+      # The goal is to walk down the hash and recursively replace any references
+      attributes.each do |attribute_name, attribute|
+        # Replace the top level reference
+        replace_with_reference(attribute_name, attribute, references:)
+        next unless attribute.is_a?(Hash) && attribute[:structure].present?
+
+        # Allow structures to reference other structures
+        if attribute.dig(:structure, :reference)
+          replace_with_reference(
+            "#{attribute_name}'s structure",
+            attribute[:structure],
+            references:
+          )
+        end
+
+        # Recursively replace any structures that have references
+        if [Array, "array"].include?(attribute[:type])
+          result = replace_references(attribute.slice(:structure), references)
+          attribute.merge!(result)
+        elsif [Hash, "hash"].include?(attribute[:type])
+          replace_references(attribute[:structure], references)
+        end
+      end
+    end
+
+    def replace_with_reference(attribute_name, attribute, references: {})
+      return unless attribute.is_a?(Hash) && attribute.key?(:reference)
+
+      reference_name = attribute.delete(:reference)
+      reference = references[reference_name.to_sym]
+
+      if reference.nil?
+        structures_names = references.keys.map(&:in_quotes).to_or_sentence
+
+        raise Error, "Attribute #{attribute_name.in_quotes}: Invalid reference name. Got #{reference_name&.in_quotes}, expected one of #{structures_names} in #{@label}"
+      end
+
+      # Allows overwriting data on the reference
+      attribute.reverse_merge!(reference)
     end
 
     #
@@ -370,7 +439,7 @@ module SpecForge
     def normalize_hash
       output, errors = {}, Set.new
 
-      structure.each do |key, definition|
+      @structure.each do |key, definition|
         # Skip the wildcard key if it exists, handled below
         next if key == :* || key == "*"
 
@@ -383,17 +452,17 @@ module SpecForge
       end
 
       # A wildcard will normalize the rest of the keys in the input
-      wildcard_structure = structure[:*] || structure["*"]
+      wildcard_structure = @structure[:*] || @structure["*"]
 
       if wildcard_structure.present?
         # We need to determine which keys we need to check
-        structure_keys = (structure.keys + structure.values.key_map(:aliases))
+        structure_keys = (@structure.keys + @structure.values.key_map(:aliases))
           .compact
           .flatten
           .map(&:to_sym)
 
         # Once we have which keys the structure used, we can get the remaining keys
-        keys_to_normalize = (input.keys - structure_keys)
+        keys_to_normalize = (@input.keys - structure_keys)
 
         # They are checked against the wildcard's structure
         keys_to_normalize.each do |key|
@@ -440,7 +509,7 @@ module SpecForge
       required = definition[:required] == true
 
       # Get the value
-      value = value_from_keys(input, [key.to_s] + aliases)
+      value = value_from_keys(@input, [key.to_s] + aliases)
 
       # Drop the key if needed
       return [false] if value.nil? && !has_default && !required
@@ -452,7 +521,7 @@ module SpecForge
 
       # Type + existence check
       if !valid_class?(value, type_class, nilable: has_default)
-        if (line_number = input[:line_number])
+        if (line_number = @input[:line_number])
           error_label += " (line #{line_number})"
         end
 
@@ -493,7 +562,7 @@ module SpecForge
     #
     def normalize_substructure(new_label, value, substructure, errors)
       if substructure.is_a?(Proc)
-        return substructure.call(value, errors:, label:)
+        return substructure.call(value, errors:, label: @label)
       end
 
       return value unless value.is_a?(Hash) || value.is_a?(Array)
@@ -524,20 +593,20 @@ module SpecForge
     def normalize_array
       output, errors = [], Set.new
 
-      input.each_with_index do |value, index|
-        type_class = structure[:type]
-        error_label = "index #{index} of #{label}"
+      @input.each_with_index do |value, index|
+        type_class = @structure[:type]
+        error_label = "index #{index} of #{@label}"
 
         if !valid_class?(value, type_class)
           raise Error::InvalidTypeError.new(value, type_class, for: error_label)
         end
 
         # Call the validator if it has one
-        if (name = structure[:validator]) && name.present?
+        if (name = @structure[:validator]) && name.present?
           Validators.call(name, value, label: error_label)
         end
 
-        if (substructure = structure[:structure])
+        if (substructure = @structure[:structure])
           value = normalize_substructure(error_label, value, substructure, errors)
         end
 

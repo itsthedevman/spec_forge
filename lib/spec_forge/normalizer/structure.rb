@@ -17,36 +17,30 @@ module SpecForge
         type: {
           type: [String, Array, Class],
           default: nil,
+          required: true,
           validator: :present?
         },
         default: {
-          type: [String, NilClass, Numeric, Array, Hash, TrueClass, FalseClass],
-          required: false
+          type: [String, NilClass, Numeric, Array, Hash, TrueClass, FalseClass]
         },
         required: {
-          type: [TrueClass, FalseClass],
-          required: false
+          type: [TrueClass, FalseClass]
         },
         aliases: {
           type: Array,
-          required: false,
           structure: {type: String}
         },
         structure: {
-          type: Hash,
-          required: false
+          type: Hash
         },
         validator: {
-          type: String,
-          required: false
+          type: String
         },
         description: {
-          type: String,
-          required: false
+          type: String
         },
         examples: {
           type: Array,
-          required: false,
           structure: {type: String}
         }
       }.freeze
@@ -62,17 +56,17 @@ module SpecForge
       private
 
       def normalize(input)
-        hash = deep_merge(input)
+        deep_merge!(input)
 
         # Normalize the root level keys
-        hash.transform_values!(with_key: true) do |attribute, name|
+        transform_values!(with_key: true) do |attribute, name|
           next if STRUCTURE.key?(name)
 
           normalize_attribute(name, attribute)
         end
 
         # Normalize the underlying structures
-        hash.each do |name, attribute|
+        each do |name, attribute|
           next unless attribute.is_a?(Hash)
 
           structure = attribute[:structure]
@@ -86,11 +80,13 @@ module SpecForge
 
       def normalize_attribute(attribute_name, attribute)
         case attribute
-        when String, Array # Array is multiple types
+        # Shorthands for single/multiple types
+        when String, Array
           hash = {type: resolve_type(attribute)}
 
           default = Normalizer.default(structure: STRUCTURE)
           hash.merge!(default)
+        # Full syntax
         when Hash
           hash = Normalizer.raise_errors! do
             Normalizer.new(
@@ -108,7 +104,7 @@ module SpecForge
 
           hash
         else
-          raise ArgumentError, "Attribute #{attribute_name.in_quotes}: Expected String or Hash, got #{attribute.inspect}"
+          raise ArgumentError, "Attribute #{attribute_name.in_quotes}: Expected String, Array, or Hash. Got #{attribute.inspect}"
         end
       end
 
