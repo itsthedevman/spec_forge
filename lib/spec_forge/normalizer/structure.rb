@@ -45,8 +45,9 @@ module SpecForge
 
       def normalize(references)
         # Replace any references
-        replace_references(self, references)
+        results = replace_references(deep_dup, references, level: 0)
 
+        binding.pry
         # Normalize the root level keys
         transform_values!(with_key: true) do |attribute, name|
           next if STRUCTURE.key?(name)
@@ -68,37 +69,56 @@ module SpecForge
       end
 
       def replace_references(attributes, references, level:)
-        return if references.blank?
+        return attributes if references.blank?
+
+        if attributes.dig(:reference)
+          if level >= MAX_DEPTH
+            puts "MAX DEPTH: #{attributes}"
+            return attributes.except(:reference)
+          end
+
+          puts "REF BEFORE: #{references}"
+          puts "Level: #{level} - Reference found: #{attributes}"
+          attributes = replace_with_reference("TODO", attributes, references:)
+          puts "REF AFTER: #{references}"
+          puts "Level: #{level} - Replaced reference -> #{attributes}"
+          level += 1
+        end
 
         # The goal is to walk down the hash and recursively replace any references
-        attributes.each do |attribute_name, attribute|
+        attributes.to_h do |attribute_name, attribute|
+          puts "Level: #{level} - BEFORE #{attribute_name.in_quotes}: #{attribute}"
+
           # Replace the top level reference
-          replace_with_reference(attribute_name, attribute, references:)
-          next unless attribute.is_a?(Hash) && attribute[:structure].present?
+          attribute = replace_with_reference(attribute_name, attribute, references:)
 
-          # Allow structures to reference other structures
-          if attribute.dig(:structure, :reference)
-            replace_with_reference(
-              "#{attribute_name}'s structure",
-              attribute[:structure],
-              references:
-            )
-          end
+          puts "Level: #{level} - AFTER #{attribute_name.in_quotes}: #{attribute}"
 
-          # Recursively replace any structures that have references
-          if [Array, "array"].include?(attribute[:type])
-            result = replace_references(attribute.slice(:structure), references, level:)
-            attribute.merge!(result) if result
-          elsif [Hash, "hash"].include?(attribute[:type])
-            replace_references(attribute[:structure], references, level:)
-          end
+          result =
+            if attribute.is_a?(Hash) && attribute[:structure].present?
+              # Recursively replace any structures that have references
+              if [Array, "array"].include?(attribute[:type])
+                result = replace_references(attribute.slice(:structure), references, level:)
+                attribute.merge(result || {})
+              elsif [Hash, "hash"].include?(attribute[:type])
+                attribute[:structure] = replace_references(attribute[:structure], references, level:)
+
+                attribute
+              end
+            else
+              attribute
+            end
+
+          puts "Level: #{level} - RESULT #{attribute_name.in_quotes}: #{result}"
+
+          [attribute_name, result]
         end
       end
 
       def replace_with_reference(attribute_name, attribute, references: {})
-        return unless attribute.is_a?(Hash) && attribute.key?(:reference)
+        return attribute unless attribute.is_a?(Hash) && attribute.key?(:reference)
 
-        reference_name = attribute.delete(:reference)
+        reference_name = attribute[:reference]
         reference = references[reference_name.to_sym]
 
         if reference.nil?
@@ -108,7 +128,7 @@ module SpecForge
         end
 
         # Allows overwriting data on the reference
-        attribute.reverse_merge!(reference)
+        attribute.except(:reference).reverse_merge(reference)
       end
 
       def normalize_attribute(attribute_name, attribute)
