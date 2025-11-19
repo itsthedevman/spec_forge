@@ -86,6 +86,16 @@ module SpecForge
   # - Specify labels for error messages with default_label method
   #
   class Normalizer
+    #
+    # Mapping of structure names to their human-readable labels
+    #
+    # @return [Hash<Symbol, String>]
+    #
+    LABELS = {
+      factory_reference: "factory reference",
+      global_context: "global context"
+    }.freeze
+
     class << self
       #
       # Collection of structure definitions used for validation
@@ -216,7 +226,7 @@ module SpecForge
       # @api private
       #
       def load_from_files
-        base_path = Pathname.new(File.expand_path("../normalizers", __dir__))
+        base_path = Pathname.new(File.expand_path("normalizers", __dir__))
         paths = Dir[base_path.join("**/*.yml")].sort
 
         structures =
@@ -232,6 +242,7 @@ module SpecForge
             hash[name] = Structure.new(input, label: LABELS[name] || name.to_s.humanize.downcase)
           end
 
+        binding.pry
         # # Pull the shared structures and prepare it
         # references = structures.delete(:_shared).normalize
 

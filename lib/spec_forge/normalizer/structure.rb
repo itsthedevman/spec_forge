@@ -3,16 +3,6 @@
 module SpecForge
   class Normalizer
     class Structure < Hash
-      #
-      # Mapping of structure names to their human-readable labels
-      #
-      # @return [Hash<Symbol, String>]
-      #
-      LABELS = {
-        factory_reference: "factory reference",
-        global_context: "global context"
-      }.freeze
-
       STRUCTURE = {
         type: {
           type: [String, Array, Class],
