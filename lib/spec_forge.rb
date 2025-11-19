@@ -21,8 +21,15 @@ require "webrick"
 require "yaml"
 require "zeitwerk"
 
+# Require the overwrites
+Dir[File.expand_path("spec_forge/core_ext/*.rb", __dir__)].sort.each do |path|
+  require path
+end
+
+# Load the files
 loader = Zeitwerk::Loader.for_gem
 loader.inflector.inflect("cli" => "CLI")
+loader.inflector.inflect("http" => "HTTP")
 loader.setup
 
 #
@@ -155,3 +162,6 @@ module SpecForge
     end
   end
 end
+
+# DEBUG
+loader.eager_load
