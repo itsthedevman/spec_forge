@@ -75,4 +75,80 @@ RSpec.describe SpecForge::Normalizer::Structure do
       end
     end
   end
+
+  describe "'default' attribute" do
+    context "when it is not a String, NilClass, Numeric, Array, Hash, TrueClass, or FalseClass" do
+      let(:input) { {a: {type: String, default: OpenStruct.new}} }
+
+      it do
+        expect { structure }.to raise_error(
+          SpecForge::Error::InvalidStructureError,
+          "Expected String, NilClass, Numeric, Array, Hash, TrueClass, or FalseClass, got OpenStruct for \"default\" in \"a\" in \"normalizer\""
+        )
+      end
+    end
+  end
+
+  describe "'required' attribute" do
+    context "when it is not TrueClass or FalseClass" do
+      let(:input) { {a: {type: String, required: "true"}} }
+
+      it do
+        expect { structure }.to raise_error(
+          SpecForge::Error::InvalidStructureError,
+          "Expected TrueClass or FalseClass, got String for \"required\" in \"a\" in \"normalizer\""
+        )
+      end
+    end
+  end
+
+  describe "'aliases' attribute" do
+    context "when it is not an array" do
+      let(:input) { {a: {type: String, aliases: ""}} }
+
+      it do
+        expect { structure }.to raise_error(
+          SpecForge::Error::InvalidStructureError,
+          "Expected Array, got String for \"aliases\" in \"a\" in \"normalizer\""
+        )
+      end
+    end
+
+    context "when it is not an array of strings" do
+      let(:input) { {a: {type: String, aliases: [1]}} }
+
+      it do
+        expect { structure }.to raise_error(
+          SpecForge::Error::InvalidStructureError,
+          "Expected String, got Integer for index 0 of \"aliases\" in \"a\" in \"normalizer\""
+        )
+      end
+    end
+  end
+
+  describe "'structure' attribute" do
+    context "when it is not Hash" do
+      let(:input) { {a: {type: String, structure: "true"}} }
+
+      it do
+        expect { structure }.to raise_error(
+          SpecForge::Error::InvalidStructureError,
+          "Expected Hash, got String for \"structure\" in \"a\" in \"normalizer\""
+        )
+      end
+    end
+  end
+
+  describe "'validator' attribute" do
+    context "when it is not String" do
+      let(:input) { {a: {type: String, validator: {}}} }
+
+      it do
+        expect { structure }.to raise_error(
+          SpecForge::Error::InvalidStructureError,
+          "Expected String, got Hash for \"validator\" in \"a\" in \"normalizer\""
+        )
+      end
+    end
+  end
 end

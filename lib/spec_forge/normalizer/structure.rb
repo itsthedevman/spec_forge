@@ -35,13 +35,6 @@ module SpecForge
         },
         validator: {
           type: String
-        },
-        description: {
-          type: String
-        },
-        examples: {
-          type: Array,
-          structure: {type: String}
         }
       }.freeze
 
