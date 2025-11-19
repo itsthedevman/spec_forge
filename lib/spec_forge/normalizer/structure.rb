@@ -1,0 +1,138 @@
+# frozen_string_literal: true
+
+module SpecForge
+  class Normalizer
+    class Structure < Hash
+      #
+      # Mapping of structure names to their human-readable labels
+      #
+      # @return [Hash<Symbol, String>]
+      #
+      LABELS = {
+        factory_reference: "factory reference",
+        global_context: "global context"
+      }.freeze
+
+      STRUCTURE = {
+        type: {
+          type: [String, Array, Class],
+          default: nil,
+          validator: :present?
+        },
+        default: {
+          type: [String, NilClass, Numeric, Array, Hash, TrueClass, FalseClass],
+          required: false
+        },
+        required: {
+          type: [TrueClass, FalseClass],
+          required: false
+        },
+        aliases: {
+          type: Array,
+          required: false,
+          structure: {type: String}
+        },
+        structure: {
+          type: Hash,
+          required: false
+        },
+        validator: {
+          type: String,
+          required: false
+        },
+        description: {
+          type: String,
+          required: false
+        },
+        examples: {
+          type: Array,
+          required: false,
+          structure: {type: String}
+        }
+      }.freeze
+
+      attr_reader :label
+
+      def initialize(input, label: "")
+        @label = label
+
+        normalize(input)
+      end
+
+      private
+
+      def normalize(input)
+        hash = deep_merge(input)
+
+        # Normalize the root level keys
+        hash.transform_values!(with_key: true) do |attribute, name|
+          next if STRUCTURE.key?(name)
+
+          normalize_attribute(name, attribute)
+        end
+
+        # Normalize the underlying structures
+        hash.each do |name, attribute|
+          next unless attribute.is_a?(Hash)
+
+          structure = attribute[:structure]
+          next if structure.blank?
+
+          attribute[:structure] = normalize_structure(name, attribute)
+        end
+
+        self
+      end
+
+      def normalize_attribute(attribute_name, attribute)
+        case attribute
+        when String, Array # Array is multiple types
+          hash = {type: resolve_type(attribute)}
+
+          default = Normalizer.default(structure: STRUCTURE)
+          hash.merge!(default)
+        when Hash
+          hash = Normalizer.raise_errors! do
+            Normalizer.new(
+              "#{attribute_name.in_quotes} in #{@label}",
+              attribute,
+              structure: STRUCTURE
+            ).normalize
+          end
+
+          hash[:type] = resolve_type(attribute[:type])
+
+          if hash[:structure].present?
+            hash[:structure] = normalize_structure(attribute_name, hash) || {}
+          end
+
+          hash
+        else
+          raise ArgumentError, "Attribute #{attribute_name.in_quotes}: Expected String or Hash, got #{attribute.inspect}"
+        end
+      end
+
+      def normalize_structure(name, hash)
+        if hash[:type] == Array
+          normalize_attribute(name, hash[:structure])
+        elsif hash[:type] == Hash
+          hash[:structure].transform_values(with_key: true) { |v, k| normalize_attribute(k, v) }
+        end
+      end
+
+      def resolve_type(type)
+        if type == "boolean"
+          [TrueClass, FalseClass]
+        elsif type.instance_of?(Array)
+          type.map { |t| resolve_type(t) }
+        elsif type.is_a?(String)
+          type.classify.constantize
+        else
+          type
+        end
+      rescue NameError => e
+        raise Error, "#{e}. #{type.inspect} is not a valid type found in #{@label}"
+      end
+    end
+  end
+end
