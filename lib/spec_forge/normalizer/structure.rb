@@ -46,8 +46,8 @@ module SpecForge
       def normalize(references)
         # Replace any references
         results = replace_references(deep_dup, references, level: 0)
+        replace(results)
 
-        binding.pry
         # Normalize the root level keys
         transform_values!(with_key: true) do |attribute, name|
           next if STRUCTURE.key?(name)
@@ -55,15 +55,15 @@ module SpecForge
           normalize_attribute(name, attribute)
         end
 
-        # Normalize the underlying structures
-        each do |name, attribute|
-          next unless attribute.is_a?(Hash)
+        # # Normalize the underlying structures
+        # each do |name, attribute|
+        #   next unless attribute.is_a?(Hash)
 
-          structure = attribute[:structure]
-          next if structure.blank?
+        #   structure = attribute[:structure]
+        #   next if structure.blank?
 
-          attribute[:structure] = normalize_structure(name, attribute)
-        end
+        #   attribute[:structure] = normalize_structure(name, attribute)
+        # end
 
         self
       end
