@@ -3,7 +3,7 @@
 RSpec.describe SpecForge::Normalizer::Structure do
   let(:input) { {} }
 
-  subject(:structure) { described_class.new(input) }
+  subject(:structure) { described_class.new(input, label: "normalizer") }
 
   context "when the attribute is nil" do
     let(:input) { {a: nil} }
@@ -64,8 +64,15 @@ RSpec.describe SpecForge::Normalizer::Structure do
       end
     end
 
-    context "when it is none of the above"
+    context "when it is not present?" do
+      let(:input) { {a: {type: ""}} }
 
-    context "when it is not present?"
+      it do
+        expect { structure }.to raise_error(
+          SpecForge::Error::InvalidStructureError,
+          "Value cannot be blank for \"type\" in \"a\" in \"normalizer\""
+        )
+      end
+    end
   end
 end

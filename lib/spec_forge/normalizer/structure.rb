@@ -90,7 +90,7 @@ module SpecForge
         when Hash
           hash = Normalizer.raise_errors! do
             Normalizer.new(
-              "#{attribute_name.in_quotes} in #{@label}",
+              "#{attribute_name.in_quotes} in #{@label.in_quotes}",
               attribute,
               structure: STRUCTURE
             ).normalize
@@ -127,7 +127,7 @@ module SpecForge
           type
         end
       rescue NameError => e
-        raise Error, "#{e}. #{type.inspect} is not a valid type found in #{@label}"
+        raise Error, "#{e}. #{type.inspect} is not a valid type found in #{@label.in_quotes}"
       end
     end
   end
