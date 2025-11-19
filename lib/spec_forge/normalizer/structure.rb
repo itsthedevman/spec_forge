@@ -6,7 +6,6 @@ module SpecForge
       STRUCTURE = {
         type: {
           type: [String, Array, Class],
-          default: nil,
           required: true,
           validator: :present?
         },
@@ -28,18 +27,25 @@ module SpecForge
         }
       }.freeze
 
+      MAX_DEPTH = 3
+
       attr_reader :label
 
-      def initialize(input, label: "")
+      def initialize(input, label: "", references: {})
         @label = label
 
-        normalize(input)
+        # Pull in the data
+        deep_merge!(input)
+
+        # And normalize
+        normalize(references)
       end
 
       private
 
-      def normalize(input)
-        deep_merge!(input)
+      def normalize(references)
+        # Replace any references
+        replace_references(self, references)
 
         # Normalize the root level keys
         transform_values!(with_key: true) do |attribute, name|
@@ -59,6 +65,50 @@ module SpecForge
         end
 
         self
+      end
+
+      def replace_references(attributes, references, level:)
+        return if references.blank?
+
+        # The goal is to walk down the hash and recursively replace any references
+        attributes.each do |attribute_name, attribute|
+          # Replace the top level reference
+          replace_with_reference(attribute_name, attribute, references:)
+          next unless attribute.is_a?(Hash) && attribute[:structure].present?
+
+          # Allow structures to reference other structures
+          if attribute.dig(:structure, :reference)
+            replace_with_reference(
+              "#{attribute_name}'s structure",
+              attribute[:structure],
+              references:
+            )
+          end
+
+          # Recursively replace any structures that have references
+          if [Array, "array"].include?(attribute[:type])
+            result = replace_references(attribute.slice(:structure), references, level:)
+            attribute.merge!(result) if result
+          elsif [Hash, "hash"].include?(attribute[:type])
+            replace_references(attribute[:structure], references, level:)
+          end
+        end
+      end
+
+      def replace_with_reference(attribute_name, attribute, references: {})
+        return unless attribute.is_a?(Hash) && attribute.key?(:reference)
+
+        reference_name = attribute.delete(:reference)
+        reference = references[reference_name.to_sym]
+
+        if reference.nil?
+          structures_names = references.keys.map(&:in_quotes).to_or_sentence
+
+          raise Error, "Attribute #{attribute_name.in_quotes}: Invalid reference name. Got #{reference_name&.in_quotes}, expected one of #{structures_names} in #{@label}"
+        end
+
+        # Allows overwriting data on the reference
+        attribute.reverse_merge!(reference)
       end
 
       def normalize_attribute(attribute_name, attribute)

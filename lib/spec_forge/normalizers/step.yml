@@ -160,7 +160,9 @@ steps:
   type: array
   default: []
   structure:
-    reference: step
+    type: hash
+    structure:
+      reference: step
 
 include:
   type: array
