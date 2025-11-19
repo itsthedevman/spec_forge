@@ -288,7 +288,7 @@ module SpecForge
       end
     end
 
-    protected
+    private
 
     #
     # Extracts a value from a hash checking multiple keys
