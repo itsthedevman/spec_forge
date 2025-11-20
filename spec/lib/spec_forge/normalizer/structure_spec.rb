@@ -2,8 +2,9 @@
 
 RSpec.describe SpecForge::Normalizer::Structure do
   let(:input) { {} }
+  let(:references) { {} }
 
-  subject(:structure) { described_class.new(input, label: "normalizer") }
+  subject(:structure) { described_class.new(input, label: "normalizer", references:) }
 
   context "when the attribute is nil" do
     let(:input) { {a: nil} }
@@ -149,6 +150,16 @@ RSpec.describe SpecForge::Normalizer::Structure do
           "Expected String, got Hash for \"validator\" in \"a\" in \"normalizer\""
         )
       end
+    end
+  end
+
+  context "when a structure references another structure" do
+    let(:input) { {a: {reference: "b"}} }
+
+    let(:references) { {b: {type: "string"}} }
+
+    it "is expected to replace the reference" do
+      is_expected.to eq(a: {type: String})
     end
   end
 end
