@@ -6,6 +6,7 @@ module SpecForge
       STRUCTURE = {
         type: {
           type: [String, Array, Class],
+          default: nil, # Important to default this to nil so other logic can handle it
           required: true,
           validator: :present?
         },
