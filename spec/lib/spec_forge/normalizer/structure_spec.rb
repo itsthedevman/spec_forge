@@ -162,4 +162,34 @@ RSpec.describe SpecForge::Normalizer::Structure do
       is_expected.to eq(a: {type: String})
     end
   end
+
+  context "when a structure references itself" do
+    let(:input) { {a: {type: "hash", structure: {reference: "a"}}} }
+
+    let(:references) { {a: input} }
+
+    it "is expected to limit the recursive depth to MAX_DEPTH (3)" do
+      is_expected.to eq(
+        a: {
+          type: Hash,
+          structure: {
+            a: {
+              type: Hash,
+              structure: {
+                a: {
+                  type: Hash,
+                  structure: {
+                    a: {
+                      type: Hash,
+                      structure: {}
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      )
+    end
+  end
 end
