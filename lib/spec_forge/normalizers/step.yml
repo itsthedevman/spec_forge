@@ -1,6 +1,6 @@
 name:
   type: string
-  default: null
+  default: ""
 
 verbose:
   type: boolean
@@ -28,6 +28,7 @@ request:
   type: hash
   default: {}
   structure:
+    # Default all of these to null so they don't show up in the default request hash
     base_url:
       type: string
       default: null
@@ -50,13 +51,13 @@ request:
 
     headers:
       type: hash
-      default: {}
+      default: null
 
     query:
       type:
       - hash
       - string
-      default: {}
+      default: null
       aliases:
       - params
 
@@ -69,7 +70,7 @@ request:
 
     json:
       type: hash
-      default: {}
+      default: null
     # xml:
     #   type: hash
     #   default: {}
