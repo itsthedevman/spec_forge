@@ -162,11 +162,10 @@ module SpecForge
             raise ArgumentError, "A label must be provided when using a custom structure"
           end
         else
-          data = @structures[using.to_sym]
+          structure = @structures[using.to_sym]
 
           # We have a predefined structure and structures all have labels
-          label ||= data[:label]
-          structure = data[:structure]
+          label ||= structure.label
         end
 
         # Ensure we have a structure
