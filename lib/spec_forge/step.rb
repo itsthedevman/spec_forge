@@ -17,5 +17,11 @@ module SpecForge
   ].freeze
 
   class Step < Data.define(*STEP_ATTRIBUTES)
+    def initialize(**data)
+      # Convert any sub-steps if they exist
+      data[:steps].map! { |s| Step.new(**s) }
+
+      super(data)
+    end
   end
 end
