@@ -10,7 +10,7 @@ RSpec.describe SpecForge::Documentation::Generators::OpenAPI do
       let(:version) { "3" }
 
       it "is expected to return the related class" do
-        is_expected.to eq(described_class::V3_0)
+        is_expected.to eq(described_class::V30)
       end
     end
 
@@ -18,7 +18,7 @@ RSpec.describe SpecForge::Documentation::Generators::OpenAPI do
       let(:version) { "3.0" }
 
       it "is expected to return the related class" do
-        is_expected.to eq(described_class::V3_0)
+        is_expected.to eq(described_class::V30)
       end
     end
 
@@ -26,7 +26,7 @@ RSpec.describe SpecForge::Documentation::Generators::OpenAPI do
       let(:version) { "3.0.0" }
 
       it "is expected to return the related class" do
-        is_expected.to eq(described_class::V3_0)
+        is_expected.to eq(described_class::V30)
       end
     end
 

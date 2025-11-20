@@ -17,7 +17,7 @@ module SpecForge
         #
         # @api private
         #
-        CURRENT_VERSION = V3_0::CURRENT_VERSION
+        CURRENT_VERSION = V30::CURRENT_VERSION
 
         #
         # Mapping of OpenAPI versions to their generator classes
@@ -28,7 +28,7 @@ module SpecForge
         # @api private
         #
         VERSIONS = {
-          V3_0.to_sem_version => V3_0
+          V30.to_sem_version => V30
         }.freeze
 
         #

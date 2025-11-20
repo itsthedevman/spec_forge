@@ -5,7 +5,7 @@ module SpecForge
     module Generators
       module OpenAPI
         # https://spec.openapis.org/oas/v3.0.4.html
-        class V3_0 < Base # standard:disable Naming/ClassAndModuleCamelCase
+        class V30 < Base # standard:disable Naming/ClassAndModuleCamelCase
           #
           # Current OpenAPI 3.0 version supported by this generator
           #
@@ -18,7 +18,7 @@ module SpecForge
           #
           # @api private
           #
-          OAS = Documentation::OpenAPI::V3_0
+          OAS = Documentation::OpenAPI::V30
 
           #
           # Generates an OpenAPI 3.0 specification from the input document

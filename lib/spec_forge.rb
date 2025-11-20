@@ -22,14 +22,18 @@ require "yaml"
 require "zeitwerk"
 
 # Require the overwrites
-Dir[File.expand_path("spec_forge/core_ext/*.rb", __dir__)].sort.each do |path|
-  require path
-end
+core_ext_path = Pathname.new(__dir__).join("spec_forge", "core_ext")
+Dir[core_ext_path.join("**/*.rb")].sort.each { |path| require path }
 
 # Load the files
 loader = Zeitwerk::Loader.for_gem
-loader.inflector.inflect("cli" => "CLI")
-loader.inflector.inflect("http" => "HTTP")
+loader.inflector.inflect(
+  "cli" => "CLI",
+  "http" => "HTTP",
+  "openapi" => "OpenAPI"
+)
+
+loader.ignore(core_ext_path.to_s)
 loader.setup
 
 #

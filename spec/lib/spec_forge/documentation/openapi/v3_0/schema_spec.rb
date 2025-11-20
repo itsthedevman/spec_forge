@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe SpecForge::Documentation::OpenAPI::V3_0::Schema do
+RSpec.describe SpecForge::Documentation::OpenAPI::V30::Schema do
   describe "converting type to schema hash" do
     let(:type) {}
 

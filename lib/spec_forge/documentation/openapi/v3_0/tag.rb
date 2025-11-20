@@ -3,7 +3,7 @@
 module SpecForge
   module Documentation
     module OpenAPI
-      module V3_0 # standard:disable Naming/ClassAndModuleCamelCase
+      module V30 # standard:disable Naming/ClassAndModuleCamelCase
         #
         # Represents an OpenAPI 3.0 Tag object
         #
