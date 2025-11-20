@@ -45,7 +45,7 @@ module SpecForge
 
       def normalize(references)
         # Replace any references
-        results = replace_references(deep_dup, references, level: 0)
+        results = replace_references(self, references, level: 0)
         replace(results)
 
         # Normalize the root level keys
@@ -55,16 +55,6 @@ module SpecForge
           normalize_attribute(name, attribute)
         end
 
-        # # Normalize the underlying structures
-        # each do |name, attribute|
-        #   next unless attribute.is_a?(Hash)
-
-        #   structure = attribute[:structure]
-        #   next if structure.blank?
-
-        #   attribute[:structure] = normalize_structure(name, attribute)
-        # end
-
         self
       end
 
@@ -72,27 +62,16 @@ module SpecForge
         return attributes if references.blank?
 
         if attributes.dig(:reference)
-          if level >= MAX_DEPTH
-            puts "MAX DEPTH: #{attributes}"
-            return attributes.except(:reference)
-          end
+          return attributes.except(:reference) if level >= MAX_DEPTH
 
-          puts "REF BEFORE: #{references}"
-          puts "Level: #{level} - Reference found: #{attributes}"
-          attributes = replace_with_reference("TODO", attributes, references:)
-          puts "REF AFTER: #{references}"
-          puts "Level: #{level} - Replaced reference -> #{attributes}"
+          attributes = replace_with_reference("reference", attributes, references:)
           level += 1
         end
 
         # The goal is to walk down the hash and recursively replace any references
         attributes.to_h do |attribute_name, attribute|
-          puts "Level: #{level} - BEFORE #{attribute_name.in_quotes}: #{attribute}"
-
           # Replace the top level reference
           attribute = replace_with_reference(attribute_name, attribute, references:)
-
-          puts "Level: #{level} - AFTER #{attribute_name.in_quotes}: #{attribute}"
 
           result =
             if attribute.is_a?(Hash) && attribute[:structure].present?
@@ -108,8 +87,6 @@ module SpecForge
             else
               attribute
             end
-
-          puts "Level: #{level} - RESULT #{attribute_name.in_quotes}: #{result}"
 
           [attribute_name, result]
         end
@@ -128,7 +105,7 @@ module SpecForge
         end
 
         # Allows overwriting data on the reference
-        attribute.except(:reference).reverse_merge(reference)
+        attribute.except(:reference).reverse_merge(reference.deep_dup)
       end
 
       def normalize_attribute(attribute_name, attribute)
