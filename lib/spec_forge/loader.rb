@@ -1,37 +1,40 @@
 # frozen_string_literal: true
 
 module SpecForge
-  class Loader
+  class Loader < Data.define(:path, :tags, :skip_tags, :blueprints)
     def initialize(path: nil, tags: [], skip_tags: [])
-      @path = path.present? ? Pathname.new(path) : SpecForge.forge_path.join("blueprints")
-      @tags = tags
-      @skip_tags = skip_tags
-      @blueprints = prepare_blueprints
+      tags ||= []
+      skip_tags ||= []
+
+      path = path.present? ? Pathname.new(path) : SpecForge.forge_path.join("blueprints")
+      blueprints = prepare_blueprints(path, tags, skip_tags)
+
+      super(path:, tags:, skip_tags:, blueprints:)
     end
 
     private
 
-    def prepare_blueprints
-      read_steps
-        .then { |s| transform_steps(s) }
+    def prepare_blueprints(path, tags, skip_tags)
+      read_steps(path)
+        .then { |s| transform_steps(s, path) }
         .then { |b| create_blueprints(b) }
-        .then { |b| filter_blueprints(b) }
+        .then { |b| filter_blueprints(b, tags, skip_tags) }
     end
 
-    def read_steps
+    def read_steps(path)
       paths =
-        if @path.directory?
-          Dir[@path.join("**/*.yml")]
+        if path.directory?
+          Dir[path.join("**/*.yml")]
         else
-          [@path.to_s]
+          [path.to_s]
         end
 
       paths.map do |file_path|
-        [file_path, File.read(file_path)]
+        [Pathname.new(file_path), File.read(file_path)]
       end
     end
 
-    def transform_steps(files)
+    def transform_steps(files, base_path)
       files.map! do |file_path, content|
         # Parse with Psych to get line numbers
         yaml_tree = Psych.parse(content)
@@ -41,7 +44,7 @@ module SpecForge
         steps = inject_line_numbers(yaml_tree.root, steps)
 
         {
-          base_path: @path,
+          base_path:,
           file_path:,
           steps: normalize_steps(steps)
         }
@@ -102,7 +105,7 @@ module SpecForge
       blueprint_data.map! { |d| Blueprint.new(**d) }
     end
 
-    def filter_blueprints(blueprints)
+    def filter_blueprints(blueprints, tags, skip_tags)
       blueprints
     end
   end
