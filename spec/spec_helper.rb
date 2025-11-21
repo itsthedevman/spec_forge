@@ -40,3 +40,7 @@ RSpec.configure do |config|
     FactoryBot::Internal.configuration.factories.clear
   end
 end
+
+def fixtures_path
+  Pathname.new(File.expand_path(".", __dir__)).join("fixtures")
+end
