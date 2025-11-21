@@ -36,18 +36,15 @@ module SpecForge
 
     def transform_steps(files, base_path)
       files.map! do |file_path, content|
-        # Parse with Psych to get line numbers
-        yaml_tree = Psych.parse(content)
-        steps = yaml_tree.to_ruby(symbolize_names: true)
+        # Parse with Psych to make it easier to extract line numbers
+        yaml = Psych.parse(content)
 
-        # Inject line numbers into each step
-        steps = inject_line_numbers(yaml_tree.root, steps)
+        steps = yaml.to_ruby(symbolize_names: true)
+          .then { |steps| inject_line_numbers(yaml.root, steps) }
+          .then { |s| normalize_steps(s) }
+          .then { |s| tag_steps(s) }
 
-        {
-          base_path:,
-          file_path:,
-          steps: normalize_steps(steps)
-        }
+        {base_path:, file_path:, steps:}
       end
     end
 
@@ -63,9 +60,9 @@ module SpecForge
     end
 
     def inject_line_numbers_into_array(yaml_node, array)
-      yaml_node.children.map.with_index do |child_node, index|
-        inject_line_numbers(child_node, array[index])
-      end
+      yaml_node.children
+        .map
+        .with_index { |node, index| inject_line_numbers(node, array[index]) }
     end
 
     def inject_line_numbers_into_hash(yaml_node, hash)
@@ -98,6 +95,13 @@ module SpecForge
         step
       rescue => e
         raise Error::LoadStepError.new(e, step, depth)
+      end
+    end
+
+    def tag_steps(steps, parent_tags: [])
+      steps.each do |step|
+        step[:tags] = (parent_tags + step[:tags]).uniq
+        tag_steps(step[:steps], parent_tags: step[:tags])
       end
     end
 

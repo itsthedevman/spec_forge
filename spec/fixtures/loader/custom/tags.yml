@@ -1,0 +1,20 @@
+- name: "Step 1"
+  tags: [ "bootstrap" ]
+
+- name: "Step 2"
+  tags: [ "bootstrap" ]
+
+- name: "Step 3"
+  tags: [ "step_3" ]
+
+- name: "Step 4"
+  tags: [ "step_4" ]
+  steps:
+  - name: "Step 5"
+    tags: [ "bootstrap" ]
+  - name: "Step 6"
+    tags: [ "step_6" ]
+    steps:
+    - name: "Step 7"
+      tags: [ "step_7" ]
+    - name: "Step 8"
