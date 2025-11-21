@@ -3,6 +3,7 @@
 module SpecForge
   STEP_ATTRIBUTES = %i[
     name
+    line_number
     verbose
     debug
     tags

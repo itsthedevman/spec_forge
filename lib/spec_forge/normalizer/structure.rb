@@ -63,7 +63,14 @@ module SpecForge
         return attributes if references.blank?
 
         if attributes.dig(:reference)
-          return attributes.except(:reference) if level >= MAX_DEPTH
+          if level >= MAX_DEPTH
+            attributes = attributes.except(:reference)
+
+            # The attribute needs to be dropped to avoid being inserted like so: "structure: [{}]"
+            attributes = nil if attributes.blank?
+
+            return attributes
+          end
 
           attributes = replace_with_reference("reference", attributes, references:)
           level += 1
