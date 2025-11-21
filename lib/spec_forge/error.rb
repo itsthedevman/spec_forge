@@ -196,19 +196,41 @@ module SpecForge
     end
 
     class LoadStepError < Error
-      def initialize(error, step)
-        message = "TODO: #{step.inspect}"
+      def initialize(error, step, depth = 0)
+        # Build the step path line
+        prefix = (depth == 0) ? "" : "→ "
+        step_name = step[:name].presence || "(unnamed)"
+        line_info = step[:line_number] ? " (line #{step[:line_number]})" : ""
 
-        causes = error.message.split("\n").map(&:strip).reject(&:empty?)
+        message = if depth == 0
+          "Step path:\n  #{step_name}#{line_info}"
+        else
+          "  #{prefix}#{step_name}#{line_info}"
+        end
 
-        message +=
-          if causes.size > 1
-            "\nCauses:\n  - #{causes.join_map("\n  - ")}"
+        cause_message = if error.is_a?(LoadStepError)
+          "\n#{error.message}"
+        else
+          # Final error - add spacing and the actual problem
+          error_lines = error.message.split("\n").map(&:strip).reject(&:empty?)
+          if error_lines.size > 1
+            "\n\nCaused by:\n  " + error_lines.join("\n  ")
           else
-            "\nCause: #{error}"
+            "\n\nCaused by: #{error.message}"
           end
+        end
 
-        super(message)
+        super(message + cause_message)
+      end
+    end
+
+    class MaxDepthError < Error
+      def initialize(depth, max:)
+        super(<<~STRING)
+          Attribute "steps" can only be nested up to #{max} levels deep, but found nesting at level #{depth}.
+
+          Consider flattening your "steps" attributes or using the "call" attribute to reference shared steps.
+        STRING
       end
     end
 

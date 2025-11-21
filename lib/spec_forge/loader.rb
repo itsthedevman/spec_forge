@@ -33,7 +33,12 @@ module SpecForge
 
     def transform_steps(files)
       files.map! do |file_path, content|
-        steps = YAML.safe_load(content, symbolize_names: true)
+        # Parse with Psych to get line numbers
+        yaml_tree = Psych.parse(content)
+        steps = yaml_tree.to_ruby(symbolize_names: true)
+
+        # Inject line numbers into each step
+        steps = inject_line_numbers(yaml_tree.root, steps)
 
         {
           base_path: @path,
@@ -43,11 +48,53 @@ module SpecForge
       end
     end
 
-    def normalize_steps(steps)
-      steps.map! do |step|
-        Normalizer.normalize!(step, using: :step)
+    def inject_line_numbers(yaml_node, ruby_object)
+      case ruby_object
+      when Array
+        inject_line_numbers_into_array(yaml_node, ruby_object)
+      when Hash
+        inject_line_numbers_into_hash(yaml_node, ruby_object)
+      else
+        ruby_object
+      end
+    end
+
+    def inject_line_numbers_into_array(yaml_node, array)
+      yaml_node.children.map.with_index do |child_node, index|
+        inject_line_numbers(child_node, array[index])
+      end
+    end
+
+    def inject_line_numbers_into_hash(yaml_node, hash)
+      # Psych uses 0-indexed line numbers
+      hash[:line_number] = yaml_node.start_line + 1
+
+      # Walk through key-value pairs in the YAML tree
+      yaml_node.children.each_slice(2) do |key_node, value_node|
+        key = key_node.value.to_sym
+        hash[key] = inject_line_numbers(value_node, hash[key])
+      end
+
+      hash
+    end
+
+    def normalize_steps(steps, depth = 0)
+      max_depth = SpecForge::Normalizer::Structure::MAX_DEPTH
+
+      steps.map do |step|
+        if depth >= max_depth && step[:steps].present?
+          raise Error::MaxDepthError.new(depth + 1, max: max_depth)
+        end
+
+        step = Normalizer.normalize!(step, using: :step)
+
+        if step[:steps].present?
+          step[:steps] = normalize_steps(step[:steps], depth + 1)
+        end
+
+        step
       rescue => e
-        raise Error::LoadStepError.new(e, step)
+        raise Error::LoadStepError.new(e, step, depth)
       end
     end
 
