@@ -48,6 +48,19 @@ RSpec.describe SpecForge::Loader do
   end
 
   context "when a directory path is provided" do
+    let(:path) { fixtures_path.join("loader", "custom") }
+
+    it "is expected to load the provided file at path" do
+      expect(loader.blueprints.size).to eq(2)
+
+      blueprint = loader.blueprints.first
+      expect(blueprint.base_path).to eq(path)
+      expect(blueprint.file_name).to eq("steps.yml")
+
+      blueprint = loader.blueprints.second
+      expect(blueprint.base_path).to eq(path)
+      expect(blueprint.file_name).to eq("subdirectory/store.yml")
+    end
   end
 
   context "when tags are provided"
