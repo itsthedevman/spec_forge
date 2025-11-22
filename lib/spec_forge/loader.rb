@@ -77,23 +77,11 @@ module SpecForge
       hash
     end
 
-    def normalize_steps(steps, depth = 0)
-      max_depth = SpecForge::Normalizer::Structure::MAX_DEPTH
-
+    def normalize_steps(steps)
       steps.map do |step|
-        if depth >= max_depth && step[:steps].present?
-          raise Error::MaxDepthError.new(depth + 1, max: max_depth)
-        end
-
-        step = Normalizer.normalize!(step, using: :step)
-
-        if step[:steps].present?
-          step[:steps] = normalize_steps(step[:steps], depth + 1)
-        end
-
-        step
+        Normalizer.normalize!(step, using: :step)
       rescue => e
-        raise Error::LoadStepError.new(e, step, depth)
+        raise Error::LoadStepError.new(e, step)
       end
     end
 

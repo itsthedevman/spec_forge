@@ -2,9 +2,8 @@
 
 RSpec.describe SpecForge::Normalizer::Structure do
   let(:input) { {} }
-  let(:references) { {} }
 
-  subject(:structure) { described_class.new(input, label: "normalizer", references:) }
+  subject(:structure) { described_class.new(input, label: "normalizer") }
 
   context "when the attribute is nil" do
     let(:input) { {a: nil} }
@@ -150,46 +149,6 @@ RSpec.describe SpecForge::Normalizer::Structure do
           "Expected String, got Hash for \"validator\" in \"a\" in \"normalizer\""
         )
       end
-    end
-  end
-
-  context "when a structure references another structure" do
-    let(:input) { {a: {reference: "b"}} }
-
-    let(:references) { {b: {type: "string"}} }
-
-    it "is expected to replace the reference" do
-      is_expected.to eq(a: {type: String})
-    end
-  end
-
-  context "when a structure references itself" do
-    let(:input) { {a: {type: "hash", structure: {reference: "a"}}} }
-
-    let(:references) { {a: input} }
-
-    it "is expected to limit the recursive depth to MAX_DEPTH (3)" do
-      is_expected.to eq(
-        a: {
-          type: Hash,
-          structure: {
-            a: {
-              type: Hash,
-              structure: {
-                a: {
-                  type: Hash,
-                  structure: {
-                    a: {
-                      type: Hash,
-                      structure: {}
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      )
     end
   end
 end

@@ -161,17 +161,3 @@ call:
   default: []
   structure:
     type: string
-
-steps:
-  type: array
-  default: []
-  structure:
-    type: hash
-    structure:
-      reference: step
-
-include:
-  type: array
-  default: []
-  structure:
-    type: string
