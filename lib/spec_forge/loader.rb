@@ -7,18 +7,17 @@ module SpecForge
       skip_tags ||= []
 
       path = path.present? ? Pathname.new(path) : SpecForge.forge_path.join("blueprints")
-      blueprints = prepare_blueprints(path, tags, skip_tags)
+      blueprints = prepare_blueprints(path)
 
       super(path:, tags:, skip_tags:, blueprints:)
     end
 
     private
 
-    def prepare_blueprints(path, tags, skip_tags)
+    def prepare_blueprints(path)
       read_steps(path)
         .then { |s| transform_steps(s, path) }
         .then { |b| create_blueprints(b) }
-        .then { |b| filter_blueprints(b, tags, skip_tags) }
     end
 
     def read_steps(path)
@@ -107,12 +106,6 @@ module SpecForge
 
     def create_blueprints(blueprint_data)
       blueprint_data.map! { |d| Blueprint.new(**d) }
-    end
-
-    def filter_blueprints(blueprints, tags, skip_tags)
-      # filtered_blueprints = []
-
-      blueprints
     end
   end
 end
