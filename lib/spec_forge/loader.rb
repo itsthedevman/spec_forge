@@ -110,6 +110,8 @@ module SpecForge
     end
 
     def filter_blueprints(blueprints, tags, skip_tags)
+      # filtered_blueprints = []
+
       blueprints
     end
   end

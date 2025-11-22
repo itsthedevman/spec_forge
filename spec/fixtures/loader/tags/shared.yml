@@ -1,0 +1,8 @@
+- name: "Step 1"
+  tags: [ "shared", "step_1" ]
+
+- name: "Step 2"
+  tags: [ "shared", "step_2" ]
+
+- name: "Step 3"
+  tags: [ "shared", "step_3" ]
