@@ -1,0 +1,9 @@
+- include:
+  - included_01
+
+- include:
+  - included_01.yml
+  - included_02.yaml
+
+- steps:
+  - include: included_02

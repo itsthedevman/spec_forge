@@ -96,18 +96,18 @@ RSpec.describe SpecForge::Loader do
     end
   end
 
-  context "when tags are provided" do
-    let(:path) { fixtures_path.join("loader", "tags") }
-
-    let(:tags) { ["standard"] }
-
-    it "is expected to filter for the provided tags" do
-    end
-
-    context "and the tags are shared across blueprints"
-  end
-
+  context "when tags are provided"
   context "when skip_tags are provided"
-
   context "when both tags and skip_tags are provided"
+
+  context "when steps use include" do
+    context "test" do
+      let(:path) { fixtures_path.join("loader", "including", "nested") }
+
+      it "is expected to work" do
+        loader
+        binding.pry
+      end
+    end
+  end
 end

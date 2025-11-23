@@ -18,13 +18,16 @@ module SpecForge
     private
 
     def load_blueprints
-      read_blueprints.map! { |d| Blueprint.new(**d) }
+      read_blueprints
+        .index_by { |b| b[:name] }
+        .then { |blueprints| StepProcessor.new(blueprints, tags: @tags, skip_tags: @skip_tags).run }
+        # .map { |d| Blueprint.new(**d) }
     end
 
     def read_blueprints
       paths =
         if @path.directory?
-          Dir[base_path.join("**/*.yml")]
+          Dir.glob(@path.join("**/*.{yml,yaml}"))
         else
           [@path.to_s]
         end
@@ -33,9 +36,12 @@ module SpecForge
         file_path = Pathname.new(file_path)
         content = File.read(file_path)
 
+        relative_path = file_path.relative_path_from(@path)
+        name = relative_path.to_s.delete_suffix(".yml").delete_suffix(".yaml")
+
         steps = parse_steps(content)
 
-        {base_path: @path, file_path:, steps:}
+        {base_path: @path, file_path:, name:, steps:}
       end
     end
 

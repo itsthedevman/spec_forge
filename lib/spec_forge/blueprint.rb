@@ -1,33 +1,18 @@
 # frozen_string_literal: true
 
 module SpecForge
-  class Blueprint < Data.define(:base_path, :file_path, :file_name, :steps)
-    def initialize(base_path:, file_path:, steps: [])
+  class Blueprint
+    attr_reader :base_path, :file_path, :file_name, :name, :steps
+
+    def initialize(base_path:, file_path:, name:, steps: [])
       base_path = base_path.dirname if base_path.file?
+      @base_path = base_path
 
-      relative_path = file_path.relative_path_from(base_path)
-      file_name = relative_path.to_s
+      @file_path = file_path
+      @file_name = file_path.basename(".*")
+      @name = name
 
-      steps = steps.map { |s| Step.new(**s) }
-
-      super(base_path:, file_path:, file_name:, steps:)
-    end
-
-    private
-
-    def normalize_steps(steps)
-      steps.map do |step|
-        Normalizer.normalize!(step, using: :step)
-      rescue => e
-        raise Error::LoadStepError.new(e, step)
-      end
-    end
-
-    def tag_steps(steps, parent_tags: [])
-      steps.each do |step|
-        step[:tags] = (parent_tags + step[:tags]).uniq
-        tag_steps(step[:steps], parent_tags: step[:tags])
-      end
+      @steps = steps.map { |s| Step.new(**s) }
     end
   end
 end
