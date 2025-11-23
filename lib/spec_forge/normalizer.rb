@@ -394,6 +394,10 @@ module SpecForge
         Validators.call(name, value, label: error_label)
       end
 
+      if (block = definition[:modifier]) && block.is_a?(Proc)
+        value = block.call(value)
+      end
+
       # Normalize any sub structures
       if (substructure = definition[:structure]) && substructure.present?
         value = normalize_substructure(error_label, value, substructure, errors)
