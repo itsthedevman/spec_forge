@@ -1,50 +1,50 @@
 # frozen_string_literal: true
 
 module SpecForge
-  class Loader < Data.define(:path, :tags, :skip_tags, :blueprints)
+  class Loader
+    attr_reader :path
+    attr_reader :tags
+    attr_reader :skip_tags
+    attr_reader :blueprints
+
     def initialize(path: nil, tags: [], skip_tags: [])
-      tags ||= []
-      skip_tags ||= []
+      @tags = tags || []
+      @skip_tags = skip_tags || []
 
-      path = path.present? ? Pathname.new(path) : SpecForge.forge_path.join("blueprints")
-      blueprints = prepare_blueprints(path)
-
-      super(path:, tags:, skip_tags:, blueprints:)
+      @path = path.present? ? Pathname.new(path) : SpecForge.forge_path.join("blueprints")
+      @blueprints = load_blueprints
     end
 
     private
 
-    def prepare_blueprints(path)
-      read_steps(path)
-        .then { |s| transform_steps(s, path) }
-        .then { |b| create_blueprints(b) }
+    def load_blueprints
+      read_blueprints.map! { |d| Blueprint.new(**d) }
     end
 
-    def read_steps(path)
+    def read_blueprints
       paths =
-        if path.directory?
-          Dir[path.join("**/*.yml")]
+        if @path.directory?
+          Dir[base_path.join("**/*.yml")]
         else
-          [path.to_s]
+          [@path.to_s]
         end
 
-      paths.map do |file_path|
-        [Pathname.new(file_path), File.read(file_path)]
+      paths.map! do |file_path|
+        file_path = Pathname.new(file_path)
+        content = File.read(file_path)
+
+        steps = parse_steps(content)
+
+        {base_path: @path, file_path:, steps:}
       end
     end
 
-    def transform_steps(files, base_path)
-      files.map! do |file_path, content|
-        # Parse with Psych to make it easier to extract line numbers
-        yaml = Psych.parse(content)
+    def parse_steps(content)
+      # Parse with Psych to make it easier to extract line numbers
+      yaml = Psych.parse(content)
 
-        steps = yaml.to_ruby(symbolize_names: true)
-          .then { |steps| inject_line_numbers(yaml.root, steps) }
-          .then { |s| normalize_steps(s) }
-          .then { |s| tag_steps(s) }
-
-        {base_path:, file_path:, steps:}
-      end
+      steps = yaml.to_ruby(symbolize_names: true)
+      inject_line_numbers(yaml.root, steps)
     end
 
     def inject_line_numbers(yaml_node, ruby_object)
@@ -75,25 +75,6 @@ module SpecForge
       end
 
       hash
-    end
-
-    def normalize_steps(steps)
-      steps.map do |step|
-        Normalizer.normalize!(step, using: :step)
-      rescue => e
-        raise Error::LoadStepError.new(e, step)
-      end
-    end
-
-    def tag_steps(steps, parent_tags: [])
-      steps.each do |step|
-        step[:tags] = (parent_tags + step[:tags]).uniq
-        tag_steps(step[:steps], parent_tags: step[:tags])
-      end
-    end
-
-    def create_blueprints(blueprint_data)
-      blueprint_data.map! { |d| Blueprint.new(**d) }
     end
   end
 end

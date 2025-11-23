@@ -12,5 +12,22 @@ module SpecForge
 
       super(base_path:, file_path:, file_name:, steps:)
     end
+
+    private
+
+    def normalize_steps(steps)
+      steps.map do |step|
+        Normalizer.normalize!(step, using: :step)
+      rescue => e
+        raise Error::LoadStepError.new(e, step)
+      end
+    end
+
+    def tag_steps(steps, parent_tags: [])
+      steps.each do |step|
+        step[:tags] = (parent_tags + step[:tags]).uniq
+        tag_steps(step[:steps], parent_tags: step[:tags])
+      end
+    end
   end
 end

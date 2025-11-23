@@ -4,7 +4,6 @@ module SpecForge
   STEP_ATTRIBUTES = %i[
     name
     line_number
-    verbose
     debug
     tags
     documentation
@@ -13,8 +12,6 @@ module SpecForge
     store
     hooks
     call
-    steps
-    include
   ].freeze
 
   class Step < Data.define(*STEP_ATTRIBUTES)

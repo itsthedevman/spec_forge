@@ -7,10 +7,6 @@ name:
   type: string
   default: ""
 
-verbose:
-  type: boolean
-  default: false
-
 debug:
   type: boolean
   aliases:
