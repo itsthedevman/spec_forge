@@ -10,61 +10,58 @@ module SpecForge
       end
 
       def run
-        # Each step in each blueprint needs to be tagged, includes expanded, and then steps flattened.
         @blueprints.each do |name, blueprint|
-          blueprint[:steps] = expand_steps(blueprint)
-          # tag_steps(blueprint[:steps])
+          blueprint[:steps] = prepare_steps(blueprint)
+            .then { |s| expand_steps(s) }
+          # .then { |s| tag_steps(s) }
+          # .then { |s| normalize_steps(s) }
         end
       end
 
       private
 
-      def tag_steps(steps, parent_tags: [])
-        steps.each do |step|
-          step[:tags] = (parent_tags + step[:tags]).uniq
-          tag_steps(step[:steps], parent_tags: step[:tags])
+      def prepare_steps(blueprint)
+        blueprint[:steps].map do |step|
+          step[:source] = {file_name: blueprint[:name], line_number: step.delete(:line_number)}
+          step
         end
       end
 
-      def expand_steps(blueprint)
-        return if blueprint[:steps].blank?
+      def expand_steps(steps)
+        return if steps.blank?
 
         output_steps = []
 
-        blueprint[:steps].each do |step|
+        steps.each do |step|
           # Included blueprint steps replace the current step
           if (names = step[:include]) && names.size > 0
-            steps = load_included_steps(names)
-            output_steps.concat(steps)
+            output_steps += load_included_steps(step, names)
           else
             output_steps << step
           end
 
-          expand_steps(step) if step[:steps]
+          step[:steps] = expand_steps(step[:steps]) if step[:steps]
         end
 
         output_steps
       end
 
-      def normalize_steps(steps)
-        steps.map do |step|
-          Normalizer.normalize!(step, using: :step)
-        rescue => e
-          raise Error::LoadStepError.new(e, step)
-        end
-      end
-
-      def load_included_steps(names)
+      def load_included_steps(step, names)
         names = normalize_included_step_names(
           names,
-          label: "TODO - included step: #{names}"
+          label: "\"include\" in #{step[:source][:file_name]}:#{step[:source][:line_number]}"
         )
 
         names.flat_map do |name|
           blueprint = @blueprints[name]
 
           if blueprint.nil?
-            raise "TODO: Failed to find blueprint: #{name.in_quotes}"
+            raise Error, <<~STRING
+              Blueprint #{name.in_quotes} not found
+              Referenced in: #{step[:source][:file_name]}:#{step[:source][:line_number]}
+
+              Available blueprints: #{@blueprints.keys.join_map(", ", &:in_quotes)}
+            STRING
           end
 
           blueprint[:steps]
@@ -85,6 +82,22 @@ module SpecForge
             }
           }
         )[:include]
+      end
+
+      def tag_steps(steps, parent_tags: [])
+        steps.each do |step|
+          step[:tags] = (parent_tags + step[:tags]).uniq
+
+          tag_steps(step[:steps], parent_tags: step[:tags])
+        end
+      end
+
+      def normalize_steps(steps)
+        steps.map do |step|
+          Normalizer.normalize!(step, using: :step)
+        rescue => e
+          raise Error::LoadStepError.new(e, step)
+        end
       end
     end
   end

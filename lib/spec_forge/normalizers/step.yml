@@ -1,7 +1,3 @@
-# System defined
-line_number:
-  type: integer
-
 # User defined
 name:
   type: string
@@ -157,3 +153,26 @@ call:
   default: []
   structure:
     type: string
+
+# System defined
+source:
+  type: hash
+  default: {}
+  structure:
+    file_name:
+      type: string
+    line_number:
+      type: integer
+
+included_by:
+  type: hash
+  default: null
+  structure:
+    file_name:
+      type: string
+    line_number:
+      type: integer
+
+display_message:
+  type: string
+  default: null
