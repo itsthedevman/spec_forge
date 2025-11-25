@@ -394,8 +394,9 @@ module SpecForge
         Validators.call(name, value, label: error_label)
       end
 
-      if (block = definition[:modifier]) && block.is_a?(Proc)
-        value = block.call(value)
+      # Call the transformer if it has one
+      if (name = definition[:transformer]) && name.present?
+        value = Transformers.call(name, value)
       end
 
       # Normalize any sub structures

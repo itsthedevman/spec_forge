@@ -154,6 +154,11 @@ call:
   structure:
     type: string
 
+include:
+  type: [ string, array ]
+  default: []
+  transformer: normalize_includes
+
 # System defined
 source:
   type: hash

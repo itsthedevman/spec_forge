@@ -25,6 +25,9 @@ module SpecForge
         },
         validator: {
           type: String
+        },
+        transformer: {
+          type: String
         }
       }.freeze
 
