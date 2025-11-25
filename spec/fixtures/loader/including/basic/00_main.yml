@@ -1,9 +1,15 @@
-- include:
+- name: "Step 1"
+  tags: [ "step_1" ]
+  include:
   - included_01
 
-- include:
+- name: "Step 2"
+  tags: [ "step_2" ]
+  include:
   - included_01.yml
   - included_02.yaml
 
-- steps:
+- name: "Step 3"
+  tags: [ "step_3" ]
+  steps:
   - include: included_02

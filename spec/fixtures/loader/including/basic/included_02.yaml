@@ -1,3 +1,6 @@
 - name: "02 - Hello"
+  tags: [ "included_02" ]
 - name: "02 - World"
+  tags: [ "included_02" ]
 - name: "02 - !"
+  tags: [ "included_02" ]

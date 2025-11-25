@@ -10,17 +10,28 @@ module SpecForge
       end
 
       def run
+        # First run, prepare the steps
+        # This is important to be done before expanding the includes
         @blueprints.each do |name, blueprint|
-          blueprint[:steps] = prepare_steps(blueprint)
-            .then { |s| normalize_steps(s) }
+          blueprint[:steps] = prepare_steps(blueprint[:steps], file_name: blueprint[:name])
+        end
+
+        @blueprints.each do |name, blueprint|
+          blueprint[:steps] = normalize_steps(blueprint[:steps])
             .then { |s| expand_steps(s) }
             .then { |s| tag_steps(s) }
             .then { |s| flatten_steps(s) }
-            .then { |s| normalize_steps(s) }
         end
       end
 
       private
+
+      def prepare_steps(steps, file_name:)
+        steps.each do |step|
+          step[:source] = {file_name:, line_number: step.delete(:line_number)}
+          step[:steps] = prepare_steps(step[:steps], file_name:) if step[:steps]
+        end
+      end
 
       def normalize_steps(steps)
         steps.map do |step|
@@ -35,33 +46,27 @@ module SpecForge
         end
       end
 
-      def prepare_steps(blueprint)
-        blueprint[:steps].map do |step|
-          step[:source] = {file_name: blueprint[:name], line_number: step.delete(:line_number)}
-          step
-        end
-      end
-
       def expand_steps(steps)
         return if steps.blank?
 
         output_steps = []
 
         steps.each do |step|
-          if (names = step[:include]) && names.size > 0
-            output_steps += load_included_steps(step, names)
-          else
-            output_steps << step
-          end
+          output_steps <<
+            if (names = step.delete(:include)) && names.size > 0
+              load_included_steps(step, names)
+            else
+              step
+            end
 
-          step[:steps] = expand_steps(step[:steps]) if step[:steps]
+          step[:steps] = expand_steps(step[:steps])
         end
 
         output_steps
       end
 
       def load_included_steps(step, names)
-        output_steps =
+        imported_steps =
           names.flat_map do |name|
             blueprint = @blueprints[name]
 
@@ -76,18 +81,14 @@ module SpecForge
 
             steps = blueprint[:steps].deep_dup
             steps = assign_included_by(step, steps)
-
-            {
-              tags: step[:tags],
-              steps:
-            }
+            steps
           end
 
         # Count total steps being included
-        total_steps = output_steps.sum { |s| s[:steps].size }
+        total_steps = imported_steps.size
 
-        # Format display message
-        display_message =
+        # Change the original step to be a display notice
+        step[:display_message] =
           if names.size == 1
             "-> Including #{names.first}.yml (#{total_steps} steps)"
           else
@@ -95,14 +96,8 @@ module SpecForge
             "-> Including #{files} (#{total_steps} steps total)"
           end
 
-        # Insert a message to print before running the included steps
-        output_steps.insert(0, {
-          display_message:,
-          source: step[:source],
-          tags: step[:tags]
-        })
-
-        output_steps
+        step[:steps] += imported_steps
+        step
       end
 
       def assign_included_by(source_step, steps)
@@ -114,7 +109,7 @@ module SpecForge
 
       def tag_steps(steps, parent_tags: [])
         steps.each do |step|
-          step[:tags] = (parent_tags + step[:tags]).uniq if step[:tags]
+          step[:tags] = (parent_tags + step[:tags]).uniq
 
           tag_steps(step[:steps], parent_tags: step[:tags]) if step[:steps]
         end
@@ -122,7 +117,7 @@ module SpecForge
 
       def flatten_steps(steps)
         steps.flat_map do |step|
-          if (sub_steps = step[:steps]) && sub_steps.size > 0
+          if (sub_steps = step[:steps])
             flatten_steps(sub_steps)
           else
             step
