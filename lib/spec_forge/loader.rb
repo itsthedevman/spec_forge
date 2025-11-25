@@ -21,7 +21,7 @@ module SpecForge
       read_blueprints
         .index_by { |b| b[:name] }
         .then { |blueprints| StepProcessor.new(blueprints, tags: @tags, skip_tags: @skip_tags).run }
-        # .map { |d| Blueprint.new(**d) }
+      # .map { |d| Blueprint.new(**d) }
     end
 
     def read_blueprints
