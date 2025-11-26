@@ -3,17 +3,14 @@
 module SpecForge
   class Loader
     class StepProcessor
-      def initialize(blueprints, tags: [], skip_tags: [])
+      def initialize(blueprints)
         @blueprints = blueprints
-        @tags = tags
-        @skip_tags = skip_tags
       end
 
       def run
-        # First run, prepare the steps
-        # This is important to be done before expanding the includes
+        # This is important to be done to every blueprint before expanding the includes
         @blueprints.each do |name, blueprint|
-          blueprint[:steps] = prepare_steps(blueprint[:steps], file_name: blueprint[:name])
+          blueprint[:steps] = assign_source(blueprint[:steps], file_name: blueprint[:name])
         end
 
         @blueprints.each do |name, blueprint|
@@ -22,14 +19,16 @@ module SpecForge
             .then { |s| tag_steps(s) }
             .then { |s| flatten_steps(s) }
         end
+
+        @blueprints.values
       end
 
       private
 
-      def prepare_steps(steps, file_name:)
+      def assign_source(steps, file_name:)
         steps.each do |step|
           step[:source] = {file_name:, line_number: step.delete(:line_number)}
-          step[:steps] = prepare_steps(step[:steps], file_name:) if step[:steps]
+          step[:steps] = assign_source(step[:steps], file_name:) if step[:steps]
         end
       end
 

@@ -1,37 +1,32 @@
 # frozen_string_literal: true
 
 module SpecForge
-  class Loader < Data.define(:path, :blueprints)
+  class Loader < Data.define(:blueprints)
     def initialize(path: nil, tags: [], skip_tags: [])
-      path = path.present? ? Pathname.new(path) : SpecForge.forge_path.join("blueprints")
-      blueprints = load_blueprints(path, tags:, skip_tags:)
+      blueprints = load_blueprints(filter: {path:, tags:, skip_tags:})
 
-      super(path:, blueprints:)
+      super(blueprints:)
     end
 
     private
 
-    def load_blueprints(path, tags: [], skip_tags: [])
-      read_blueprints(path)
+    def load_blueprints(filter: {})
+      read_blueprints
         .index_by { |b| b[:name] }
-        .then { |blueprints| StepProcessor.new(blueprints, tags:, skip_tags:).run }
-        .values
-        .map { |d| Blueprint.new(**d) }
+        .then { |blueprints| StepProcessor.new(blueprints).run }
+        # .then { |blueprints| Filter.new(blueprints).run(**filter) }
+        .map { |b| Blueprint.new(**b) }
     end
 
-    def read_blueprints(path)
-      paths =
-        if path.directory?
-          Dir.glob(path.join("**/*.{yml,yaml}"))
-        else
-          [path.to_s]
-        end
+    def read_blueprints
+      base_path = SpecForge.forge_path.join("blueprints")
+      paths = Dir.glob(base_path.join("**", "*.{yml,yaml}"))
 
       paths.map! do |file_path|
         file_path = Pathname.new(file_path)
         content = File.read(file_path)
 
-        relative_path = file_path.relative_path_from(path)
+        relative_path = file_path.relative_path_from(base_path)
         name = relative_path.to_s.delete_suffix(".yml").delete_suffix(".yaml")
 
         steps = parse_steps(content)
