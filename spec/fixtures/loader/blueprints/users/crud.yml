@@ -1,0 +1,23 @@
+- name: "Create user"
+  tags: [ users, crud, write ]
+  request:
+    method: POST
+    url: "/api/users"
+
+- name: "Get user"
+  tags: [ users, crud, read ]
+  request:
+    method: GET
+    url: "/api/users/1"
+
+- name: "Update user"
+  tags: [ users, crud, write ]
+  request:
+    method: PUT
+    url: "/api/users/1"
+
+- name: "Delete user"
+  tags: [ users, crud, write ]
+  request:
+    method: DELETE
+    url: "/api/users/1"

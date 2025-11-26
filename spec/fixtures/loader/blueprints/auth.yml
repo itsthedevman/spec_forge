@@ -1,0 +1,11 @@
+- name: "Login as admin"
+  tags: [ auth, login, admin ]
+  request:
+    method: POST
+    url: "/api/auth/login"
+
+- name: "Verify admin token"
+  tags: [ auth, login, verify ]
+  request:
+    method: GET
+    url: "/api/auth/verify"

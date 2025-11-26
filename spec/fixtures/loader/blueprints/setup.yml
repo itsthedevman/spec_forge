@@ -1,0 +1,18 @@
+- name: "Setup authentication"
+  tags: [ setup, auth ]
+  include: [ auth ]
+
+- name: "Setup test data"
+  tags: [ setup, data ]
+  steps:
+    - name: "Create test users"
+      tags: [ setup, users ]
+      request:
+        method: POST
+        url: "/api/seed/users"
+
+    - name: "Create test posts"
+      tags: [ setup, posts ]
+      request:
+        method: POST
+        url: "/api/seed/posts"
