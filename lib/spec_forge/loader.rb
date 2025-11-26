@@ -14,7 +14,7 @@ module SpecForge
       read_blueprints
         .index_by { |b| b[:name] }
         .then { |blueprints| StepProcessor.new(blueprints).run }
-        # .then { |blueprints| Filter.new(blueprints).run(**filter) }
+        .then { |blueprints| Filter.new(blueprints).run(**filter) }
         .map { |b| Blueprint.new(**b) }
     end
 
@@ -26,8 +26,9 @@ module SpecForge
         file_path = Pathname.new(file_path)
         content = File.read(file_path)
 
-        relative_path = file_path.relative_path_from(base_path)
-        name = relative_path.to_s.delete_suffix(".yml").delete_suffix(".yaml")
+        name = file_path.relative_path_from(base_path).to_s
+          .delete_suffix(".yml")
+          .delete_suffix(".yaml")
 
         steps = parse_steps(content)
 
