@@ -151,4 +151,17 @@ RSpec.describe SpecForge::Normalizer::Structure do
       end
     end
   end
+
+  describe "'transformer' attribute" do
+    context "when it is not String" do
+      let(:input) { {a: {type: String, transformer: {}}} }
+
+      it do
+        expect { structure }.to raise_error(
+          SpecForge::Error::InvalidStructureError,
+          "Expected String, got Hash for \"transformer\" in \"a\" in \"normalizer\""
+        )
+      end
+    end
+  end
 end
