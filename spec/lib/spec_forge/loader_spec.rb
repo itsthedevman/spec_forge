@@ -12,23 +12,29 @@ RSpec.describe SpecForge::Loader do
   end
 
   it "is expected to load from the blueprints/ directory" do
-    loader
-    binding.pry
-    expect(loader.blueprints.size).to eq(2)
+    expect(loader.blueprints.size).to eq(3)
+
+    blueprints_path = fixtures_path.join("loader", "blueprints")
 
     blueprint = loader.blueprints.first
-    expect(blueprint.base_path).to eq(fixtures_path.join("loader", "blueprints"))
-    expect(blueprint.file_path).to eq(fixtures_path.join("loader", "blueprints", "00_alpha.yml"))
-    expect(blueprint.file_name).to eq("00_alpha.yml")
-    expect(blueprint.steps.size).to eq(3)
+    expect(blueprint.file_path).to eq(blueprints_path.join("00.yml"))
+    expect(blueprint.file_name).to eq("00.yml")
+    expect(blueprint.name).to eq("00")
+    expect(blueprint.steps.size).to eq(1)
+    expect(blueprint.steps.map(&:name)).to eq(["00 - Step 1"])
 
     blueprint = loader.blueprints.second
-    expect(blueprint.base_path).to eq(fixtures_path.join("loader", "blueprints"))
-    expect(blueprint.file_path).to eq(
-      fixtures_path.join("loader", "blueprints", "subdirectory", "01_bravo.yml")
-    )
-
-    expect(blueprint.file_name).to eq("subdirectory/01_bravo.yml")
+    expect(blueprint.file_path).to eq(blueprints_path.join("01.yml"))
+    expect(blueprint.file_name).to eq("01.yml")
+    expect(blueprint.name).to eq("01")
     expect(blueprint.steps.size).to eq(2)
+    expect(blueprint.steps.map(&:name)).to eq(["01 - Step 1", "01 - Step 2"])
+
+    blueprint = loader.blueprints.third
+    expect(blueprint.file_path).to eq(blueprints_path.join("subdirectory", "02.yml"))
+    expect(blueprint.file_name).to eq("02.yml")
+    expect(blueprint.name).to eq("subdirectory/02")
+    expect(blueprint.steps.size).to eq(3)
+    expect(blueprint.steps.map(&:name)).to eq(["02 - Step 1", "02 - Step 2", "02 - Step 3"])
   end
 end
