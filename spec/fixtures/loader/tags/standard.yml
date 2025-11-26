@@ -1,8 +1,0 @@
-- name: "Step 1"
-  tags: [ "standard", "step_1" ]
-
-- name: "Step 2"
-  tags: [ "standard", "step_2" ]
-
-- name: "Step 3"
-  tags: [ "standard", "step_3" ]

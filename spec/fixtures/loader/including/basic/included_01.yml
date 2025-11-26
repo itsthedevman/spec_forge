@@ -1,6 +1,0 @@
-- name: "01 - Hello"
-  tags: [ "included_01" ]
-- name: "01 - World"
-  tags: [ "included_01" ]
-- name: "01 - !"
-  tags: [ "included_01" ]
