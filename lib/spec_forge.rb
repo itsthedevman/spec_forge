@@ -36,23 +36,6 @@ loader.inflector.inflect(
 loader.ignore(core_ext_path.to_s)
 loader.setup
 
-#
-# SpecForge: Write expressive API tests in YAML with the power of RSpec matchers
-#
-# SpecForge is a testing framework that allows writing API tests in a YAML format
-# that reads like documentation. It combines the readability of YAML with the
-# power of RSpec matchers, Faker data generation, and FactoryBot test objects.
-#
-# @example Basic spec in YAML
-#   get_user:
-#     path: /users/1
-#     expectations:
-#     - expect:
-#         status: 200
-#         json:
-#           name: kind_of.string
-#           email: /@/
-#
 module SpecForge
   class << self
     #
@@ -71,6 +54,10 @@ module SpecForge
     #
     def forge_path
       @forge_path ||= root.join("spec_forge")
+    end
+
+    def blueprints_path
+      @blueprints_path ||= forge_path.join("blueprints")
     end
 
     #
