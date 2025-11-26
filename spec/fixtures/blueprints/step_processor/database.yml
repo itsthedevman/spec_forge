@@ -1,0 +1,11 @@
+- name: "Create database"
+  tags: [ database, setup ]
+  request:
+    method: POST
+    url: "/api/database"
+
+- name: "Seed data"
+  tags: [ database, seed ]
+  request:
+    method: POST
+    url: "/api/seed"
