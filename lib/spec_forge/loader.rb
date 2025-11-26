@@ -1,22 +1,24 @@
 # frozen_string_literal: true
 
 module SpecForge
-  class Loader < Data.define(:blueprints)
-    def initialize(path: nil, tags: [], skip_tags: [])
-      blueprints = load_blueprints(filter: {path:, tags:, skip_tags:})
-
-      super(blueprints:)
+  class Loader
+    def self.load_blueprints(path: nil, tags: [], skip_tags: [])
+      new(filter: {path:, tags:, skip_tags:}).load
     end
 
-    private
+    def initialize(filter: {})
+      @filter = filter
+    end
 
-    def load_blueprints(filter: {})
+    def load
       read_blueprints
         .index_by { |b| b[:name] }
         .then { |blueprints| StepProcessor.new(blueprints).run }
-        .then { |blueprints| Filter.new(blueprints).run(**filter) }
+        .then { |blueprints| Filter.new(blueprints).run(**@filter) }
         .map { |b| Blueprint.new(**b) }
     end
+
+    private
 
     def read_blueprints
       base_path = SpecForge.forge_path.join("blueprints")

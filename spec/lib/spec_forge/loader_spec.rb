@@ -5,7 +5,7 @@ RSpec.describe SpecForge::Loader do
   let(:tags) { [] }
   let(:skip_tags) { [] }
 
-  subject(:loader) { described_class.new(path:, tags:, skip_tags:) }
+  subject(:blueprints) { described_class.load_blueprints(path:, tags:, skip_tags:) }
 
   before do
     allow(SpecForge).to receive(:forge_path).and_return(fixtures_path.join("loader"))
@@ -13,8 +13,8 @@ RSpec.describe SpecForge::Loader do
 
   describe "loading blueprints" do
     it "is expected to load all blueprints from the blueprints/ directory" do
-      expect(loader.blueprints.size).to eq(5)
-      expect(loader.blueprints.map(&:name)).to contain_exactly(
+      expect(blueprints.size).to eq(5)
+      expect(blueprints.map(&:name)).to contain_exactly(
         "auth",
         "users/crud",
         "users/search",
@@ -24,23 +24,23 @@ RSpec.describe SpecForge::Loader do
     end
 
     it "is expected to convert blueprints to Blueprint objects" do
-      expect(loader.blueprints).to all(be_a(SpecForge::Blueprint))
+      expect(blueprints).to all(be_a(SpecForge::Blueprint))
     end
 
     it "is expected to set correct file metadata" do
       blueprints_path = fixtures_path.join("loader", "blueprints")
 
-      auth = loader.blueprints.find { |b| b.name == "auth" }
+      auth = blueprints.find { |b| b.name == "auth" }
       expect(auth.file_path).to eq(blueprints_path.join("auth.yml"))
       expect(auth.file_name).to eq("auth.yml")
 
-      user_crud = loader.blueprints.find { |b| b.name == "users/crud" }
+      user_crud = blueprints.find { |b| b.name == "users/crud" }
       expect(user_crud.file_path).to eq(blueprints_path.join("users", "crud.yml"))
       expect(user_crud.file_name).to eq("crud.yml")
     end
 
     it "is expected to process steps through StepProcessor" do
-      auth = loader.blueprints.find { |b| b.name == "auth" }
+      auth = blueprints.find { |b| b.name == "auth" }
 
       expect(auth.steps.size).to eq(2)
       expect(auth.steps.map(&:name)).to eq(["Login as admin", "Verify admin token"])
@@ -56,8 +56,8 @@ RSpec.describe SpecForge::Loader do
       let(:path) { fixtures_path.join("loader", "blueprints", "auth.yml") }
 
       it "is expected to load only that blueprint" do
-        expect(loader.blueprints.size).to eq(1)
-        expect(loader.blueprints[0].name).to eq("auth")
+        expect(blueprints.size).to eq(1)
+        expect(blueprints[0].name).to eq("auth")
       end
     end
 
@@ -65,8 +65,8 @@ RSpec.describe SpecForge::Loader do
       let(:path) { fixtures_path.join("loader", "blueprints", "users") }
 
       it "is expected to load only blueprints in that directory" do
-        expect(loader.blueprints.size).to eq(2)
-        expect(loader.blueprints.map(&:name)).to contain_exactly("users/crud", "users/search")
+        expect(blueprints.size).to eq(2)
+        expect(blueprints.map(&:name)).to contain_exactly("users/crud", "users/search")
       end
     end
 
@@ -74,7 +74,7 @@ RSpec.describe SpecForge::Loader do
       let(:path) { fixtures_path.join("loader", "blueprints", "nonexistent") }
 
       it "is expected to return no blueprints" do
-        expect(loader.blueprints).to be_empty
+        expect(blueprints).to be_empty
       end
     end
   end
@@ -84,9 +84,9 @@ RSpec.describe SpecForge::Loader do
       let(:tags) { ["read"] }
 
       it "is expected to filter steps by tag" do
-        user_crud = loader.blueprints.find { |b| b.name == "users/crud" }
-        user_search = loader.blueprints.find { |b| b.name == "users/search" }
-        posts = loader.blueprints.find { |b| b.name == "posts" }
+        user_crud = blueprints.find { |b| b.name == "users/crud" }
+        user_search = blueprints.find { |b| b.name == "users/search" }
+        posts = blueprints.find { |b| b.name == "posts" }
 
         expect(user_crud.steps.size).to eq(1)
         expect(user_crud.steps[0].name).to eq("Get user")
@@ -98,7 +98,7 @@ RSpec.describe SpecForge::Loader do
       end
 
       it "is expected to remove blueprints with no matching steps" do
-        expect(loader.blueprints.none? { |b| b.name == "auth" }).to be true
+        expect(blueprints.none? { |b| b.name == "auth" }).to be true
       end
     end
 
@@ -106,8 +106,8 @@ RSpec.describe SpecForge::Loader do
       let(:skip_tags) { ["write"] }
 
       it "is expected to exclude steps with skip tags" do
-        user_crud = loader.blueprints.find { |b| b.name == "users/crud" }
-        posts = loader.blueprints.find { |b| b.name == "posts" }
+        user_crud = blueprints.find { |b| b.name == "users/crud" }
+        posts = blueprints.find { |b| b.name == "posts" }
 
         expect(user_crud.steps.size).to eq(1)
         expect(user_crud.steps[0].name).to eq("Get user")
@@ -122,15 +122,15 @@ RSpec.describe SpecForge::Loader do
       let(:skip_tags) { ["write"] }
 
       it "is expected to apply both filters" do
-        expect(loader.blueprints.size).to eq(3)
-        expect(loader.blueprints.map(&:name)).to contain_exactly("users/crud", "users/search", "setup")
+        expect(blueprints.size).to eq(3)
+        expect(blueprints.map(&:name)).to contain_exactly("users/crud", "users/search", "setup")
 
-        user_crud = loader.blueprints.find { |b| b.name == "users/crud" }
+        user_crud = blueprints.find { |b| b.name == "users/crud" }
         expect(user_crud.steps.size).to eq(1)
         expect(user_crud.steps[0].name).to eq("Get user")
 
         # setup has "Create test users" which matches "users" tag and doesn't have "write"
-        setup = loader.blueprints.find { |b| b.name == "setup" }
+        setup = blueprints.find { |b| b.name == "setup" }
         expect(setup.steps.size).to eq(1)
         expect(setup.steps[0].name).to eq("Create test users")
       end
@@ -143,9 +143,9 @@ RSpec.describe SpecForge::Loader do
       let(:tags) { ["crud"] }
 
       it "is expected to apply both filters" do
-        expect(loader.blueprints.size).to eq(1)
-        expect(loader.blueprints[0].name).to eq("users/crud")
-        expect(loader.blueprints[0].steps.size).to eq(4)
+        expect(blueprints.size).to eq(1)
+        expect(blueprints[0].name).to eq("users/crud")
+        expect(blueprints[0].steps.size).to eq(4)
       end
     end
 
@@ -155,10 +155,10 @@ RSpec.describe SpecForge::Loader do
       let(:skip_tags) { ["write"] }
 
       it "is expected to apply all filters in order" do
-        expect(loader.blueprints.size).to eq(1)
-        expect(loader.blueprints[0].name).to eq("users/crud")
-        expect(loader.blueprints[0].steps.size).to eq(1)
-        expect(loader.blueprints[0].steps[0].name).to eq("Get user")
+        expect(blueprints.size).to eq(1)
+        expect(blueprints[0].name).to eq("users/crud")
+        expect(blueprints[0].steps.size).to eq(1)
+        expect(blueprints[0].steps[0].name).to eq("Get user")
       end
     end
   end
@@ -166,7 +166,7 @@ RSpec.describe SpecForge::Loader do
   describe "step processing integration" do
     context "when blueprints use includes" do
       it "is expected to expand includes" do
-        setup = loader.blueprints.find { |b| b.name == "setup" }
+        setup = blueprints.find { |b| b.name == "setup" }
 
         # First step includes auth.yml (2 steps)
         # Second step has nested steps (2 steps)
@@ -183,7 +183,7 @@ RSpec.describe SpecForge::Loader do
       end
 
       it "is expected to apply tags from parent to included steps" do
-        setup = loader.blueprints.find { |b| b.name == "setup" }
+        setup = blueprints.find { |b| b.name == "setup" }
 
         # Auth steps should inherit setup tags
         expect(setup.steps[0].tags).to include("setup", "auth")
@@ -193,7 +193,7 @@ RSpec.describe SpecForge::Loader do
 
     context "when blueprints use nested steps" do
       it "is expected to flatten nested steps" do
-        setup = loader.blueprints.find { |b| b.name == "setup" }
+        setup = blueprints.find { |b| b.name == "setup" }
 
         # All steps should be flattened (no hierarchy)
         setup.steps.each do |step|
@@ -203,7 +203,7 @@ RSpec.describe SpecForge::Loader do
       end
 
       it "is expected to inherit tags from parent steps" do
-        setup = loader.blueprints.find { |b| b.name == "setup" }
+        setup = blueprints.find { |b| b.name == "setup" }
 
         # Nested steps should inherit parent tags
         create_users = setup.steps.find { |s| s.name == "Create test users" }
