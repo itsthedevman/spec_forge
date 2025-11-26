@@ -238,8 +238,8 @@ RSpec.describe SpecForge::Loader::StepProcessor do
         it "is expected to create display message" do
           result = processor.send(:expand_steps, steps)
 
-          expect(result[1][:display_message]).to match(/Including auth_setup/)
-          expect(result[1][:display_message]).to match(/2 steps/)
+          expect(result[1][:description]).to match(/Including auth_setup/)
+          expect(result[1][:description]).to match(/2 steps/)
         end
 
         it "is expected to not modify the original blueprint steps" do

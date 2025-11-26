@@ -34,11 +34,17 @@ module SpecForge
 
       def normalize_steps(steps)
         steps.map do |step|
-          # We'll normalize these separately
+          # System data (not included in normalizer)
+          source = step.delete(:source)
+
+          # We'll normalize these separately (not included in normalizer)
           sub_steps = step.delete(:steps) || []
+
           step = Normalizer.normalize!(step, using: :step)
 
           step[:steps] = normalize_steps(sub_steps)
+          step[:source] = source
+
           step
         rescue => e
           raise Error::LoadStepError.new(e, step)
@@ -87,7 +93,7 @@ module SpecForge
         total_steps = imported_steps.size
 
         # Change the original step to be a display notice
-        step[:display_message] =
+        step[:description] =
           if names.size == 1
             "-> Including #{names.first}.yml (#{total_steps} steps)"
           else

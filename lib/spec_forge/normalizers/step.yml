@@ -158,26 +158,3 @@ include:
   type: [ string, array ]
   default: []
   transformer: normalize_includes
-
-# System defined
-source:
-  type: hash
-  default: {}
-  structure:
-    file_name:
-      type: string
-    line_number:
-      type: integer
-
-included_by:
-  type: hash
-  default: {}
-  structure:
-    file_name:
-      type: string
-    line_number:
-      type: integer
-
-display_message:
-  type: string
-  default: ""

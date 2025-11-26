@@ -4,7 +4,7 @@ module SpecForge
   class Step < Data.define(
     :name, :debug, :tags, :documentation,
     :request, :expect, :store, :hooks,
-    :call, :source, :included_by, :display_message
+    :call, :source, :included_by, :description
   )
     def initialize(**step)
       step[:tags] ||= []
@@ -14,7 +14,7 @@ module SpecForge
       step[:store] ||= {}
       step[:hooks] ||= []
       step[:call] ||= []
-      step[:display_message] ||= ""
+      step[:description] ||= ""
 
       step[:debug] = step[:debug] == true
       step[:source] = (step[:source] || {}).to_istruct
