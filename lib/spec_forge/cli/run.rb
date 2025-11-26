@@ -23,7 +23,7 @@ module SpecForge
 
       # TODO: Update these
       # TODO: Add more examples
-      # summary "Execute your API tests with smart filtering options"
+      # summary ""
       # description ""
       # example "spec_forge run", "Run all specs in spec_forge/blueprints/"
 
@@ -34,8 +34,9 @@ module SpecForge
         tags = parse_tags(options.tags)
         skip_tags = parse_tags(options.skip_tags)
 
-        loader = SpecForge::Loader.new(path:, tags:, skip_tags:)
-        # loader.blueprints.each(&:run)
+        blueprints = Loader.load_blueprints(path:, tags:, skip_tags:)
+
+        Forge.ignite.run(blueprints)
       end
     end
   end
