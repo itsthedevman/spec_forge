@@ -61,7 +61,7 @@ module SpecForge
       # @return [Loader] A new loader instance
       #
       def initialize
-        @callback_name = "__sf_docs_#{SpecForge.generate_id(self)}"
+        @callback_name = "__sf_docs_#{generate_id(self)}"
         @successes = []
       end
 
@@ -117,6 +117,10 @@ module SpecForge
       end
 
       private
+
+      def generate_id(object)
+        "#{object.hash.abs.to_s(36)}_#{object.object_id.to_s(36)}"
+      end
 
       def extract_endpoint(context)
         request_hash = context.request.to_h

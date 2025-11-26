@@ -109,50 +109,5 @@ module SpecForge
         cleaner
       end
     end
-
-    #
-    # Returns the current execution context
-    #
-    # @return [Context] The current context object
-    #
-    def context
-      @context ||= Context.new
-    end
-
-    #
-    # Registers a callback for a specific test lifecycle event
-    # Allows custom code execution at specific points during test execution
-    #
-    # @param name [Symbol, String] A unique identifier for this callback
-    # @yield A block to execute when the callback is triggered
-    # @yieldparam context [Object] An object containing context-specific state data, depending
-    #   on which hook the callback is triggered from.
-    #
-    # @return [Proc] The registered callback
-    #
-    # @example Registering a custom debug handler
-    #   SpecForge.register_callback(:clean_database) do |context|
-    #     DatabaseCleaner.clean
-    #   end
-    #
-    def register_callback(name, &)
-      Callbacks.register(name, &)
-    end
-
-    #
-    # Generates a unique ID for an object based on hash and object_id
-    #
-    # @param object [Object] The object to generate an ID for
-    #
-    # @return [String] A unique ID string
-    #
-    # @private
-    #
-    def generate_id(object)
-      "#{object.hash.abs.to_s(36)}_#{object.object_id.to_s(36)}"
-    end
   end
 end
-
-# DEBUG
-loader.eager_load
