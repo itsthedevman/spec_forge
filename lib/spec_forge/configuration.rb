@@ -44,7 +44,7 @@ module SpecForge
 
       config[:base_url] = "http://localhost:3000"
       config[:factories] = Factories.new
-      config[:on_debug_proc] = Runner::DebugProxy.default
+      config[:on_debug_proc] = Forge::Action::Debug.default
 
       super(**config)
     end

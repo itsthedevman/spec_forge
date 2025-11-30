@@ -40,30 +40,29 @@ module SpecForge
 
       @blueprints.each do |blueprint|
         @store.clear
-        run_steps(blueprint)
+
+        # 1. Print step name and description (if provided)
+        # 2. Determine what action needs to happen.
+        #   - Do we need to trigger debugging? (`debug`)
+        #   - Do we need to hook any callbacks (`hook`)
+        #   - Do we need to run any callbacks (`call`)
+        #   - Do we need to handle HTTP request? (`request`)
+        #   - Do we need to create/run tests? (`expect`)
+        #   - Do we need to store variables? (`store`)
+        blueprint.steps.each do |step|
+          # Pre
+          print_step_header(step)
+
+          # Actionable
+          run_debug_step(step) if step.debug?
+
+          # Post
+          # TODO: Clear request/response data so it doesn't leak
+        end
       end
     end
 
     private
-
-    def run_steps(blueprint)
-      # 1. Print step name and description (if provided)
-      # 2. Determine what action needs to happen.
-      #   - Do we need to trigger debugging? (`debug`)
-      #   - Do we need to hook any callbacks (`hook`)
-      #   - Do we need to run any callbacks (`call`)
-      #   - Do we need to handle HTTP request? (`request`)
-      #   - Do we need to create/run tests? (`expect`)
-      #   - Do we need to store variables? (`store`)
-
-      blueprint.steps.each do |step|
-        # Informational
-        print_step_header(step)
-
-        # Actionable
-        # Debug.from_step(step).run
-      end
-    end
 
     def print_step_header(step)
       line_number = step.source.line_number.to_s.rjust(2, "0")
@@ -75,6 +74,10 @@ module SpecForge
       puts "#{message} #{header}"
       puts step.description if step.description.present?
       puts ""
+    end
+
+    def run_debug_step(step)
+      Action::Debug.new(step).run
     end
   end
 end
