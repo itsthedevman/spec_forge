@@ -121,10 +121,17 @@ module SpecForge
       #   # => {name: "Unnamed"}
       #
       def default(name = nil, structure: nil, include_optional: false)
-        structure ||= @structures.dig(name.to_sym, :structure)
+        structure ||= @structures[name.to_sym]
 
         if !structure.is_a?(Hash)
-          raise ArgumentError, "Invalid structure. Provide either the name of the structure ('name') or a hash ('structure')"
+          message =
+            if name.present?
+              "No normalizer structure exists with name #{name.in_quotes}"
+            else
+              "The provided normalizer structure must be a Hash. Got #{structure.inspect}"
+            end
+
+          raise ArgumentError, message
         end
 
         default_from_structure(structure, include_optional:)
