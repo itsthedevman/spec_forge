@@ -6,7 +6,8 @@ module SpecForge
       new(filter: {path:, tags:, skip_tags:}).load
     end
 
-    def initialize(filter: {})
+    def initialize(base_path: nil, filter: {})
+      @base_path = base_path.present? ? Pathname.new(base_path) : SpecForge.forge_path.join("blueprints")
       @filter = filter
     end
 
@@ -21,14 +22,13 @@ module SpecForge
     private
 
     def read_blueprints
-      base_path = SpecForge.forge_path.join("blueprints")
-      paths = Dir.glob(base_path.join("**", "*.{yml,yaml}"))
+      paths = Dir.glob(@base_path.join("**", "*.{yml,yaml}"))
 
       paths.map! do |file_path|
         file_path = Pathname.new(file_path)
         content = File.read(file_path)
 
-        name = file_path.relative_path_from(base_path).to_s
+        name = file_path.relative_path_from(@base_path).to_s
           .delete_suffix(".yml")
           .delete_suffix(".yaml")
 
