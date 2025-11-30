@@ -15,6 +15,8 @@ gem "pry"
 
 gem "benchmark-ips", "~> 2.14"
 
+gem "ruby-lsp", require: false
+
 group :development, :documentation do
   gem "yard"
   gem "kramdown"
