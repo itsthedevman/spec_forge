@@ -28,6 +28,8 @@ module SpecForge
       end
     end
 
+    attr_reader :blueprints, :store, :global, :callbacks
+
     def initialize(blueprints)
       @blueprints = blueprints
 
@@ -52,8 +54,8 @@ module SpecForge
           print_step_header(step)
 
           # Actionable
-          Action::Debug.new(step).run(self) if step.debug?
-          Action::Hooks.new(step).run(self) if step.hooks?
+          Debug.new(step).run(self) if step.debug?
+          Hooks.new(step).run(self) if step.hooks?
 
           # Post
           # TODO: Clear request/response data so it doesn't leak
@@ -65,14 +67,13 @@ module SpecForge
 
     def print_step_header(step)
       line_number = step.source.line_number.to_s.rjust(2, "0")
-      name = step.name || "Unnamed step (line #{line_number})"
+      name = step.name.presence || "Unnamed step"
 
       message = "[#{step.source.file_name}:#{line_number}] #{name}"
-      header = "*" * (100 - message.size)
+      header = "*" * (120 - message.size)
 
       puts "#{message} #{header}"
       puts step.description if step.description.present?
-      puts ""
     end
   end
 end
