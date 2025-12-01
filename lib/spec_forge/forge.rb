@@ -59,6 +59,7 @@ module SpecForge
 
           # Post
           # TODO: Clear request/response data so it doesn't leak
+          puts ""
         end
       end
     end
