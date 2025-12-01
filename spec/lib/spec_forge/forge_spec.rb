@@ -14,6 +14,9 @@ RSpec.describe SpecForge::Forge do
     forge.callbacks.register_callback(:cleanup_database) {}
     forge.callbacks.register_callback(:initialize_tests) {}
     forge.callbacks.register_callback(:seed_data) {}
+    forge.callbacks.register_callback(:log_request) {}
+    forge.callbacks.register_callback(:set_context) {}
+    forge.callbacks.register_callback(:verify_cleanup) {}
   end
 
   it "test" do
