@@ -396,14 +396,14 @@ module SpecForge
         raise Error::InvalidTypeError.new(value, type_class, for: error_label)
       end
 
-      # Call the validator if it has one
-      if (name = definition[:validator]) && name.present?
-        Validators.call(name, value, label: error_label)
-      end
-
       # Call the transformer if it has one
       if (name = definition[:transformer]) && name.present?
         value = Transformers.call(name, value)
+      end
+
+      # Call the validator if it has one
+      if (name = definition[:validator]) && name.present?
+        Validators.call(name, value, label: error_label)
       end
 
       # Normalize any sub structures
