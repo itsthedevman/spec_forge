@@ -74,20 +74,6 @@ module SpecForge
 
         raise Error, "Invalid HTTP verb #{value.in_quotes} for #{@label}. Valid values are: #{valid_verbs.join_map(", ", &:in_quotes)}"
       end
-
-      def callback(value)
-        name =
-          if value.is_a?(Hash)
-            value[:name]
-          else
-            value
-          end
-
-        return if name.blank?
-        return if SpecForge::Callbacks.registered?(name)
-
-        raise Error::UndefinedCallbackError.new(name, SpecForge::Callbacks.registered_names)
-      end
     end
   end
 end
