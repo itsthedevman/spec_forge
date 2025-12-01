@@ -6,7 +6,7 @@ module SpecForge
     :request, :expect, :store, :hooks,
     :call, :source, :included_by, :description
   )
-    attr_predicate :debug
+    attr_predicate :debug, :hooks
 
     def initialize(**step)
       step[:tags] ||= []

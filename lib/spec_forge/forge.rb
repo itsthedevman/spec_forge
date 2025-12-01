@@ -30,8 +30,10 @@ module SpecForge
 
     def initialize(blueprints)
       @blueprints = blueprints
+
       @store = Store.new
       @global = Store.new
+      @callbacks = Callbacks.new
     end
 
     def run
@@ -41,10 +43,6 @@ module SpecForge
       @blueprints.each do |blueprint|
         @store.clear
 
-        # 1. Print step name and description (if provided)
-        # 2. Determine what action needs to happen.
-        #   - Do we need to trigger debugging? (`debug`)
-        #   - Do we need to hook any callbacks (`hook`)
         #   - Do we need to run any callbacks (`call`)
         #   - Do we need to handle HTTP request? (`request`)
         #   - Do we need to create/run tests? (`expect`)
@@ -54,7 +52,8 @@ module SpecForge
           print_step_header(step)
 
           # Actionable
-          run_debug_step(step) if step.debug?
+          Action::Debug.new(step).run(self) if step.debug?
+          Action::Hooks.new(step).run(self) if step.hooks?
 
           # Post
           # TODO: Clear request/response data so it doesn't leak
@@ -74,10 +73,6 @@ module SpecForge
       puts "#{message} #{header}"
       puts step.description if step.description.present?
       puts ""
-    end
-
-    def run_debug_step(step)
-      Action::Debug.new(step).run
     end
   end
 end
