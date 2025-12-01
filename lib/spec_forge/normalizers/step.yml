@@ -6,8 +6,8 @@ name:
 debug:
   type: boolean
   aliases:
-  - pry
-  - breakpoint
+    - pry
+    - breakpoint
   default: false
   required: false
 
@@ -30,20 +30,20 @@ request:
       type: string
       default: null
       aliases:
-      - base_path
+        - base_path
 
     url:
       type: string
       default: null
       aliases:
-      - path
+        - path
 
     http_verb:
       type: string
       default: null # Do not default this to "GET". Leave it null. Seriously.
       aliases:
-      - method
-      - http_method
+        - method
+        - http_method
       validator: http_verb
 
     headers:
@@ -52,18 +52,18 @@ request:
 
     query:
       type:
-      - hash
-      - string
+        - hash
+        - string
       default: null
       aliases:
-      - params
+        - params
 
     raw:
       type: string
       default: null
       aliases:
-      - body
-      - data
+        - body
+        - data
 
     json:
       type: hash
@@ -84,8 +84,8 @@ expect:
 
       status:
         type:
-        - string
-        - integer
+          - string
+          - integer
 
       headers:
         type: hash
@@ -95,8 +95,8 @@ expect:
         type: string
         default: null
         aliases:
-        - body
-        - data
+          - body
+          - data
 
       json:
         type: hash
@@ -104,18 +104,18 @@ expect:
         structure:
           size:
             type:
-            - string
-            - integer
+              - string
+              - integer
 
           structure:
             type:
-            - array
-            - hash
+              - array
+              - hash
 
           content:
             type:
-            - array
-            - hash
+              - array
+              - hash
       # xml:
       #   type: hash
       #   default: {}
@@ -125,36 +125,54 @@ store:
   default: {}
 
 hooks:
-  type: hash
-  default: {}
+  type: array
+  default: []
   structure:
-    before_file:
-      type: string
-      validator: callback
+    type: hash
+    structure:
+      before_file:
+        type: [string, hash]
+        validator: callback
+        structure:
+          name: string
+          args:
+            type: [array, hash]
 
-    before_each:
-      type: string
-      validator: callback
-      aliases:
-      - before
+      before_each:
+        type: [string, hash]
+        validator: callback
+        aliases:
+          - before
+        structure:
+          name: string
+          args:
+            type: [array, hash]
 
-    after_each:
-      type: string
-      validator: callback
-      aliases:
-      - after
+      after_each:
+        type: [string, hash]
+        validator: callback
+        aliases:
+          - after
+        structure:
+          name: string
+          args:
+            type: [array, hash]
 
-    after_file:
-      type: string
-      validator: callback
+      after_file:
+        type: [string, hash]
+        validator: callback
+        structure:
+          name: string
+          args:
+            type: [array, hash]
 
 call:
   type: array
   default: []
   structure:
-    type: string
+    type: [string, hash]
 
 include:
-  type: [ string, array ]
+  type: [string, array]
   default: []
   transformer: normalize_includes

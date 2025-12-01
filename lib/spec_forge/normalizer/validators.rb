@@ -75,24 +75,18 @@ module SpecForge
         raise Error, "Invalid HTTP verb #{value.in_quotes} for #{@label}. Valid values are: #{valid_verbs.join_map(", ", &:in_quotes)}"
       end
 
-      #
-      # Validates that a callback is registered in the system
-      #
-      # Ensures the referenced callback name has been registered with SpecForge
-      # before it's used in a test configuration.
-      #
-      # @param value [String, Symbol, nil] The callback name to validate, or nil
-      #
-      # @raise [Error::UndefinedCallbackError] If the callback is not registered
-      #
-      # @example Using the validator in a structure
-      #   before_file: {type: String, validator: :callback}
-      #
       def callback(value)
-        return if value.blank?
-        return if SpecForge::Callbacks.registered?(value)
+        name =
+          if value.is_a?(Hash)
+            value[:name]
+          else
+            value
+          end
 
-        raise Error::UndefinedCallbackError.new(value, SpecForge::Callbacks.registered_names)
+        return if name.blank?
+        return if SpecForge::Callbacks.registered?(name)
+
+        raise Error::UndefinedCallbackError.new(name, SpecForge::Callbacks.registered_names)
       end
     end
   end
