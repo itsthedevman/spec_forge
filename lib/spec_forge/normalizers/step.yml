@@ -132,7 +132,7 @@ hooks:
     structure:
       before_file:
         type: [string, hash]
-        transform: normalize_callback
+        transformer: normalize_callback
         structure:
           name:
             type: string
@@ -141,7 +141,7 @@ hooks:
 
       before_each:
         type: [string, hash]
-        transform: normalize_callback
+        transformer: normalize_callback
         structure:
           name:
             type: string
@@ -150,7 +150,7 @@ hooks:
 
       after_each:
         type: [string, hash]
-        transform: normalize_callback
+        transformer: normalize_callback
         structure:
           name:
             type: string
@@ -159,7 +159,7 @@ hooks:
 
       after_file:
         type: [string, hash]
-        transform: normalize_callback
+        transformer: normalize_callback
         structure:
           name:
             type: string
@@ -169,7 +169,7 @@ hooks:
 call:
   type: [string, hash]
   default: {}
-  transform: normalize_callback
+  transformer: normalize_callback
   structure:
     name:
       type: string
