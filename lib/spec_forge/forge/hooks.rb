@@ -4,7 +4,11 @@ module SpecForge
   class Forge
     class Hooks < Action
       def run(forge)
-        puts "hooks run"
+        @step.hooks
+          .flat_map(&:to_a)
+          .each do |event, hook|
+            forge.callbacks.register_event(event, callback_name: hook[:name], arguments: hook[:arguments])
+          end
       end
     end
   end
