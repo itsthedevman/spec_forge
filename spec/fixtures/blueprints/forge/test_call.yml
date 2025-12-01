@@ -1,0 +1,17 @@
+- call: initialize_tests
+
+- store:
+    admin_email: "admin@test.com"
+
+- call:
+    name: seed_data
+    arguments:
+      count: 5
+      type: "users"
+
+- name: "Test with seeded data"
+  request:
+    method: GET
+    url: "/api/users"
+  expect:
+    - status: 200

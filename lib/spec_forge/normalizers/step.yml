@@ -132,45 +132,49 @@ hooks:
     structure:
       before_file:
         type: [string, hash]
-        validator: callback
+        transform: normalize_callback
         structure:
-          name: string
-          args:
+          name:
+            type: string
+          arguments:
             type: [array, hash]
 
       before_each:
         type: [string, hash]
-        validator: callback
-        aliases:
-          - before
+        transform: normalize_callback
         structure:
-          name: string
-          args:
+          name:
+            type: string
+          arguments:
             type: [array, hash]
 
       after_each:
         type: [string, hash]
-        validator: callback
-        aliases:
-          - after
+        transform: normalize_callback
         structure:
-          name: string
-          args:
+          name:
+            type: string
+          arguments:
             type: [array, hash]
 
       after_file:
         type: [string, hash]
-        validator: callback
+        transform: normalize_callback
         structure:
-          name: string
-          args:
+          name:
+            type: string
+          arguments:
             type: [array, hash]
 
 call:
-  type: array
-  default: []
+  type: [string, hash]
+  default: {}
+  transform: normalize_callback
   structure:
-    type: [string, hash]
+    name:
+      type: string
+    arguments:
+      type: [array, hash]
 
 include:
   type: [string, array]

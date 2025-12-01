@@ -12,6 +12,12 @@ module SpecForge
       def normalize_includes(value)
         Array(value).map! { |name| name.delete_suffix(".yml").delete_suffix(".yaml") }
       end
+
+      def normalize_callback(value)
+        return value if value.is_a?(Hash)
+
+        {name: value}
+      end
     end
   end
 end

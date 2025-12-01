@@ -9,6 +9,13 @@ RSpec.describe SpecForge::Forge do
 
   subject(:forge) { described_class.new(blueprints) }
 
+  before do
+    forge.callbacks.register_callback(:setup_database) {}
+    forge.callbacks.register_callback(:cleanup_database) {}
+    forge.callbacks.register_callback(:initialize_tests) {}
+    forge.callbacks.register_callback(:seed_data) {}
+  end
+
   it "test" do
     forge.run
     binding.pry
