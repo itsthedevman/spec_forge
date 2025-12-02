@@ -45,7 +45,6 @@ module SpecForge
       @blueprints.each do |blueprint|
         @store.clear
 
-        #   - Do we need to run any callbacks (`call`)
         #   - Do we need to handle HTTP request? (`request`)
         #   - Do we need to create/run tests? (`expect`)
         #   - Do we need to store variables? (`store`)

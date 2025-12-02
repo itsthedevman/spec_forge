@@ -9,7 +9,6 @@ debug:
     - pry
     - breakpoint
   default: false
-  required: false
 
 tags:
   type: array

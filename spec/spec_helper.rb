@@ -30,12 +30,6 @@ RSpec.configure do |config|
     # Reset the config
     SpecForge.instance_variable_set(:@configuration, nil)
 
-    # Reset the context
-    SpecForge.instance_variable_set(:@context, nil)
-
-    # Reset the callbacks
-    SpecForge::Callbacks.instance.clear
-
     # Remove any factories that were registered
     FactoryBot::Internal.configuration.factories.clear
   end
