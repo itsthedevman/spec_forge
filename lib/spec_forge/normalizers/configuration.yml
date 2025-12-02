@@ -1,17 +1,10 @@
 base_url:
   type: string
+  required: true
 
-headers:
+global_variables:
   type: hash
   default: {}
-
-query:
-  type:
-  - hash
-  - string
-  default: {}
-  aliases:
-  - params
 
 factories:
   type: hash
@@ -25,6 +18,5 @@ factories:
     paths:
       type: array
       default: []
-
-on_debug_proc:
-  type: proc
+      structure:
+        type: [string, pathname]

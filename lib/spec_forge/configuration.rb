@@ -1,134 +1,54 @@
 # frozen_string_literal: true
 
 module SpecForge
-  #
-  # Configuration container for SpecForge settings
-  # Defines default values and validation for all configuration options
-  #
-  class Configuration < Struct.new(:base_url, :headers, :query, :factories, :on_debug_proc)
-    #
-    # Manages factory configuration settings
-    # Controls auto-discovery behavior and custom factory paths
-    #
-    # @example
-    #   config.factories.auto_discover = false
-    #   config.factories.paths += ["lib/factories"]
-    #
+  class Configuration
     class Factories < Struct.new(:auto_discover, :paths)
-      #
-      # Creates reader methods that return boolean values
-      # Allows for checking configuration with predicate methods
-      #
       attr_predicate :auto_discover, :paths
 
-      #
-      # Initializes a new Factories configuration
-      # Sets default values for auto-discovery and paths
-      #
-      # @param auto_discover [Boolean] Whether to auto-discover factories (default: true)
-      # @param paths [Array<String>] Additional paths to look for factories (default: [])
-      #
-      # @return [Factories] A new factories configuration instance
-      #
       def initialize(auto_discover: true, paths: []) = super
     end
 
-    #
-    # Initializes a new Configuration with default values
-    # Sets up the configuration structure including factory settings and debug proxy
-    #
-    # @return [Configuration] A new configuration instance with defaults
-    #
+    attr_accessor :base_url, :global_variables
+
+    attr_reader :factories
+
     def initialize
-      config = Normalizer.default(:configuration)
+      # Validated
+      @base_url = "http://localhost:3000"
+      @factories = Factories.new
+      @global_variables = {}
 
-      config[:base_url] = "http://localhost:3000"
-      config[:factories] = Factories.new
-      config[:on_debug_proc] = Forge::Action::Debug.default
-
-      super(**config)
+      # Internal
+      @on_debug_proc = Forge::Debug.default
+      @callbacks = {}
     end
 
-    #
-    # Validates the configuration and applies normalization
-    # Ensures all required fields have values and applies defaults when needed
-    #
-    # @return [self] Returns self for method chaining
-    #
-    # @api private
-    #
     def validate
-      output = Normalizer.normalize!(to_h, using: :configuration)
+      output = Normalizer.normalize!(
+        {
+          base_url: @base_url,
+          factories: @factories.to_h,
+          global_variables: @global_variables
+        },
+        using: :configuration
+      )
 
       # In case any value was set to `nil`
-      self.base_url = output[:base_url] if base_url.blank?
-      self.query = output[:query] if query.blank?
-      self.headers = output[:headers] if headers.blank?
+      @global_variables = output[:global_variables] if @global_variables.blank?
 
       self
     end
 
     def on_debug(&block)
-      self.on_debug_proc = block
+      @on_debug_proc = block
     end
 
-    def on_debug=(block)
-      warn("SpecForge::Configuration#on_debug= is deprecated. Use #on_debug instead")
-      self.on_debug_proc = block
-    end
-
-    #
-    # Recursively converts the configuration to a hash representation
-    #
-    # @return [Hash] Hash representation of the configuration
-    #
-    def to_h
-      hash = super
-      hash[:factories] = hash[:factories].to_h
-      hash
-    end
-
-    #
-    # Returns the RSpec configuration object
-    # Provides access to RSpec's internal configuration for test customization
-    #
-    # @return [RSpec::Core::Configuration] RSpec's configuration object
-    #
-    # @example Setting formatter options
-    #   SpecForge.configure do |config|
-    #     config.specs.formatter = :documentation
-    #   end
-    #
-    def specs
+    def rspec
       RSpec.configuration
     end
 
-    alias_method :rspec, :specs
-
-    #
-    # Registers a callback for a specific test lifecycle event
-    # Allows custom code execution at specific points during test execution
-    #
-    # @param name [Symbol, String] The callback point to register for
-    #   (:before_file, :after_expectation, etc.)
-    # @yield A block to execute when the callback is triggered
-    # @yieldparam context [Object] An object containing context-specific state data, depending
-    #   on which hook the callback is triggered from.
-    #
-    # @return [Proc] The registered callback
-    #
-    # @example Cleaning database after each test
-    #   SpecForge.configure do |config|
-    #     config.register_callback(:after_expectation) do
-    #       DatabaseCleaner.clean
-    #     end
-    #   end
-    #
-    def register_callback(name, &)
-      Callbacks.register(name, &)
+    def register_callback(name, &block)
+      @callbacks[name.to_sym] = block
     end
-
-    alias_method :define_callback, :register_callback
-    alias_method :callback, :register_callback
   end
 end
