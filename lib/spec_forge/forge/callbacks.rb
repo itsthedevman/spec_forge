@@ -17,12 +17,11 @@ module SpecForge
       def register_callback(name, &block)
         raise ArgumentError, "A block must be provided" unless block.is_a?(Proc)
 
-        name = name.to_sym
-        if @callbacks.key?(name)
+        if callback_registered?(name)
           warn("Callback #{name.in_quotes} is already registered. It will be overwritten")
         end
 
-        @callbacks[name] = block
+        @callbacks[name.to_sym] = block
       end
 
       def register_event(event_name, callback_name:, arguments: nil)
@@ -32,15 +31,30 @@ module SpecForge
         end
 
         callback_name = callback_name.to_sym
-        check_for_registered_callback!(callback_name)
+        ensure_callback_registered!(callback_name)
 
         @events[event_name] << {callback_name:, arguments:}
       end
 
+      def callback_registered?(callback_name)
+        @callbacks.key?(callback_name.to_sym)
+      end
+
+      def run_callback(name, arguments = nil)
+        ensure_callback_registered!(name)
+
+        callback = @callbacks[name.to_sym]
+        if callback.arity == 1
+          callback.call(arguments)
+        else
+          callback.call
+        end
+      end
+
       private
 
-      def check_for_registered_callback!(callback_name)
-        return if @callbacks.key?(callback_name)
+      def ensure_callback_registered!(callback_name)
+        return if callback_registered?(callback_name)
 
         raise Error::UndefinedCallbackError.new(callback_name, @callbacks.keys)
       end

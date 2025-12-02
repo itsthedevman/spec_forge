@@ -56,6 +56,7 @@ module SpecForge
           # Actionable
           Debug.new(step).run(self) if step.debug?
           Hooks.new(step).run(self) if step.hooks?
+          Call.new(step).run(self) if step.call?
 
           # Post
           # TODO: Clear request/response data so it doesn't leak
@@ -68,9 +69,8 @@ module SpecForge
 
     def print_step_header(step)
       line_number = step.source.line_number.to_s.rjust(2, "0")
-      name = step.name.presence || "Unnamed step"
 
-      message = "[#{step.source.file_name}:#{line_number}] #{name}"
+      message = "[#{step.source.file_name}:#{line_number}] #{step.name}".strip
       header = "*" * (120 - message.size)
 
       puts "#{message} #{header}"
