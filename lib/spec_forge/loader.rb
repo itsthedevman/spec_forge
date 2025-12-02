@@ -70,6 +70,10 @@ module SpecForge
       # Walk through key-value pairs in the YAML tree
       yaml_node.children.each_slice(2) do |key_node, value_node|
         key = key_node.value.to_sym
+
+        # Only recursively add line numbers to substeps.
+        next unless key == :steps
+
         hash[key] = inject_line_numbers(value_node, hash[key])
       end
 

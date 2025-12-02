@@ -211,4 +211,121 @@ RSpec.describe SpecForge::Loader do
       end
     end
   end
+
+  describe "line number injection" do
+    subject(:loader) { described_class.new }
+
+    let(:parsed_steps) { loader.send(:parse_steps, yaml_content) }
+
+    context "with a simple step" do
+      let(:yaml_content) do
+        <<~YAML
+          - name: "Test step"
+            request:
+              method: GET
+              url: "/api/test"
+        YAML
+      end
+
+      it "injects line_number on the step itself" do
+        expect(parsed_steps[0][:line_number]).to eq(1)
+      end
+
+      it "does not inject line_number on the request hash" do
+        expect(parsed_steps[0][:request]).not_to have_key(:line_number)
+      end
+    end
+
+    context "with expect hash" do
+      let(:yaml_content) do
+        <<~YAML
+          - name: "Test with expect"
+            request:
+              method: GET
+              url: "/api/test"
+            expect:
+              status: 200
+              json:
+                content:
+                  id: 1
+        YAML
+      end
+
+      it "injects line_number on the step" do
+        expect(parsed_steps[0][:line_number]).to eq(1)
+      end
+
+      it "does not inject line_number on expect hash" do
+        expect(parsed_steps[0][:expect]).not_to have_key(:line_number)
+      end
+
+      it "does not inject line_number on nested expect hashes" do
+        expect(parsed_steps[0][:expect][:json]).not_to have_key(:line_number)
+        expect(parsed_steps[0][:expect][:json][:content]).not_to have_key(:line_number)
+      end
+    end
+
+    context "with nested steps" do
+      let(:yaml_content) do
+        <<~YAML
+          - name: "Parent step"
+            request:
+              method: GET
+              url: "/api/parent"
+            steps:
+              - name: "Child step 1"
+                request:
+                  method: POST
+                  url: "/api/child1"
+              - name: "Child step 2"
+                request:
+                  method: PUT
+                  url: "/api/child2"
+        YAML
+      end
+
+      it "injects line_number on the parent step" do
+        expect(parsed_steps[0][:line_number]).to eq(1)
+      end
+
+      it "injects line_number on each substep" do
+        expect(parsed_steps[0][:steps][0][:line_number]).to eq(6)
+        expect(parsed_steps[0][:steps][1][:line_number]).to eq(10)
+      end
+
+      it "does not inject line_number on request hashes within substeps" do
+        expect(parsed_steps[0][:steps][0][:request]).not_to have_key(:line_number)
+        expect(parsed_steps[0][:steps][1][:request]).not_to have_key(:line_number)
+      end
+    end
+
+    context "with deeply nested steps" do
+      let(:yaml_content) do
+        <<~YAML
+          - name: "Grandparent"
+            steps:
+              - name: "Parent"
+                steps:
+                  - name: "Child"
+                    request:
+                      method: GET
+                      url: "/api/nested"
+                    expect:
+                      status: 200
+        YAML
+      end
+
+      it "injects line_number at all step levels" do
+        expect(parsed_steps[0][:line_number]).to eq(1)
+        expect(parsed_steps[0][:steps][0][:line_number]).to eq(3)
+        expect(parsed_steps[0][:steps][0][:steps][0][:line_number]).to eq(5)
+      end
+
+      it "does not inject line_number on non-step hashes at any level" do
+        child = parsed_steps[0][:steps][0][:steps][0]
+        expect(child[:request]).not_to have_key(:line_number)
+        expect(child[:expect]).not_to have_key(:line_number)
+      end
+    end
+  end
 end
