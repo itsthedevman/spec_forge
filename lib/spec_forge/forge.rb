@@ -28,10 +28,14 @@ module SpecForge
       end
     end
 
-    attr_reader :blueprints, :local_variables, :global_variables, :callbacks
+    attr_predicate :verbose
 
-    def initialize(blueprints)
+    attr_reader :blueprints, :local_variables, :global_variables, :callbacks, :display
+
+    def initialize(blueprints, verbose: true)
       @blueprints = blueprints
+      @display = Display.new(verbose:)
+
       @local_variables = Store.new
       @global_variables = Store.new
       @callbacks = Callbacks.new
@@ -44,23 +48,27 @@ module SpecForge
       load_from_configuration
 
       @blueprints.each do |blueprint|
+        @display.blueprint_start(blueprint)
+
         @local_variables.clear
 
-        #   - Do we need to handle HTTP request? (`request`)
-        #   - Do we need to create/run tests? (`expect`)
-        #   - Do we need to store variables? (`store`)
         blueprint.steps.each do |step|
-          # Pre
-          print_step_header(step)
+          @display.step_start(step)
 
           # Actionable
           Debug.new(step).run(self) if step.debug?
           Hooks.new(step).run(self) if step.hooks?
           Call.new(step).run(self) if step.call?
+          #   - Do we need to handle HTTP request? (`request`)
+          #   - Do we need to create/run tests? (`expect`)
+          #   - Do we need to store variables? (`store`)
 
           # Post
           # TODO: Clear request/response data so it doesn't leak
-          puts ""
+          @display.step_end(step, success: true)
+        rescue => e
+          @display.step_end(step, success: false)
+          raise e
         end
       end
     end
@@ -72,16 +80,6 @@ module SpecForge
         config.callbacks.each { |name, block| @callbacks.register_callback(name, &block) }
         config.global_variables.each { |name, value| @global_variables.store(name, value) }
       end
-    end
-
-    def print_step_header(step)
-      line_number = step.source.line_number.to_s.rjust(2, "0")
-
-      message = "[#{step.source.file_name}:#{line_number}] #{step.name}".strip
-      header = "*" * (120 - message.size)
-
-      puts "#{message} #{header}"
-      puts step.description if step.description.present?
     end
   end
 end

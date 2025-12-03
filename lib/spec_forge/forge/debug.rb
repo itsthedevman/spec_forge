@@ -20,7 +20,9 @@ module SpecForge
         @callback = SpecForge.configuration.on_debug_proc
       end
 
-      def run(_forge)
+      def run(forge)
+        forge.display.action(:debug, "Debug breakpoint triggered", color: :orange)
+
         instance_exec(&@callback)
       end
     end
