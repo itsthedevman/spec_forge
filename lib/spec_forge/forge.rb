@@ -30,11 +30,12 @@ module SpecForge
 
     attr_predicate :verbose
 
-    attr_reader :blueprints, :local_variables, :global_variables, :callbacks, :display
+    attr_reader :blueprints, :local_variables, :global_variables, :callbacks, :display, :timer
 
-    def initialize(blueprints, verbose: true)
+    def initialize(blueprints, verbose: false)
       @blueprints = blueprints
       @display = Display.new(verbose:)
+      @timer = Timer.new
 
       @local_variables = Store.new
       @global_variables = Store.new
@@ -42,6 +43,8 @@ module SpecForge
     end
 
     def run
+      @timer.start
+
       @local_variables.clear
       @global_variables.clear
 
@@ -71,6 +74,9 @@ module SpecForge
           raise e
         end
       end
+
+      @timer.stop
+      @display.forge_end(self)
     end
 
     private

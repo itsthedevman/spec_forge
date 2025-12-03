@@ -3,6 +3,8 @@
 module SpecForge
   class Forge
     class Display
+      LINE_LENGTH = 120
+
       attr_predicate :verbose
 
       def initialize(verbose: false)
@@ -10,7 +12,6 @@ module SpecForge
         @color = Pastel.new
       end
 
-      # Non-verbose only
       def blueprint_start(blueprint)
         return if verbose?
 
@@ -19,7 +20,19 @@ module SpecForge
         puts ""
       end
 
-      # Both modes, but different behavior
+      def forge_end(forge)
+        puts ""
+
+        header_length = verbose? ? LINE_LENGTH : LINE_LENGTH * 0.60
+        puts @color.bold.green("━" * header_length)
+
+        # TODO: Add run metrics
+        puts "" if verbose?
+
+        puts @color.dim("Completed in #{sprintf("%.2g", forge.timer.time_elapsed)}s")
+        puts ""
+      end
+
       def step_start(step)
         if verbose?
           print_verbose_step_header(step)
@@ -32,18 +45,19 @@ module SpecForge
       def step_end(step, success: true)
         if verbose?
           puts ""
+          return
+        end
+
+        # Clear entire line first, then carriage return. Clears up left over text
+        print "\e[2K\r"
+
+        if success
+          puts "  #{@color.green("✓")} #{step_name(step)}"
         else
-          # Clear entire line, then carriage return
-          print "\e[2K\r"
-          if success
-            puts "  #{@color.green("✓")} #{step_name(step)}"
-          else
-            puts "  #{@color.red("✗")} #{step_name(step)}"
-          end
+          puts "  #{@color.red("✗")} #{step_name(step)}"
         end
       end
 
-      # Verbose only - for actions within a step
       def action(type, message, color: :bright_black, style: :clear)
         return unless verbose?
 
@@ -78,7 +92,7 @@ module SpecForge
         line = step.source.line_number.to_s.rjust(2, "0")
         location = @color.bright_blue("[#{step.source.file_name}:#{line}]")
 
-        filler_size = 120 - location.length
+        filler_size = LINE_LENGTH - location.length
 
         if step.name.present?
           name = @color.white(step.name)
