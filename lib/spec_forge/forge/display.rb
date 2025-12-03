@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module SpecForge
   class Forge
     class Display
@@ -42,7 +44,7 @@ module SpecForge
       end
 
       # Verbose only - for actions within a step
-      def action(type, message, color: :bright_black)
+      def action(type, message, color: :bright_black, style: :clear)
         return unless verbose?
 
         symbol =
@@ -63,7 +65,7 @@ module SpecForge
             "✗"
           end
 
-        puts "  #{@color.decorate(symbol, color)} #{message}"
+        puts "  #{@color.decorate(symbol, style, color)} #{message}"
       end
 
       private
@@ -74,10 +76,19 @@ module SpecForge
 
       def print_verbose_step_header(step)
         line = step.source.line_number.to_s.rjust(2, "0")
-        location = @color.cyan("[#{step.source.file_name}:#{line}]")
+        location = @color.bright_blue("[#{step.source.file_name}:#{line}]")
 
-        name = step.name.present? ? @color.white(step.name) : @color.dim("(unnamed)")
-        filler = @color.dim("*" * (120 - location.length - name.length))
+        filler_size = 120 - location.length
+
+        if step.name.present?
+          name = @color.white(step.name)
+          filler_size -= (name.size - 1)
+        else
+          name = @color.dim("(unnamed)")
+          filler_size -= name.size
+        end
+
+        filler = @color.dim("*" * filler_size)
 
         puts "#{location} #{name} #{filler}"
         puts step.description if step.description.present?
