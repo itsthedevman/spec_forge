@@ -28,22 +28,23 @@ module SpecForge
       end
     end
 
-    attr_reader :blueprints, :store, :global, :callbacks
+    attr_reader :blueprints, :local_variables, :global_variables, :callbacks
 
     def initialize(blueprints)
       @blueprints = blueprints
-
-      @store = Store.new
-      @global = Store.new
+      @local_variables = Store.new
+      @global_variables = Store.new
       @callbacks = Callbacks.new
     end
 
     def run
-      # TODO: Copy data from configuration
-      @global.clear
+      @local_variables.clear
+      @global_variables.clear
+
+      load_from_configuration
 
       @blueprints.each do |blueprint|
-        @store.clear
+        @local_variables.clear
 
         #   - Do we need to handle HTTP request? (`request`)
         #   - Do we need to create/run tests? (`expect`)
@@ -65,6 +66,13 @@ module SpecForge
     end
 
     private
+
+    def load_from_configuration
+      SpecForge.configuration.tap do |config|
+        config.callbacks.each { |name, block| @callbacks.register_callback(name, &block) }
+        config.global_variables.each { |name, value| @global_variables.store(name, value) }
+      end
+    end
 
     def print_step_header(step)
       line_number = step.source.line_number.to_s.rjust(2, "0")

@@ -10,7 +10,7 @@ module SpecForge
 
     attr_accessor :base_url, :global_variables
 
-    attr_reader :factories
+    attr_reader :factories, :on_debug_proc, :callbacks
 
     def initialize
       # Validated
@@ -35,6 +35,7 @@ module SpecForge
 
       # In case any value was set to `nil`
       @global_variables = output[:global_variables] if @global_variables.blank?
+      @global_variables.symbolize_keys!
 
       self
     end
