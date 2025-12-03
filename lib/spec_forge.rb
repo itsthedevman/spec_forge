@@ -23,7 +23,8 @@ require "yaml"
 require "zeitwerk"
 
 # Require the overwrites
-core_ext_path = Pathname.new(__dir__).join("spec_forge", "core_ext")
+root_path = Pathname.new(__dir__)
+core_ext_path = root_path.join("spec_forge", "core_ext")
 Dir[core_ext_path.join("**/*.rb")].sort.each { |path| require path }
 
 # Load the files
@@ -34,6 +35,7 @@ loader.inflector.inflect(
   "openapi" => "OpenAPI"
 )
 
+loader.collapse(root_path.join("spec_forge", "forge", "actions"))
 loader.ignore(core_ext_path.to_s)
 loader.setup
 

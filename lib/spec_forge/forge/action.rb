@@ -3,6 +3,8 @@
 module SpecForge
   class Forge
     class Action
+      attr_reader :step
+
       def initialize(step)
         @step = step
       end
