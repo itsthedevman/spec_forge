@@ -51,14 +51,13 @@ module SpecForge
       load_from_configuration
 
       @blueprints.each do |blueprint|
-        @display.blueprint_start(blueprint)
-
         @local_variables.clear
 
+        @display.blueprint_start(blueprint)
         blueprint.steps.each do |step|
           @display.step_start(step)
 
-          # Actionable
+          # Actionable. These can and will modify forge state
           Debug.new(step).run(self) if step.debug?
           Hooks.new(step).run(self) if step.hooks?
           Call.new(step).run(self) if step.call?

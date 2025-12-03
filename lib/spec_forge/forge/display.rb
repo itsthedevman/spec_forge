@@ -23,7 +23,7 @@ module SpecForge
       def forge_end(forge)
         puts ""
 
-        header_length = verbose? ? LINE_LENGTH : LINE_LENGTH * 0.60
+        header_length = verbose? ? LINE_LENGTH - 15 : LINE_LENGTH * 0.60
         puts @color.bold.green("━" * header_length)
 
         # TODO: Add run metrics
