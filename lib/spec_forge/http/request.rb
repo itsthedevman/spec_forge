@@ -2,38 +2,7 @@
 
 module SpecForge
   module HTTP
-    #
-    # The attributes used to build a Request
-    #
-    # @return [Array<Symbol>]
-    #
-    REQUEST_ATTRIBUTES = %i[
-      base_url
-      url
-      http_verb
-      content_type
-      headers
-      query
-      body
-    ].freeze
-
-    #
-    # Represents an HTTP request configuration
-    #
-    # This data object contains all the necessary information to construct
-    # an HTTP request, including URL, method, headers, query params, and body.
-    #
-    # @example Creating a request
-    #   request = HTTP::Request.new(
-    #     base_url: "https://api.example.com",
-    #     url: "/users",
-    #     http_verb: "GET",
-    #     headers: {"Content-Type" => "application/json"},
-    #     query: {page: 1},
-    #     body: {}
-    #   )
-    #
-    class Request < Data.define(*REQUEST_ATTRIBUTES)
+    class Request < Data.define(:base_url, :url, :http_verb, :headers, :query, :body)
       #
       # Regex that attempts to match a valid header
       #
@@ -41,28 +10,19 @@ module SpecForge
       #
       HEADER = /^[A-Z][A-Za-z0-9!-]*$/
 
-      #
-      # Creates a new Request with standardized headers and values
-      #
-      # @param base_url [String, nil] The base URL for the request
-      # @param url [String, nil] The path portion of the URL
-      # @param http_verb [String, Symbol, nil] The HTTP method (GET, POST, etc.)
-      # @param headers [Hash, nil] HTTP headers for the request
-      # @param query [Hash, nil] Query parameters to include
-      # @param body [Hash, nil] Request body data
-      #
-      # @return [Request] A new immutable request object
-      #
       def initialize(**options)
         base_url = options[:base_url] || ""
         url = options[:url] || ""
+
         http_verb = Verb.from(options[:http_verb].presence || "GET")
         query = Attribute.from(options[:query] || {})
-        body = Attribute.from(options[:body] || {})
-        headers = normalize_headers(options[:headers] || {})
-        content_type = options[:content_type]
 
-        super(base_url:, url:, http_verb:, content_type:, headers:, query:, body:)
+        content = extract_content(**options.slice(:raw, :json))
+        headers = transform_headers(options[:headers], content[:content_type])
+
+        body = Attribute.from(content[:body])
+
+        super(base_url:, url:, http_verb:, headers:, query:, body:)
       end
 
       #
@@ -76,23 +36,31 @@ module SpecForge
         hash
       end
 
+      def content_type
+        headers["Content-Type"]
+      end
+
       private
 
-      #
-      # Normalizes HTTP header keys to standard format
-      #
-      # Converts snake_case and other formats to HTTP Header-Case format
-      # Examples:
-      #   content_type -> Content-Type
-      #   api_key -> Api-Key
-      #
-      # @param headers [Hash] The headers to normalize
-      #
-      # @return [Attribute::ResolvableHash] Normalized headers as attributes
-      #
-      # @private
-      #
-      def normalize_headers(headers)
+      def extract_content(raw: "", json: {})
+        output = {}
+
+        if json.present?
+          output[:body] = json
+          output[:content_type] = "application/json"
+        else
+          output[:body] = raw
+          output[:content_type] = "text/plain"
+        end
+
+        output
+      end
+
+      def transform_headers(headers, detected_content_type)
+        # Convert snake_case and other formats to HTTP Header-Case format
+        # Examples:
+        #   content_type -> Content-Type
+        #   api_key -> Api-Key
         headers =
           headers.transform_keys do |key|
             key = key.to_s
@@ -105,6 +73,8 @@ module SpecForge
               key.downcase.titleize.gsub(/\s+/, "-")
             end
           end
+
+        headers["Content-Type"] = detected_content_type if !headers.key?("Content-Type")
 
         Attribute.from(headers)
       end
