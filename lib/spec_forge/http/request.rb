@@ -60,7 +60,7 @@ module SpecForge
         query = Attribute.from(options[:query] || {})
         body = Attribute.from(options[:body] || {})
         headers = normalize_headers(options[:headers] || {})
-        content_type = "application/json"
+        content_type = options[:content_type]
 
         super(base_url:, url:, http_verb:, content_type:, headers:, query:, body:)
       end

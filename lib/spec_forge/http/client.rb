@@ -18,8 +18,8 @@ module SpecForge
       #
       # @return [Client] A new HTTP client instance
       #
-      def initialize(**)
-        @backend = Backend.new(HTTP::Request.new(**))
+      def initialize(base_url)
+        @backend = Backend.new(base_url:)
       end
 
       #
@@ -32,7 +32,7 @@ module SpecForge
       def call(request)
         @backend.public_send(
           request.http_verb.to_s.downcase,
-          request.url,
+          request.url.delete_prefix("/"),
           headers: request.headers.resolved,
           query: request.query.resolved,
           body: request.body.resolved

@@ -30,16 +30,23 @@ module SpecForge
 
     attr_predicate :verbose
 
-    attr_reader :blueprints, :local_variables, :global_variables, :callbacks, :display, :timer
+    attr_reader :blueprints
+    attr_reader :callbacks
+    attr_reader :display
+    attr_reader :global_variables
+    attr_reader :http_client
+    attr_reader :local_variables
+    attr_reader :timer
 
     def initialize(blueprints, verbose: false)
       @blueprints = blueprints
       @display = Display.new(verbose:)
       @timer = Timer.new
 
-      @local_variables = Store.new
-      @global_variables = Store.new
       @callbacks = Callbacks.new
+      @global_variables = Store.new
+      @http_client = HTTP::Client.new(base_url: SpecForge.configuration.base_url)
+      @local_variables = Store.new
     end
 
     def run
@@ -61,7 +68,7 @@ module SpecForge
           Debug.new(step).run(self) if step.debug?
           Hooks.new(step).run(self) if step.hooks?
           Call.new(step).run(self) if step.call?
-          #   - Do we need to handle HTTP request? (`request`)
+          Request.new(step).run(self) if step.request?
           #   - Do we need to create/run tests? (`expect`)
           #   - Do we need to store variables? (`store`)
 

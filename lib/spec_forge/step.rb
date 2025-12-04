@@ -25,7 +25,7 @@ module SpecForge
     class Call < Data.define(:callback_name, :arguments)
     end
 
-    attr_predicate :debug, :hooks, :call
+    attr_predicate :debug, :hooks, :call, :request
 
     def initialize(**step)
       step[:call] = transform_call(step[:call])
