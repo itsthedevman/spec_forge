@@ -14,16 +14,11 @@ module SpecForge
         end
       end
 
-      def initialize
-        super
-
-        @callback = SpecForge.configuration.on_debug_proc
-      end
-
       def run(forge)
         forge.display.action(:debug, "Debug breakpoint triggered", color: :orange)
 
-        instance_exec(&@callback)
+        callback = SpecForge.configuration.on_debug_proc
+        instance_exec(&callback)
       end
     end
   end
