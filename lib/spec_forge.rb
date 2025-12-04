@@ -22,10 +22,16 @@ require "webrick"
 require "yaml"
 require "zeitwerk"
 
+require_path = ->(path) { Dir.glob(path).sort.each { |p| require p } }
+
 # Require the overwrites
 root_path = Pathname.new(__dir__)
+
 core_ext_path = root_path.join("spec_forge", "core_ext")
-Dir[core_ext_path.join("**/*.rb")].sort.each { |path| require path }
+require_path.call(core_ext_path.join("**/*.rb"))
+
+types_path = root_path.join("spec_forge", "types")
+require_path.call(types_path.join("**/*.rb"))
 
 # Load the files
 loader = Zeitwerk::Loader.for_gem
@@ -35,9 +41,18 @@ loader.inflector.inflect(
   "openapi" => "OpenAPI"
 )
 
+# spec_forge/forge/actions/*.rb -> SpecForge::Forge::*
 loader.collapse(root_path.join("spec_forge", "forge", "actions"))
-loader.ignore(core_ext_path.to_s)
+
+# spec_forge/types/*.rb -> SpecForge::*
+loader.collapse(types_path)
+
+# Loaded manually above
+loader.ignore(core_ext_path)
+loader.ignore(types_path)
+
 loader.setup
+# loader.eager_load(force: true)
 
 module SpecForge
   class << self
