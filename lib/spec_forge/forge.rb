@@ -50,48 +50,71 @@ module SpecForge
     end
 
     def run
-      @timer.start
-
-      @local_variables.clear
-      @global_variables.clear
-
-      load_from_configuration
+      forge_start
 
       @blueprints.each do |blueprint|
-        @local_variables.clear
+        blueprint_start(blueprint)
 
-        @display.blueprint_start(blueprint)
         blueprint.steps.each do |step|
-          @display.step_start(step)
-
-          # Actionable. These read and write to forge state
-          Debug.new(step).run(self) if step.debug?
-          Hooks.new(step).run(self) if step.hooks?
-          Call.new(step).run(self) if step.call?
-          Request.new(step).run(self) if step.request?
-          #   - Do we need to create/run tests? (`expect`)
-          #   - Do we need to store variables? (`store`)
-
-          # Post
-          # TODO: Clear request/response data so it doesn't leak
-          @display.step_end(step, success: true)
+          step_start(step)
+          step_action(step)
+          step_end(step, success: true)
         rescue => e
-          @display.step_end(step, success: false)
+          step_end(step, success: false)
           raise e
         end
       end
 
-      @timer.stop
-      @display.forge_end(self)
+      forge_end
     end
 
     private
 
-    def load_from_configuration
+    def forge_start
+      @local_variables.clear
+      @global_variables.clear
+
+      # Load from configuration
       SpecForge.configuration.tap do |config|
         config.callbacks.each { |name, block| @callbacks.register_callback(name, &block) }
         config.global_variables.each { |name, value| @global_variables.store(name, value) }
       end
+
+      @timer.start
+    end
+
+    def blueprint_start(blueprint)
+      # Remove all variables between blueprint runs
+      @local_variables.clear
+
+      @display.blueprint_start(blueprint)
+    end
+
+    def step_start(step)
+      @display.step_start(step)
+    end
+
+    def step_action(step)
+      # NOTE: These read and write to the forge's state
+      Debug.new(step).run(self) if step.debug?
+      Hooks.new(step).run(self) if step.hooks?
+      Call.new(step).run(self) if step.call?
+      Request.new(step).run(self) if step.request?
+      #   - Do we need to create/run tests? (`expect`)
+      #   - Do we need to store variables? (`store`)
+    end
+
+    def step_end(step, success:)
+      # Drop the request/response data from scope
+      @local_variables.remove_all(:request, :response)
+
+      @display.step_end(step, success:)
+    end
+
+    def forge_end
+      @timer.stop
+
+      @display.forge_end(self)
     end
   end
 end
