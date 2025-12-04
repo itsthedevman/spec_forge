@@ -3,7 +3,7 @@
 module SpecForge
   module HTTP
     class Client
-      def initialize(base_url)
+      def initialize(base_url:)
         @backend = Backend.new(base_url:)
       end
 

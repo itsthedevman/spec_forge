@@ -35,7 +35,7 @@ module SpecForge
       step[:expect] ||= nil
       step[:hooks] = transform_hooks(step[:hooks])
       step[:included_by] = transform_source(step[:included_by])
-      step[:request] ||= nil
+      step[:request] = transform_request(step[:request])
       step[:source] = transform_source(step[:source])
       step[:store] ||= nil
       step[:tags] ||= nil
@@ -63,6 +63,12 @@ module SpecForge
       return if call.blank?
 
       Call.new(callback_name: call[:name], arguments: call[:arguments])
+    end
+
+    def transform_request(request)
+      return if request.blank?
+
+      HTTP::Request.new(**request)
     end
   end
 end

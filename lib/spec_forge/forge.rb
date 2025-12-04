@@ -64,7 +64,7 @@ module SpecForge
         blueprint.steps.each do |step|
           @display.step_start(step)
 
-          # Actionable. These can and will modify forge state
+          # Actionable. These read and write to forge state
           Debug.new(step).run(self) if step.debug?
           Hooks.new(step).run(self) if step.hooks?
           Call.new(step).run(self) if step.call?

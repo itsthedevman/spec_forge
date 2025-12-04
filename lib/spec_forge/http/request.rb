@@ -18,9 +18,9 @@ module SpecForge
         query = Attribute.from(options[:query] || {})
 
         content = extract_content(**options.slice(:raw, :json))
-        headers = transform_headers(options[:headers], content[:content_type])
+        headers = transform_headers(options[:headers] || {}, content[:content_type])
 
-        body = Attribute.from(content[:body])
+        body = Attribute.from(content[:body] || {})
 
         super(base_url:, url:, http_verb:, headers:, query:, body:)
       end
