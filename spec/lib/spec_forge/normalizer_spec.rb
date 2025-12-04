@@ -172,6 +172,81 @@ RSpec.describe SpecForge::Normalizer do
       end
     end
 
+    context "when the input contains extra keys not defined in the structure" do
+      context "and it is at the root level" do
+        let(:input) do
+          {
+            foo: "hello",
+            bar: "world",
+            baz: "extra"
+          }
+        end
+
+        let(:structure) do
+          {
+            foo: {type: String},
+            bar: {type: String}
+          }
+        end
+
+        it "ignores extra keys and does not include them in the output" do
+          output, errors = normalized
+          expect(errors).to be_empty
+
+          expect(output).to eq(foo: "hello", bar: "world")
+          expect(output).not_to have_key(:baz)
+        end
+      end
+
+      context "and it is in a nested structure" do
+        let(:input) do
+          {
+            nested: {
+              key_1: "value",
+              key_2: {
+                key_3: "nested_value",
+                extra_nested: "should be ignored"
+              },
+              extra_key: "should also be ignored"
+            }
+          }
+        end
+
+        it "ignores extra keys at all nesting levels" do
+          output, errors = normalized
+          expect(errors).to be_empty
+
+          expect(output[:nested]).to eq(key_1: "value", key_2: {key_3: "nested_value"})
+          expect(output[:nested]).not_to have_key(:extra_key)
+          expect(output[:nested][:key_2]).not_to have_key(:extra_nested)
+        end
+      end
+
+      context "and some extra keys have invalid types" do
+        let(:input) do
+          {
+            foo: "valid",
+            bar: "also valid",
+            extra_with_bad_type: 12345
+          }
+        end
+
+        let(:structure) do
+          {
+            foo: {type: String},
+            bar: {type: String}
+          }
+        end
+
+        it "does not validate or error on the extra keys" do
+          output, errors = normalized
+          expect(errors).to be_empty
+
+          expect(output).to eq(foo: "valid", bar: "also valid")
+        end
+      end
+    end
+
     context "when the structure uses '*'" do
       context "and it is used as a root key" do
         let(:input) do
