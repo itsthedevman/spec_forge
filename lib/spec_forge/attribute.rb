@@ -81,14 +81,12 @@ module SpecForge
           Factory
         when Faker::KEYWORD_REGEX
           Faker
-        when Global::KEYWORD_REGEX
-          Global
         when Matcher::KEYWORD_REGEX
           Matcher
         when Regex::KEYWORD_REGEX
           Regex
-        when Store::KEYWORD_REGEX
-          Store
+        when Variable::KEYWORD_REGEX
+          Variable
         else
           Literal
         end

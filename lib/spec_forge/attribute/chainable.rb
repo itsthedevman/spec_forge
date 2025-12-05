@@ -174,8 +174,6 @@ module SpecForge
       #
       def describe_value(value)
         case value
-        when Context::Store::Entry
-          "Store with attributes: #{value.available_methods.join_map(", ", &:in_quotes)}"
         when OpenStruct
           "Object with attributes: #{value.table.keys.join_map(", ", &:in_quotes)}"
         when Struct, Data
