@@ -21,11 +21,18 @@ module SpecForge
 
       def parse_templates
         templates = {}
+        reverse_lookup = {}
 
         result = @input.gsub(REGEX).with_index do |match, index|
+          content = match[2..-3].strip
+
+          # We've already processed this content, use the same placeholder
+          if (placeholder = reverse_lookup[content])
+            next placeholder
+          end
+
           placeholder = "⬣→SF#{index}"
 
-          content = match[2..-3].strip
           templates[placeholder] =
             if content.match?(Variable::KEYWORD_REGEX)
               Variable.new(content)
@@ -33,6 +40,7 @@ module SpecForge
               Attribute.from(content)
             end
 
+          reverse_lookup[content] = placeholder
           placeholder
         end
 
