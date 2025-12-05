@@ -74,8 +74,21 @@ module SpecForge
     #
     def self.from_string(string)
       klass =
-        if string.match?(Template::REGEX)
+        case string
+        when Template::REGEX
           Template
+        when Factory::KEYWORD_REGEX
+          Factory
+        when Faker::KEYWORD_REGEX
+          Faker
+        when Global::KEYWORD_REGEX
+          Global
+        when Matcher::KEYWORD_REGEX
+          Matcher
+        when Regex::KEYWORD_REGEX
+          Regex
+        when Store::KEYWORD_REGEX
+          Store
         else
           Literal
         end

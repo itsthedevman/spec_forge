@@ -15,6 +15,18 @@ module SpecForge
         new(blueprints).run
       end
 
+      def context
+        Thread.current[:spec_forge_context]
+      end
+
+      def with_context(context)
+        old_context = Thread.current[:spec_forge_context]
+        Thread.current[:spec_forge_context] = context
+        yield
+      ensure
+        Thread.current[:spec_forge_context] = old_context
+      end
+
       private
 
       def load_forge_helper
@@ -50,22 +62,26 @@ module SpecForge
     end
 
     def run
-      forge_start
+      context = Context.new(global_variables:, local_variables:)
 
-      @blueprints.each do |blueprint|
-        blueprint_start(blueprint)
+      Forge.with_context(context) do
+        forge_start
 
-        blueprint.steps.each do |step|
-          step_start(step)
-          step_action(step)
-          step_end(step, success: true)
-        rescue => e
-          step_end(step, success: false)
-          raise e
+        @blueprints.each do |blueprint|
+          blueprint_start(blueprint)
+
+          blueprint.steps.each do |step|
+            step_start(step)
+            step_action(step)
+            step_end(step, success: true)
+          rescue => e
+            step_end(step, success: false)
+            raise e
+          end
         end
-      end
 
-      forge_end
+        forge_end
+      end
     end
 
     private

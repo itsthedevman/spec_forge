@@ -12,8 +12,8 @@ module SpecForge
       end
 
       def value
-        @templates.each_with_object(@parsed) do |(placeholder, attribute), string|
-          string.gsub!(placeholder, attribute.value)
+        @templates.each_with_object(@parsed.dup) do |(placeholder, attribute), string|
+          string.gsub!(placeholder, attribute.value.to_s)
         end
       end
 
@@ -24,7 +24,14 @@ module SpecForge
 
         result = @input.gsub(REGEX).with_index do |match, index|
           placeholder = "⬣→SF#{index}"
-          templates[placeholder] = Attribute.from(match[2..-3].strip)
+
+          content = match[2..-3].strip
+          templates[placeholder] =
+            if content.match?(Variable::KEYWORD_REGEX)
+              Variable.new(content)
+            else
+              Attribute.from(content)
+            end
 
           placeholder
         end
