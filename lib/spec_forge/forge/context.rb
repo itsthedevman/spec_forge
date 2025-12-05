@@ -2,7 +2,7 @@
 
 module SpecForge
   class Forge
-    class Context < Data.define(:global_variables, :local_variables)
+    class Context < Data.define(:variables)
     end
   end
 end

@@ -29,7 +29,7 @@ module SpecForge
       end
 
       def base_object
-        @variable || Forge.context&.local_variables&.[](@header)
+        @variable || Forge.context&.variables&.[](@header)
       end
     end
   end

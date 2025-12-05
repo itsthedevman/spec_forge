@@ -45,10 +45,9 @@ module SpecForge
     attr_reader :blueprints
     attr_reader :callbacks
     attr_reader :display
-    attr_reader :global_variables
     attr_reader :http_client
-    attr_reader :local_variables
     attr_reader :timer
+    attr_reader :variables
 
     def initialize(blueprints, verbose: false)
       @blueprints = blueprints
@@ -56,13 +55,13 @@ module SpecForge
       @timer = Timer.new
 
       @callbacks = Callbacks.new
-      @global_variables = Store.new
       @http_client = HTTP::Client.new(base_url: SpecForge.configuration.base_url)
-      @local_variables = Store.new
+
+      @variables = Variables.new(static: SpecForge.configuration.global_variables)
     end
 
     def run
-      context = Context.new(global_variables:, local_variables:)
+      context = Context.new(variables:)
 
       Forge.with_context(context) do
         forge_start
@@ -87,21 +86,14 @@ module SpecForge
     private
 
     def forge_start
-      @local_variables.clear
-      @global_variables.clear
-
-      # Load from configuration
-      SpecForge.configuration.tap do |config|
-        config.callbacks.each { |name, block| @callbacks.register_callback(name, &block) }
-        config.global_variables.each { |name, value| @global_variables.store(name, value) }
-      end
+      # Load the callbacks from the configuration
+      SpecForge.configuration.callbacks.each { |name, block| @callbacks.register_callback(name, &block) }
 
       @timer.start
     end
 
     def blueprint_start(blueprint)
-      # Remove all variables between blueprint runs
-      @local_variables.clear
+      @variables.clear
 
       @display.blueprint_start(blueprint)
     end
@@ -122,7 +114,7 @@ module SpecForge
 
     def step_end(step, success:)
       # Drop the request/response data from scope
-      @local_variables.remove_all(:request, :response)
+      @variables.remove_all(:request, :response)
 
       @display.step_end(step, success:)
     end
