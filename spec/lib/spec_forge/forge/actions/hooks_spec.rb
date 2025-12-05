@@ -20,11 +20,7 @@ RSpec.describe SpecForge::Forge::Hooks do
   let(:callbacks) { instance_double(SpecForge::Forge::Callbacks, register_event: nil) }
 
   let(:forge) do
-    instance_double(
-      SpecForge::Forge,
-      display: display,
-      callbacks: callbacks
-    )
+    instance_double(SpecForge::Forge, display:, callbacks:)
   end
 
   subject(:action) { described_class.new(step) }

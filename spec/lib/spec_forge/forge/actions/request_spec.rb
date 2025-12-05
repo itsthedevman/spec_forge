@@ -13,6 +13,7 @@ RSpec.describe SpecForge::Forge::Request do
     )
   end
 
+  let(:display) { instance_double(SpecForge::Forge::Display, action: nil) }
   let(:response) { instance_double(Faraday::Response, status: 200, body: {id: 1}) }
   let(:http_client) { instance_double(SpecForge::HTTP::Client, perform: response) }
   let(:local_variables) { instance_double(SpecForge::Forge::Store, store: nil) }
@@ -20,8 +21,9 @@ RSpec.describe SpecForge::Forge::Request do
   let(:forge) do
     instance_double(
       SpecForge::Forge,
-      http_client: http_client,
-      local_variables: local_variables
+      http_client:,
+      local_variables:,
+      display:
     )
   end
 
@@ -29,6 +31,16 @@ RSpec.describe SpecForge::Forge::Request do
 
   describe "#run" do
     subject(:run) { action.run(forge) }
+
+    it "displays the request action" do
+      run
+
+      expect(display).to have_received(:action).with(
+        :request,
+        "POST /api/users",
+        color: :yellow
+      )
+    end
 
     it "performs the HTTP request" do
       run
