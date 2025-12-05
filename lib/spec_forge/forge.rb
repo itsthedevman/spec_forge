@@ -95,12 +95,12 @@ module SpecForge
     end
 
     def step_action(step)
-      # NOTE: These read and write to the forge's state
+      # HEY! LISTEN: These read and write to the forge's state
       Debug.new(step).run(self) if step.debug?
       Hooks.new(step).run(self) if step.hooks?
       Call.new(step).run(self) if step.call?
       Request.new(step).run(self) if step.request?
-      #   - Do we need to create/run tests? (`expect`)
+      # Expect.new(step).run(self) if step.expect? # TODO
       #   - Do we need to store variables? (`store`)
     end
 

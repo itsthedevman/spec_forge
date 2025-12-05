@@ -33,6 +33,8 @@ module SpecForge
       super(step)
     end
 
+    alias_method :expects, :expect
+
     private
 
     def transform_source(source)
@@ -61,10 +63,10 @@ module SpecForge
       HTTP::Request.new(**request)
     end
 
-    def transform_expect(expect)
-      return if expect.blank?
+    def transform_expect(expects)
+      return if expects.blank?
 
-      Expect.new(**expect)
+      expects.map { |e| Expect.new(**e) }
     end
   end
 end
