@@ -15,24 +15,14 @@ module SpecForge
     :store,
     :tags
   )
-    #############################################################################
-    class Source < Data.define(:file_name, :line_number)
-    end
-
-    class Hook < Data.define(:callback_name, :arguments, :event)
-    end
-
-    class Call < Data.define(:callback_name, :arguments)
-    end
-
-    attr_predicate :debug, :hooks, :call, :request
+    attr_predicate :debug, :hooks, :call, :request, :expect
 
     def initialize(**step)
       step[:call] = transform_call(step[:call])
       step[:debug] = step[:debug] == true
       step[:description] ||= nil
       step[:documentation] ||= nil
-      step[:expect] ||= nil
+      step[:expect] ||= transform_expect(step[:expect])
       step[:hooks] = transform_hooks(step[:hooks])
       step[:included_by] = transform_source(step[:included_by])
       step[:request] = transform_request(step[:request])
@@ -69,6 +59,12 @@ module SpecForge
       return if request.blank?
 
       HTTP::Request.new(**request)
+    end
+
+    def transform_expect(expect)
+      return if expect.blank?
+
+      Expect.new(**expect)
     end
   end
 end
