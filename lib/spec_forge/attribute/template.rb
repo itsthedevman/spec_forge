@@ -13,7 +13,17 @@ module SpecForge
 
       def value
         @templates.each_with_object(@parsed.dup) do |(placeholder, attribute), string|
-          string.gsub!(placeholder, attribute.value.to_s)
+          value = attribute.value
+
+          replacement_value =
+            case value
+            when HashLike, ArrayLike
+              value.to_json
+            else
+              value.to_s
+            end
+
+          string.gsub!(placeholder, replacement_value)
         end
       end
 
@@ -33,14 +43,9 @@ module SpecForge
 
           placeholder = "⬣→SF#{index}"
 
-          templates[placeholder] =
-            if content.match?(Variable::KEYWORD_REGEX)
-              Variable.new(content)
-            else
-              Attribute.from(content)
-            end
-
+          templates[placeholder] = Attribute.from(content)
           reverse_lookup[content] = placeholder
+
           placeholder
         end
 
