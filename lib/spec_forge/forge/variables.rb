@@ -23,6 +23,10 @@ module SpecForge
       end
 
       alias_method :store, :[]=
+
+      def remove_all(*keys)
+        @dynamic.except!(*keys)
+      end
     end
   end
 end
