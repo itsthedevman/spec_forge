@@ -150,13 +150,20 @@ module SpecForge
       end
     end
 
-    #
-    # Raised when a variable reference cannot be resolved
-    # Indicates when a spec or expectation references an undefined variable
-    #
     class MissingVariableError < Error
-      def initialize(variable_name)
-        super("Undefined variable \"#{variable_name}\" referenced in expectation")
+      def initialize(variable_name, available_variables: [])
+        message = "Undefined variable \"#{variable_name}\""
+
+        checker = DidYouMean::SpellChecker.new(dictionary: available_variables)
+        suggestions = checker.correct(variable_name.to_s)
+
+        message += ". #{DidYouMean::Formatter.message_for(suggestions)}" if suggestions.size > 0
+
+        if available_variables.size > 0 && available_variables.size <= 5
+          message += ".\nAvailable: #{available_variables.join_map(", ", &:in_quotes)}"
+        end
+
+        super(message)
       end
     end
 
