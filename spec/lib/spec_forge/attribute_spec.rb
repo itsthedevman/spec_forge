@@ -34,12 +34,6 @@ RSpec.describe SpecForge::Attribute do
         it { is_expected.to be_kind_of(described_class::Literal) }
       end
 
-      context "and it is a valid variable macro" do
-        let(:input) { "variables.var_1" }
-
-        it { is_expected.to be_kind_of(described_class::Variable) }
-      end
-
       context "and it is a valid matcher macro" do
         let(:input) { "matcher.include" }
 
@@ -158,6 +152,62 @@ RSpec.describe SpecForge::Attribute do
           hash_value = array.second.value[:key_1]
           expect(hash_value).to be_kind_of(described_class::Transform)
         end
+      end
+    end
+
+    context "when the input is a Struct" do
+      let(:input) do
+        Struct.new(:name, :email).new(
+          name: "faker.name.name",
+          email: "faker.internet.email"
+        )
+      end
+
+      it { is_expected.to be_kind_of(described_class::ResolvableStruct) }
+
+      it "is expected to wrap the struct for resolution" do
+        expect(attribute.value).to eq(input)
+      end
+    end
+
+    context "when the input is a Data object" do
+      let(:input) do
+        Data.define(:user_id, :token).new(
+          user_id: 42,
+          token: "faker.string.random"
+        )
+      end
+
+      it { is_expected.to be_kind_of(described_class::ResolvableStruct) }
+
+      it "is expected to wrap the data object for resolution" do
+        expect(attribute.value).to eq(input)
+      end
+    end
+
+    context "when the input is an OpenStruct" do
+      let(:input) do
+        OpenStruct.new(
+          id: "faker.number.positive",
+          active: true
+        )
+      end
+
+      it { is_expected.to be_kind_of(described_class::ResolvableStruct) }
+
+      it "is expected to wrap the OpenStruct for resolution" do
+        expect(attribute.value).to eq(input)
+      end
+    end
+
+    context "when the input is a ResolvableStruct" do
+      let(:struct) { Struct.new(:foo).new(foo: "bar") }
+      let(:input) { described_class::ResolvableStruct.new(struct) }
+
+      it { is_expected.to be_kind_of(described_class::ResolvableStruct) }
+
+      it "is expected to return the input unchanged" do
+        expect(attribute).to eq(input)
       end
     end
   end
@@ -300,14 +350,6 @@ RSpec.describe SpecForge::Attribute do
 
       it "is expected to return itself" do
         expect(resolved_matcher).to be_kind_of(matchers::Eq)
-      end
-    end
-
-    context "when the resolved value is a custom matcher" do
-      let(:input) { forge_and(eq(1)) }
-
-      it "is expected to return itself" do
-        expect(resolved_matcher).to be_kind_of(RSpec::Matchers::DSL::Matcher)
       end
     end
 

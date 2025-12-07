@@ -32,11 +32,13 @@ module SpecForge
         from_string(value)
       when HashLike
         from_hash(value)
-      when Attribute
+      when Attribute, ResolvableArray, ResolvableHash, ResolvableStruct
         value
       when ArrayLike
         array = value.map { |v| Attribute.from(v) }
-        Attribute::ResolvableArray.new(array)
+        ResolvableArray.new(array)
+      when Struct, Data, OpenStruct
+        ResolvableStruct.new(value)
       else
         Literal.new(value)
       end
@@ -64,8 +66,6 @@ module SpecForge
           Matcher
         when Regex::KEYWORD_REGEX
           Regex
-        when Variable::KEYWORD_REGEX
-          Variable
         else
           Literal
         end
@@ -96,7 +96,7 @@ module SpecForge
         Factory.from_hash(hash)
       else
         hash = hash.transform_values { |v| Attribute.from(v) }
-        Attribute::ResolvableHash.new(hash)
+        ResolvableHash.new(hash)
       end
     end
 
