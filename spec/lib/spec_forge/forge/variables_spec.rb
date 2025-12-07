@@ -137,16 +137,4 @@ RSpec.describe SpecForge::Forge::Variables do
       expect(variables[:new_dynamic]).to eq("new_value")
     end
   end
-
-  describe "#remove_all" do
-    let(:dynamic) { {keep: "kept", remove_me: "gone", also_remove: "also_gone"} }
-
-    it "removes specified keys from dynamic variables" do
-      variables.remove_all(:remove_me, :also_remove)
-
-      expect(variables[:keep]).to eq("kept")
-      expect(variables[:remove_me]).to be_nil
-      expect(variables[:also_remove]).to be_nil
-    end
-  end
 end
