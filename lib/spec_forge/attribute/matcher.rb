@@ -77,7 +77,7 @@ module SpecForge
             resolve_base_matcher(method)
           end
 
-        prepare_arguments!
+        prepare_arguments
 
         # An argument can be an expanded version of something (such as matcher.include)
         # Move it to where it belongs

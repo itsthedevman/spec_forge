@@ -82,7 +82,7 @@ module SpecForge
         # Check the arguments before preparing them
         arguments[:keyword] = Normalizer.normalize!(arguments[:keyword], using: :factory_reference)
 
-        prepare_arguments!
+        prepare_arguments
       end
 
       #

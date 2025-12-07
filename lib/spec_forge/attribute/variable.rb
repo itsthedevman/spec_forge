@@ -17,19 +17,16 @@ module SpecForge
         @invocation_chain = sections[1..] || []
       end
 
-      def bind_variables(variables)
-        if !Type.hash?(variables)
-          raise Error::InvalidTypeError.new(variables, Hash, for: "'variables'")
-        end
-
-        # Don't nil check here.
-        raise Error::MissingVariableError, variable_name unless variables.key?(variable_name)
-
-        @variable = variables[variable_name]
-      end
-
       def base_object
-        @variable || Forge.context&.variables&.[](@header)
+        @base_object ||= begin
+          variables = Forge.context&.variables || {}
+
+          if !variables.key?(variable_name)
+            raise Error::MissingVariableError.new(variable_name, available_variables: variables.keys)
+          end
+
+          variables[variable_name]
+        end
       end
     end
   end

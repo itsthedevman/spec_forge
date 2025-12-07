@@ -47,7 +47,7 @@ module SpecForge
 
         raise Error::InvalidTransformFunctionError, input unless TRANSFORM_METHODS.include?(function)
 
-        prepare_arguments!
+        prepare_arguments
       end
 
       #

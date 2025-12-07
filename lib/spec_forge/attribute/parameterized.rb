@@ -72,16 +72,6 @@ module SpecForge
         @arguments = {positional:, keyword:}
       end
 
-      #
-      # Binds variables to any nested attributes in the arguments
-      #
-      # @param variables [Hash] A hash of variable attributes
-      #
-      def bind_variables(variables)
-        arguments[:positional].each { |v| Attribute.bind_variables(v, variables) }
-        arguments[:keyword].each_value { |v| Attribute.bind_variables(v, variables) }
-      end
-
       protected
 
       #
@@ -93,7 +83,7 @@ module SpecForge
       #
       # @private
       #
-      def prepare_arguments!
+      def prepare_arguments
         @arguments = Attribute.from(arguments)
       end
     end

@@ -46,7 +46,7 @@ module SpecForge
 
         @faker_class, @faker_method = extract_faker_call
 
-        prepare_arguments!
+        prepare_arguments
       end
 
       #
