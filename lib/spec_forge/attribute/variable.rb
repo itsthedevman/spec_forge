@@ -5,8 +5,6 @@ module SpecForge
     class Variable < Attribute
       include Chainable
 
-      KEYWORD_REGEX = /^[\w.]+$/
-
       alias_method :variable_name, :header
 
       def initialize(input)
