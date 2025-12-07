@@ -114,7 +114,7 @@ module SpecForge
 
     def step_end(step, success:)
       # Drop the request/response data from scope
-      @variables.remove_all(:request, :response)
+      @variables.except!(:request, :response)
 
       @display.step_end(step, success:)
     end
