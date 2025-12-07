@@ -29,7 +29,7 @@ module SpecForge
         super(<<~STRING.chomp
           Undefined Faker class "#{input}". #{DidYouMean::Formatter.message_for(corrections)}
 
-          For available classes, please check https://github.com/faker-ruby/faker#generators.
+          For available classes, please check https://github.com/faker-ruby/faker/blob/main/GENERATORS.md.
         STRING
         )
       end
