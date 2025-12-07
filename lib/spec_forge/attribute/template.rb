@@ -41,9 +41,14 @@ module SpecForge
             next placeholder
           end
 
-          placeholder = "⬣→SF#{index}"
+          attribute = Attribute.from(content)
 
-          templates[placeholder] = Attribute.from(content)
+          # There is no such thing as a Literal inside a Template.
+          # This makes it significantly easier to detect variables
+          attribute = Attribute::Variable.new(content) if attribute.is_a?(Attribute::Literal)
+
+          placeholder = "⬣→SF#{index}"
+          templates[placeholder] = attribute
           reverse_lookup[content] = placeholder
 
           placeholder
