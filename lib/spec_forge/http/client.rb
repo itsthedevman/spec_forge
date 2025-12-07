@@ -11,9 +11,9 @@ module SpecForge
         @backend.public_send(
           request.http_verb.to_s.downcase,
           request.url.delete_prefix("/"),
-          headers: request.headers.resolved,
-          query: request.query.resolved,
-          body: request.body.resolved
+          headers: request.headers,
+          query: request.query,
+          body: request.body
         )
       end
     end

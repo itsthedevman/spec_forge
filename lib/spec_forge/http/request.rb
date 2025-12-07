@@ -3,6 +3,8 @@
 module SpecForge
   module HTTP
     class Request < Data.define(:base_url, :url, :http_verb, :headers, :query, :body)
+      include Attribute::ToAttribute
+
       #
       # Regex that attempts to match a valid header
       #
@@ -11,8 +13,8 @@ module SpecForge
       HEADER = /^[A-Z][A-Za-z0-9!-]*$/
 
       def initialize(**options)
-        base_url = options[:base_url] || ""
-        url = options[:url] || ""
+        base_url = Attribute.from(options[:base_url] || "")
+        url = Attribute.from(options[:url] || "")
 
         http_verb = Verb.from(options[:http_verb].presence || "GET")
         query = Attribute.from(options[:query] || {})
@@ -23,17 +25,6 @@ module SpecForge
         body = Attribute.from(content[:body] || {})
 
         super(base_url:, url:, http_verb:, headers:, query:, body:)
-      end
-
-      #
-      # Returns a hash representation with all attributes fully resolved
-      #
-      # @return [Hash] The request data with all dynamic values resolved
-      #
-      def to_h
-        hash = super.transform_values { |v| v.respond_to?(:resolved) ? v.resolved : v }
-        hash[:http_verb] = hash[:http_verb].to_s
-        hash
       end
 
       def content_type
