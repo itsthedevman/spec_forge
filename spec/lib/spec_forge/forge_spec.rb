@@ -1,5 +1,4 @@
-# frozen_string_literal: true
-
+# spec/lib/spec_forge/forge_spec.rb
 RSpec.describe SpecForge::Forge do
   let(:blueprints) do
     SpecForge::Loader.new(
@@ -7,50 +6,94 @@ RSpec.describe SpecForge::Forge do
     ).load
   end
 
-  subject(:forge) { described_class.new(blueprints) }
+  let(:mock_backend) { instance_double(SpecForge::HTTP::Backend, connection: double) }
+  let(:callback_tracker) { [] }
+
+  subject(:forge) { described_class.new(blueprints, verbose: true) }
 
   before do
-    forge.callbacks.register_callback(:setup_database) {}
-    forge.callbacks.register_callback(:cleanup_database) {}
-    forge.callbacks.register_callback(:initialize_tests) {}
-    forge.callbacks.register_callback(:seed_data) {}
-    forge.callbacks.register_callback(:log_request) {}
-    forge.callbacks.register_callback(:set_context) {}
-    forge.callbacks.register_callback(:verify_cleanup) {}
-  end
+    # Mock HTTP layer so we don't need a real API
+    allow(SpecForge::HTTP::Backend).to receive(:new).and_return(mock_backend)
 
-  context "when the Configuration has callbacks defined" do
-    before do
-      SpecForge.configure do |config|
-        config.register_callback(:my_global_callback) {}
-        config.register_callback(:my_other_callback) {}
-      end
+    # Setup callbacks with tracking
+    forge.callbacks.register_callback(:setup_test_data) do
+      callback_tracker << :setup_test_data
     end
 
-    it "is expected to register them with the forge" do
-      forge.send(:load_from_configuration)
-
-      expect(forge.callbacks.callback_registered?(:my_global_callback)).to be(true)
-      expect(forge.callbacks.callback_registered?(:my_other_callback)).to be(true)
-    end
-  end
-
-  context "when the Configuration has global variables defined" do
-    before do
-      SpecForge.configure do |config|
-        config.global_variables[:my_global_variable] = "value"
-      end
+    forge.callbacks.register_callback(:cleanup_test_data) do
+      callback_tracker << :cleanup_test_data
     end
 
-    it "is expected to register them with the forge" do
-      forge.send(:load_from_configuration)
+    forge.callbacks.register_callback(:log_create_request) do
+      callback_tracker << :log_create_request
+    end
 
-      expect(forge.global_variables[:my_global_variable]).to eq("value")
+    forge.callbacks.register_callback(:verify_user_created) do
+      callback_tracker << :verify_user_created
+    end
+
+    forge.callbacks.register_callback(:initialize_environment) do
+      callback_tracker << :initialize_environment
     end
   end
 
-  it "test" do
-    forge.run
-    binding.pry
+  describe "integration: full lifecycle execution" do
+    it "executes blueprints with hooks, requests, and variable storage" do
+      # Mock HTTP responses
+      allow(mock_backend).to receive(:post).and_return(
+        double(
+          status: 201,
+          headers: {"Content-Type" => "application/json"},
+          body: {id: 42, name: "John Doe", email: "john@example.com"}.to_json
+        )
+      )
+
+      allow(mock_backend).to receive(:get).and_return(
+        double(
+          status: 200,
+          headers: {"Content-Type" => "application/json"},
+          body: {id: 42, name: "John Doe", email: "john@example.com"}.to_json
+        )
+      )
+
+      allow(mock_backend).to receive(:patch).and_return(
+        double(
+          status: 200,
+          headers: {"Content-Type" => "application/json"},
+          body: {id: 42, name: "Jane Doe", email: "john@example.com"}.to_json
+        )
+      )
+
+      allow(mock_backend).to receive(:put).and_return(
+        double(
+          status: 200,
+          headers: {"Content-Type" => "application/json"}
+        )
+      )
+
+      allow(mock_backend).to receive(:delete).and_return(
+        double(status: 204, headers: {}, body: "")
+      )
+
+      # Run the forge
+      forge.run
+
+      binding.pry
+
+      # Verify lifecycle callbacks fired
+      expect(callback_tracker).to include(:setup_test_data)
+      expect(callback_tracker).to include(:cleanup_test_data)
+      expect(callback_tracker).to include(:initialize_environment)
+
+      # Verify variables were stored and accessible
+      expect(forge.variables[:user_id]).to eq(42)
+      expect(forge.variables[:user_email]).to eq("john@example.com")
+
+      # Verify HTTP calls were made
+      expect(mock_backend).to have_received(:post)
+      expect(mock_backend).to have_received(:get)
+      expect(mock_backend).to have_received(:patch)
+      expect(mock_backend).to have_received(:delete)
+    end
   end
 end

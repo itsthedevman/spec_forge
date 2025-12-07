@@ -1,0 +1,61 @@
+- hooks:
+    - before_file: setup_test_data
+    - after_file: cleanup_test_data
+
+- call: initialize_environment
+
+- store:
+    base_email: "test@example.com"
+    base_name: "Test User"
+
+- name: "Create a user"
+  tags: [crud, create]
+  hooks:
+    - before_each: log_create_request
+    - after_each: verify_user_created
+  request:
+    method: POST
+    url: "/api/users"
+    json:
+      name: "{{ base_name }}"
+      email: "{{ base_email }}"
+  expect:
+    - status: 201
+      json:
+        structure:
+          id: integer
+          name: string
+          email: string
+  store:
+    user_id: "{{ response.body.id }}"
+    created_email: "{{ response.body.email }}"
+
+- name: "Fetch the created user"
+  tags: [crud, read]
+  request:
+    method: GET
+    url: "/api/users/{{ user_id }}"
+  expect:
+    - status: 200
+      json:
+        content:
+          id: "{{ user_id }}"
+          email: "{{ created_email }}"
+
+- name: "Update the user"
+  tags: [crud, update]
+  request:
+    method: PUT
+    url: "/api/users/{{ user_id }}"
+    json:
+      name: "Updated Name"
+  expect:
+    - status: 200
+
+- name: "Delete the user"
+  tags: [crud, delete]
+  request:
+    method: DELETE
+    url: "/api/users/{{ user_id }}"
+  expect:
+    - status: 204

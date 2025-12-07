@@ -108,8 +108,8 @@ module SpecForge
       Hooks.new(step).run(self) if step.hooks?
       Call.new(step).run(self) if step.call?
       Request.new(step).run(self) if step.request?
-      # Expect.new(step).run(self) if step.expect? # TODO
-      #   - Do we need to store variables? (`store`)
+      Expect.new(step).run(self) if step.expect?
+      Store.new(step).run(self) if step.store?
     end
 
     def step_end(step, success:)
