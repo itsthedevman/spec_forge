@@ -72,15 +72,6 @@ module SpecForge
         result = value.map(&resolve_as_matcher_proc)
         Attribute::Literal.new(result).resolve_as_matcher
       end
-
-      #
-      # Binds variables to any attribute objects in the array
-      #
-      # @param variables [Hash] The variables to bind
-      #
-      def bind_variables(variables)
-        value.each { |v| Attribute.bind_variables(v, variables) }
-      end
     end
   end
 end

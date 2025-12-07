@@ -77,8 +77,8 @@ module SpecForge
       @input = input
       @model_class = input[:model_class]
 
-      @variables = extract_variables(input)
-      @attributes = extract_attributes(input)
+      @variables = Attribute.from(input[:variables])
+      @attributes = Attribute.from(input[:attributes])
     end
 
     #
@@ -102,20 +102,6 @@ module SpecForge
       end
 
       self
-    end
-
-    private
-
-    def extract_variables(input)
-      variables = Attribute.from(input[:variables])
-
-      # Update the variables that reference other variables lol
-      Attribute.bind_variables(variables, variables)
-    end
-
-    def extract_attributes(input)
-      attributes = Attribute.from(input[:attributes])
-      Attribute.bind_variables(attributes, variables)
     end
   end
 end

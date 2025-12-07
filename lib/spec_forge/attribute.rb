@@ -19,27 +19,6 @@ module SpecForge
     include Resolvable
 
     #
-    # Binds variables to Attribute objects
-    #
-    # @param input [Array, Hash, Attribute] The input to loop through or bind to
-    # @param variables [Hash] Any variables to available to assign
-    #
-    # @return [Array, Hash, Attribute] The input with bounded variables
-    #
-    def self.bind_variables(input, variables = {})
-      case input
-      when ArrayLike
-        input.each { |v| v.bind_variables(variables) }
-      when HashLike
-        input.each_value { |v| v.bind_variables(variables) }
-      when Attribute
-        input.bind_variables(variables)
-      end
-
-      input
-    end
-
-    #
     # Creates an Attribute instance based on the input value's type and content.
     # Recursively converts Array and Hash
     #
@@ -271,14 +250,6 @@ module SpecForge
       else
         methods.eq(resolved)
       end
-    end
-
-    #
-    # Used to bind variables to self or any sub attributes
-    #
-    # @param variables [Hash] A hash of variable attributes
-    #
-    def bind_variables(variables)
     end
   end
 end
