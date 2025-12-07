@@ -15,7 +15,7 @@ module SpecForge
     :store,
     :tags
   )
-    attr_predicate :debug, :hooks, :call, :request, :expect
+    attr_predicate :debug, :hooks, :call, :request, :expect, :store
 
     def initialize(**step)
       step[:call] = transform_call(step[:call])
@@ -27,7 +27,7 @@ module SpecForge
       step[:included_by] = transform_source(step[:included_by])
       step[:request] = transform_request(step[:request])
       step[:source] = transform_source(step[:source])
-      step[:store] ||= nil
+      step[:store] = transform_store(step[:store])
       step[:tags] ||= nil
 
       super(step)
@@ -67,6 +67,10 @@ module SpecForge
       return if expects.blank?
 
       expects.map { |e| Expect.new(**e) }
+    end
+
+    def transform_store(store)
+      store.presence
     end
   end
 end
