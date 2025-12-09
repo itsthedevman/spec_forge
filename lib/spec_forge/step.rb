@@ -60,7 +60,9 @@ module SpecForge
     end
 
     def transform_store(store)
-      store.presence
+      return if store.blank?
+
+      store.transform_values { |v| Attribute.from(v) }
     end
   end
 end

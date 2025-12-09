@@ -8,7 +8,7 @@ module SpecForge
           event = forge.variables.key?(name) ? "Updated" : "Stored"
 
           forge.display.action(:store, "#{event}: #{name.in_quotes}", color: :bright_cyan)
-          forge.variables[name] = value
+          forge.variables[name] = value.resolved
         end
       end
     end
