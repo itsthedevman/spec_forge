@@ -10,6 +10,8 @@ module SpecForge
       def initialize(input)
         super
 
+        @keyword = nil
+
         sections = input.split(".")
         @header = sections.first&.to_sym
         @invocation_chain = sections[1..] || []

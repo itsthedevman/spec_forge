@@ -125,7 +125,7 @@ module SpecForge
       def traverse_chain(resolve:)
         resolution_path = {}
 
-        current_path = "#{keyword}.#{header}"
+        current_path = keyword.present? ? "#{keyword}.#{header}" : header.to_s
         current_object = base_object
 
         invocation_chain.each do |step|
