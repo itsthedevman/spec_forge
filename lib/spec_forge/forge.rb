@@ -87,7 +87,7 @@ module SpecForge
 
     def forge_start
       # Load the callbacks from the configuration
-      SpecForge.configuration.callbacks.each { |name, block| @callbacks.register_callback(name, &block) }
+      SpecForge.configuration.callbacks.each { |name, block| @callbacks.register(name, &block) }
 
       @timer.start
     end
@@ -105,7 +105,6 @@ module SpecForge
     def step_action(step)
       # HEY! LISTEN: These read and write to the forge's state
       Debug.new(step).run(self) if step.debug?
-      Hooks.new(step).run(self) if step.hooks?
       Call.new(step).run(self) if step.call?
       Request.new(step).run(self) if step.request?
       Expect.new(step).run(self) if step.expect?

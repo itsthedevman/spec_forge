@@ -16,8 +16,7 @@ module SpecForge
         return if verbose?
 
         puts ""
-        print @color.bold("Running #{blueprint.file_name}...")
-        puts ""
+        puts @color.bold("Running #{blueprint.file_name}...")
       end
 
       def forge_end(forge)
@@ -30,7 +29,6 @@ module SpecForge
         puts "" if verbose?
 
         puts @color.dim("Completed in #{sprintf("%.2g", forge.timer.time_elapsed)}s")
-        puts ""
       end
 
       def step_start(step)
@@ -67,8 +65,6 @@ module SpecForge
             "→"
           when :store
             "▸"
-          when :hook
-            "↪"
           when :call
             "●"
           when :debug

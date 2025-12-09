@@ -16,29 +16,29 @@ RSpec.describe SpecForge::Forge do
     allow(SpecForge::HTTP::Backend).to receive(:new).and_return(mock_backend)
 
     # Setup callbacks with tracking
-    forge.callbacks.register_callback(:setup_test_data) do
+    forge.callbacks.register(:setup_test_data) do
       callback_tracker << :setup_test_data
     end
 
-    forge.callbacks.register_callback(:cleanup_test_data) do
+    forge.callbacks.register(:cleanup_test_data) do
       callback_tracker << :cleanup_test_data
     end
 
-    forge.callbacks.register_callback(:log_create_request) do
+    forge.callbacks.register(:log_create_request) do
       callback_tracker << :log_create_request
     end
 
-    forge.callbacks.register_callback(:verify_user_created) do
+    forge.callbacks.register(:verify_user_created) do
       callback_tracker << :verify_user_created
     end
 
-    forge.callbacks.register_callback(:initialize_environment) do
+    forge.callbacks.register(:initialize_environment) do
       callback_tracker << :initialize_environment
     end
   end
 
   describe "integration: full lifecycle execution" do
-    it "executes blueprints with hooks, requests, and variable storage" do
+    it "executes blueprints with callbacks, requests, and variable storage" do
       # Mock HTTP responses
       allow(mock_backend).to receive(:post).and_return(
         double(
@@ -78,9 +78,7 @@ RSpec.describe SpecForge::Forge do
       # Run the forge
       forge.run
 
-      binding.pry
-
-      # Verify lifecycle callbacks fired
+      # Verify callbacks fired
       expect(callback_tracker).to include(:setup_test_data)
       expect(callback_tracker).to include(:cleanup_test_data)
       expect(callback_tracker).to include(:initialize_environment)

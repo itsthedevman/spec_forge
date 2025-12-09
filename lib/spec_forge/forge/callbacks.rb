@@ -5,58 +5,35 @@ module SpecForge
     class Callbacks
       def initialize
         @callbacks = {}
-
-        @events = {
-          before_each: [],
-          after_each: [],
-          before_file: [],
-          after_file: []
-        }
       end
 
-      def register_callback(name, &block)
+      def register(name, &block)
         raise ArgumentError, "A block must be provided" unless block.is_a?(Proc)
 
-        if callback_registered?(name)
+        if registered?(name)
           warn("Callback #{name.in_quotes} is already registered. It will be overwritten")
         end
 
         @callbacks[name.to_sym] = block
       end
 
-      def register_event(event_name, callback_name:, arguments: nil)
-        if !@events.key?(event_name.to_sym)
-          event_names = @events.keys.join_map(", ", &:in_quotes)
-          raise ArgumentError, "Invalid event name given: #{event_name.in_quotes}. Expected one of: #{event_names}"
-        end
-
-        callback_name = callback_name.to_sym
-        ensure_callback_registered!(callback_name)
-
-        @events[event_name] << {callback_name:, arguments:}
+      def registered?(name)
+        @callbacks.key?(name.to_sym)
       end
 
-      def callback_registered?(callback_name)
-        @callbacks.key?(callback_name.to_sym)
-      end
-
-      def run_callback(name, arguments = nil)
-        ensure_callback_registered!(name)
+      def run(name, arguments = nil, before_block: nil)
+        ensure_registered!(name)
 
         callback = @callbacks[name.to_sym]
-        if callback.arity == 1
-          callback.call(arguments)
-        else
-          callback.call
-        end
+        callback.call(*arguments)
       end
 
       private
 
-      def ensure_callback_registered!(callback_name)
-        return if callback_registered?(callback_name)
+      def ensure_registered!(name)
+        return if registered?(name)
 
-        raise Error::UndefinedCallbackError.new(callback_name, @callbacks.keys)
+        raise Error::UndefinedCallbackError.new(name, @callbacks.keys)
       end
     end
   end

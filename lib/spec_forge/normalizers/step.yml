@@ -123,48 +123,6 @@ store:
   type: hash
   default: {}
 
-hooks:
-  type: array
-  default: []
-  structure:
-    type: hash
-    structure:
-      before_file:
-        type: [string, hash]
-        transformer: normalize_callback
-        structure:
-          name:
-            type: string
-          arguments:
-            type: [array, hash]
-
-      before_each:
-        type: [string, hash]
-        transformer: normalize_callback
-        structure:
-          name:
-            type: string
-          arguments:
-            type: [array, hash]
-
-      after_each:
-        type: [string, hash]
-        transformer: normalize_callback
-        structure:
-          name:
-            type: string
-          arguments:
-            type: [array, hash]
-
-      after_file:
-        type: [string, hash]
-        transformer: normalize_callback
-        structure:
-          name:
-            type: string
-          arguments:
-            type: [array, hash]
-
 call:
   type: [string, hash]
   default: {}

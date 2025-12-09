@@ -8,14 +8,13 @@ module SpecForge
     :description,
     :documentation,
     :expect,
-    :hooks,
     :included_by,
     :request,
     :source,
     :store,
     :tags
   )
-    attr_predicate :debug, :hooks, :call, :request, :expect, :store
+    attr_predicate :debug, :call, :request, :expect, :store
 
     def initialize(**step)
       step[:call] = transform_call(step[:call])
@@ -23,7 +22,6 @@ module SpecForge
       step[:description] ||= nil
       step[:documentation] ||= nil
       step[:expect] ||= transform_expect(step[:expect])
-      step[:hooks] = transform_hooks(step[:hooks])
       step[:included_by] = transform_source(step[:included_by])
       step[:request] = transform_request(step[:request])
       step[:source] = transform_source(step[:source])
@@ -41,14 +39,6 @@ module SpecForge
       return if source.blank?
 
       Source.new(file_name: source[:file_name], line_number: source[:line_number])
-    end
-
-    def transform_hooks(hooks)
-      return if hooks.blank?
-
-      hooks.flat_map(&:to_a).map do |event, hook|
-        Hook.new(event:, callback_name: hook[:name], arguments: hook[:arguments])
-      end
     end
 
     def transform_call(call)

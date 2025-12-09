@@ -1,7 +1,4 @@
-- hooks:
-    - before_file: setup_test_data
-    - after_file: cleanup_test_data
-
+- call: setup_test_data
 - call: initialize_environment
 
 - store:
@@ -10,9 +7,6 @@
 
 - name: "Create a user"
   tags: [crud, create]
-  hooks:
-    - before_each: log_create_request
-    - after_each: verify_user_created
   request:
     method: POST
     url: "/api/users"
@@ -59,3 +53,5 @@
     url: "/api/users/{{ user_id }}"
   expect:
     - status: 204
+
+- call: cleanup_test_data
