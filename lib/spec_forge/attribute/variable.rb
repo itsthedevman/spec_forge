@@ -10,6 +10,7 @@ module SpecForge
       def initialize(input)
         super
 
+        # Unset the keyword to keep chainable from displaying it in error messages
         @keyword = nil
 
         sections = input.split(".")

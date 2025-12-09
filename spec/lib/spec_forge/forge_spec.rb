@@ -44,7 +44,7 @@ RSpec.describe SpecForge::Forge do
         double(
           status: 201,
           headers: {"Content-Type" => "application/json"},
-          body: {id: 42, name: "John Doe", email: "john@example.com"}.to_json
+          body: {id: 42, name: "John Doe", email: "john@example.com"}
         )
       )
 
@@ -52,7 +52,7 @@ RSpec.describe SpecForge::Forge do
         double(
           status: 200,
           headers: {"Content-Type" => "application/json"},
-          body: {id: 42, name: "John Doe", email: "john@example.com"}.to_json
+          body: {id: 42, name: "John Doe", email: "john@example.com"}
         )
       )
 
@@ -60,7 +60,7 @@ RSpec.describe SpecForge::Forge do
         double(
           status: 200,
           headers: {"Content-Type" => "application/json"},
-          body: {id: 42, name: "Jane Doe", email: "john@example.com"}.to_json
+          body: {id: 42, name: "Jane Doe", email: "john@example.com"}
         )
       )
 
@@ -72,7 +72,7 @@ RSpec.describe SpecForge::Forge do
       )
 
       allow(mock_backend).to receive(:delete).and_return(
-        double(status: 204, headers: {}, body: "")
+        double(status: 204, headers: {}, body: {})
       )
 
       # Run the forge
@@ -85,7 +85,7 @@ RSpec.describe SpecForge::Forge do
 
       # Verify variables were stored and accessible
       expect(forge.variables[:user_id]).to eq(42)
-      expect(forge.variables[:user_email]).to eq("john@example.com")
+      expect(forge.variables[:created_email]).to eq("john@example.com")
 
       # Verify HTTP calls were made
       expect(mock_backend).to have_received(:post)

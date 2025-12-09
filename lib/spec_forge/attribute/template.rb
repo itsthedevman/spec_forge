@@ -12,19 +12,27 @@ module SpecForge
       end
 
       def value
-        @templates.each_with_object(@parsed.dup) do |(placeholder, attribute), string|
-          value = attribute.value
+        value =
+          @templates.each_with_object(@parsed.dup) do |(placeholder, attribute), string|
+            value = attribute.value
 
-          replacement_value =
-            case value
-            when HashLike, ArrayLike
-              value.to_json
-            else
-              value.to_s
-            end
+            replacement_value =
+              case value
+              when HashLike, ArrayLike
+                value.to_json
+              else
+                value.to_s
+              end
 
-          string.gsub!(placeholder, replacement_value)
+            string.gsub!(placeholder, replacement_value)
+          end
+
+        if @templates.size == 1
+          placeholder, template_value = @templates.first
+          value = cast_to_type(value, template_value.value) if @parsed == placeholder
         end
+
+        value
       end
 
       private
@@ -55,6 +63,23 @@ module SpecForge
         end
 
         [result, templates]
+      end
+
+      def cast_to_type(input, template_value)
+        case template_value
+        when Integer
+          input.to_i
+        when Float
+          input.to_f
+        when TrueClass, FalseClass
+          input == "true"
+        when Array
+          input.to_a
+        when Hash
+          input.to_h
+        else
+          input
+        end
       end
     end
   end
