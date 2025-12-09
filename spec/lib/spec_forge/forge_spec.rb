@@ -56,14 +56,6 @@ RSpec.describe SpecForge::Forge do
         )
       )
 
-      allow(mock_backend).to receive(:patch).and_return(
-        double(
-          status: 200,
-          headers: {"Content-Type" => "application/json"},
-          body: {id: 42, name: "Jane Doe", email: "john@example.com"}
-        )
-      )
-
       allow(mock_backend).to receive(:put).and_return(
         double(
           status: 200,
@@ -90,7 +82,7 @@ RSpec.describe SpecForge::Forge do
       # Verify HTTP calls were made
       expect(mock_backend).to have_received(:post)
       expect(mock_backend).to have_received(:get)
-      expect(mock_backend).to have_received(:patch)
+      expect(mock_backend).to have_received(:put)
       expect(mock_backend).to have_received(:delete)
     end
   end
