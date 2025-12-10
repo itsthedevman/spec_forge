@@ -15,14 +15,6 @@ module SpecForge
         )
       end
 
-      # def as_matchers
-      #   {
-      #     status: status.resolve_as_matcher,
-      #     json: resolve_json_matcher,
-      #     headers: resolve_hash_matcher(headers)
-      #   }
-      # end
-
       def description
         description = "is expected to respond with"
 

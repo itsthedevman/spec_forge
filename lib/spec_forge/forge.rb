@@ -7,6 +7,8 @@ module SpecForge
         load_forge_helper
         Factory.load_and_register
 
+        Runner.setup
+
         # Return for chaining
         self
       end
@@ -57,6 +59,7 @@ module SpecForge
       @callbacks = Callbacks.new
       @http_client = HTTP::Client.new(base_url: SpecForge.configuration.base_url)
 
+      @runner = Runner.new
       @variables = Variables.new(static: SpecForge.configuration.global_variables)
     end
 
