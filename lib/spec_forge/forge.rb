@@ -53,13 +53,11 @@ module SpecForge
 
     def initialize(blueprints, verbose: false)
       @blueprints = blueprints
-      @display = Display.new(verbose:)
-      @timer = Timer.new
-
       @callbacks = Callbacks.new
+      @display = Display.new(verbose:)
       @http_client = HTTP::Client.new(base_url: SpecForge.configuration.base_url)
-
       @runner = Runner.new
+      @timer = Timer.new
       @variables = Variables.new(static: SpecForge.configuration.global_variables)
     end
 
