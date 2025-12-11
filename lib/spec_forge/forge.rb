@@ -48,6 +48,7 @@ module SpecForge
     attr_reader :callbacks
     attr_reader :display
     attr_reader :http_client
+    attr_reader :runner
     attr_reader :timer
     attr_reader :variables
 

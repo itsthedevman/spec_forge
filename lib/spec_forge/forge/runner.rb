@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module SpecForge
-  module Forge
+  class Forge
     class Runner
       def self.setup
         # Disable autorun because RSpec does it
@@ -14,11 +14,12 @@ module SpecForge
       def initialize(cli_args = [])
         options = RSpec::Core::ConfigurationOptions.new(cli_args)
 
-        @output_io = IO.new
-        @error_io = IO.new
+        @output_io = StringIO.new
+        @error_io = StringIO.new
 
         @world = RSpec::Core::World.new
-        @runner = RSpec::Core::Runner.new(options, world: @world)
+        @configuration = RSpec::Core::Configuration.new
+        @runner = RSpec::Core::Runner.new(options, @configuration, @world)
         @runner.configure(@error_io, @output_io)
       end
 
