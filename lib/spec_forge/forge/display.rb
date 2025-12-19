@@ -78,6 +78,14 @@ module SpecForge
         puts "  #{@color.decorate(symbol, style, color)} #{message}"
       end
 
+      def success(message)
+        action(:success, message, color: :green)
+      end
+
+      def error(message)
+        action(:error, message, color: :red)
+      end
+
       private
 
       def step_name(step)
