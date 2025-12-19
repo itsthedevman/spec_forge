@@ -56,7 +56,7 @@ module SpecForge
         end
       end
 
-      def action(type, message, color: :bright_black, style: :clear)
+      def action(type, message, color: :bright_black, style: :clear, indent: 0)
         return unless verbose?
 
         symbol =
@@ -75,15 +75,18 @@ module SpecForge
             "✗"
           end
 
-        puts "  #{@color.decorate(symbol, style, color)} #{message}"
+        base_indent = "  "  # 2 spaces
+        nested_indent = " " * ((indent || 0) * 2)  # 2 more spaces per level
+
+        puts "#{base_indent}#{nested_indent}#{@color.decorate(symbol, style, color)} #{message}"
       end
 
-      def success(message)
-        action(:success, message, color: :green)
+      def success(message, indent: 0)
+        action(:success, message, color: :green, indent:)
       end
 
-      def error(message)
-        action(:error, message, color: :red)
+      def error(message, indent: 0)
+        action(:error, message, color: :red, indent:)
       end
 
       private
