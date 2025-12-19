@@ -1,4 +1,5 @@
-# spec/lib/spec_forge/forge_spec.rb
+# frozen_string_literal: true
+
 RSpec.describe SpecForge::Forge do
   let(:blueprints) do
     SpecForge::Loader.new(

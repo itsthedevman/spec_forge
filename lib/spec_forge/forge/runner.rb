@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module SpecForge
-  module Forge
+  class Forge
     class Runner
       def self.setup
         # Disable autorun because RSpec does it
@@ -14,11 +14,13 @@ module SpecForge
       def initialize(cli_args = [])
         options = RSpec::Core::ConfigurationOptions.new(cli_args)
 
-        @output_io = IO.new
-        @error_io = IO.new
+        @output_io = StringIO.new
+        @error_io = StringIO.new
 
         @world = RSpec::Core::World.new
-        @runner = RSpec::Core::Runner.new(options, world: @world)
+        @configuration = RSpec::Core::Configuration.new
+        @runner = RSpec::Core::Runner.new(options, @configuration, @world)
+
         @runner.configure(@error_io, @output_io)
       end
 
@@ -40,39 +42,43 @@ module SpecForge
           # Metadata.set_for_group(spec, expectation, self)
 
           # The test itself
-          it(expectation.name) do
+          it(expectation.name.presence || expectation.description) do
             ############################################################
             # Status check
-            expect(response.status).to match_status
+            if (matcher = expectation.status_matcher)
+              expect(response.status).to matcher
+              forge.display.success(HTTP.status_code_to_description(response.status))
+            end
 
             ############################################################
             # Headers check
-            if match_headers.present?
-              match_headers.each do |key, matcher|
-                expect(response.headers).to include(key.downcase => matcher)
+            if (headers_matcher = expectation.headers_matcher)
+              headers_matcher.each do |key, matcher|
+                expect(response.headers).to include(key.to_s => matcher)
+                forge.display.success("#{key.in_quotes} #{matcher.description}")
               end
             end
 
             ############################################################
             # JSON check
-            if match_json.present?
-              case match_json
-              when Hash
-                match_json.each do |key, matcher|
-                  expect(response.body).to include(key)
+            # if match_json.present?
+            #   case match_json
+            #   when Hash
+            #     match_json.each do |key, matcher|
+            #       expect(response.body).to include(key)
 
-                  begin
-                    expect(response.body[key]).to matcher
-                  rescue RSpec::Expectations::ExpectationNotMetError => e
-                    # Add the key that failed to the front of the error message
-                    e.message.insert(0, "Key: #{key.in_quotes}\n")
-                    raise e
-                  end
-                end
-              else
-                expect(response.body).to match_json
-              end
-            end
+            #       begin
+            #         expect(response.body[key]).to matcher
+            #       rescue RSpec::Expectations::ExpectationNotMetError => e
+            #         # Add the key that failed to the front of the error message
+            #         e.message.insert(0, "Key: #{key.in_quotes}\n")
+            #         raise e
+            #       end
+            #     end
+            #   else
+            #     expect(response.body).to match_json
+            #   end
+            # end
           end
         end
       end

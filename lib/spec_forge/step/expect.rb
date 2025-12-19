@@ -24,19 +24,31 @@ module SpecForge
           " the expected status code"
         end
 
-        size = json.size
+        # size = json.size
 
-        if Type.array?(json)
-          description +=
-            " and a JSON array that contains #{size} #{"item".pluralize(size)}"
-        elsif Type.hash?(json) && size > 0
-          keys = json.keys.join_map(", ", &:in_quotes)
+        # if Type.array?(json)
+        #   description +=
+        #     " and a JSON array that contains #{size} #{"item".pluralize(size)}"
+        # elsif Type.hash?(json) && size > 0
+        #   keys = json.keys.join_map(", ", &:in_quotes)
 
-          description +=
-            " and a JSON object that contains #{"key".pluralize(size)}: #{keys}"
-        end
+        #   description +=
+        #     " and a JSON object that contains #{"key".pluralize(size)}: #{keys}"
+        # end
 
         description
+      end
+
+      def status_matcher
+        return if status.input.blank?
+
+        status.resolve_as_matcher
+      end
+
+      def headers_matcher
+        return if headers.blank?
+
+        headers.transform_values(&:resolve_as_matcher)
       end
 
       private
@@ -44,14 +56,10 @@ module SpecForge
       def resolve_json_matcher
         case json
         when HashLike
-          resolve_hash_matcher(json)
+          json.transform_values(&:resolve_as_matcher)
         else
           json.resolve_as_matcher
         end
-      end
-
-      def resolve_hash_matcher(hash)
-        hash.transform_values(&:resolve_as_matcher).stringify_keys
       end
     end
   end

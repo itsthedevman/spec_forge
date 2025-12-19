@@ -15,6 +15,8 @@
       email: "{{ base_email }}"
   expect:
     - status: 201
+      headers:
+        Content-Type: application/json
       json:
         structure:
           id: integer
@@ -31,7 +33,9 @@
     url: "/api/users/{{ user_id }}"
   expect:
     - status: 200
-      json:
+    - headers:
+        content_type: application/json
+    - json:
         content:
           id: "{{ user_id }}"
           email: "{{ created_email }}"
