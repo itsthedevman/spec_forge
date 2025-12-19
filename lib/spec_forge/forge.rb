@@ -79,8 +79,11 @@ module SpecForge
           end
         end
 
-        forge_end
+        forge_end(success: true)
       end
+    rescue => e
+      handle_error(e)
+      forge_end(success: false)
     end
 
     private
@@ -118,10 +121,18 @@ module SpecForge
       @display.step_end(step, success:)
     end
 
-    def forge_end
+    def forge_end(success:)
       @timer.stop
 
-      @display.forge_end(self)
+      @display.forge_end(self, success:)
+    end
+
+    def handle_error(error)
+      raise error unless error.is_a?(Error::ExpectationFailure)
+
+      example = error.failed_example
+
+      display.error(example[:exception][:message], indent: 1)
     end
   end
 end

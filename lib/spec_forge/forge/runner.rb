@@ -22,11 +22,10 @@ module SpecForge
       end
 
       def run
-        exit_code = @runner.run_specs(@world.ordered_example_groups).to_i
+        @runner.run_specs(@world.ordered_example_groups)
 
-        output = @output_io.entries.map(&:to_h)
-        binding.pry
-        exit_code
+        entry = @output_io.entries.last.to_h
+        entry[:examples].partition { |ex| ex[:status] == "passed" }
       ensure
         @world.reset
       end

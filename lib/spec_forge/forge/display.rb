@@ -19,11 +19,16 @@ module SpecForge
         puts @color.bold("Running #{blueprint.file_name}...")
       end
 
-      def forge_end(forge)
+      def forge_end(forge, success: true)
         puts ""
 
         header_length = verbose? ? LINE_LENGTH - 15 : LINE_LENGTH * 0.60
-        puts @color.bold.green("━" * header_length)
+
+        if success
+          puts @color.bold.green("━" * header_length)
+        else
+          puts @color.bold.red("━" * header_length)
+        end
 
         # TODO: Add run metrics
         puts "" if verbose?

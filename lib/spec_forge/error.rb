@@ -226,15 +226,6 @@ module SpecForge
     end
 
     #
-    # Raised when the provided namespace is not defined on the global context
-    #
-    class InvalidGlobalNamespaceError < Error
-      def initialize(provided_namespace)
-        super("Invalid global namespace #{provided_namespace.in_quotes}. Currently supported namespaces are: \"variables\"")
-      end
-    end
-
-    #
     # Raised when the provided matcher name does not defined with RSpec
     #
     class UndefinedMatcherError < Error
@@ -309,6 +300,16 @@ module SpecForge
     #   end
     #
     class InvalidOASDocument < Error
+    end
+
+    class ExpectationFailure < Error
+      attr_reader :failed_example
+
+      def initialize(failed_example)
+        @failed_example = failed_example
+
+        super("Failed expectation")
+      end
     end
   end
 end
