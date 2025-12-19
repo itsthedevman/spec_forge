@@ -39,7 +39,7 @@ module SpecForge
       def create_example_group(forge, expectation)
         response = forge.variables[:response]
 
-        RSpec::Core::ExampleGroup.describe(expectation.id) do
+        RSpec::Core::ExampleGroup.describe do
           # Set metadata for the example group for error reporting
           # Metadata.set_for_group(spec, expectation, self)
 
