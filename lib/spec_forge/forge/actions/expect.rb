@@ -5,10 +5,10 @@ module SpecForge
     class Expect < Action
       def run(forge)
         step.expects.each do |expectation|
-          forge.runner.build(forge, expectation)
+          forge.runner.build(forge, step, expectation)
         end
 
-        forge.runner.run
+        exit_code = forge.runner.run
       end
     end
   end

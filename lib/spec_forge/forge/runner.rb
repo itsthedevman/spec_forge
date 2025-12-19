@@ -3,46 +3,44 @@
 module SpecForge
   class Forge
     class Runner
-      def self.setup
-        # Disable autorun because RSpec does it
-        RSpec::Core::Runner.disable_autorun!
-
-        # Allows modifying the error backtrace reporting within rspec
-        RSpec.configuration.instance_variable_set(:@backtrace_formatter, BacktraceFormatter)
-      end
+      attr_reader :output_io, :error_io
 
       def initialize(cli_args = [])
         options = RSpec::Core::ConfigurationOptions.new(cli_args)
 
-        @output_io = StringIO.new
-        @error_io = StringIO.new
+        # FIX: There will be a bug with this since we have to fully disconnect the configuration from RSpec
+        # Any configuration changes to `RSpec.configuration` will not show up here.
+        @configuration = RSpec::Core::Configuration.new
+        @configuration.add_formatter(RSpec::Core::Formatters::JsonFormatter)
 
         @world = RSpec::Core::World.new
-        @configuration = RSpec::Core::Configuration.new
         @runner = RSpec::Core::Runner.new(options, @configuration, @world)
 
+        @output_io = ArrayIO.new
+        @error_io = StringIO.new
         @runner.configure(@error_io, @output_io)
       end
 
       def run
-        @runner.run_specs(@world.ordered_example_groups)
+        exit_code = @runner.run_specs(@world.ordered_example_groups).to_i
+
+        output = @output_io.entries.map(&:to_h)
+        binding.pry
+        exit_code
       ensure
         @world.reset
       end
 
-      def build(forge, expectation)
-        @world.example_groups << create_example_group(forge, expectation)
+      def build(forge, step, expectation)
+        @world.example_groups << create_example_group(forge, step, expectation)
       end
 
       private
 
-      def create_example_group(forge, expectation)
+      def create_example_group(forge, step, expectation)
         response = forge.variables[:response]
 
-        RSpec::Core::ExampleGroup.describe do
-          # Set metadata for the example group for error reporting
-          # Metadata.set_for_group(spec, expectation, self)
-
+        RSpec::Core::ExampleGroup.describe(step.source.to_s) do
           # The test itself
           it(expectation.description) do
             ############################################################
