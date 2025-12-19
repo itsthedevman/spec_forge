@@ -38,7 +38,8 @@ loader = Zeitwerk::Loader.for_gem
 loader.inflector.inflect(
   "cli" => "CLI",
   "http" => "HTTP",
-  "openapi" => "OpenAPI"
+  "openapi" => "OpenAPI",
+  "array_io" => "ArrayIO"
 )
 
 # spec_forge/forge/actions/*.rb -> SpecForge::Forge::*
