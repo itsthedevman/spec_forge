@@ -16,25 +16,31 @@ module SpecForge
       end
 
       def description
-        description = "is expected to respond with"
-
-        description += if status.is_a?(Attribute::Literal)
-          " #{HTTP.status_code_to_description(status.input).in_quotes}"
-        else
-          " the expected status code"
+        if (name = self.name.resolved) && name.present?
+          return name
         end
 
-        # size = json.size
+        description = "is expected to respond with"
 
-        # if Type.array?(json)
-        #   description +=
-        #     " and a JSON array that contains #{size} #{"item".pluralize(size)}"
-        # elsif Type.hash?(json) && size > 0
-        #   keys = json.keys.join_map(", ", &:in_quotes)
+        if status.input.present?
+          description += if status.is_a?(Attribute::Literal)
+            " #{HTTP.status_code_to_description(status.input).in_quotes}"
+          else
+            " the expected status code"
+          end
+        end
 
-        #   description +=
-        #     " and a JSON object that contains #{"key".pluralize(size)}: #{keys}"
-        # end
+        size = json.size
+
+        if Type.array?(json)
+          description +=
+            " and a JSON array that contains #{size} #{"item".pluralize(size)}"
+        elsif Type.hash?(json) && size > 0
+          keys = json.keys.join_map(", ", &:in_quotes)
+
+          description +=
+            " and a JSON object that contains #{"key".pluralize(size)}: #{keys}"
+        end
 
         description
       end

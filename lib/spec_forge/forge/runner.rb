@@ -26,6 +26,8 @@ module SpecForge
 
       def run
         @runner.run_specs(@world.ordered_example_groups)
+      ensure
+        @world.reset
       end
 
       def build(forge, expectation)
@@ -37,17 +39,17 @@ module SpecForge
       def create_example_group(forge, expectation)
         response = forge.variables[:response]
 
-        RSpec::Core::ExampleGroup.describe do
+        RSpec::Core::ExampleGroup.describe(expectation.id) do
           # Set metadata for the example group for error reporting
           # Metadata.set_for_group(spec, expectation, self)
 
           # The test itself
-          it(expectation.name.presence || expectation.description) do
+          it(expectation.description) do
             ############################################################
             # Status check
             if (matcher = expectation.status_matcher)
               expect(response.status).to matcher
-              forge.display.success(HTTP.status_code_to_description(response.status))
+              forge.display.success(HTTP.status_code_to_description(response.status), indent: 1)
             end
 
             ############################################################
@@ -55,7 +57,7 @@ module SpecForge
             if (headers_matcher = expectation.headers_matcher)
               headers_matcher.each do |key, matcher|
                 expect(response.headers).to include(key.to_s => matcher)
-                forge.display.success("#{key.in_quotes} #{matcher.description}")
+                forge.display.success("#{key.in_quotes} #{matcher.description}", indent: 1)
               end
             end
 
