@@ -24,8 +24,6 @@ module SpecForge
       end
 
       def forge_end(forge, success: true)
-        puts ""
-
         header_length = verbose? ? LINE_LENGTH - 15 : LINE_LENGTH * 0.60
 
         if success
