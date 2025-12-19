@@ -33,8 +33,6 @@
     url: "/api/users/{{ user_id }}"
   expect:
     - status: 200
-    - headers:
-        content_type: application/json
     - json:
         content:
           id: "{{ user_id }}"
