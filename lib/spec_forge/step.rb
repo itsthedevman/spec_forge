@@ -21,7 +21,7 @@ module SpecForge
       step[:debug] = step[:debug] == true
       step[:description] ||= nil
       step[:documentation] ||= nil
-      step[:expect] ||= transform_expect(step[:expect])
+      step[:expect] = transform_expect(step[:expect])
       step[:included_by] = transform_source(step[:included_by])
       step[:request] = transform_request(step[:request])
       step[:source] = transform_source(step[:source])
