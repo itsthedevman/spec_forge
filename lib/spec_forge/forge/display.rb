@@ -19,6 +19,10 @@ module SpecForge
         puts @color.bold("Running #{blueprint.file_name}...")
       end
 
+      def blueprint_end(blueprint)
+        puts ""
+      end
+
       def forge_end(forge, success: true)
         puts ""
 
@@ -45,20 +49,26 @@ module SpecForge
         end
       end
 
-      def step_end(step, success: true)
-        if verbose?
-          puts ""
-          return
-        end
-
+      def step_end(step, error: nil)
         # Clear entire line first, then carriage return. Clears up left over text
         print "\e[2K\r"
 
-        if success
-          puts "  #{@color.green("✓")} #{step_name(step)}"
-        else
-          puts "  #{@color.red("✗")} #{step_name(step)}"
+        if error.nil?
+          if verbose?
+            puts ""
+          else
+            puts "  #{@color.green("✓")} #{step_name(step)}"
+          end
+
+          return
         end
+
+        raise error unless error.is_a?(Error::ExpectationFailure)
+
+        example = error.failed_example
+        error(example[:exception][:message], indent: 1)
+
+        puts "  #{@color.red("✗")} #{step_name(step)}" unless verbose?
       end
 
       def action(type, message, color: :bright_black, style: :clear, indent: 0)

@@ -62,6 +62,7 @@ module SpecForge
 
     def run
       context = Context.new(variables:)
+      success = true
 
       Forge.with_context(context) do
         forge_start
@@ -72,18 +73,18 @@ module SpecForge
           blueprint.steps.each do |step|
             step_start(step)
             step_action(step)
-            step_end(step, success: true)
+            step_end(step)
           rescue => e
-            step_end(step, success: false)
-            raise e
+            step_end(step, error: e)
+            success = false
+            break
           end
+
+          blueprint_end(blueprint)
         end
 
-        forge_end(success: true)
+        forge_end(success:)
       end
-    rescue => e
-      handle_error(e)
-      forge_end(success: false)
     end
 
     private
@@ -114,25 +115,21 @@ module SpecForge
       Store.new(step).run(self) if step.store?
     end
 
-    def step_end(step, success:)
+    def step_end(step, error: nil)
       # Drop the request/response data from scope
       @variables.except!(:request, :response)
 
-      @display.step_end(step, success:)
+      @display.step_end(step, error:)
     end
 
-    def forge_end(success:)
+    def blueprint_end(blueprint)
+      @display.blueprint_end(blueprint)
+    end
+
+    def forge_end(success: true)
       @timer.stop
 
       @display.forge_end(self, success:)
-    end
-
-    def handle_error(error)
-      raise error unless error.is_a?(Error::ExpectationFailure)
-
-      example = error.failed_example
-
-      display.error(example[:exception][:message], indent: 1)
     end
   end
 end

@@ -17,6 +17,8 @@ module SpecForge
         #
         attr_reader :entries
 
+        attr_predicate :closed
+
         def initialize
           @entries = []
         end
@@ -25,12 +27,21 @@ module SpecForge
           @entries << string
         end
 
-        def puts(string)
-          write(string + "\n")
+        def puts(*strings)
+          strings.each { |string| write(string + "\n") }
         end
 
         def <<(string)
           write(string)
+        end
+
+        def flush
+          @entries.clear
+          0
+        end
+
+        def close
+          @closed = true
         end
       end
     end
