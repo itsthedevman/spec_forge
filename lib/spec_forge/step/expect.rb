@@ -16,33 +16,43 @@ module SpecForge
       end
 
       def description
-        if (name = self.name.resolved) && name.present?
-          return name
-        end
+        # Use custom name if provided
+        return name.resolved if name.resolved.present?
 
-        description = "is expected to respond with"
+        parts = []
 
+        # Status with HTTP description
         if status.input.present?
-          description += if status.is_a?(Attribute::Literal)
-            " #{HTTP.status_code_to_description(status.input).in_quotes}"
+          resolved_status = status.resolved
+
+          parts << if resolved_status.is_a?(Integer)
+            HTTP.status_code_to_description(resolved_status)
           else
-            " the expected status code"
+            "expected status"
           end
         end
 
-        size = json.size
-
-        if Type.array?(json)
-          description +=
-            " and a JSON array that contains #{size} #{"item".pluralize(size)}"
-        elsif Type.hash?(json) && size > 0
-          keys = json.keys.join_map(", ", &:in_quotes)
-
-          description +=
-            " and a JSON object that contains #{"key".pluralize(size)}: #{keys}"
+        # Headers count
+        if Type.hash?(headers) && headers.size > 0
+          parts << "headers (#{headers.size})"
         end
 
-        description
+        # Raw body
+        parts << "raw" if raw.input.present?
+
+        # JSON checks
+        if Type.hash?(json)
+          parts << "size" if json[:size].present?
+
+          if (structure = json[:structure]) && structure.present?
+            structure_type = Type.array?(structure) ? "array" : "hash"
+            parts << "structure (#{structure_type})"
+          end
+
+          parts << "content" if json[:content].present?
+        end
+
+        parts.join(", ")
       end
 
       def status_matcher
