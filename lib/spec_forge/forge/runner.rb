@@ -8,17 +8,15 @@ module SpecForge
       def initialize(cli_args = [])
         options = RSpec::Core::ConfigurationOptions.new(cli_args)
 
-        # FIX: There will be a bug with this since we have to fully disconnect the configuration from RSpec
-        # Any configuration changes to `RSpec.configuration` will not show up here.
-        @configuration = RSpec::Core::Configuration.new
+        @configuration = RSpec.configuration.deep_dup
+        reset_configuration # Must be done before runner is configured
+
         @world = RSpec::Core::World.new
         @runner = RSpec::Core::Runner.new(options, @configuration, @world)
 
         @output_io = ArrayIO.new
         @error_io = StringIO.new
         @runner.configure(@error_io, @output_io)
-
-        reset
       end
 
       def build(forge, step, expectation)
@@ -31,18 +29,17 @@ module SpecForge
         entry = @output_io.entries.last.to_h
         entry[:examples].partition { |ex| ex[:status] == "passed" }
       ensure
-        reset
-      end
-
-      def reset
         @world.reset
-
-        # Resetting the configuration means resetting the Formatters/Reporters.
-        @configuration.reset
-        @configuration.add_formatter(RSpec::Core::Formatters::JsonFormatter)
+        reset_configuration
       end
 
       private
+
+      def reset_configuration
+        # Resetting the configuration also means resetting the Formatters/Reporters.
+        @configuration.reset
+        @configuration.add_formatter(RSpec::Core::Formatters::JsonFormatter)
+      end
 
       def create_example_group(forge, step, expectation)
         response = forge.variables[:response]
