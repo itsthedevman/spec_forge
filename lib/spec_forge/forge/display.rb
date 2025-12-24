@@ -19,11 +19,7 @@ module SpecForge
         puts @color.bold("Running #{blueprint.file_name}...")
       end
 
-      def blueprint_end(blueprint)
-        puts ""
-      end
-
-      def forge_end(forge, success: true)
+      def blueprint_end(blueprint, success: true)
         header_length = verbose? ? LINE_LENGTH - 15 : LINE_LENGTH * 0.60
 
         if success
@@ -32,9 +28,11 @@ module SpecForge
           puts @color.bold.red("━" * header_length)
         end
 
-        # TODO: Add run metrics
-        puts "" if verbose?
+        puts ""
+      end
 
+      def forge_end(forge)
+        # TODO: Add run metrics
         puts @color.dim("Completed in #{sprintf("%.2g", forge.timer.time_elapsed)}s")
       end
 
@@ -48,10 +46,7 @@ module SpecForge
       end
 
       def step_end(step, error: nil)
-        # Clear entire line first, then carriage return. Clears up left over text
-        print "\e[2K\r"
-
-        if error.nil?
+        if error.nil? # success
           if verbose?
             puts ""
           else
@@ -61,12 +56,17 @@ module SpecForge
           return
         end
 
-        raise error unless error.is_a?(Error::ExpectationFailure)
+        return unless error.is_a?(Error::ExpectationFailure)
 
         example = error.failed_example
+
+        # Print out the error
         error(example[:exception][:message], indent: 1)
 
-        puts "  #{@color.red("✗")} #{step_name(step)}" unless verbose?
+        puts ""
+        return if verbose?
+
+        puts "  #{@color.red("✗")} #{step_name(step)}"
       end
 
       def action(type, message, color: :bright_black, style: :clear, indent: 0)
