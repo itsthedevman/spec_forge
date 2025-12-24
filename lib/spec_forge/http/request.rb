@@ -31,20 +31,18 @@ module SpecForge
         headers["Content-Type"]
       end
 
+      def json?
+        content_type == "application/json"
+      end
+
       private
 
       def extract_content(raw: "", json: {})
-        output = {}
-
         if json.present?
-          output[:body] = json
-          output[:content_type] = "application/json"
+          {body: json, content_type: "application/json"}
         else
-          output[:body] = raw
-          output[:content_type] = "text/plain"
+          {body: raw, content_type: "text/plain"}
         end
-
-        output
       end
 
       def transform_headers(headers, detected_content_type)

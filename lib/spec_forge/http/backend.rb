@@ -110,7 +110,7 @@ module SpecForge
           request.headers.transform_values!(&:to_s)
 
           request.params.merge!(query)
-          request.body = body.to_json
+          request.body = body
         end
 
         # Reset the base_url after the request is sent
