@@ -61,7 +61,7 @@ module SpecForge
         example = error.failed_example
 
         # Print out the error
-        error("#{example[:description]}#{example[:exception][:message]}", indent: 1)
+        error("#{example[:description]}#{example[:exception][:message].gsub("\n", "\n      ").rstrip}", indent: 1)
 
         puts ""
         return if verbose?
