@@ -54,20 +54,28 @@ module SpecForge
       @blueprints = blueprints
       @callbacks = Callbacks.new
       @display = Display.new(verbose:)
+      @failures = []
       @http_client = HTTP::Client.new(base_url: SpecForge.configuration.base_url)
       @runner = Runner.new
+
+      @stats = {
+        blueprints: @blueprints.size,
+        steps: @blueprints.sum { |b| b.steps.size }
+      }
+
       @timer = Timer.new
       @variables = Variables.new(static: SpecForge.configuration.global_variables)
     end
 
     def run
       context = Context.new(variables:)
-      success = true
 
       Forge.with_context(context) do
         forge_start
 
         @blueprints.each do |blueprint|
+          success = true
+
           blueprint_start(blueprint)
 
           blueprint.steps.each do |step|
@@ -80,10 +88,10 @@ module SpecForge
             break
           end
 
-          blueprint_end(blueprint)
+          blueprint_end(blueprint, success:)
         end
-
-        forge_end(success:)
+      ensure
+        forge_end
       end
     end
 
@@ -98,6 +106,7 @@ module SpecForge
 
     def blueprint_start(blueprint)
       @variables.clear
+      @failures.clear
 
       @display.blueprint_start(blueprint)
     end
@@ -119,17 +128,25 @@ module SpecForge
       # Drop the request/response data from scope
       @variables.except!(:request, :response)
 
+      if error.is_a?(Error::ExpectationFailure)
+        example = error.failed_example
+        @failures << {step:, example:}
+      end
+
       @display.step_end(step, error:)
+
+      # Bubble up only AFTER display has been updated
+      raise error if error && !error.is_a?(Error::ExpectationFailure)
     end
 
-    def blueprint_end(blueprint)
-      @display.blueprint_end(blueprint)
+    def blueprint_end(blueprint, success: true)
+      @display.blueprint_end(blueprint, success:)
     end
 
-    def forge_end(success: true)
+    def forge_end
       @timer.stop
 
-      @display.forge_end(self, success:)
+      @display.forge_end(self)
     end
   end
 end
