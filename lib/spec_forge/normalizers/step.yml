@@ -67,9 +67,18 @@ request:
     json:
       type: hash
       default: null
-    # xml:
-    #   type: hash
-    #   default: {}
+      aliases:
+        - hash
+        - array
+      structure:
+        content:
+          type: any
+        pattern:
+          type: any
+        size:
+          type: [string, numeric]
+        structure:
+          type: any
 
 expect:
   type: array
