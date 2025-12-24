@@ -35,7 +35,7 @@ RSpec.describe SpecForge::Normalizer::Structure do
     let(:input) { {a: "boolean"} }
 
     it "is expected to set the type" do
-      is_expected.to eq({a: {type: [TrueClass, FalseClass]}})
+      is_expected.to eq({a: {type: [FalseClass, TrueClass]}})
     end
   end
 
@@ -72,6 +72,14 @@ RSpec.describe SpecForge::Normalizer::Structure do
           SpecForge::Error::InvalidStructureError,
           "Value cannot be blank for \"type\" in \"a\" in \"normalizer\""
         )
+      end
+    end
+
+    context "when it is 'any'" do
+      let(:input) { {a: {type: "any"}} }
+
+      it "is expected to allow any JSON type" do
+        is_expected.to eq({a: {type: [Array, FalseClass, Hash, NilClass, Numeric, String, TrueClass]}})
       end
     end
   end

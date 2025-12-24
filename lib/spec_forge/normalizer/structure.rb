@@ -96,7 +96,9 @@ module SpecForge
 
       def resolve_type(type)
         if type == "boolean"
-          [TrueClass, FalseClass]
+          [FalseClass, TrueClass]
+        elsif type == "any"
+          [Array, FalseClass, Hash, NilClass, Numeric, String, TrueClass]
         elsif type.instance_of?(Array)
           type.map { |t| resolve_type(t) }
         elsif type.is_a?(String)
