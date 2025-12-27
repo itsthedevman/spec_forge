@@ -2,7 +2,7 @@
 
 module SpecForge
   module HTTP
-    class Request < Data.define(:base_url, :url, :http_verb, :headers, :query, :body)
+    class Request < Struct.new(:base_url, :url, :http_verb, :headers, :query, :body)
       include Attribute::ToAttribute
 
       #

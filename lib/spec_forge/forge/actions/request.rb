@@ -6,7 +6,6 @@ module SpecForge
       def run(forge)
         resolved_request = step.request.to_attribute.resolved
 
-        # Do not store the request that contains the converted body data
         request = resolved_request.dup
         request.body =
           if step.request.json?
@@ -19,6 +18,7 @@ module SpecForge
 
         response = forge.http_client.perform(request)
 
+        # Only store the original resolved request before we modify it
         forge.variables[:request] = resolved_request
         forge.variables[:response] = response
       end
