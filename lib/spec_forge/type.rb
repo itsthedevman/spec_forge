@@ -27,5 +27,39 @@ module SpecForge
     def self.array?(object)
       object.is_a?(Array) || object.is_a?(Attribute::ResolvableArray)
     end
+
+    def self.from_string(input)
+      # Handle nullable prefix
+      nullable = input.start_with?("?")
+      base_type = nullable ? input[1..] : input
+
+      types =
+        case base_type
+        when "string"
+          [String]
+        when "number", "numeric"
+          [Integer, Float]
+        when "integer"
+          [Integer]
+        when "float"
+          [Float]
+        when "bool", "boolean"
+          [TrueClass, FalseClass]
+        when "array"
+          [Array]
+        when "hash", "object"
+          [Hash]
+        when "null", "nil"
+          [NilClass]
+        else
+          raise ArgumentError,
+            "Unknown type: #{base_type.in_quotes}. Valid types: string, number/numeric, integer, float, boolean/bool, array, hash/object, null/nil"
+        end
+
+      # Don't forget if it is nullable!
+      types << NilClass if nullable
+
+      types.uniq
+    end
   end
 end
