@@ -11,7 +11,7 @@ module SpecForge
           status: Attribute.from(status),
           headers: Attribute.from(headers),
           raw: Attribute.from(raw),
-          json: Attribute.from(json)
+          json: extract_json_expectations(json)
         )
       end
 
@@ -64,17 +64,51 @@ module SpecForge
       def headers_matcher
         return if headers.blank?
 
-        headers.transform_values(&:resolve_as_matcher)
+        headers.stringify_keys.transform_values { |v| v&.resolve_as_matcher }
+      end
+
+      def json_size_matcher
+        return if json[:size].blank?
+
+        json[:size].resolve_as_matcher
+      end
+
+      def json_structure_matcher
+        return if json[:structure].blank?
+
+        json[:structure].resolve_as_matcher
       end
 
       private
 
-      def resolve_json_matcher
-        case json
-        when HashLike
-          json.transform_values(&:resolve_as_matcher)
+      def extract_json_expectations(json)
+        size = json[:size] ? Attribute.from(json[:size]) : nil
+        content = json[:content] ? Attribute.from(json[:content]) : nil
+
+        structure = if (structure = json[:structure])
+          Attribute.from(convert_type_structure(structure))
+        end
+
+        pattern = if (pattern = json[:pattern])
+          Attribute.from(convert_type_structure(pattern))
+        end
+
+        {
+          size:,
+          structure:,
+          pattern:,
+          content:
+        }
+      end
+
+      def convert_type_structure(data)
+        case data
+        when Array
+          data.map { |item| convert_type_structure(item) }
+        when Hash
+          data.transform_values { |value| convert_type_structure(value) }
         else
-          json.resolve_as_matcher
+          Type.from_string(data)
         end
       end
     end

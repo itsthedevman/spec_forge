@@ -42,55 +42,54 @@ module SpecForge
       end
 
       def create_example_group(forge, step, expectation)
-        response = forge.variables[:response]
+        assayer = Assayer.new(forge)
 
         RSpec::Core::ExampleGroup.describe(step.source.to_s) do
-          # The test itself
-          it(expectation.description) do
-            ############################################################
-            # Status check
-            if (matcher = expectation.status_matcher)
-              expect(response.status).to matcher
-              forge.display.success(HTTP.status_code_to_description(response.status), indent: 1)
+          ############################################################
+          # Status check
+          if (status_matcher = expectation.status_matcher)
+            it "Response status code" do
+              assayer.response_status(self, status_matcher)
             end
-
-            ############################################################
-            # Headers check
-            if (headers_matcher = expectation.headers_matcher)
-              headers = response.headers
-              headers_matcher.each do |key, matcher|
-                key = key.to_s
-
-                expect(headers).to have_key(key)
-                expect(headers[key]).to matcher
-
-                forge.display.success("#{key.in_quotes} #{matcher.description}", indent: 1)
-              end
-            end
-
-            ############################################################
-            # JSON check
-            # if match_json.present?
-            #   case match_json
-            #   when Hash
-            #     match_json.each do |key, matcher|
-            #       expect(response.body).to include(key)
-
-            #       begin
-            #         expect(response.body[key]).to matcher
-            #       rescue RSpec::Expectations::ExpectationNotMetError => e
-            #         # Add the key that failed to the front of the error message
-            #         e.message.insert(0, "Key: #{key.in_quotes}\n")
-            #         raise e
-            #       end
-            #     end
-            #   else
-            #     expect(response.body).to match_json
-            #   end
-            # end
           end
+
+          ############################################################
+          # Headers check
+          if (headers_matcher = expectation.headers_matcher)
+            it "Response headers" do
+              assayer.response_headers(self, headers_matcher)
+            end
+          end
+
+          ############################################################
+          # JSON check
+          if (json_size_matcher = expectation.json_size_matcher)
+            it "Response body size" do
+              assayer.response_json_size(self, json_size_matcher)
+            end
+          end
+
+          if (json_structure_matcher = expectation.json_structure_matcher)
+            it "Response body structure" do
+              assayer.response_json_structure(self, json_structure_matcher)
+            end
+          end
+
+          # if (matcher = json_matchers[:pattern])
+          #   it { assayer.response_json_pattern(self, matcher) }
+          # end
+
+          # if (matcher = json_matchers[:content])
+          #   it { assayer.response_json_content(self, matcher) }
+          # end
         end
       end
     end
   end
 end
+
+# Handle when a looped test fails
+# rescue RSpec::Expectations::ExpectationNotMetError => e
+#         # Add the key that failed to the front of the error message
+#         e.message.insert(0, "Key: #{key.in_quotes}\n")
+#         raise e
