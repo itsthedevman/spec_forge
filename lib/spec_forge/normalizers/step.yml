@@ -109,24 +109,28 @@ expect:
       json:
         type: hash
         default: {}
+        aliases:
+          - array
+          - hash
         structure:
           size:
             type:
               - string
               - integer
 
-          structure:
+          shape:
             type:
               - array
+              - hash
+
+          schema:
+            type:
               - hash
 
           content:
             type:
               - array
               - hash
-      # xml:
-      #   type: hash
-      #   default: {}
 
 store:
   type: hash

@@ -47,13 +47,14 @@ module SpecForge
 
         private
 
-        def check_json_structure(rspec, data, structure_matcher)
+        def check_json_structure(rspec, data, structure)
           case structure
           when Array # [Integer, String, [String], {id: String}]
             check_json_array(rspec, data, structure)
           when Hash # {foo: String, bar: {baz: Integer}}
             check_json_object(rspec, data, structure)
           else # Class (String, Array, Integer, etc.)
+            puts "#{data.inspect} is expected to be kind of #{structure}"
             rspec.expect(data).to rspec.be_kind_of(structure)
           end
         end

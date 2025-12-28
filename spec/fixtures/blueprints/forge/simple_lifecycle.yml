@@ -18,7 +18,7 @@
       headers:
         Content-Type: application/json
       json:
-        structure:
+        shape:
           id: integer
           name: string
           email: string

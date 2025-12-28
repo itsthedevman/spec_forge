@@ -63,6 +63,8 @@ module SpecForge
         # Print out the error
         error("#{example[:description]} #{example[:exception][:message].gsub("\n", "\n      ").rstrip}", indent: 1)
 
+        # puts JSON.pretty_generate(example[:exception][:backtrace]) # DEBUG
+
         puts ""
         return if verbose?
 
