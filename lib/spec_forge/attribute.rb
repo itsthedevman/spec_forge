@@ -197,30 +197,6 @@ module SpecForge
       end
     end
 
-    #
-    # Converts this attribute to an appropriate RSpec matcher.
-    # Handles different types of values by creating the right matcher type:
-    # - Arrays become contain_exactly matchers
-    # - Hashes become include matchers
-    # - Regexp become match matchers
-    # - Existing matchers are passed through
-    # - Other values become eq matchers
-    #
-    # This method is crucial for nested matcher structures and compound matchers
-    # like matcher.and that require all values to be proper matchers.
-    #
-    # @return [RSpec::Matchers::BuiltIn::BaseMatcher] A matcher representing this attribute
-    #
-    # @example Converting different values to matchers
-    #   literal_attr = Attribute::Literal.new("hello")
-    #   literal_attr.resolve_as_matcher # => eq("hello")
-    #
-    #   array_attr = Attribute::ResolvableArray.new([1, 2, 3])
-    #   array_attr.resolve_as_matcher # => contain_exactly(eq(1), eq(2), eq(3))
-    #
-    #   hash_attr = Attribute::ResolvableHash.new({name: "Test"})
-    #   hash_attr.resolve_as_matcher # => include("name" => eq("Test"))
-    #
     def resolve_as_matcher
       methods = Attribute::Matcher::MATCHER_METHODS
 
@@ -229,7 +205,7 @@ module SpecForge
         resolved_array = resolved.map(&resolve_as_matcher_proc)
 
         if resolved_array.size > 0
-          methods.contain_exactly(*resolved_array)
+          resolved_array
         else
           methods.eq([])
         end
@@ -237,7 +213,7 @@ module SpecForge
         resolved_hash = resolved.transform_values(&resolve_as_matcher_proc).stringify_keys
 
         if resolved_hash.size > 0
-          methods.include(**resolved_hash)
+          resolved_hash
         else
           methods.eq({})
         end
