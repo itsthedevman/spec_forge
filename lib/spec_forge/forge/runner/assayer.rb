@@ -4,58 +4,77 @@ module SpecForge
   class Forge
     class Runner
       class Assayer
-        attr_reader :forge, :response
+        attr_reader :forge, :display, :response, :rspec
 
-        def initialize(forge)
+        def initialize(forge, rspec)
           @forge = forge
+          @rspec = rspec
+
+          @display = forge.display
           @response = forge.variables[:response]
+
+          @headers = response.headers
+          @body = response.body.deep_stringify_keys
         end
 
-        def response_status(rspec, matcher)
-          rspec.expect(response.status).to matcher
+        def response_status(matcher)
+          binding.pry
+          expect(response.status).to matcher
 
-          forge.display.success(HTTP.status_code_to_description(response.status), indent: 1)
+          display.success(HTTP.status_code_to_description(response.status), indent: 1)
         end
 
-        def response_headers(rspec, headers_matcher)
-          headers = response.headers
-
+        def response_headers(headers_matcher)
           headers_matcher.each do |key, matcher|
-            rspec.expect(headers).to(rspec.have_key(key))
-            rspec.expect(headers[key]).to(matcher)
+            rspec.expect(@headers).to(rspec.have_key(key))
+            rspec.expect(@headers[key]).to(matcher)
 
-            forge.display.success("#{key.in_quotes} #{matcher.description}", indent: 1)
+            display.success("#{key.in_quotes} #{matcher.description}", indent: 1)
           end
         end
 
-        def response_json_size(rspec, matcher)
-          rspec.expect(response.body.size).to matcher
+        def response_json_size(matcher)
+          rspec.expect(@body.size).to matcher
 
-          forge.display.success("Response size", indent: 1)
+          display.success("Response size", indent: 1)
         end
 
-        def response_json_structure(rspec, structure_matcher)
-          check_json_structure(rspec, response.body.deep_stringify_keys, structure_matcher)
+        def response_json_shape(shape_matcher)
+          check_json_structure(@body, shape_matcher)
 
-          forge.display.success("Response body structure", indent: 1)
+          display.success("Response body shape", indent: 1)
         end
 
         private
 
-        def check_json_structure(rspec, data, structure_matcher)
-          case structure_matcher
+        def check_json_structure(data, structure_matcher)
+          case structure
           when Array # [Integer, String, [String], {id: String}]
-            structure_matcher.each_with_index do |matcher, index|
-              check_json_structure(rspec, data[index], matcher)
-            end
+            check_json_array(data, structure)
           when Hash # {foo: String, bar: {baz: Integer}}
-            structure_matcher.each do |key, matcher|
-              rspec.expect(data).to(rspec.have_key(key))
-
-              check_json_structure(rspec, data[key], matcher)
-            end
+            check_json_object(data, structure)
           else # Class (String, Array, Integer, etc.)
-            rspec.expect(data).to rspec.be_kind_of(structure_matcher)
+            rspec.expect(data).to rspec.be_kind_of(structure)
+          end
+        end
+
+        def check_json_array(data, structure)
+          structure.each_with_index do |matcher, index|
+            check_json_structure(rspec, data[index], matcher)
+          rescue RSpec::Expectations::ExpectationNotMetError => e
+            e.message.insert(0, "Index: #{index}\n")
+            raise e
+          end
+        end
+
+        def check_json_object(data, structure)
+          structure.each do |key, matcher|
+            rspec.expect(data).to(rspec.have_key(key))
+
+            check_json_structure(rspec, data[key], matcher)
+          rescue RSpec::Expectations::ExpectationNotMetError => e
+            e.message.insert(0, "Key: #{key.in_quotes}\n")
+            raise e
           end
         end
       end

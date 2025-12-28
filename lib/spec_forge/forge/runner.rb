@@ -42,14 +42,14 @@ module SpecForge
       end
 
       def create_example_group(forge, step, expectation)
-        assayer = Assayer.new(forge)
-
         RSpec::Core::ExampleGroup.describe(step.source.to_s) do
+          assayer = Assayer.new(forge, self)
+
           ############################################################
           # Status check
           if (status_matcher = expectation.status_matcher)
             it "Response status code" do
-              assayer.response_status(self, status_matcher)
+              assayer.response_status(status_matcher)
             end
           end
 
@@ -57,39 +57,25 @@ module SpecForge
           # Headers check
           if (headers_matcher = expectation.headers_matcher)
             it "Response headers" do
-              assayer.response_headers(self, headers_matcher)
+              assayer.response_headers(headers_matcher)
             end
           end
 
           ############################################################
-          # JSON check
+          # JSON checks
           if (json_size_matcher = expectation.json_size_matcher)
             it "Response body size" do
-              assayer.response_json_size(self, json_size_matcher)
+              assayer.response_json_size(json_size_matcher)
             end
           end
 
-          if (json_structure_matcher = expectation.json_structure_matcher)
-            it "Response body structure" do
-              assayer.response_json_structure(self, json_structure_matcher)
+          if (json_shape_matcher = expectation.json_shape_matcher)
+            it "Response body shape" do
+              assayer.response_json_shape(json_shape_matcher)
             end
           end
-
-          # if (matcher = json_matchers[:pattern])
-          #   it { assayer.response_json_pattern(self, matcher) }
-          # end
-
-          # if (matcher = json_matchers[:content])
-          #   it { assayer.response_json_content(self, matcher) }
-          # end
         end
       end
     end
   end
 end
-
-# Handle when a looped test fails
-# rescue RSpec::Expectations::ExpectationNotMetError => e
-#         # Add the key that failed to the front of the error message
-#         e.message.insert(0, "Key: #{key.in_quotes}\n")
-#         raise e

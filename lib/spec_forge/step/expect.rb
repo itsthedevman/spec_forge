@@ -73,10 +73,10 @@ module SpecForge
         json[:size].resolve_as_matcher
       end
 
-      def json_structure_matcher
-        return if json[:structure].blank?
+      def json_shape_matcher
+        return if json[:shape].blank?
 
-        json[:structure].resolve_as_matcher
+        json[:shape].resolve_as_matcher
       end
 
       private
@@ -85,18 +85,18 @@ module SpecForge
         size = json[:size] ? Attribute.from(json[:size]) : nil
         content = json[:content] ? Attribute.from(json[:content]) : nil
 
-        structure = if (structure = json[:structure])
-          Attribute.from(convert_type_structure(structure))
+        shape = if (shape = json[:shape])
+          Attribute.from(convert_type_structure(shape))
         end
 
-        pattern = if (pattern = json[:pattern])
-          Attribute.from(convert_type_structure(pattern))
+        schema = if (schema = json[:schema])
+          Attribute.from(convert_type_structure(schema))
         end
 
         {
           size:,
-          structure:,
-          pattern:,
+          shape:,
+          schema:,
           content:
         }
       end
