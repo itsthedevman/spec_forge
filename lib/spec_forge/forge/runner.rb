@@ -42,14 +42,14 @@ module SpecForge
       end
 
       def create_example_group(forge, step, expectation)
-        RSpec::Core::ExampleGroup.describe(step.source.to_s) do
-          assayer = Assayer.new(forge, self)
+        assayer = Assayer.new(forge)
 
+        RSpec::Core::ExampleGroup.describe(step.source.to_s) do
           ############################################################
           # Status check
           if (status_matcher = expectation.status_matcher)
             it "Response status code" do
-              assayer.response_status(status_matcher)
+              assayer.response_status(self, status_matcher)
             end
           end
 
@@ -57,7 +57,7 @@ module SpecForge
           # Headers check
           if (headers_matcher = expectation.headers_matcher)
             it "Response headers" do
-              assayer.response_headers(headers_matcher)
+              assayer.response_headers(self, headers_matcher)
             end
           end
 
@@ -65,13 +65,13 @@ module SpecForge
           # JSON checks
           if (json_size_matcher = expectation.json_size_matcher)
             it "Response body size" do
-              assayer.response_json_size(json_size_matcher)
+              assayer.response_json_size(self, json_size_matcher)
             end
           end
 
           if (json_shape_matcher = expectation.json_shape_matcher)
             it "Response body shape" do
-              assayer.response_json_shape(json_shape_matcher)
+              assayer.response_json_shape(self, json_shape_matcher)
             end
           end
         end
