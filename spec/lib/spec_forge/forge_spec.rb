@@ -40,9 +40,11 @@ RSpec.describe SpecForge::Forge do
 
   describe "integration: full lifecycle execution" do
     it "executes blueprints with callbacks, requests, and variable storage" do
+      response = Struct.new(:status, :headers, :body, keyword_init: true)
+
       # Mock HTTP responses
       allow(mock_backend).to receive(:post).and_return(
-        double(
+        response.new(
           status: 201,
           headers: {"Content-Type" => "application/json"},
           body: {id: 42, name: "John Doe", email: "john@example.com"}
@@ -50,7 +52,7 @@ RSpec.describe SpecForge::Forge do
       )
 
       allow(mock_backend).to receive(:get).and_return(
-        double(
+        response.new(
           status: 200,
           headers: {"Content-Type" => "application/json"},
           body: {id: 42, name: "John Doe", email: "john@example.com"}
@@ -58,14 +60,14 @@ RSpec.describe SpecForge::Forge do
       )
 
       allow(mock_backend).to receive(:put).and_return(
-        double(
+        response.new(
           status: 200,
           headers: {"Content-Type" => "application/json"}
         )
       )
 
       allow(mock_backend).to receive(:delete).and_return(
-        double(status: 204, headers: {}, body: {})
+        response.new(status: 204, headers: {}, body: {})
       )
 
       # Run the forge
