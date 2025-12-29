@@ -29,6 +29,8 @@ module SpecForge
     end
 
     def self.from_string(input)
+      raise ArgumentError, "Input is nil" if input.nil?
+
       # Handle nullable prefix
       nullable = input.start_with?("?")
       base_type = nullable ? input[1..] : input

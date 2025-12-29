@@ -20,14 +20,18 @@ module SpecForge
       end
 
       def normalize_shape(value)
+        raise ArgumentError, "Shape cannot be nil" if value.nil?
+
         case value
         when Array
           shape = {type: [Array]}
 
           if value.size == 1
             shape[:pattern] = normalize_shape(value.first)
-          else
+          elsif value.size > 1
             shape[:structure] = value.map { |i| normalize_shape(i) }
+          else
+            []
           end
 
           shape

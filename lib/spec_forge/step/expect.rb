@@ -46,6 +46,7 @@ module SpecForge
 
         output = json.compact
 
+        # shape and schema do not need converted to Attribute
         output[:size] = Attribute.from(output[:size]) if output[:size]
         output[:content] = Attribute.from(output[:content]) if output[:content]
 

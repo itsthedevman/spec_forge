@@ -125,5 +125,74 @@ RSpec.describe SpecForge::Normalizer::Transformers do
         )
       end
     end
+
+    context "when it is a top-level primitive" do
+      let(:shape) { "string" }
+
+      it "is expected to transform into a type" do
+        is_expected.to eq(type: [String])
+      end
+    end
+
+    context "when it is an empty hash" do
+      let(:shape) { {} }
+
+      it "is expected to transform into an empty structure" do
+        is_expected.to eq(type: [Hash], structure: {})
+      end
+    end
+
+    context "when it is an empty array" do
+      let(:shape) { [] }
+
+      it "is expected to transform into an array with no pattern" do
+        is_expected.to eq(type: [Array])
+      end
+    end
+
+    context "when it is nil" do
+      let(:shape) { nil }
+
+      it "is expected to raise an ArgumentError" do
+        expect { normalized_shape }.to raise_error(ArgumentError, /Shape cannot be nil/)
+      end
+    end
+
+    context "when it is a multi-element array (tuple)" do
+      let(:shape) do
+        [{id: "integer"}, {name: "string"}]
+      end
+
+      it "is expected to transform into a structure with indexed elements" do
+        is_expected.to eq(
+          type: [Array],
+          structure: [
+            {type: [Hash], structure: {id: {type: [Integer]}}},
+            {type: [Hash], structure: {name: {type: [String]}}}
+          ]
+        )
+      end
+    end
+
+    context "when it has nested arrays of primitives" do
+      let(:shape) do
+        {matrix: [["integer"]]}
+      end
+
+      it "is expected to transform into nested array patterns" do
+        is_expected.to eq(
+          type: [Hash],
+          structure: {
+            matrix: {
+              type: [Array],
+              pattern: {
+                type: [Array],
+                pattern: {type: [Integer]}
+              }
+            }
+          }
+        )
+      end
+    end
   end
 end

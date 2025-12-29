@@ -188,6 +188,11 @@ RSpec.describe SpecForge::Type do
         expect { described_class.from_string("strig") }
           .to raise_error(ArgumentError, /Unknown type: "strig"/)
       end
+
+      it "raises ArgumentError for nil input" do
+        expect { described_class.from_string(nil) }
+          .to raise_error(ArgumentError, /Input is nil/)
+      end
     end
   end
 end
