@@ -129,8 +129,7 @@ module SpecForge
       @variables.except!(:request, :response)
 
       if error.is_a?(Error::ExpectationFailure)
-        example = error.failed_example
-        @failures << {step:, example:}
+        @failures += error.failed_examples.map { |example| {step:, example:} }
       end
 
       @display.step_end(step, error:)

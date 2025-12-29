@@ -303,12 +303,12 @@ module SpecForge
     end
 
     class ExpectationFailure < Error
-      attr_reader :failed_example
+      attr_reader :failed_examples
 
-      def initialize(failed_example)
-        @failed_example = failed_example
+      def initialize(failed_examples)
+        @failed_examples = failed_examples
 
-        super("Failed expectation")
+        super("Failed expectations (#{@failed_examples.size})")
       end
     end
 
@@ -316,8 +316,7 @@ module SpecForge
     # Raised when JSON shape validation fails
     #
     # Contains structured failure information for all validation errors
-    # discovered during shape checking. Allows Display to format errors
-    # with clear JSON paths and type information.
+    # discovered during shape checking.
     #
     # @example Single failure
     #   failures = [{path: ".id", expected_type: String, actual_type: Integer, actual_value: 42}]
@@ -335,7 +334,30 @@ module SpecForge
 
       def initialize(failures)
         @failures = failures
-        super("Shape validation failed with #{failures.size} error(s)")
+
+        message =
+          if failures.size == 1
+            format_failure(failures.first)
+          else
+            failures.join_map("\n") do |failure|
+              format_failure(failure)
+            end
+          end
+
+        super(message)
+      end
+
+      private
+
+      def format_failure(failure)
+        expected_types =
+          if failure[:expected_type].size == 1
+            failure[:expected_type].first
+          else
+            "one of #{failure[:expected_type].to_or_sentence}"
+          end
+
+        "#{failure[:path]}: expected #{expected_types}, got #{failure[:actual_type]} (#{failure[:actual_value]})"
       end
     end
   end

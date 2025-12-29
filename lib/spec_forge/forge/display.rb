@@ -66,17 +66,22 @@ module SpecForge
 
         return unless error.is_a?(Error::ExpectationFailure)
 
-        example = error.failed_example
+        error.failed_examples.each do |example|
+          # Print out the error
+          message = example[:exception][:message]
+            .strip # Remove all leading/trailing whitespace. RSpec likes to add that to the exception
+            .prepend("\n") # Ensure there is a leading whitespace
+            .gsub("\n", "\n        ") # Now add tabbing
 
-        # Print out the error
-        error("#{example[:description]} #{example[:exception][:message].gsub("\n", "\n      ").rstrip}", indent: 1)
+          error("#{example[:description]} #{message}", indent: 1)
 
-        # puts JSON.pretty_generate(example[:exception][:backtrace]) # DEBUG
+          # puts JSON.pretty_generate(example[:exception][:backtrace]) # DEBUG
 
-        puts ""
-        return if verbose?
+          puts ""
+          next if verbose?
 
-        puts "  #{@color.red("✗")} #{step_name(step)}"
+          puts "  #{@color.red("✗")} #{step_name(step)}"
+        end
       end
 
       def action(type, message, color: :bright_black, style: :clear, indent: 0)
