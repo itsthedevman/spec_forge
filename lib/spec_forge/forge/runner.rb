@@ -27,7 +27,7 @@ module SpecForge
         @runner.run_specs(@world.ordered_example_groups)
 
         entry = @output_io.entries.last.to_h
-        entry[:examples].partition { |ex| ex[:status] == "passed" }
+        entry[:examples].reject { |ex| ex[:status] == "passed" }
       ensure
         @world.reset
         reset_configuration

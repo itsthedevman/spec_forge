@@ -31,17 +31,14 @@ module SpecForge
 
         def response_json_size(rspec, matcher)
           rspec.expect(@body.size).to matcher
+
           display.success("Size", indent: 1)
         end
 
         def response_json_shape(rspec, structure)
-          failures = ShapeValidator.new(rspec, @body, structure).validate
+          ShapeValidator.new(rspec, @body, structure).validate!
 
-          if failures.size == 0
-            display.success("Shape", indent: 1)
-          else
-            raise Error::ShapeValidationFailure.new(failures)
-          end
+          display.success("Shape", indent: 1)
         end
 
         private

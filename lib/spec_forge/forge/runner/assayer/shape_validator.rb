@@ -12,9 +12,10 @@ module SpecForge
             @failures = []
           end
 
-          def validate
+          def validate!
             check_structure(@data, @structure, path: "")
-            @failures
+
+            raise Error::ShapeValidationFailure.new(@failures) if @failures.size > 0
           end
 
           private
@@ -45,7 +46,7 @@ module SpecForge
           def check_type_union(data, types, path:)
             return if types.any? { |type| data.is_a?(type) }
 
-            @failures << build_failure(path, types, data)
+            add_failure(path, types, data)
           end
 
           def check_array_elements(data, structure, path:)
@@ -63,7 +64,7 @@ module SpecForge
 
           def check_hash_key(data, key, expected, path:)
             unless data.respond_to?(:key?) && data.key?(key)
-              @failures << build_failure(path, expected, nil)
+              add_failure(path, expected, nil)
               return
             end
 
@@ -73,11 +74,11 @@ module SpecForge
           def check_type(data, expected_type, path:)
             return if data.is_a?(expected_type)
 
-            @failures << build_failure(path, expected_type, data)
+            add_failure(path, expected_type, data)
           end
 
-          def build_failure(path, expected_type, actual_value)
-            {
+          def add_failure(path, expected_type, actual_value)
+            @failures << {
               path: path,
               expected_type: expected_type,
               actual_value: actual_value,

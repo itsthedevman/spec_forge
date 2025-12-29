@@ -8,10 +8,10 @@ module SpecForge
           forge.runner.build(forge, step, expectation)
         end
 
-        _passed_examples, failed_examples = forge.runner.run
-        return if failed_examples.size == 0
+        failed_examples = forge.runner.run
+        return if failed_examples.empty?
 
-        raise Error::ExpectationFailure.new(failed_examples.first)
+        raise Error::ExpectationFailure.new(failed_examples)
       end
     end
   end
