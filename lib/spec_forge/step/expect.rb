@@ -7,52 +7,12 @@ module SpecForge
 
       def initialize(name: nil, status: nil, headers: nil, raw: nil, json: nil)
         super(
-          name: Attribute.from(name),
+          name: Attribute.from(name), # TODO: Might not be needed
           status: Attribute.from(status),
           headers: Attribute.from(headers),
           raw: Attribute.from(raw),
-          json: extract_json_expectations(json)
+          json: extract_json(json)
         )
-      end
-
-      def description
-        # Use custom name if provided
-        return name.resolved if name.resolved.present?
-
-        parts = []
-
-        # Status with HTTP description
-        if status.input.present?
-          resolved_status = status.resolved
-
-          parts << if resolved_status.is_a?(Integer)
-            HTTP.status_code_to_description(resolved_status)
-          else
-            "expected status"
-          end
-        end
-
-        # Headers count
-        if Type.hash?(headers) && headers.size > 0
-          parts << "headers (#{headers.size})"
-        end
-
-        # Raw body
-        parts << "raw" if raw.input.present?
-
-        # JSON checks
-        if Type.hash?(json)
-          parts << "size" if json[:size].present?
-
-          if (structure = json[:structure]) && structure.present?
-            structure_type = Type.array?(structure) ? "array" : "hash"
-            parts << "structure (#{structure_type})"
-          end
-
-          parts << "content" if json[:content].present?
-        end
-
-        parts.join(", ")
       end
 
       def status_matcher
@@ -81,35 +41,15 @@ module SpecForge
 
       private
 
-      def extract_json_expectations(json)
-        size = json[:size] ? Attribute.from(json[:size]) : nil
-        content = json[:content] ? Attribute.from(json[:content]) : nil
+      def extract_json(json)
+        return if json.blank?
 
-        shape = if (shape = json[:shape])
-          Attribute.from(convert_type_structure(shape))
-        end
+        output = json.compact
 
-        schema = if (schema = json[:schema])
-          Attribute.from(convert_type_structure(schema))
-        end
+        output[:size] = Attribute.from(output[:size]) if output[:size]
+        output[:content] = Attribute.from(output[:content]) if output[:content]
 
-        {
-          size:,
-          shape:,
-          schema:,
-          content:
-        }
-      end
-
-      def convert_type_structure(data)
-        case data
-        when Array
-          data.map { |item| convert_type_structure(item) }
-        when Hash
-          data.transform_values { |value| convert_type_structure(value) }
-        else
-          Type.from_string(data)
-        end
+        output
       end
     end
   end

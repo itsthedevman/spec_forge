@@ -122,6 +122,7 @@ expect:
             type:
               - array
               - hash
+            transformer: normalize_shape
 
           schema:
             type:

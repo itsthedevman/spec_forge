@@ -18,6 +18,28 @@ module SpecForge
 
         {name: value}
       end
+
+      def normalize_shape(value)
+        case value
+        when Array
+          shape = {type: [Array]}
+
+          if value.size == 1
+            shape[:pattern] = normalize_shape(value.first)
+          else
+            shape[:structure] = value.map { |i| normalize_shape(i) }
+          end
+
+          shape
+        when Hash
+          {
+            type: [Hash],
+            structure: value.transform_values { |v| normalize_shape(v) }
+          }
+        else
+          {type: Type.from_string(value)}
+        end
+      end
     end
   end
 end
