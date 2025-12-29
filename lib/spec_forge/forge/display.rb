@@ -56,6 +56,14 @@ module SpecForge
           return
         end
 
+        # Handle shape validation failures
+        if error.is_a?(Error::ShapeValidationFailure)
+          format_shape_failures(error.failures)
+          puts ""
+          puts "  #{@color.red("✗")} #{step_name(step)}" unless verbose?
+          return
+        end
+
         return unless error.is_a?(Error::ExpectationFailure)
 
         example = error.failed_example
@@ -105,6 +113,38 @@ module SpecForge
       end
 
       private
+
+      def format_shape_failures(failures)
+        if failures.size == 1
+          failure = failures.first
+          msg = "Response body shape at #{failure[:path]} - expected #{format_expected_type(failure[:expected_type])}, got #{failure[:actual_type]} (#{truncate_value(failure[:actual_value])})"
+          error(msg, indent: 1)
+        else
+          error("Response body shape", indent: 1)
+          failures.each do |failure|
+            msg = "#{failure[:path]} - expected #{format_expected_type(failure[:expected_type])}, got #{failure[:actual_type]} (#{truncate_value(failure[:actual_value])})"
+            puts "      #{msg}"
+          end
+        end
+      end
+
+      def format_expected_type(expected_type)
+        # Handle type unions (array of classes)
+        if expected_type.is_a?(Array) && expected_type.all? { |item| item.is_a?(Class) }
+          if expected_type.size == 1
+            expected_type.first.to_s
+          else
+            expected_type.map(&:to_s).join(" or ")
+          end
+        else
+          expected_type.to_s
+        end
+      end
+
+      def truncate_value(value, max_length: 50)
+        str = value.inspect
+        (str.length > max_length) ? "#{str[0...max_length]}..." : str
+      end
 
       def step_name(step)
         step.name.present? ? step.name : @color.dim("(Unnamed step: line #{step.source.line_number})")

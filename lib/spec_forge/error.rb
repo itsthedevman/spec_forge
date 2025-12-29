@@ -311,5 +311,32 @@ module SpecForge
         super("Failed expectation")
       end
     end
+
+    #
+    # Raised when JSON shape validation fails
+    #
+    # Contains structured failure information for all validation errors
+    # discovered during shape checking. Allows Display to format errors
+    # with clear JSON paths and type information.
+    #
+    # @example Single failure
+    #   failures = [{path: ".id", expected_type: String, actual_type: Integer, actual_value: 42}]
+    #   raise ShapeValidationFailure.new(failures)
+    #
+    # @example Multiple failures
+    #   failures = [
+    #     {path: ".id", expected_type: String, actual_type: Integer, actual_value: 42},
+    #     {path: ".email", expected_type: String, actual_type: NilClass, actual_value: nil}
+    #   ]
+    #   raise ShapeValidationFailure.new(failures)
+    #
+    class ShapeValidationFailure < Error
+      attr_reader :failures
+
+      def initialize(failures)
+        @failures = failures
+        super("Shape validation failed with #{failures.size} error(s)")
+      end
+    end
   end
 end
