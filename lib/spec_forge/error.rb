@@ -357,7 +357,7 @@ module SpecForge
             failure[:expected_type].to_or_sentence
           end
 
-        "#{failure[:path]}: expected #{expected_types}, got #{failure[:actual_type]} (#{failure[:actual_value]})"
+        "#{failure[:path]}: expected #{expected_types}, got #{failure[:actual_type]} (#{failure[:actual_value].inspect})"
       end
     end
   end

@@ -68,12 +68,14 @@ module SpecForge
           end
 
           def check_hash_key(data, key, expected, path:)
-            if data.respond_to?(:key?) && data.key?(key)
-              check_schema(data[key], expected, path:)
+            actual_key = [key.to_sym, key.to_s].detect { |k| data.respond_to?(:key?) && data.key?(k) }
+
+            if actual_key
+              check_schema(data[actual_key], expected, path:)
               return
             end
 
-            failure!(path, expected, nil)
+            failure!(path, expected[:type], nil)
           end
 
           def check_array_structure(data, structure, path:)
