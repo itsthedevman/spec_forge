@@ -36,7 +36,7 @@ module SpecForge
         end
 
         def response_json_shape(rspec, structure)
-          ShapeValidator.new(rspec, @body, structure).validate!
+          ShapeValidator.new(@body, structure).validate!
 
           display.success("Shape", indent: 1)
         end

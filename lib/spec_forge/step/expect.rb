@@ -36,7 +36,7 @@ module SpecForge
       def json_shape_matcher
         return if json[:shape].blank?
 
-        json[:shape].resolve_as_matcher
+        json[:shape]
       end
 
       private
