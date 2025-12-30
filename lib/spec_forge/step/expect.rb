@@ -42,7 +42,7 @@ module SpecForge
       private
 
       def extract_json(json)
-        return if json.blank?
+        return {} if json.blank?
 
         output = json.compact
 
