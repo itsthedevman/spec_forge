@@ -28,15 +28,15 @@ module SpecForge
       end
 
       def json_size_matcher
-        return if json[:size].blank?
-
-        json[:size].resolve_as_matcher
+        json[:size]&.resolve_as_matcher
       end
 
       def json_schema
-        return if json[:schema].blank?
-
         json[:schema]
+      end
+
+      def json_content_matcher
+        json[:content]&.resolve_as_matcher
       end
 
       private

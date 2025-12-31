@@ -360,5 +360,25 @@ module SpecForge
         "#{failure[:path]}: expected #{expected_types}, got #{failure[:actual_type]} (#{failure[:actual_value].inspect})"
       end
     end
+
+    class ContentValidationFailure < Error
+      attr_reader :failures
+
+      def initialize(failures)
+        @failures = failures
+        super(format_failures(failures))
+      end
+
+      private
+
+      def format_failures(failures)
+        if failures.size == 1
+          failure = failures.first
+          "#{failure[:path]}: #{failure[:message]}"
+        else
+          failures.join_map("\n") { |f| "#{f[:path]}: #{f[:message]}" }
+        end
+      end
+    end
   end
 end

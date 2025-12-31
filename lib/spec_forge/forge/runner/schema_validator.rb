@@ -20,7 +20,7 @@ module SpecForge
 
         def failure!(path, expected_type, actual_value)
           @failures << {
-            path:,
+            path: path.empty? ? "root" : path,
             expected_type:,
             actual_value:,
             actual_type: actual_value.class

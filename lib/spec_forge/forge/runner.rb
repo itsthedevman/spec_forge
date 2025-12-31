@@ -89,6 +89,14 @@ module SpecForge
               display.success("Schema", indent: 1)
             end
           end
+
+          if (content_matcher = expectation.json_content_matcher)
+            it "Content" do
+              ContentValidator.new(body, content_matcher).validate!
+
+              display.success("Content", indent: 1)
+            end
+          end
         end
       end
     end
