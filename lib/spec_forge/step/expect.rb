@@ -33,13 +33,7 @@ module SpecForge
         json[:size].resolve_as_matcher
       end
 
-      def json_shape_structure
-        return if json[:shape].blank?
-
-        json[:shape]
-      end
-
-      def json_schema_structure
+      def json_schema
         return if json[:schema].blank?
 
         json[:schema]
@@ -50,11 +44,11 @@ module SpecForge
       def extract_json(json)
         return {} if json.blank?
 
-        output = json.compact
+        output = {}
 
-        # shape and schema do not need converted to Attribute
-        output[:size] = Attribute.from(output[:size]) if output[:size]
-        output[:content] = Attribute.from(output[:content]) if output[:content]
+        output[:content] = Attribute.from(json[:content]) if json[:content]
+        output[:size] = Attribute.from(json[:size]) if json[:size]
+        output[:schema] = json[:schema] || json[:shape]
 
         output
       end

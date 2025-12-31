@@ -40,7 +40,38 @@ module SpecForge
             type: [Hash],
             structure: value.transform_values { |v| normalize_shape(v) }
           }
-        else
+        when String
+          {type: Type.from_string(value)}
+        end
+      end
+
+      def normalize_schema(value)
+        raise ArgumentError, "Schema cannot be nil" if value.nil?
+
+        case value
+        when Array
+          value.each { |v| normalize_schema(v) }
+        when Hash
+          if (type = value[:type]) && type.is_a?(String)
+            value[:type] = Type.from_string(type)
+          end
+
+          if (structure = value[:structure])
+            value[:structure] =
+              case structure
+              when Array
+                structure.map { |v| normalize_schema(v) }
+              when Hash
+                structure.transform_values { |v| normalize_schema(v) }
+              end
+          end
+
+          if (pattern = value[:pattern])
+            value[:pattern] = normalize_schema(pattern)
+          end
+
+          value
+        when String
           {type: Type.from_string(value)}
         end
       end

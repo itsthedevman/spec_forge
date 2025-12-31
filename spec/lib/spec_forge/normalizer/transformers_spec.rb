@@ -195,4 +195,153 @@ RSpec.describe SpecForge::Normalizer::Transformers do
       end
     end
   end
+
+  describe "#normalize_schema" do
+    let(:schema) {}
+
+    subject(:normalized_schema) { described_class.call(:normalize_schema, schema) }
+
+    context "when it is nil" do
+      let(:schema) { nil }
+
+      it "is expected to raise an ArgumentError" do
+        expect { normalized_schema }.to raise_error(ArgumentError, /Schema cannot be nil/)
+      end
+    end
+
+    context "when it is a string" do
+      let(:schema) { "integer" }
+
+      it "is expected to wrap in a type hash" do
+        is_expected.to eq(type: [Integer])
+      end
+    end
+
+    context "when it is a hash with a string type" do
+      let(:schema) do
+        {type: "string"}
+      end
+
+      it "is expected to convert the type to an array of classes" do
+        is_expected.to eq(type: [String])
+      end
+    end
+
+    context "when it is a hash with a nested structure (Hash) with string values" do
+      let(:schema) do
+        {type: "hash", structure: {id: "integer", email: "string"}}
+      end
+
+      it "is expected to recursively normalize structure values" do
+        is_expected.to eq(
+          type: [Hash],
+          structure: {
+            id: {type: [Integer]},
+            email: {type: [String]}
+          }
+        )
+      end
+    end
+
+    context "when it is a hash with a nested structure (Hash) with hash values" do
+      let(:schema) do
+        {type: "hash", structure: {id: {type: "integer"}, name: {type: "string"}}}
+      end
+
+      it "is expected to recursively normalize structure values" do
+        is_expected.to eq(
+          type: [Hash],
+          structure: {
+            id: {type: [Integer]},
+            name: {type: [String]}
+          }
+        )
+      end
+    end
+
+    context "when it is a hash with a nested structure (Array)" do
+      let(:schema) do
+        {type: "array", structure: [{type: "string"}, {type: "integer"}]}
+      end
+
+      it "is expected to recursively normalize array elements" do
+        is_expected.to eq(
+          type: [Array],
+          structure: [{type: [String]}, {type: [Integer]}]
+        )
+      end
+    end
+
+    context "when it is a hash with a pattern" do
+      let(:schema) do
+        {type: "array", pattern: {type: "string"}}
+      end
+
+      it "is expected to recursively normalize the pattern" do
+        is_expected.to eq(
+          type: [Array],
+          pattern: {type: [String]}
+        )
+      end
+    end
+
+    context "when it is an array" do
+      let(:schema) do
+        [{type: "string"}, {type: "integer"}]
+      end
+
+      it "is expected to recursively normalize each element in-place" do
+        is_expected.to eq([{type: [String]}, {type: [Integer]}])
+      end
+    end
+
+    context "when it has deep nesting with structure and pattern" do
+      let(:schema) do
+        {
+          type: "hash",
+          structure: {
+            items: {
+              type: "array",
+              pattern: {type: "string"}
+            }
+          }
+        }
+      end
+
+      it "is expected to recursively normalize all levels" do
+        is_expected.to eq(
+          type: [Hash],
+          structure: {
+            items: {
+              type: [Array],
+              pattern: {type: [String]}
+            }
+          }
+        )
+      end
+    end
+
+    context "when the hash has no type key" do
+      let(:schema) do
+        {structure: {id: {type: "integer"}}}
+      end
+
+      it "is expected to pass through and only normalize nested types" do
+        is_expected.to eq(structure: {id: {type: [Integer]}})
+      end
+    end
+
+    context "when the hash has an already-converted type" do
+      let(:schema) do
+        {type: [String], structure: {id: {type: "integer"}}}
+      end
+
+      it "is expected to leave the type unchanged and normalize nested types" do
+        is_expected.to eq(
+          type: [String],
+          structure: {id: {type: [Integer]}}
+        )
+      end
+    end
+  end
 end

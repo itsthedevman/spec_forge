@@ -36,9 +36,11 @@
     - status: 200
     - json:
         size: 3
-        shape:
-          id: integer
-          email: string
+        schema:
+          type: hash
+          structure:
+            id: integer
+            email: string
         content:
           id: "{{ user_id }}"
           email: "{{ created_email }}"

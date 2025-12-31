@@ -1,0 +1,14 @@
+type:
+  type:
+    - array
+    - string
+
+structure:
+  type:
+    - hash
+    - array
+  default: null
+
+pattern:
+  type: hash
+  default: null

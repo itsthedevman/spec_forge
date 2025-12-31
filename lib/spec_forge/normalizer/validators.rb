@@ -74,6 +74,25 @@ module SpecForge
 
         raise Error, "Invalid HTTP verb #{value.in_quotes} for #{@label}. Valid values are: #{valid_verbs.join_map(", ", &:in_quotes)}"
       end
+
+      def json_expectation(value)
+        # Both shape and schema cannot be defined at the same time
+        return if value[:shape].blank? || value[:schema].blank?
+
+        raise Error, "Cannot define both \"shape\" and \"schema\". Use \"shape\" for simple validation or \"schema\" for explicit control."
+      end
+
+      def json_schema(value)
+        Normalizer.validate!(value, using: :json_schema)
+        json_schema(value[:pattern]) if value[:pattern]
+
+        case value[:structure]
+        when Array
+          value[:structure].each { |v| json_schema(v) }
+        when Hash
+          value[:structure].each_value { |v| json_schema(v) }
+        end
+      end
     end
   end
 end
