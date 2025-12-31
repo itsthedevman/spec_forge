@@ -42,14 +42,20 @@ module SpecForge
       end
 
       def create_example_group(forge, step, expectation)
-        assayer = Assayer.new(forge)
-
         RSpec::Core::ExampleGroup.describe(step.source.to_s) do
+          let(:display) { forge.display }
+          let(:response) { forge.variables[:response] }
+
+          let(:headers) { response.headers }
+          let(:body) { response.body.is_a?(Hash) ? response.body.deep_stringify_keys : response.body }
+
           ############################################################
           # Status check
           if (status_matcher = expectation.status_matcher)
             it "Status" do
-              assayer.response_status(self, status_matcher)
+              expect(response.status).to status_matcher
+
+              display.success("Status", indent: 1)
             end
           end
 
@@ -57,7 +63,12 @@ module SpecForge
           # Headers check
           if (headers_matcher = expectation.headers_matcher)
             it "Headers" do
-              assayer.response_headers(self, headers_matcher)
+              headers_matcher.each do |key, matcher|
+                expect(headers).to have_key(key)
+                expect(headers[key]).to(matcher)
+              end
+
+              display.success("Headers", indent: 1)
             end
           end
 
@@ -65,13 +76,17 @@ module SpecForge
           # JSON checks
           if (json_size_matcher = expectation.json_size_matcher)
             it "Size" do
-              assayer.response_json_size(self, json_size_matcher)
+              expect(body.size).to json_size_matcher
+
+              display.success("Size", indent: 1)
             end
           end
 
-          if (json_shape_matcher = expectation.json_shape_matcher)
+          if (structure = expectation.json_shape_structure)
             it "Shape" do
-              assayer.response_json_shape(self, json_shape_matcher)
+              ShapeValidator.new(body, structure).validate!
+
+              display.success("Shape", indent: 1)
             end
           end
         end

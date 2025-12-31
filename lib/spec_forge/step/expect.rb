@@ -33,10 +33,16 @@ module SpecForge
         json[:size].resolve_as_matcher
       end
 
-      def json_shape_matcher
+      def json_shape_structure
         return if json[:shape].blank?
 
         json[:shape]
+      end
+
+      def json_schema_structure
+        return if json[:schema].blank?
+
+        json[:schema]
       end
 
       private
