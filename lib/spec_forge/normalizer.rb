@@ -52,6 +52,8 @@ module SpecForge
         raise_errors! { normalize(input, using:, label:) }
       end
 
+      alias_method :validate!, :normalize!
+
       #
       # Normalizes input data against a structure without raising errors
       #
