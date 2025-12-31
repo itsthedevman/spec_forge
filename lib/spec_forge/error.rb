@@ -380,5 +380,25 @@ module SpecForge
         end
       end
     end
+
+    class HeaderValidationFailure < Error
+      attr_reader :failures
+
+      def initialize(failures)
+        @failures = failures
+        super(format_failures(failures))
+      end
+
+      private
+
+      def format_failures(failures)
+        if failures.size == 1
+          failure = failures.first
+          "#{failure[:header].in_quotes}: #{failure[:message]}"
+        else
+          failures.join_map("\n") { |f| "#{f[:header].in_quotes}: #{f[:message]}" }
+        end
+      end
+    end
   end
 end

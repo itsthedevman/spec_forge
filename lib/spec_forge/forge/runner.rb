@@ -63,10 +63,7 @@ module SpecForge
           # Headers check
           if (headers_matcher = expectation.headers_matcher)
             it "Headers" do
-              headers_matcher.each do |key, matcher|
-                expect(headers).to have_key(key)
-                expect(headers[key]).to(matcher)
-              end
+              HeaderValidator.new(headers, headers_matcher).validate!
 
               display.success("Headers", indent: 1)
             end
