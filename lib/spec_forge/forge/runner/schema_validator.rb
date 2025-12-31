@@ -3,7 +3,7 @@
 module SpecForge
   class Forge
     class Runner
-      class ShapeValidator
+      class SchemaValidator
         def initialize(data, schema)
           @data = data
           @schema = schema
@@ -13,7 +13,7 @@ module SpecForge
         def validate!
           check_schema(@data, @schema, path: "")
 
-          raise Error::ShapeValidationFailure.new(@failures) if @failures.size > 0
+          raise Error::SchemaValidationFailure.new(@failures) if @failures.size > 0
         end
 
         private

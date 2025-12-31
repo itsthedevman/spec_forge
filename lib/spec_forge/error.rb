@@ -320,16 +320,16 @@ module SpecForge
     #
     # @example Single failure
     #   failures = [{path: ".id", expected_type: String, actual_type: Integer, actual_value: 42}]
-    #   raise ShapeValidationFailure.new(failures)
+    #   raise SchemaValidationFailure.new(failures)
     #
     # @example Multiple failures
     #   failures = [
     #     {path: ".id", expected_type: String, actual_type: Integer, actual_value: 42},
     #     {path: ".email", expected_type: String, actual_type: NilClass, actual_value: nil}
     #   ]
-    #   raise ShapeValidationFailure.new(failures)
+    #   raise SchemaValidationFailure.new(failures)
     #
-    class ShapeValidationFailure < Error
+    class SchemaValidationFailure < Error
       attr_reader :failures
 
       def initialize(failures)

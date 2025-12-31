@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe SpecForge::Forge::Runner::Assayer::ShapeValidator do
+RSpec.describe SpecForge::Forge::Runner::SchemaValidator do
   let(:schema) {}
   let(:data) {}
 
@@ -271,8 +271,8 @@ RSpec.describe SpecForge::Forge::Runner::Assayer::ShapeValidator do
       let(:schema) { {type: [Hash]} }
       let(:data) { "not a hash" }
 
-      it "is expected to raise a ShapeValidationFailure" do
-        expect { validate }.to raise_error(SpecForge::Error::ShapeValidationFailure)
+      it "is expected to raise a SchemaValidationFailure" do
+        expect { validate }.to raise_error(SpecForge::Error::SchemaValidationFailure)
       end
     end
 
@@ -291,8 +291,8 @@ RSpec.describe SpecForge::Forge::Runner::Assayer::ShapeValidator do
         {id: "not an integer", name: "valid"}
       end
 
-      it "is expected to raise a ShapeValidationFailure" do
-        expect { validate }.to raise_error(SpecForge::Error::ShapeValidationFailure)
+      it "is expected to raise a SchemaValidationFailure" do
+        expect { validate }.to raise_error(SpecForge::Error::SchemaValidationFailure)
       end
     end
 
@@ -311,8 +311,8 @@ RSpec.describe SpecForge::Forge::Runner::Assayer::ShapeValidator do
         {id: 123}
       end
 
-      it "is expected to raise a ShapeValidationFailure" do
-        expect { validate }.to raise_error(SpecForge::Error::ShapeValidationFailure)
+      it "is expected to raise a SchemaValidationFailure" do
+        expect { validate }.to raise_error(SpecForge::Error::SchemaValidationFailure)
       end
     end
 
@@ -335,8 +335,8 @@ RSpec.describe SpecForge::Forge::Runner::Assayer::ShapeValidator do
         {user: "not a hash"}
       end
 
-      it "is expected to raise a ShapeValidationFailure" do
-        expect { validate }.to raise_error(SpecForge::Error::ShapeValidationFailure)
+      it "is expected to raise a SchemaValidationFailure" do
+        expect { validate }.to raise_error(SpecForge::Error::SchemaValidationFailure)
       end
     end
 
@@ -352,8 +352,8 @@ RSpec.describe SpecForge::Forge::Runner::Assayer::ShapeValidator do
         [1, 2, "three", 4]
       end
 
-      it "is expected to raise a ShapeValidationFailure" do
-        expect { validate }.to raise_error(SpecForge::Error::ShapeValidationFailure)
+      it "is expected to raise a SchemaValidationFailure" do
+        expect { validate }.to raise_error(SpecForge::Error::SchemaValidationFailure)
       end
     end
 
@@ -379,8 +379,8 @@ RSpec.describe SpecForge::Forge::Runner::Assayer::ShapeValidator do
         ]
       end
 
-      it "is expected to raise a ShapeValidationFailure" do
-        expect { validate }.to raise_error(SpecForge::Error::ShapeValidationFailure)
+      it "is expected to raise a SchemaValidationFailure" do
+        expect { validate }.to raise_error(SpecForge::Error::SchemaValidationFailure)
       end
     end
 
@@ -410,8 +410,8 @@ RSpec.describe SpecForge::Forge::Runner::Assayer::ShapeValidator do
         }
       end
 
-      it "is expected to raise a ShapeValidationFailure" do
-        expect { validate }.to raise_error(SpecForge::Error::ShapeValidationFailure)
+      it "is expected to raise a SchemaValidationFailure" do
+        expect { validate }.to raise_error(SpecForge::Error::SchemaValidationFailure)
       end
     end
 
@@ -431,8 +431,8 @@ RSpec.describe SpecForge::Forge::Runner::Assayer::ShapeValidator do
         {id: "wrong", name: 123, active: "also wrong"}
       end
 
-      it "is expected to raise a ShapeValidationFailure" do
-        expect { validate }.to raise_error(SpecForge::Error::ShapeValidationFailure)
+      it "is expected to raise a SchemaValidationFailure" do
+        expect { validate }.to raise_error(SpecForge::Error::SchemaValidationFailure)
       end
     end
 
@@ -454,8 +454,8 @@ RSpec.describe SpecForge::Forge::Runner::Assayer::ShapeValidator do
         ]
       end
 
-      it "is expected to raise a ShapeValidationFailure" do
-        expect { validate }.to raise_error(SpecForge::Error::ShapeValidationFailure)
+      it "is expected to raise a SchemaValidationFailure" do
+        expect { validate }.to raise_error(SpecForge::Error::SchemaValidationFailure)
       end
     end
   end

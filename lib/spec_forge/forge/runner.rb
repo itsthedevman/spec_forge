@@ -82,11 +82,11 @@ module SpecForge
             end
           end
 
-          if (structure = expectation.json_shape_structure)
-            it "Shape" do
-              ShapeValidator.new(body, structure).validate!
+          if (schema_structure = expectation.json_schema)
+            it "Schema" do
+              SchemaValidator.new(body, schema_structure).validate!
 
-              display.success("Shape", indent: 1)
+              display.success("Schema", indent: 1)
             end
           end
         end

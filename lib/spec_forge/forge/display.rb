@@ -57,7 +57,7 @@ module SpecForge
         end
 
         # Handle shape validation failures
-        if error.is_a?(Error::ShapeValidationFailure)
+        if error.is_a?(Error::SchemaValidationFailure)
           format_shape_failures(error.failures)
           puts ""
           puts "  #{@color.red("✗")} #{step_name(step)}" unless verbose?
