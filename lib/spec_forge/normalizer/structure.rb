@@ -48,8 +48,6 @@ module SpecForge
       def normalize
         # Normalize the root level keys
         transform_values!(with_key: true) do |attribute, name|
-          next if STRUCTURE.key?(name)
-
           normalize_attribute(name, attribute)
         end
 
