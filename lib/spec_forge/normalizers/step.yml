@@ -70,15 +70,6 @@ request:
       aliases:
         - hash
         - array
-      structure:
-        content:
-          type: any
-        pattern:
-          type: any
-        size:
-          type: [string, numeric]
-        structure:
-          type: any
 
 expect:
   type: array
@@ -112,22 +103,22 @@ expect:
         aliases:
           - array
           - hash
+        validator: json_expectation
         structure:
           size:
             type:
               - string
               - integer
-
           shape:
             type:
               - array
               - hash
             transformer: normalize_shape
-
           schema:
             type:
               - hash
-
+            transformer: normalize_schema
+            validator: json_schema
           content:
             type:
               - array
