@@ -2,11 +2,12 @@
 
 module SpecForge
   class Step
-    class Expect < Data.define(:status, :headers, :raw, :json)
+    class Expect < Data.define(:name, :status, :headers, :raw, :json)
       include Attribute::ToAttribute
 
-      def initialize(status: nil, headers: nil, raw: nil, json: nil)
+      def initialize(name: nil, status: nil, headers: nil, raw: nil, json: nil)
         super(
+          name:,
           status: Attribute.from(status),
           headers: Attribute.from(headers),
           raw: Attribute.from(raw),

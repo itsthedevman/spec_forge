@@ -5,6 +5,7 @@ module SpecForge
     class Debug < Action
       def self.default
         lambda do
+          # TODO
           puts <<~STRING
 
             Debug triggered for:

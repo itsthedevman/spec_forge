@@ -72,26 +72,26 @@ module SpecForge
           ############################################################
           # JSON checks
           if (json_size_matcher = expectation.json_size_matcher)
-            it "Size" do
+            it "JSON size" do
               expect(body.size).to json_size_matcher
 
-              display.success("Size", indent: 1)
+              display.success("JSON size", indent: 1)
             end
           end
 
           if (schema_structure = expectation.json_schema)
-            it "Schema" do
+            it "JSON schema" do
               SchemaValidator.new(body, schema_structure).validate!
 
-              display.success("Schema", indent: 1)
+              display.success("JSON schema", indent: 1)
             end
           end
 
           if (content_matcher = expectation.json_content_matcher)
-            it "Content" do
+            it "JSON content" do
               ContentValidator.new(body, content_matcher).validate!
 
-              display.success("Content", indent: 1)
+              display.success("JSON content", indent: 1)
             end
           end
         end

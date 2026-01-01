@@ -45,6 +45,7 @@ module SpecForge
     attr_reader :blueprints
     attr_reader :callbacks
     attr_reader :display
+    attr_reader :failures
     attr_reader :http_client
     attr_reader :runner
     attr_reader :timer
@@ -57,12 +58,6 @@ module SpecForge
       @failures = []
       @http_client = HTTP::Client.new(base_url: SpecForge.configuration.base_url)
       @runner = Runner.new
-
-      @stats = {
-        blueprints: @blueprints.size,
-        steps: @blueprints.sum { |b| b.steps.size }
-      }
-
       @timer = Timer.new
       @variables = Variables.new(static: SpecForge.configuration.global_variables)
     end
@@ -74,8 +69,6 @@ module SpecForge
         forge_start
 
         @blueprints.each do |blueprint|
-          success = true
-
           blueprint_start(blueprint)
 
           blueprint.steps.each do |step|
@@ -84,11 +77,10 @@ module SpecForge
             step_end(step)
           rescue => e
             step_end(step, error: e)
-            success = false
             break
           end
 
-          blueprint_end(blueprint, success:)
+          blueprint_end(blueprint)
         end
       ensure
         forge_end
@@ -138,8 +130,8 @@ module SpecForge
       raise error if error && !error.is_a?(Error::ExpectationFailure)
     end
 
-    def blueprint_end(blueprint, success: true)
-      @display.blueprint_end(blueprint, success:)
+    def blueprint_end(blueprint)
+      @display.blueprint_end(blueprint, success: @failures.empty?)
     end
 
     def forge_end
