@@ -78,9 +78,6 @@ expect:
     type: hash
     default: {}
     structure:
-      name:
-        type: string
-
       status:
         type:
           - string
