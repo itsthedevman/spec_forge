@@ -177,7 +177,13 @@ module SpecForge
         passed = "#{passed_count} #{"example".pluralize(passed_count)}"
         failures = "#{failures_count} #{"failures".pluralize(failures_count)}"
 
-        "#{blueprints}, #{steps}, #{passed}, #{failures}"
+        message = "#{blueprints}, #{steps}, #{passed}, #{failures}"
+
+        if failures_count > 0
+          @color.red(message)
+        else
+          @color.green(message)
+        end
       end
     end
   end
