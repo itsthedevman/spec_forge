@@ -8,7 +8,7 @@ module SpecForge
           forge.runner.build(forge, step, expectation)
         end
 
-        failed_examples = forge.runner.run
+        failed_examples = forge.runner.run(forge)
         return if failed_examples.empty?
 
         raise Error::ExpectationFailure.new(failed_examples)

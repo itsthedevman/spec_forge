@@ -34,12 +34,20 @@ module SpecForge
         puts format_with_indent("#{@color.decorate(symbol, style, color)} #{message}", indent:)
       end
 
-      def success(message, indent: 0)
-        action(:success, message, color: :green, indent:)
+      def expectation_passed(message, indent: 0)
+        if verbose?
+          action(:success, message, color: :green, indent:)
+        else
+          print @color.green(".")
+        end
       end
 
-      def error(message, indent: 0)
-        action(:error, message, color: :red, indent:)
+      def expectation_failed(message, indent: 0)
+        if verbose?
+          action(:error, message, color: :green, indent:)
+        else
+          print @color.red("F")
+        end
       end
 
       ##########################################################################
@@ -153,23 +161,23 @@ module SpecForge
             puts ""
             next
           end
-
-          print @color.red("F")
         end
       end
 
       def format_stats(forge)
-        blueprint_count = forge.blueprints.size
-        step_count = forge.blueprints.sum { |b| b.steps.size }
-        expect_count = forge.blueprints.sum { |b| b.steps.sum { |s| s.expects&.size || 0 } }
-        failures_count = forge.failures.size
+        stats = forge.stats
+
+        blueprint_count = stats[:blueprints]
+        step_count = stats[:steps]
+        passed_count = stats[:passed]
+        failures_count = stats[:failed]
 
         blueprints = "#{blueprint_count} #{"blueprint".pluralize(blueprint_count)}"
         steps = "#{step_count} #{"step".pluralize(step_count)}"
-        expected = "#{expect_count} #{"expectation".pluralize(expect_count)}"
+        passed = "#{passed_count} #{"example".pluralize(passed_count)}"
         failures = "#{failures_count} #{"failures".pluralize(failures_count)}"
 
-        "#{blueprints}, #{steps}, #{expected}, #{failures}"
+        "#{blueprints}, #{steps}, #{passed}, #{failures}"
       end
     end
   end

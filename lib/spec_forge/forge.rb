@@ -48,6 +48,7 @@ module SpecForge
     attr_reader :failures
     attr_reader :http_client
     attr_reader :runner
+    attr_reader :stats
     attr_reader :timer
     attr_reader :variables
 
@@ -58,8 +59,11 @@ module SpecForge
       @failures = []
       @http_client = HTTP::Client.new(base_url: SpecForge.configuration.base_url)
       @runner = Runner.new
+      @stats = {}
       @timer = Timer.new
       @variables = Variables.new(static: SpecForge.configuration.global_variables)
+
+      reset_stats
     end
 
     def run
@@ -89,7 +93,18 @@ module SpecForge
 
     private
 
+    def reset_stats
+      @stats = {
+        blueprints: 0,
+        steps: 0,
+        passed: 0,
+        failed: 0
+      }
+    end
+
     def forge_start
+      reset_stats
+
       # Load the callbacks from the configuration
       SpecForge.configuration.callbacks.each { |name, block| @callbacks.register(name, &block) }
 
@@ -117,6 +132,8 @@ module SpecForge
     end
 
     def step_end(step, error: nil)
+      @stats[:steps] += 1
+
       # Drop the request/response data from scope
       @variables.except!(:request, :response)
 
@@ -131,6 +148,8 @@ module SpecForge
     end
 
     def blueprint_end(blueprint)
+      @stats[:blueprints] += 1
+
       @display.blueprint_end(blueprint, success: @failures.empty?)
     end
 

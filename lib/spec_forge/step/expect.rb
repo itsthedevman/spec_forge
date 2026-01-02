@@ -8,15 +8,26 @@ module SpecForge
       def initialize(name: nil, status: nil, headers: nil, raw: nil, json: nil)
         super(
           name:,
-          status: Attribute.from(status),
-          headers: Attribute.from(headers),
-          raw: Attribute.from(raw),
+          status: status ? Attribute.from(status) : nil,
+          headers: headers ? Attribute.from(headers) : nil,
+          raw: raw ? Attribute.from(raw) : nil,
           json: extract_json(json)
         )
       end
 
+      def size
+        [
+          status,
+          headers,
+          raw,
+          json[:size],
+          json[:schema],
+          json[:content]
+        ].compact_blank.size
+      end
+
       def status_matcher
-        return if status.input.blank?
+        return if status.blank?
 
         status.resolve_as_matcher
       end

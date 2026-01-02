@@ -23,27 +23,33 @@ module SpecForge
         @world.example_groups << create_example_group(forge, step, expectation)
       end
 
-      def run
+      def run(forge)
+        reset_configuration(forge)
+
         @runner.run_specs(@world.ordered_example_groups)
 
         entry = @output_io.entries.last.to_h
         entry[:examples].reject { |ex| ex[:status] == "passed" }
       ensure
         @world.reset
-        reset_configuration
       end
 
       private
 
-      def reset_configuration
+      def reset_configuration(forge = nil)
         # Resetting the configuration also means resetting the Formatters/Reporters.
         @configuration.reset
         @configuration.add_formatter(RSpec::Core::Formatters::JsonFormatter)
+
+        # Make sure to load a formatter first and register to its reporter.
+        # Otherwise RSpec will default the reporter.
+        @configuration.formatter_loader.reporter.register_listener(
+          Reporter.new(forge), :example_passed, :example_failed
+        )
       end
 
       def create_example_group(forge, step, expectation)
         RSpec::Core::ExampleGroup.describe(step.source.to_s) do
-          let(:display) { forge.display }
           let(:response) { forge.variables[:response] }
 
           let(:headers) { response.headers }
@@ -54,8 +60,6 @@ module SpecForge
           if (status_matcher = expectation.status_matcher)
             it "Status" do
               expect(response.status).to status_matcher
-
-              display.success("Status", indent: 1)
             end
           end
 
@@ -64,8 +68,6 @@ module SpecForge
           if (headers_matcher = expectation.headers_matcher)
             it "Headers" do
               HeaderValidator.new(headers, headers_matcher).validate!
-
-              display.success("Headers", indent: 1)
             end
           end
 
@@ -74,24 +76,18 @@ module SpecForge
           if (json_size_matcher = expectation.json_size_matcher)
             it "JSON size" do
               expect(body.size).to json_size_matcher
-
-              display.success("JSON size", indent: 1)
             end
           end
 
           if (schema_structure = expectation.json_schema)
             it "JSON schema" do
               SchemaValidator.new(body, schema_structure).validate!
-
-              display.success("JSON schema", indent: 1)
             end
           end
 
           if (content_matcher = expectation.json_content_matcher)
             it "JSON content" do
               ContentValidator.new(body, content_matcher).validate!
-
-              display.success("JSON content", indent: 1)
             end
           end
         end
