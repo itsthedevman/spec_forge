@@ -5,15 +5,31 @@ module SpecForge
     class Display
       LINE_LENGTH = 120
 
-      attr_predicate :verbose
+      attr_reader :verbosity_level
 
-      def initialize(verbose: false)
-        @verbose = verbose
+      def initialize(verbosity_level: 0)
+        @verbosity_level = verbosity_level
         @color = Pastel.new
       end
 
+      def default_mode?
+        verbosity_level == 0
+      end
+
+      def verbose?
+        verbosity_level >= 1
+      end
+
+      def very_verbose?
+        verbosity_level >= 2
+      end
+
+      def max_verbose?
+        verbosity_level >= 3
+      end
+
       def action(type, message, color: :bright_black, style: :clear, indent: 0)
-        return unless verbose?
+        return if default_mode?
 
         symbol =
           case type
@@ -35,18 +51,35 @@ module SpecForge
       end
 
       def expectation_passed(message, indent: 0)
-        if verbose?
-          action(:success, message, color: :green, indent:)
-        else
-          print @color.green(".")
-        end
+        return if verbose?
+
+        print @color.green(".")
       end
 
       def expectation_failed(message, indent: 0)
-        if verbose?
-          action(:error, message, color: :green, indent:)
+        return if verbose?
+
+        print @color.red("F")
+      end
+
+      # [simple_lifecycle:08] Create a user *********************************************
+      #   → POST /api/users
+      #     Expect 1: ✓ (1/1 passed)
+      #     Expect 2: ✓ (2/2 passed)
+      #     Expect 3: ✗ (1/3 failed)
+      #       JSON size
+      #         expected: 3
+      #         got: 5
+      #   ▸ Store "user_id"
+      #   ▸ Store "created_email"
+
+      def expectation_finished(failed_count:, total_count:, index: 0, show_index: false)
+        print format_with_indent("#{index}: ", indent: 1) if show_index
+
+        if failed_count == 0
+          action(:success, "(#{total_count}/#{total_count} passed)", color: :green, indent: show_index ? 0 : 1)
         else
-          print @color.red("F")
+          action(:error, "(#{failed_count}/#{total_count} failed)", color: :red, indent: show_index ? 0 : 1)
         end
       end
 
@@ -60,20 +93,21 @@ module SpecForge
       end
 
       def step_start(step)
-        return unless verbose?
+        return if default_mode?
 
         print_verbose_step_header(step)
       end
 
       def step_end(step, error: nil)
         if error.nil?
+          puts ""
         else
           step_failure(step, error)
         end
       end
 
       def blueprint_end(blueprint, success: true)
-        return unless verbose?
+        return if default_mode?
 
         header_length = LINE_LENGTH - 15
 
@@ -82,8 +116,6 @@ module SpecForge
         else
           puts @color.bold.red("━" * header_length)
         end
-
-        puts ""
       end
 
       def forge_end(forge)
@@ -102,10 +134,9 @@ module SpecForge
 
               failures.each do |failure|
                 example = failure[:example]
+                message = example[:exception][:message].strip.prepend("\n")
 
-                puts format_with_indent(example[:description], indent: 3)
-                puts format_with_indent(@color.red(example[:exception][:message].strip), indent: 4)
-
+                puts format_with_indent("#{example[:description]} #{@color.red(message)}", indent: 2)
                 puts ""
               end
             end
@@ -120,10 +151,9 @@ module SpecForge
       private
 
       def format_with_indent(message, indent: 0)
-        base_indent = "  "  # 2 spaces
-        nested_indent = " " * ((indent || 0) * 2)  # 2 more spaces per level
+        indent = (indent == 0) ? "" : " " * (indent * 2) # 2 spaces
 
-        "#{base_indent}#{nested_indent}#{message.gsub("\n", "\n#{base_indent}#{nested_indent}")}"
+        "#{indent}#{message.gsub("\n", "\n#{indent}")}"
       end
 
       def print_verbose_step_header(step)
@@ -154,8 +184,7 @@ module SpecForge
             # Print out the error
             message = example[:exception][:message].strip.prepend("\n")
 
-            error("#{example[:description]} #{message}", indent: 1)
-
+            puts format_with_indent("#{example[:description]} #{@color.red(message)}", indent: 2)
             # puts JSON.pretty_generate(example[:exception][:backtrace]) # DEBUG
 
             puts ""

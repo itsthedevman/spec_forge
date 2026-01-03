@@ -10,7 +10,7 @@ RSpec.describe SpecForge::Forge do
   let(:mock_backend) { instance_double(SpecForge::HTTP::Backend, connection: double) }
   let(:callback_tracker) { [] }
 
-  subject(:forge) { described_class.new(blueprints, verbose: true) }
+  subject(:forge) { described_class.new(blueprints, verbosity_level: 1) }
 
   before do
     # Mock HTTP layer so we don't need a real API

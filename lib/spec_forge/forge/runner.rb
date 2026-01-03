@@ -9,7 +9,7 @@ module SpecForge
         options = RSpec::Core::ConfigurationOptions.new(cli_args)
 
         @configuration = RSpec.configuration.deep_dup
-        reset_configuration # Must be done before runner is configured
+        @configuration.reset
 
         @world = RSpec::Core::World.new
         @runner = RSpec::Core::Runner.new(options, @configuration, @world)
@@ -19,24 +19,18 @@ module SpecForge
         @runner.configure(@error_io, @output_io)
       end
 
-      def build(forge, step, expectation)
-        @world.example_groups << create_example_group(forge, step, expectation)
-      end
+      def run(forge, step, expectation)
+        configure_formatters(forge)
 
-      def run(forge)
-        reset_configuration(forge)
-
-        @runner.run_specs(@world.ordered_example_groups)
+        @runner.run_specs([create_example_group(forge, step, expectation)])
 
         entry = @output_io.entries.last.to_h
         entry[:examples].reject { |ex| ex[:status] == "passed" }
-      ensure
-        @world.reset
       end
 
       private
 
-      def reset_configuration(forge = nil)
+      def configure_formatters(forge)
         # Resetting the configuration also means resetting the Formatters/Reporters.
         @configuration.reset
         @configuration.add_formatter(RSpec::Core::Formatters::JsonFormatter)

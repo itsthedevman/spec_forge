@@ -4,11 +4,22 @@ module SpecForge
   class Forge
     class Expect < Action
       def run(forge)
-        step.expects.each do |expectation|
-          forge.runner.build(forge, step, expectation)
-        end
+        show_expectation_count = step.expects.size > 1
 
-        failed_examples = forge.runner.run(forge)
+        failed_examples =
+          step.expects.flat_map.with_index do |expectation, index|
+            failed = forge.runner.run(forge, step, expectation)
+
+            forge.display.expectation_finished(
+              failed_count: failed.size,
+              total_count: expectation.size,
+              index: index + 1,
+              show_index: show_expectation_count
+            )
+
+            failed
+          end
+
         return if failed_examples.empty?
 
         raise Error::ExpectationFailure.new(failed_examples)

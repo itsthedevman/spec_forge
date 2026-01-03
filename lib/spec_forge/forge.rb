@@ -40,8 +40,6 @@ module SpecForge
       end
     end
 
-    attr_predicate :verbose
-
     attr_reader :blueprints
     attr_reader :callbacks
     attr_reader :display
@@ -52,10 +50,10 @@ module SpecForge
     attr_reader :timer
     attr_reader :variables
 
-    def initialize(blueprints, verbose: false)
+    def initialize(blueprints, verbosity_level: 0)
       @blueprints = blueprints
       @callbacks = Callbacks.new
-      @display = Display.new(verbose:)
+      @display = Display.new(verbosity_level:)
       @failures = []
       @http_client = HTTP::Client.new(base_url: SpecForge.configuration.base_url)
       @runner = Runner.new
