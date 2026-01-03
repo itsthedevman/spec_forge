@@ -16,6 +16,10 @@ module SpecForge
   #   user_id: variables.user.id           # A variable reference
   #
   class Attribute
+    class << self
+      include Resolvable
+    end
+
     include Resolvable
 
     #
