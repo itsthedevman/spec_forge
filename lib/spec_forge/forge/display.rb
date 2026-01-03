@@ -178,7 +178,6 @@ module SpecForge
           puts ""
 
           variables = forge.variables.to_hash.symbolize_keys
-
           if (request = variables.delete(:request))
             puts format_with_indent("Request:", indent: 2)
             puts format_with_indent(JSON.pretty_generate(request), indent: 3)
@@ -194,6 +193,26 @@ module SpecForge
           if variables.present?
             puts format_with_indent("Variables:", indent: 2)
             puts format_with_indent(JSON.pretty_generate(variables), indent: 3)
+            puts ""
+          end
+
+          expectations = step.expects.map do |expect|
+            expect.to_h
+              .compact_blank
+              .deep_transform_values do |value|
+                value = Attribute.resolve_as_matcher_proc.call(value)
+
+                if value.respond_to?(:description)
+                  value.description
+                else
+                  value
+                end
+              end
+          end
+
+          if expectations.size > 0
+            puts format_with_indent("Expectations:", indent: 2)
+            puts format_with_indent(JSON.pretty_generate(expectations), indent: 3)
             puts ""
           end
         end
