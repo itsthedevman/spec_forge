@@ -98,11 +98,11 @@ module SpecForge
         print_verbose_step_header(step)
       end
 
-      def step_end(step, error: nil)
+      def step_end(forge, step, error: nil)
         if error.nil?
           puts ""
         else
-          step_failure(step, error)
+          step_failure(forge, step, error)
         end
       end
 
@@ -123,24 +123,7 @@ module SpecForge
 
         if forge.failures.size > 0
           puts "Failures:\n\n"
-
-          forge.failures
-            .group_by_key(:step)
-            .each_with_index do |(step, failures), index|
-              line = step.source.line_number.to_s.rjust(2, "0")
-              location = @color.bright_blue("#{index + 1}) [#{step.source.file_name}:#{line}]")
-
-              puts format_with_indent("#{location} #{@color.white(step.name)}", indent: 1)
-
-              failures.each do |failure|
-                example = failure[:example]
-                message = example[:exception][:message].strip.prepend("\n")
-
-                puts format_with_indent("#{example[:description]} #{@color.red(message)}", indent: 2)
-                puts ""
-              end
-            end
-
+          puts format_failures(forge.failures)
         end
 
         puts format_stats(forge)
@@ -176,21 +159,68 @@ module SpecForge
         puts step.description if step.description.present?
       end
 
-      def step_failure(step, error)
+      def step_failure(forge, step, error)
+        return if default_mode?
         return unless error.is_a?(Error::ExpectationFailure)
 
         error.failed_examples.each do |example|
-          if verbose?
-            # Print out the error
-            message = example[:exception][:message].strip.prepend("\n")
+          # Print out the error
+          message = example[:exception][:message].strip.prepend("\n")
 
-            puts format_with_indent("#{example[:description]} #{@color.red(message)}", indent: 2)
-            # puts JSON.pretty_generate(example[:exception][:backtrace]) # DEBUG
+          puts format_with_indent("#{example[:description]} #{@color.red(message)}", indent: 2)
+          # puts JSON.pretty_generate(example[:exception][:backtrace]) # DEBUG
 
+          puts ""
+        end
+
+        if very_verbose? && !max_verbose?
+          puts format_with_indent(@color.dim("━" * (LINE_LENGTH * 0.75)), indent: 2)
+          puts ""
+
+          variables = forge.variables.to_hash.symbolize_keys
+
+          if (request = variables.delete(:request))
+            puts format_with_indent("Request:", indent: 2)
+            puts format_with_indent(JSON.pretty_generate(request), indent: 3)
             puts ""
-            next
+          end
+
+          if (response = variables.delete(:response))
+            puts format_with_indent("Response:", indent: 2)
+            puts format_with_indent(JSON.pretty_generate(response.to_h), indent: 3)
+            puts ""
+          end
+
+          if variables.present?
+            puts format_with_indent("Variables:", indent: 2)
+            puts format_with_indent(JSON.pretty_generate(variables), indent: 3)
+            puts ""
           end
         end
+      end
+
+      def format_failures(failures)
+        output = ""
+
+        failures
+          .group_by_key(:step)
+          .each_with_index do |(step, failures), index|
+            line = step.source.line_number.to_s.rjust(2, "0")
+            location = @color.bright_blue("#{index + 1}) [#{step.source.file_name}:#{line}]")
+
+            output += format_with_indent("#{location} #{@color.white(step.name)}", indent: 1)
+            output += "\n"
+
+            failures.each do |failure|
+              example = failure[:example]
+              message = example[:exception][:message].strip.prepend("\n")
+
+              output += format_with_indent("#{example[:description]} #{@color.red(message)}", indent: 2)
+              output += "\n\n"
+            end
+          end
+
+        output
       end
 
       def format_stats(forge)

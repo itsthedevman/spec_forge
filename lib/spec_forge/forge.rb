@@ -132,17 +132,18 @@ module SpecForge
     def step_end(step, error: nil)
       @stats[:steps] += 1
 
-      # Drop the request/response data from scope
-      @variables.except!(:request, :response)
-
       if error.is_a?(Error::ExpectationFailure)
         @failures += error.failed_examples.map { |example| {step:, example:} }
       end
 
-      @display.step_end(step, error:)
+      @display.step_end(self, step, error:)
 
       # Bubble up only AFTER display has been updated
       raise error if error && !error.is_a?(Error::ExpectationFailure)
+    ensure
+      # Drop the request/response data from scope
+      # Do this after everything is done so variables can be printed out if needed
+      @variables.except!(:request, :response)
     end
 
     def blueprint_end(blueprint)

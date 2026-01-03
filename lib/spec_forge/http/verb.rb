@@ -148,6 +148,8 @@ module SpecForge
 
       alias_method :to_s, :name
 
+      delegate :downcase, to: :to_s
+
       #
       # Returns if this Verb is a DELETE
       #

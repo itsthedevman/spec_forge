@@ -47,8 +47,34 @@ module SpecForge
       Call.new(callback_name: call[:name], arguments: call[:arguments])
     end
 
-    def transform_request(request)
-      return if request.blank?
+    def transform_request(input)
+      return if input.blank?
+
+      request = {}
+
+      if (url = input[:base_url]) && url.present?
+        request[:base_url] = Attribute.from(url)
+      end
+
+      if (url = input[:url]) && url.present?
+        request[:url] = Attribute.from(url)
+      end
+
+      if (headers = input[:headers]) && headers.present?
+        headers["Content-Type"] ||= input[:json] ? "application/json" : "text/plain"
+
+        request[:headers] = Attribute.from(headers)
+      end
+
+      if (query = input[:query]) && query.present?
+        request[:query] = Attribute.from(query)
+      end
+
+      if (json = input[:json]) && json.present?
+        request[:body] = Attribute.from(json)
+      elsif (raw = input[:raw]) && raw.present?
+        request[:body] = Attribute.from(raw)
+      end
 
       HTTP::Request.new(**request)
     end

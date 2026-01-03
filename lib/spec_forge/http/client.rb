@@ -9,7 +9,7 @@ module SpecForge
 
       def perform(request)
         @backend.public_send(
-          request.http_verb.to_s.downcase,
+          request.http_verb.downcase,
           request.url.delete_prefix("/"),
           headers: request.headers,
           query: request.query,
