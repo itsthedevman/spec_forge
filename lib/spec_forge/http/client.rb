@@ -11,6 +11,7 @@ module SpecForge
         @backend.public_send(
           request.http_verb.downcase,
           request.url.delete_prefix("/"),
+          base_url: request.base_url,
           headers: request.headers,
           query: request.query,
           body: request.body

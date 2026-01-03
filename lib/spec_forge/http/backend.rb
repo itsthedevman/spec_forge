@@ -100,7 +100,7 @@ module SpecForge
 
       def run_http_method(method, url, base_url: nil, headers: {}, query: {}, body: {})
         # Allow switching out the base_url before the request is sent
-        if base_url
+        if base_url.present?
           previous_url = connection.url_prefix
           connection.url_prefix = base_url
         end
@@ -114,7 +114,7 @@ module SpecForge
         end
 
         # Reset the base_url after the request is sent
-        connection.url_prefix = previous_url if base_url
+        connection.url_prefix = previous_url if previous_url
       end
     end
   end
