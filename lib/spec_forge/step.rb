@@ -60,6 +60,10 @@ module SpecForge
         request[:url] = Attribute.from(url)
       end
 
+      if (verb = input[:http_verb]) && verb.present?
+        request[:http_verb] = verb
+      end
+
       if (headers = input[:headers]) && headers.present?
         headers["Content-Type"] ||= input[:json] ? "application/json" : "text/plain"
 

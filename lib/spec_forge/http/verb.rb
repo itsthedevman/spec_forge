@@ -124,6 +124,8 @@ module SpecForge
       # @return [Verb, nil] The corresponding Verb instance, or nil if not found
       #
       def self.from(name)
+        return name if name.is_a?(Verb)
+
         VERBS[name.downcase.to_sym]
       end
 
