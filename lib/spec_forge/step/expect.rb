@@ -2,12 +2,11 @@
 
 module SpecForge
   class Step
-    class Expect < Data.define(:name, :status, :headers, :raw, :json)
-      def initialize(name: nil, status: nil, headers: nil, raw: nil, json: nil)
+    class Expect < Data.define(:status, :headers, :raw, :json)
+      def initialize(status: nil, headers: nil, raw: nil, json: nil)
         super(
-          name:,
           status: status ? Attribute.from(status) : nil,
-          headers: headers ? Attribute.from(headers) : nil,
+          headers: extract_headers(headers),
           raw: raw ? Attribute.from(raw) : nil,
           json: extract_json(json)
         )
@@ -33,7 +32,7 @@ module SpecForge
       def headers_matcher
         return if headers.blank?
 
-        headers.stringify_keys.transform_values { |v| v&.resolve_as_matcher }
+        headers.transform_values(&Attribute.resolve_as_matcher_proc)
       end
 
       def json_size_matcher
@@ -49,6 +48,12 @@ module SpecForge
       end
 
       private
+
+      def extract_headers(headers)
+        return if headers.blank?
+
+        headers.stringify_keys.transform_values { |v| Attribute.from(v) }
+      end
 
       def extract_json(json)
         return {} if json.blank?

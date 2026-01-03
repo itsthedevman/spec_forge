@@ -82,7 +82,7 @@ module SpecForge
     def transform_expect(expects)
       return if expects.blank?
 
-      expects.map.with_index { |e, i| Expect.new(name: "Expect #{i + 1}", **e) }
+      expects.map { |e| Expect.new(**e) }
     end
 
     def transform_store(store)
