@@ -62,13 +62,30 @@ module SpecForge
         print @color.red("F")
       end
 
-      def expectation_finished(failed_count:, total_count:, index: 0, show_index: false)
-        print format_with_indent("#{index}: ", indent: 1) if show_index
+      def expectation_finished(failed_examples:, total_count:, index: 0, show_index: false)
+        return if default_mode?
+
+        failed_count = failed_examples.size
+
+        print format_with_indent("#{index}:  ", indent: 1) if show_index
 
         if failed_count == 0
           action(:success, "(#{total_count}/#{total_count} passed)", color: :green, indent: show_index ? 0 : 1)
         else
           action(:error, "(#{failed_count}/#{total_count} failed)", color: :red, indent: show_index ? 0 : 1)
+        end
+
+        return if failed_examples.blank?
+
+        puts ""
+        failed_examples.each do |example|
+          # Print out the error
+          message = example[:exception][:message].strip.prepend("\n")
+
+          puts format_with_indent("#{example[:description]} #{@color.red(message)}", indent: 3)
+          # puts JSON.pretty_generate(example[:exception][:backtrace]) # DEBUG
+
+          puts ""
         end
       end
 
@@ -149,62 +166,54 @@ module SpecForge
       end
 
       def step_failure(forge, step, error)
-        return if default_mode?
-        return unless error.is_a?(Error::ExpectationFailure)
+        return if default_mode? || max_verbose?
 
-        error.failed_examples.each do |example|
-          # Print out the error
-          message = example[:exception][:message].strip.prepend("\n")
+        indent = 3
 
-          puts format_with_indent("#{example[:description]} #{@color.red(message)}", indent: 2)
-          # puts JSON.pretty_generate(example[:exception][:backtrace]) # DEBUG
+        puts ""
+        puts format_with_indent(@color.dim("━" * (LINE_LENGTH * 0.75)), indent:)
+        puts ""
 
-          puts ""
+        variables = forge.variables.to_hash.symbolize_keys
+        if (request = variables.delete(:request))
+          puts format_with_indent("Request:", indent:)
+          puts format_with_indent(request.to_h.deep_stringify_keys.to_yaml.sub("---\n", ""), indent: indent + 1)
         end
 
-        if very_verbose? && !max_verbose?
-          puts format_with_indent(@color.dim("━" * (LINE_LENGTH * 0.75)), indent: 2)
-          puts ""
+        if (response = variables.delete(:response))
+          puts format_with_indent("Response:", indent:)
+          puts format_with_indent(response.to_h.deep_stringify_keys.to_yaml.sub("---\n", ""), indent: indent + 1)
+        end
 
-          variables = forge.variables.to_hash.symbolize_keys
-          if (request = variables.delete(:request))
-            puts format_with_indent("Request:", indent: 2)
-            puts format_with_indent(request.to_h.deep_stringify_keys.to_yaml, indent: 3)
-            puts ""
+        if variables.present?
+          puts format_with_indent("Variables:", indent:)
+          puts format_with_indent(variables.to_h.deep_stringify_keys.to_yaml.sub("---\n", ""), indent: indent + 1)
+        end
+
+        expectations = step.expects.map do |expect|
+          expect = expect.to_h
+
+          if (schema = expect.dig(:json, :schema)) && schema.present?
+            expect[:json][:schema] = format_schema_for_display(schema)
           end
 
-          if (response = variables.delete(:response))
-            puts format_with_indent("Response:", indent: 2)
-            puts format_with_indent(response.to_h.deep_stringify_keys.to_yaml, indent: 3)
-            puts ""
-          end
+          expect
+            .compact_blank
+            .deep_stringify_keys
+            .deep_transform_values do |value|
+            value = Attribute.resolve_as_matcher_proc.call(value)
 
-          if variables.present?
-            puts format_with_indent("Variables:", indent: 2)
-            puts format_with_indent(variables.to_h.deep_stringify_keys.to_yaml, indent: 3)
-            puts ""
+            if value.respond_to?(:description)
+              value.description
+            else
+              value
+            end
           end
+        end
 
-          expectations = step.expects.map do |expect|
-            expect.to_h
-              .compact_blank
-              .deep_stringify_keys
-              .deep_transform_values do |value|
-                value = Attribute.resolve_as_matcher_proc.call(value)
-
-                if value.respond_to?(:description)
-                  value.description
-                else
-                  value
-                end
-              end
-          end
-
-          if expectations.size > 0
-            puts format_with_indent("Expectations:", indent: 2)
-            puts format_with_indent(expectations.to_yaml, indent: 3)
-            puts ""
-          end
+        if expectations.size > 0
+          puts format_with_indent("Expectations:", indent:)
+          puts format_with_indent(expectations.to_yaml.sub("---\n", ""), indent: indent + 1)
         end
       end
 
@@ -215,16 +224,16 @@ module SpecForge
           .group_by_key(:step)
           .each_with_index do |(step, failures), index|
             line = step.source.line_number.to_s.rjust(2, "0")
-            location = @color.bright_blue("#{index + 1}) [#{step.source.file_name}:#{line}]")
+            location = @color.bright_blue("#{index + 1})  [#{step.source.file_name}:#{line}]")
 
             output += format_with_indent("#{location} #{@color.white(step.name)}", indent: 1)
-            output += "\n"
+            output += "\n\n"
 
             failures.each do |failure|
               example = failure[:example]
               message = example[:exception][:message].strip.prepend("\n")
 
-              output += format_with_indent("#{example[:description]} #{@color.red(message)}", indent: 2)
+              output += format_with_indent("#{example[:description]} #{@color.red(message)}", indent: 3)
               output += "\n\n"
             end
           end
@@ -251,6 +260,33 @@ module SpecForge
           @color.red(message)
         else
           @color.green(message)
+        end
+      end
+
+      def format_schema_for_display(schema)
+        return if schema.blank?
+
+        case schema
+        when Hash
+          if schema[:pattern]
+            # Array with pattern - show type + pattern structure
+            {
+              type: Type.to_string(*schema[:type]),
+              pattern: format_schema_for_display(schema[:pattern])
+            }
+          elsif schema[:structure]
+            # Hash with structure - just recurse into the fields (no type: hash clutter)
+            schema[:structure].transform_values { |field| format_schema_for_display(field) }
+          elsif schema[:type]
+            # Simple field - just convert the type
+            Type.to_string(*schema[:type])
+          else
+            # Unknown structure, pass through as-is
+            schema
+          end
+        else
+          # Not a hash, return as-is
+          schema
         end
       end
     end

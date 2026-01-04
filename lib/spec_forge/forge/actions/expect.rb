@@ -11,7 +11,7 @@ module SpecForge
             failed = forge.runner.run(forge, step, expectation)
 
             forge.display.expectation_finished(
-              failed_count: failed.size,
+              failed_examples: failed,
               total_count: expectation.size,
               index: index + 1,
               show_index: show_expectation_count
