@@ -19,7 +19,7 @@ module SpecForge
       @global_variables = {}
 
       # Internal
-      @on_debug_proc = Forge::Debug.default
+      @on_debug_proc = nil
       @callbacks = {}
     end
 
