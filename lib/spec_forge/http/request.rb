@@ -21,6 +21,12 @@ module SpecForge
       def json?
         content_type == "application/json"
       end
+
+      def to_h
+        super.tap do |h|
+          h[:http_verb] = h[:http_verb].to_s
+        end
+      end
     end
   end
 end
