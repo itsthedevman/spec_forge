@@ -78,8 +78,8 @@ module SpecForge
         return if failed_examples.blank?
 
         puts ""
+
         failed_examples.each do |example|
-          # Print out the error
           message = example[:exception][:message].strip.prepend("\n")
 
           puts format_with_indent("#{example[:description]} #{@color.red(message)}", indent: 3)
@@ -92,10 +92,6 @@ module SpecForge
       ##########################################################################
 
       def blueprint_start(blueprint)
-        return if verbose?
-
-        puts ""
-        puts @color.bold("Running #{blueprint.file_name}...")
       end
 
       def step_start(step)
@@ -105,7 +101,7 @@ module SpecForge
       end
 
       def step_end(forge, step, error: nil)
-        if error.nil?
+        if error.nil? && verbose?
           puts ""
         else
           step_failure(forge, step, error)
@@ -166,7 +162,7 @@ module SpecForge
       end
 
       def step_failure(forge, step, error)
-        return if default_mode? || max_verbose?
+        return unless very_verbose?
 
         indent = 3
 
