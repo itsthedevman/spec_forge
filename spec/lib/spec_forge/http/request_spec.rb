@@ -6,11 +6,10 @@ RSpec.describe SpecForge::HTTP::Request do
   let(:http_verb) { "GET" }
   let(:headers) { {} }
   let(:query) { {} }
-  let(:raw) { "" }
-  let(:json) { {} }
+  let(:body) { {} }
 
   let(:options) do
-    {base_url:, url:, http_verb:, headers:, query:, raw:, json:}
+    {base_url:, url:, http_verb:, headers:, query:, body:}
   end
 
   subject(:request) { described_class.new(**options) }
@@ -20,14 +19,36 @@ RSpec.describe SpecForge::HTTP::Request do
       expect(request.http_verb).to be_kind_of(SpecForge::HTTP::Verb::Get)
     end
 
-    context "when 'headers' are provided" do
-      let(:headers) { {:content_type => "custom/type", "Custom-Header-2" => "value"} }
+    it "defaults base_url to empty string" do
+      request = described_class.new(url: "/test")
+      expect(request.base_url).to eq("")
+    end
 
-      it "normalizes header keys to HTTP-Case" do
-        expect(request.headers.resolved).to include(
-          "Content-Type" => "custom/type",
-          "Custom-Header-2" => "value"
-        )
+    it "defaults url to empty string" do
+      request = described_class.new
+      expect(request.url).to eq("")
+    end
+
+    it "defaults headers to empty hash" do
+      request = described_class.new
+      expect(request.headers).to eq({})
+    end
+
+    it "defaults query to empty hash" do
+      request = described_class.new
+      expect(request.query).to eq({})
+    end
+
+    it "defaults body to empty hash" do
+      request = described_class.new
+      expect(request.body).to eq({})
+    end
+
+    context "when 'headers' are provided" do
+      let(:headers) { {"Content-Type" => "application/json", "Authorization" => "Bearer token"} }
+
+      it "stores headers as provided" do
+        expect(request.headers).to eq(headers)
       end
     end
 
@@ -38,95 +59,92 @@ RSpec.describe SpecForge::HTTP::Request do
     end
 
     context "when 'query' is provided" do
-      let(:query) { {filter: "faker.string.random"} }
+      let(:query) { {filter: "active", page: 1} }
 
-      it "converts values to Attributes" do
-        expect(request.query[:filter]).to be_kind_of(SpecForge::Attribute::Faker)
-        expect(request.query[:filter].value).to be_kind_of(String)
+      it "stores query params as provided" do
+        expect(request.query).to eq(query)
       end
     end
 
     context "when 'http_verb' is mixed case" do
       let(:http_verb) { "DeLeTe" }
 
-      it "works because it is case insensitive" do
+      it "works because Verb.from is case insensitive" do
         expect(request.http_verb).to eq("DELETE")
       end
     end
 
-    describe "content handling" do
-      context "when 'json' is provided" do
-        let(:json) { {name: "Test User", age: 25} }
+    context "when 'body' is provided" do
+      let(:body) { {name: "Test User", age: 25} }
 
-        it "converts json to ResolvableHash" do
-          expect(request.body).to be_kind_of(SpecForge::Attribute::ResolvableHash)
-        end
-
-        it "preserves the structure for later resolution" do
-          expect(request.body.resolved).to eq(name: "Test User", age: 25)
-        end
-
-        it "sets Content-Type to application/json" do
-          expect(request.content_type.resolved).to eq("application/json")
-        end
-
-        context "with Faker attributes" do
-          let(:json) { {name: "faker.name.name", email: "faker.internet.email"} }
-
-          it "converts nested values to Attributes" do
-            expect(request.body[:name]).to be_kind_of(SpecForge::Attribute::Faker)
-            expect(request.body[:email]).to be_kind_of(SpecForge::Attribute::Faker)
-          end
-
-          it "resolves Faker values when accessed" do
-            expect(request.body[:name].resolved).to be_kind_of(String)
-            expect(request.body[:email].resolved).to be_kind_of(String)
-          end
-        end
+      it "stores body as provided" do
+        expect(request.body).to eq(body)
       end
+    end
+  end
 
-      context "when 'raw' is provided" do
-        let(:raw) { "username=test&password=123" }
+  describe "#content_type" do
+    context "when Content-Type header is set" do
+      let(:headers) { {"Content-Type" => "application/json"} }
 
-        it "uses the raw string as body" do
-          expect(request.body.resolved).to eq(raw)
-        end
-
-        it "sets Content-Type to text/plain by default" do
-          expect(request.content_type.resolved).to eq("text/plain")
-        end
-
-        context "with custom Content-Type header" do
-          let(:headers) { {"Content-Type" => "application/x-www-form-urlencoded"} }
-
-          it "respects the provided Content-Type" do
-            expect(request.content_type.resolved).to eq("application/x-www-form-urlencoded")
-          end
-        end
+      it "returns the content type" do
+        expect(request.content_type).to eq("application/json")
       end
+    end
 
-      context "when both 'json' and 'raw' are blank" do
-        it "defaults to empty raw body" do
-          expect(request.body.resolved).to eq("")
-        end
-
-        it "sets Content-Type to text/plain" do
-          expect(request.content_type.resolved).to eq("text/plain")
-        end
+    context "when Content-Type header is not set" do
+      it "returns nil" do
+        expect(request.content_type).to be_nil
       end
+    end
+  end
 
-      context "when both 'json' and 'raw' are provided" do
-        let(:json) { {data: "json"} }
-        let(:raw) { "raw data" }
+  describe "#json?" do
+    context "when content type is application/json" do
+      let(:headers) { {"Content-Type" => "application/json"} }
 
-        it "json takes precedence" do
-          expect(request.body.resolved).to eq(data: "json")
-        end
-
-        it "sets Content-Type to application/json" do
-          expect(request.content_type.resolved).to eq("application/json")
-        end
+      it "returns true" do
+        expect(request.json?).to be(true)
       end
+    end
+
+    context "when content type is not application/json" do
+      let(:headers) { {"Content-Type" => "text/plain"} }
+
+      it "returns false" do
+        expect(request.json?).to be(false)
+      end
+    end
+
+    context "when content type is not set" do
+      it "returns false" do
+        expect(request.json?).to be(false)
+      end
+    end
+  end
+
+  describe "#to_h" do
+    let(:headers) { {"Content-Type" => "application/json"} }
+    let(:body) { {name: "Test"} }
+
+    it "returns a hash representation" do
+      expect(request.to_h).to be_a(Hash)
+    end
+
+    it "converts http_verb to string" do
+      expect(request.to_h[:http_verb]).to eq("GET")
+    end
+
+    it "includes all attributes" do
+      hash = request.to_h
+      expect(hash).to include(
+        base_url: base_url,
+        url: url,
+        http_verb: "GET",
+        headers: headers,
+        query: query,
+        body: body
+      )
     end
   end
 end

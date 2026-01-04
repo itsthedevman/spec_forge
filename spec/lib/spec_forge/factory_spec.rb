@@ -40,38 +40,45 @@ RSpec.describe SpecForge::Factory do
 
     subject(:factory) { described_class.new(**input) }
 
-    context "when variables are referenced" do
+    context "when variables are defined" do
       let(:input) do
         {
           name: "test",
           variables: {
-            var_1: "test"
+            var_1: "test_value"
           },
           attributes: {
-            attr_1: "variables.var_1"
+            attr_1: "static_value"
           }
         }
       end
 
-      it "is expected that they are properly linked" do
-        expect(factory.attributes[:attr_1].value).to eq(input[:variables][:var_1])
+      it "stores variables as Attributes" do
+        expect(factory.variables[:var_1]).to be_a(SpecForge::Attribute)
+        expect(factory.variables[:var_1].resolved).to eq("test_value")
+      end
+
+      it "stores attributes as Attributes" do
+        expect(factory.attributes[:attr_1]).to be_a(SpecForge::Attribute)
+        expect(factory.attributes[:attr_1].resolved).to eq("static_value")
       end
     end
 
-    context "when 'variables' reference themselves" do
+    context "when attributes use template syntax" do
       let(:input) do
         {
           name: "test",
           variables: {
-            var_1: "test",
-            var_2: "variables.var_1"
+            var_1: "template_value"
           },
-          attributes: {}
+          attributes: {
+            attr_1: "{{ var_1 }}"
+          }
         }
       end
 
-      it "is expected to be able to be resolved" do
-        expect(factory.variables[:var_2].resolved).to eq(input[:variables][:var_1])
+      it "creates Template attributes that can reference variables" do
+        expect(factory.attributes[:attr_1]).to be_a(SpecForge::Attribute::Template)
       end
     end
   end

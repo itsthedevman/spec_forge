@@ -1,16 +1,8 @@
 # frozen_string_literal: true
 
 RSpec.describe SpecForge::Forge::Call do
-  let(:step) do
-    SpecForge::Step.new(
-      name: "Step with call",
-      source: {file_name: "test.yml", line_number: 5},
-      call: {name: :my_callback, arguments: {key: "value"}}
-    )
-  end
-
   let(:display) { instance_double(SpecForge::Forge::Display, action: nil) }
-  let(:callbacks) { instance_double(SpecForge::Forge::Callbacks, run_callback: nil) }
+  let(:callbacks) { instance_double(SpecForge::Forge::Callbacks, run: nil) }
 
   let(:forge) do
     instance_double(
@@ -25,36 +17,61 @@ RSpec.describe SpecForge::Forge::Call do
   describe "#run" do
     subject(:run) { action.run(forge) }
 
-    it "displays the call action" do
-      run
+    context "with positional arguments" do
+      let(:step) do
+        SpecForge::Step.new(
+          name: "Step with positional args",
+          source: {file_name: "test.yml", line_number: 5},
+          call: {name: :my_callback, arguments: ["value1", "value2"]}
+        )
+      end
 
-      expect(display).to have_received(:action).with(
-        :call,
-        "Call: my_callback",
-        color: :yellow,
-        style: :dim
-      )
+      it "displays the call action" do
+        run
+
+        expect(display).to have_received(:action).with(
+          :call,
+          'Call "my_callback"',
+          color: :yellow
+        )
+      end
+
+      it "runs the callback with the context and positional arguments" do
+        run
+
+        expect(callbacks).to have_received(:run).with(:my_callback, anything, "value1", "value2")
+      end
     end
 
-    it "runs the callback with the arguments" do
-      run
+    context "with keyword arguments" do
+      let(:step) do
+        SpecForge::Step.new(
+          name: "Step with keyword args",
+          source: {file_name: "test.yml", line_number: 5},
+          call: {name: :my_callback, arguments: {key1: "value1", key2: "value2"}}
+        )
+      end
 
-      expect(callbacks).to have_received(:run_callback).with(:my_callback, {key: "value"})
+      it "runs the callback with the context and keyword arguments" do
+        run
+
+        expect(callbacks).to have_received(:run).with(:my_callback, anything, {key1: "value1", key2: "value2"})
+      end
     end
 
     context "when arguments are nil" do
       let(:step) do
         SpecForge::Step.new(
-          name: "Step with simple callback",
+          name: "Step with no args",
           source: {file_name: "test.yml", line_number: 5},
           call: {name: :simple_callback, arguments: nil}
         )
       end
 
-      it "runs the callback with nil arguments" do
+      it "runs the callback with just the context" do
         run
 
-        expect(callbacks).to have_received(:run_callback).with(:simple_callback, nil)
+        expect(callbacks).to have_received(:run).with(:simple_callback, anything)
       end
     end
   end

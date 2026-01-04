@@ -7,7 +7,16 @@ module SpecForge
         forge.display.action(:call, "Call #{step.call.callback_name.in_quotes}", color: :yellow)
 
         context = SpecForge::Forge.context
-        forge.callbacks.run(step.call.callback_name, context, *step.call.arguments)
+        arguments = step.call.arguments
+
+        case arguments
+        when Array
+          forge.callbacks.run(step.call.callback_name, context, *arguments)
+        when Hash
+          forge.callbacks.run(step.call.callback_name, context, **arguments)
+        else
+          forge.callbacks.run(step.call.callback_name, context)
+        end
       end
     end
   end

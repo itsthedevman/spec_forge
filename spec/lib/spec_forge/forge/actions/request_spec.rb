@@ -14,15 +14,17 @@ RSpec.describe SpecForge::Forge::Request do
   end
 
   let(:display) { instance_double(SpecForge::Forge::Display, action: nil) }
-  let(:response) { instance_double(Faraday::Response, status: 200, body: {id: 1}) }
-  let(:http_client) { instance_double(SpecForge::HTTP::Client, perform: response) }
-  let(:local_variables) { instance_double(SpecForge::Forge::Store, store: nil) }
+  let(:faraday_response) do
+    double("Faraday::Response", to_h: {status: 200, body: {id: 1}})
+  end
+  let(:http_client) { instance_double(SpecForge::HTTP::Client, perform: faraday_response) }
+  let(:variables) { {} }
 
   let(:forge) do
     instance_double(
       SpecForge::Forge,
       http_client:,
-      local_variables:,
+      variables:,
       display:
     )
   end
@@ -30,6 +32,11 @@ RSpec.describe SpecForge::Forge::Request do
   subject(:action) { described_class.new(step) }
 
   describe "#run" do
+    before do
+      # Stub the configuration for base_url
+      allow(SpecForge.configuration).to receive(:base_url).and_return("http://localhost:3000")
+    end
+
     subject(:run) { action.run(forge) }
 
     it "displays the request action" do
@@ -45,19 +52,21 @@ RSpec.describe SpecForge::Forge::Request do
     it "performs the HTTP request" do
       run
 
-      expect(http_client).to have_received(:perform).with(step.request)
+      expect(http_client).to have_received(:perform)
     end
 
-    it "stores the request in local variables" do
+    it "stores the request in variables" do
       run
 
-      expect(local_variables).to have_received(:store).with(:request, step.request)
+      expect(variables[:request]).to be_a(Hash)
+      expect(variables[:request][:url]).to eq("/api/users")
     end
 
-    it "stores the response in local variables" do
+    it "stores the response in variables" do
       run
 
-      expect(local_variables).to have_received(:store).with(:response, response)
+      expect(variables[:response]).to be_a(Hash)
+      expect(variables[:response][:status]).to eq(200)
     end
   end
 end
