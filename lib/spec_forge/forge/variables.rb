@@ -2,9 +2,9 @@
 
 module SpecForge
   class Forge
-    class Variables < HashWithIndifferentAccess
+    class Variables < Hash
       def initialize(static: {}, dynamic: {})
-        @static = static.deep_dup.with_indifferent_access
+        @static = static.deep_dup
 
         merge!(@static, dynamic.deep_dup)
       end

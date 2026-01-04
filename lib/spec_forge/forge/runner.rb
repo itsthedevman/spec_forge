@@ -46,14 +46,14 @@ module SpecForge
         RSpec::Core::ExampleGroup.describe(step.source.to_s) do
           let(:response) { forge.variables[:response] }
 
-          let(:headers) { response.headers }
-          let(:body) { response.body.is_a?(Hash) ? response.body.deep_stringify_keys : response.body }
+          let(:headers) { response[:headers] }
+          let(:body) { response[:body].is_a?(Hash) ? response[:body].deep_symbolize_keys : response[:body] }
 
           ############################################################
           # Status check
           if (status_matcher = expectation.status_matcher)
             it "Status" do
-              expect(response.status).to status_matcher
+              expect(response[:status]).to status_matcher
             end
           end
 

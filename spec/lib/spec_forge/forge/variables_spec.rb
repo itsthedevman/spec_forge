@@ -69,11 +69,6 @@ RSpec.describe SpecForge::Forge::Variables do
     it "returns nil when key does not exist" do
       expect(variables[:nonexistent]).to be_nil
     end
-
-    it "supports string keys via indifferent access" do
-      expect(variables["shared"]).to eq("dynamic_value")
-      expect(variables["static_only"]).to eq("from_static")
-    end
   end
 
   describe "#fetch" do
@@ -97,12 +92,6 @@ RSpec.describe SpecForge::Forge::Variables do
       static_vars[:key] = "dynamic"
 
       expect(static_vars[:key]).to eq("dynamic")
-    end
-
-    it "supports string keys via indifferent access" do
-      variables["string_key"] = "string_value"
-
-      expect(variables[:string_key]).to eq("string_value")
     end
   end
 
