@@ -10,15 +10,8 @@ module SpecForge
       #
       attr_reader :connection
 
-      #
-      # Configures a new Faraday connection based on the request configuration
-      #
-      # @param request [HTTP::Request] The request configuration to use
-      #
-      # @return [Backend] A new backend instance with a configured connection
-      #
-      def initialize(base_url:)
-        @connection = Faraday.new(url: base_url)
+      def initialize
+        @connection = Faraday.new
       end
 
       #
@@ -32,8 +25,8 @@ module SpecForge
       #
       # @return [Faraday::Response] The HTTP response
       #
-      def delete(url, **)
-        run_http_method(:delete, url, **)
+      def delete(**)
+        run_http_method(:delete, **)
       end
 
       #
@@ -47,8 +40,8 @@ module SpecForge
       #
       # @return [Faraday::Response] The HTTP response
       #
-      def get(url, **)
-        run_http_method(:get, url, **)
+      def get(**)
+        run_http_method(:get, **)
       end
 
       #
@@ -62,8 +55,8 @@ module SpecForge
       #
       # @return [Faraday::Response] The HTTP response
       #
-      def patch(url, **)
-        run_http_method(:patch, url, **)
+      def patch(**)
+        run_http_method(:patch, **)
       end
 
       #
@@ -77,8 +70,8 @@ module SpecForge
       #
       # @return [Faraday::Response] The HTTP response
       #
-      def post(url, **)
-        run_http_method(:post, url, **)
+      def post(**)
+        run_http_method(:post, **)
       end
 
       #
@@ -92,18 +85,14 @@ module SpecForge
       #
       # @return [Faraday::Response] The HTTP response
       #
-      def put(url, **)
-        run_http_method(:put, url, **)
+      def put(**)
+        run_http_method(:put, **)
       end
 
       private
 
-      def run_http_method(method, url, base_url: nil, headers: {}, query: {}, body: {})
-        # Allow switching out the base_url before the request is sent
-        if base_url.present?
-          previous_url = connection.url_prefix
-          connection.url_prefix = base_url
-        end
+      def run_http_method(method, url:, base_url:, headers: {}, query: {}, body: {})
+        connection.url_prefix = base_url
 
         connection.public_send(method, url) do |request|
           request.headers.merge!(headers)
@@ -112,9 +101,6 @@ module SpecForge
           request.params.merge!(query)
           request.body = body
         end
-
-        # Reset the base_url after the request is sent
-        connection.url_prefix = previous_url if previous_url
       end
     end
   end

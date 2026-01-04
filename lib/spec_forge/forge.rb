@@ -55,7 +55,7 @@ module SpecForge
       @callbacks = Callbacks.new
       @display = Display.new(verbosity_level:)
       @failures = []
-      @http_client = HTTP::Client.new(base_url: SpecForge.configuration.base_url)
+      @http_client = HTTP::Client.new
       @runner = Runner.new
       @stats = {}
       @timer = Timer.new

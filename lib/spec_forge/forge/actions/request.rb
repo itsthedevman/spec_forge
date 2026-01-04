@@ -19,6 +19,7 @@ module SpecForge
 
       def build_requests
         resolved_request = step.request.to_h.transform_values { |v| v.respond_to?(:resolved) ? v.resolved : v }
+        resolved_request[:base_url] = SpecForge.configuration.base_url if resolved_request[:base_url].blank?
 
         request = resolved_request.deep_dup
         request[:body] =
