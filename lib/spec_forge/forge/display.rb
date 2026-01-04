@@ -62,17 +62,6 @@ module SpecForge
         print @color.red("F")
       end
 
-      # [simple_lifecycle:08] Create a user *********************************************
-      #   → POST /api/users
-      #     Expect 1: ✓ (1/1 passed)
-      #     Expect 2: ✓ (2/2 passed)
-      #     Expect 3: ✗ (1/3 failed)
-      #       JSON size
-      #         expected: 3
-      #         got: 5
-      #   ▸ Store "user_id"
-      #   ▸ Store "created_email"
-
       def expectation_finished(failed_count:, total_count:, index: 0, show_index: false)
         print format_with_indent("#{index}: ", indent: 1) if show_index
 
@@ -180,25 +169,26 @@ module SpecForge
           variables = forge.variables.to_hash.symbolize_keys
           if (request = variables.delete(:request))
             puts format_with_indent("Request:", indent: 2)
-            puts format_with_indent(JSON.pretty_generate(request), indent: 3)
+            puts format_with_indent(request.to_h.deep_stringify_keys.to_yaml, indent: 3)
             puts ""
           end
 
           if (response = variables.delete(:response))
             puts format_with_indent("Response:", indent: 2)
-            puts format_with_indent(JSON.pretty_generate(response.to_h), indent: 3)
+            puts format_with_indent(response.to_h.deep_stringify_keys.to_yaml, indent: 3)
             puts ""
           end
 
           if variables.present?
             puts format_with_indent("Variables:", indent: 2)
-            puts format_with_indent(JSON.pretty_generate(variables), indent: 3)
+            puts format_with_indent(variables.to_h.deep_stringify_keys.to_yaml, indent: 3)
             puts ""
           end
 
           expectations = step.expects.map do |expect|
             expect.to_h
               .compact_blank
+              .deep_stringify_keys
               .deep_transform_values do |value|
                 value = Attribute.resolve_as_matcher_proc.call(value)
 
@@ -212,7 +202,7 @@ module SpecForge
 
           if expectations.size > 0
             puts format_with_indent("Expectations:", indent: 2)
-            puts format_with_indent(JSON.pretty_generate(expectations), indent: 3)
+            puts format_with_indent(expectations.to_yaml, indent: 3)
             puts ""
           end
         end
