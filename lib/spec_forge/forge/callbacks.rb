@@ -21,7 +21,7 @@ module SpecForge
         @callbacks.key?(name.to_sym)
       end
 
-      def run(name, arguments = nil, before_block: nil)
+      def run(name, *arguments)
         ensure_registered!(name)
 
         callback = @callbacks[name.to_sym]
