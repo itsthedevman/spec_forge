@@ -149,4 +149,134 @@ RSpec.describe SpecForge::Type do
       end
     end
   end
+
+  describe ".to_string" do
+    context "with single non-nullable types" do
+      it "converts Integer to 'integer'" do
+        expect(described_class.to_string(Integer)).to eq("integer")
+      end
+
+      it "converts String to 'string'" do
+        expect(described_class.to_string(String)).to eq("string")
+      end
+
+      it "converts Float to 'float'" do
+        expect(described_class.to_string(Float)).to eq("float")
+      end
+
+      it "converts Hash to 'hash'" do
+        expect(described_class.to_string(Hash)).to eq("hash")
+      end
+
+      it "converts Array to 'array'" do
+        expect(described_class.to_string(Array)).to eq("array")
+      end
+
+      it "converts TrueClass to 'boolean'" do
+        expect(described_class.to_string(TrueClass)).to eq("boolean")
+      end
+
+      it "converts FalseClass to 'boolean'" do
+        expect(described_class.to_string(FalseClass)).to eq("boolean")
+      end
+
+      it "converts NilClass to 'null'" do
+        expect(described_class.to_string(NilClass)).to eq("null")
+      end
+    end
+
+    context "with nullable types" do
+      it "converts [String, NilClass] to '?string'" do
+        expect(described_class.to_string(String, NilClass)).to eq("?string")
+      end
+
+      it "converts [Integer, NilClass] to '?integer'" do
+        expect(described_class.to_string(Integer, NilClass)).to eq("?integer")
+      end
+
+      it "converts [Float, NilClass] to '?float'" do
+        expect(described_class.to_string(Float, NilClass)).to eq("?float")
+      end
+
+      it "converts [Hash, NilClass] to '?hash'" do
+        expect(described_class.to_string(Hash, NilClass)).to eq("?hash")
+      end
+
+      it "converts [Array, NilClass] to '?array'" do
+        expect(described_class.to_string(Array, NilClass)).to eq("?array")
+      end
+
+      it "handles NilClass in any position" do
+        expect(described_class.to_string(NilClass, String)).to eq("?string")
+      end
+    end
+
+    context "with boolean types" do
+      it "converts [TrueClass, FalseClass] to 'boolean'" do
+        expect(described_class.to_string(TrueClass, FalseClass)).to eq("boolean")
+      end
+
+      it "converts [FalseClass, TrueClass] to 'boolean' (order doesn't matter)" do
+        expect(described_class.to_string(FalseClass, TrueClass)).to eq("boolean")
+      end
+    end
+
+    context "with nullable booleans" do
+      it "converts [TrueClass, FalseClass, NilClass] to '?boolean'" do
+        expect(described_class.to_string(TrueClass, FalseClass, NilClass)).to eq("?boolean")
+      end
+
+      it "converts [FalseClass, TrueClass, NilClass] to '?boolean' (order doesn't matter)" do
+        expect(described_class.to_string(FalseClass, TrueClass, NilClass)).to eq("?boolean")
+      end
+
+      it "converts [NilClass, TrueClass, FalseClass] to '?boolean' (NilClass first)" do
+        expect(described_class.to_string(NilClass, TrueClass, FalseClass)).to eq("?boolean")
+      end
+    end
+
+    context "with multiple non-nil types" do
+      it "returns array of type strings for [String, Integer]" do
+        result = described_class.to_string(String, Integer)
+        expect(result).to match_array(["string", "integer"])
+      end
+
+      it "returns array for [String, Integer, Hash]" do
+        result = described_class.to_string(String, Integer, Hash)
+        expect(result).to match_array(["string", "integer", "hash"])
+      end
+
+      it "returns array for [Float, String]" do
+        result = described_class.to_string(Float, String)
+        expect(result).to match_array(["float", "string"])
+      end
+    end
+
+    context "with multiple types including NilClass" do
+      it "strips NilClass and returns array for [String, Integer, NilClass]" do
+        result = described_class.to_string(String, Integer, NilClass)
+        expect(result).to match_array(["?string", "?integer"])
+      end
+
+      it "strips NilClass and returns array for [Hash, Array, NilClass]" do
+        result = described_class.to_string(Hash, Array, NilClass)
+        expect(result).to match_array(["?hash", "?array"])
+      end
+    end
+
+    context "edge cases" do
+      it "handles duplicate types with uniq" do
+        expect(described_class.to_string(String, String)).to eq("string")
+      end
+
+      it "handles duplicate types in array result" do
+        result = described_class.to_string(String, String, Integer)
+        expect(result).to match_array(["string", "integer"])
+      end
+
+      it "handles TrueClass/FalseClass duplicates" do
+        expect(described_class.to_string(TrueClass, TrueClass, FalseClass, FalseClass)).to eq("boolean")
+      end
+    end
+  end
 end
