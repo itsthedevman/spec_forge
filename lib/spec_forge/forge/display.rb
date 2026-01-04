@@ -101,10 +101,22 @@ module SpecForge
       end
 
       def step_end(forge, step, error: nil)
-        if error.nil? && verbose?
-          puts ""
-        else
-          step_failure(forge, step, error)
+        return unless verbose?
+
+        puts ""
+
+        if max_verbose? || (very_verbose? && error)
+          indent = error ? 3 : 1
+
+          details = format_debug_details(forge, step, indent:)
+          return if details.blank?
+
+          if error
+            puts format_with_indent(@color.dim("━" * (LINE_LENGTH * 0.75)), indent:)
+            puts ""
+          end
+
+          puts details
         end
       end
 
@@ -161,60 +173,8 @@ module SpecForge
         puts step.description if step.description.present?
       end
 
-      def step_failure(forge, step, error)
-        return unless very_verbose?
-
-        indent = 3
-
-        puts ""
-        puts format_with_indent(@color.dim("━" * (LINE_LENGTH * 0.75)), indent:)
-        puts ""
-
-        variables = forge.variables.to_hash.symbolize_keys
-        if (request = variables.delete(:request))
-          puts format_with_indent("Request:", indent:)
-          puts format_with_indent(request.to_h.deep_stringify_keys.to_yaml.sub("---\n", ""), indent: indent + 1)
-        end
-
-        if (response = variables.delete(:response))
-          puts format_with_indent("Response:", indent:)
-          puts format_with_indent(response.to_h.deep_stringify_keys.to_yaml.sub("---\n", ""), indent: indent + 1)
-        end
-
-        if variables.present?
-          puts format_with_indent("Variables:", indent:)
-          puts format_with_indent(variables.to_h.deep_stringify_keys.to_yaml.sub("---\n", ""), indent: indent + 1)
-        end
-
-        expectations = step.expects.map do |expect|
-          expect = expect.to_h
-
-          if (schema = expect.dig(:json, :schema)) && schema.present?
-            expect[:json][:schema] = format_schema_for_display(schema)
-          end
-
-          expect
-            .compact_blank
-            .deep_stringify_keys
-            .deep_transform_values do |value|
-            value = Attribute.resolve_as_matcher_proc.call(value)
-
-            if value.respond_to?(:description)
-              value.description
-            else
-              value
-            end
-          end
-        end
-
-        if expectations.size > 0
-          puts format_with_indent("Expectations:", indent:)
-          puts format_with_indent(expectations.to_yaml.sub("---\n", ""), indent: indent + 1)
-        end
-      end
-
       def format_failures(failures)
-        output = ""
+        output = []
 
         failures
           .group_by_key(:step)
@@ -222,19 +182,21 @@ module SpecForge
             line = step.source.line_number.to_s.rjust(2, "0")
             location = @color.bright_blue("#{index + 1})  [#{step.source.file_name}:#{line}]")
 
-            output += format_with_indent("#{location} #{@color.white(step.name)}", indent: 1)
-            output += "\n\n"
+            output << format_with_indent("#{location} #{@color.white(step.name)}", indent: 1)
+            output << ""
 
             failures.each do |failure|
               example = failure[:example]
               message = example[:exception][:message].strip.prepend("\n")
 
-              output += format_with_indent("#{example[:description]} #{@color.red(message)}", indent: 3)
-              output += "\n\n"
+              output << format_with_indent("#{example[:description]} #{@color.red(message)}", indent: 3)
+              output << ""
             end
+
+            output << ""
           end
 
-        output
+        output.join("\n")
       end
 
       def format_stats(forge)
@@ -284,6 +246,56 @@ module SpecForge
           # Not a hash, return as-is
           schema
         end
+      end
+
+      def format_debug_details(forge, step, indent: 0)
+        output = []
+
+        variables = forge.variables.to_hash.symbolize_keys
+        if (request = variables.delete(:request))
+          output << format_with_indent("Request:", indent:)
+          output << format_with_indent(request.to_h.deep_stringify_keys.to_yaml.sub("---\n", ""), indent: indent + 1)
+        end
+
+        if (response = variables.delete(:response))
+          output << format_with_indent("Response:", indent:)
+          output << format_with_indent(response.to_h.deep_stringify_keys.to_yaml.sub("---\n", ""), indent: indent + 1)
+        end
+
+        if variables.present?
+          output << format_with_indent("Variables:", indent:)
+          output << format_with_indent(variables.to_h.deep_stringify_keys.to_yaml.sub("---\n", ""), indent: indent + 1)
+        end
+
+        if (expects = step.expects) && expects.present?
+          expectations = expects.map do |expect|
+            expect = expect.to_h
+
+            if (schema = expect.dig(:json, :schema)) && schema.present?
+              expect[:json][:schema] = format_schema_for_display(schema)
+            end
+
+            expect
+              .compact_blank
+              .deep_stringify_keys
+              .deep_transform_values do |value|
+              value = Attribute.resolve_as_matcher_proc.call(value)
+
+              if value.respond_to?(:description)
+                value.description
+              else
+                value
+              end
+            end
+          end
+
+          if expectations.size > 0
+            output << format_with_indent("Expectations:", indent:)
+            output << format_with_indent(expectations.to_yaml.sub("---\n", ""), indent: indent + 1)
+          end
+        end
+
+        output.join("\n")
       end
     end
   end
