@@ -122,9 +122,9 @@ module SpecForge
 
     def step_action(step)
       # HEY! LISTEN: These read and write to the forge's state
-      Debug.new(step).run(self) if step.debug?
       Call.new(step).run(self) if step.call?
       Request.new(step).run(self) if step.request?
+      Debug.new(step).run(self) if step.debug?
       Expect.new(step).run(self) if step.expect?
       Store.new(step).run(self) if step.store?
     end
