@@ -18,7 +18,7 @@ module SpecForge
 
             replacement_value =
               case value
-              when HashLike, ArrayLike
+              when Hash, Array
                 value.to_json
               else
                 value.to_s

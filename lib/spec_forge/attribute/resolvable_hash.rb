@@ -5,7 +5,7 @@ module SpecForge
     #
     # Represents a hash that may contain attributes that need resolution
     #
-    # This delegator wraps a hash and provides methods to recursively resolve
+    # This class extends Hash and provides methods to recursively resolve
     # any attribute objects contained within it. It allows hashes to contain
     # dynamic content like variables and faker values.
     #
@@ -14,16 +14,26 @@ module SpecForge
     #   resolvable = Attribute::ResolvableHash.new(hash)
     #   resolvable.resolved # => {name: "John Smith", id: 123}
     #
-    class ResolvableHash < SimpleDelegator
+    class ResolvableHash < Hash
       include Resolvable
+
+      #
+      # Creates a new ResolvableHash from the given hash
+      #
+      # @param hash [Hash] The hash to wrap
+      #
+      def initialize(hash = {})
+        super()
+        merge!(hash)
+      end
 
       #
       # Returns the underlying hash
       #
-      # @return [Hash] The delegated hash
+      # @return [Hash] The hash itself
       #
       def value
-        __getobj__
+        self
       end
 
       #
@@ -37,7 +47,7 @@ module SpecForge
       #   hash_attr.resolved # => {name: "Jane Doe"} (with result cached)
       #
       def resolved
-        value.transform_values(&resolved_proc)
+        transform_values(&resolved_proc)
       end
 
       #
@@ -51,7 +61,7 @@ module SpecForge
       #   hash_attr.resolve # => {name: "John Smith"} (fresh value each time)
       #
       def resolve
-        value.transform_values(&resolve_proc)
+        transform_values(&resolve_proc)
       end
 
       #
@@ -69,7 +79,7 @@ module SpecForge
       #   hash.resolve_as_matcher # => include("name" => eq("Test"), "age" => eq(42))
       #
       def resolve_as_matcher
-        result = value.transform_values(&resolve_as_matcher_proc)
+        result = transform_values(&resolve_as_matcher_proc)
         Attribute::Literal.new(result).resolve_as_matcher
       end
     end

@@ -116,9 +116,9 @@ module SpecForge
       #
       def resolve
         case value
-        when ArrayLike
+        when Array
           value.map(&resolved_proc)
-        when HashLike
+        when Hash
           value.transform_values(&resolved_proc)
         else
           value

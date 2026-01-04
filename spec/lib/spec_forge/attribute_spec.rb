@@ -291,35 +291,35 @@ RSpec.describe SpecForge::Attribute do
 
     subject(:resolved_matcher) { attribute.resolve_as_matcher }
 
-    context "when the resolved value is ArrayLike" do
+    context "when the resolved value is an Array" do
       let(:input) do
         [1, "faker.string.random"]
       end
 
-      it "is expected to resolve them into RSpec matchers" do
-        expect(resolved_matcher).to be_kind_of(matchers::ContainExactly)
-        expect(resolved_matcher.expected).to contain_exactly(
+      it "is expected to resolve them into an array of RSpec matchers" do
+        expect(resolved_matcher).to be_kind_of(Array)
+        expect(resolved_matcher).to contain_exactly(
           be_kind_of(matchers::Eq),
           be_kind_of(matchers::Eq)
         )
       end
     end
 
-    context "when the resolved value is HashLike" do
+    context "when the resolved value is a Hash" do
       let(:input) do
         {var_1: 1, var_2: true}
       end
 
-      it "is expected to resolve them into RSpec matchers" do
-        expect(resolved_matcher).to be_kind_of(matchers::Include)
-        expect(resolved_matcher.expected).to match(
+      it "is expected to resolve them into a hash of RSpec matchers" do
+        expect(resolved_matcher).to be_kind_of(Hash)
+        expect(resolved_matcher).to match(
           "var_1" => be_kind_of(matchers::Eq),
           "var_2" => be_kind_of(matchers::Eq)
         )
       end
     end
 
-    context "when the resolved value is an empty ArrayLike" do
+    context "when the resolved value is an empty Array" do
       let(:input) { [] }
 
       it "is expected to resolve into an 'eq' matcher" do
@@ -328,7 +328,7 @@ RSpec.describe SpecForge::Attribute do
       end
     end
 
-    context "when the resolved value is an empty HashLike" do
+    context "when the resolved value is an empty Hash" do
       let(:input) { {} }
 
       it "is expected to resolve into an 'eq' matcher" do

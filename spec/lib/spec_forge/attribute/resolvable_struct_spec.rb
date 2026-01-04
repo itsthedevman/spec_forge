@@ -116,7 +116,7 @@ RSpec.describe SpecForge::Attribute::ResolvableStruct do
       it "is expected to convert attributes to matchers" do
         matcher = resolvable.resolve_as_matcher
 
-        expect(matcher).to be_kind_of(RSpec::Matchers::BuiltIn::Include)
+        expect(matcher).to be_kind_of(Hash)
 
         # Test it actually works as a matcher
         test_hash = {
@@ -125,7 +125,7 @@ RSpec.describe SpecForge::Attribute::ResolvableStruct do
           "tags" => ["important", "admin"]
         }
 
-        expect(test_hash).to matcher
+        expect(test_hash).to include(matcher)
       end
     end
   end

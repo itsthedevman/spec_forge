@@ -34,11 +34,11 @@ module SpecForge
       case value
       when String
         from_string(value)
-      when HashLike
+      when Hash
         from_hash(value)
       when Attribute, ResolvableArray, ResolvableHash, ResolvableStruct
         value
-      when ArrayLike
+      when Array
         array = value.map { |v| Attribute.from(v) }
         ResolvableArray.new(array)
       when Struct, Data, OpenStruct
@@ -192,9 +192,9 @@ module SpecForge
     #
     def resolve
       case value
-      when ArrayLike
+      when Array
         value.map(&resolved_proc)
-      when HashLike
+      when Hash
         value.transform_values(&resolved_proc)
       else
         value
@@ -205,7 +205,7 @@ module SpecForge
       methods = Attribute::Matcher::MATCHER_METHODS
 
       case resolved
-      when Array, ArrayLike
+      when Array
         resolved_array = resolved.map(&resolve_as_matcher_proc)
 
         if resolved_array.size > 0
@@ -213,7 +213,7 @@ module SpecForge
         else
           methods.eq([])
         end
-      when Hash, HashLike
+      when Hash
         resolved_hash = resolved.transform_values(&resolve_as_matcher_proc).stringify_keys
 
         if resolved_hash.size > 0

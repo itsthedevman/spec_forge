@@ -5,7 +5,7 @@ module SpecForge
     #
     # Represents an array that may contain attributes that need resolution
     #
-    # This delegator wraps an array and provides methods to recursively resolve
+    # This class extends Array and provides methods to recursively resolve
     # any attribute objects contained within it. It allows arrays to contain
     # dynamic content like variables and faker values.
     #
@@ -14,16 +14,25 @@ module SpecForge
     #   resolvable = Attribute::ResolvableArray.new(array)
     #   resolvable.resolved # => [1, 42, 3]  # assuming user_id resolves to 42
     #
-    class ResolvableArray < SimpleDelegator
+    class ResolvableArray < Array
       include Resolvable
+
+      #
+      # Creates a new ResolvableArray from the given array
+      #
+      # @param array [Array] The array to wrap
+      #
+      def initialize(array = [])
+        super
+      end
 
       #
       # Returns the underlying array
       #
-      # @return [Array] The delegated array
+      # @return [Array] The array itself
       #
       def value
-        __getobj__
+        self
       end
 
       #
@@ -37,7 +46,7 @@ module SpecForge
       #   array_attr.resolved # => ["Jane Doe"] (with result cached)
       #
       def resolved
-        value.map(&resolved_proc)
+        map(&resolved_proc)
       end
 
       #
@@ -51,7 +60,7 @@ module SpecForge
       #   array_attr.resolve # => ["John Smith"] (fresh value each time)
       #
       def resolve
-        value.map(&resolve_proc)
+        map(&resolve_proc)
       end
 
       #
@@ -69,7 +78,7 @@ module SpecForge
       #   array.resolve_as_matcher # => contain_exactly(eq("test"), match(/pattern/), eq(42))
       #
       def resolve_as_matcher
-        result = value.map(&resolve_as_matcher_proc)
+        result = map(&resolve_as_matcher_proc)
         Attribute::Literal.new(result).resolve_as_matcher
       end
     end

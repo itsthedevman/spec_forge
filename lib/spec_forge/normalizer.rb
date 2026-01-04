@@ -96,7 +96,7 @@ module SpecForge
 
         # This is checked down here because it felt like it belonged...
         # and because of that pesky label
-        raise Error::InvalidTypeError.new(input, Hash, for: label) if !Type.hash?(input)
+        raise Error::InvalidTypeError.new(input, Hash, for: label) unless input.is_a?(Hash)
 
         new(label, input, structure:).normalize
       end

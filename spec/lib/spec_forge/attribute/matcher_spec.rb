@@ -471,7 +471,7 @@ RSpec.describe SpecForge::Attribute::Matcher do
 
       it "is expected to convert the array" do
         expect(resolved_matcher).to be_kind_of(matchers::Include)
-        expect(resolved_matcher.expected.first).to be_kind_of(matchers::ContainExactly)
+        expect(resolved_matcher.expected.first).to be_kind_of(Array)
       end
     end
 
@@ -481,7 +481,7 @@ RSpec.describe SpecForge::Attribute::Matcher do
 
       it "is expected to convert the hash" do
         expect(resolved_matcher).to be_kind_of(matchers::Include)
-        expect(resolved_matcher.expected.first).to be_kind_of(matchers::Include)
+        expect(resolved_matcher.expected.first).to be_kind_of(Array)
       end
     end
 

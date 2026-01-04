@@ -36,9 +36,9 @@ module SpecForge
         arguments = metadata.second
 
         case arguments
-        when ArrayLike
+        when Array
           new(input, arguments)
-        when HashLike
+        when Hash
           # Offset for positional arguments. No support for both at this time
           new(input, [], arguments)
         else

@@ -81,7 +81,7 @@ module SpecForge
 
         # An argument can be an expanded version of something (such as matcher.include)
         # Move it to where it belongs
-        if (keyword = arguments[:keyword]) && !Type.hash?(keyword)
+        if (keyword = arguments[:keyword]) && !keyword.is_a?(Hash)
           arguments[:positional] << keyword
           arguments[:keyword] = {}
         end

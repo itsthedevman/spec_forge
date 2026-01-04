@@ -178,13 +178,13 @@ module SpecForge
           "Object with attributes: #{value.table.keys.join_map(", ", &:in_quotes)}"
         when Struct, Data
           "Object with attributes: #{value.members.join_map(", ", &:in_quotes)}"
-        when ArrayLike
+        when Array
           # Preview the first 5 value's classes
           preview = value.take(5).map(&:class)
           preview << "..." if value.size > 5
 
           "Array with #{value.size} #{"element".pluralize(value.size)}: #{preview}"
-        when HashLike
+        when Hash
           # Preview the first 5 keys
           keys = value.keys.take(5)
 
