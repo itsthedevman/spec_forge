@@ -203,6 +203,46 @@ RSpec.describe SpecForge::Attribute::Factory do
     end
   end
 
+  describe "#resolve" do
+    context "when value is an array" do
+      let(:keyword) { {strategy: "build_list", size: 2} }
+
+      it "maps resolve over each element" do
+        result = factory.resolve
+        expect(result).to be_an(Array)
+        expect(result.size).to eq(2)
+        expect(result).to all(be_a(User))
+      end
+    end
+
+    context "when value is a hash" do
+      let(:keyword) { {strategy: "attributes_for"} }
+
+      it "transforms values with resolve" do
+        result = factory.resolve
+        expect(result).to be_a(Hash)
+        expect(result[:name]).to eq("Bob")
+      end
+    end
+
+    context "when value is a simple object" do
+      let(:keyword) { {strategy: "build"} }
+
+      it "returns the value directly" do
+        result = factory.resolve
+        expect(result).to be_a(User)
+      end
+    end
+  end
+
+  describe "invalid build strategy" do
+    let(:keyword) { {strategy: "invalid_strategy"} }
+
+    it "raises InvalidBuildStrategy error" do
+      expect { factory.resolved }.to raise_error(SpecForge::Error::InvalidBuildStrategy)
+    end
+  end
+
   describe "#construct_factory_parameters" do
     subject(:parameters) do
       # Private method and all - I don't usually test private methods

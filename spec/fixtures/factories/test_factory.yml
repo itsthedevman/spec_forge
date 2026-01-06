@@ -1,0 +1,5 @@
+test_product:
+  model_class: Product
+  attributes:
+    name: "Test Product"
+    price: 9.99
