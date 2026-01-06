@@ -1,0 +1,31 @@
+# Tests variable storage and interpolation in various contexts
+
+- store:
+    user_name: "Alice"
+    user_id: 42
+    base_path: "/api/v1"
+
+- name: "Use variables in URL and body"
+  request:
+    method: POST
+    url: "{{ base_path }}/users/{{ user_id }}"
+    json:
+      name: "{{ user_name }}"
+      id: "{{ user_id }}"
+  expect:
+    - status: 200
+
+- store:
+    updated_name: "Alice Smith"
+
+- name: "Use updated variable"
+  request:
+    method: PUT
+    url: "{{ base_path }}/users/{{ user_id }}"
+    json:
+      name: "{{ updated_name }}"
+  expect:
+    - status: 200
+  store:
+    response_id: "{{ response.body.id }}"
+    response_name: "{{ response.body.name }}"

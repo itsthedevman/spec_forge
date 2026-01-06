@@ -1,0 +1,18 @@
+# Tests callbacks with different argument styles
+
+- call: setup_data
+
+- call:
+    name: log_event
+    arguments:
+      event_type: "test_start"
+      details: "Starting callback test"
+
+- call:
+    name: process_items
+    arguments:
+      - item_one
+      - item_two
+      - item_three
+
+- call: cleanup_data

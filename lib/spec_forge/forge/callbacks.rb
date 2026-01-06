@@ -21,11 +21,11 @@ module SpecForge
         @callbacks.key?(name.to_sym)
       end
 
-      def run(name, *arguments)
+      def run(name, *arguments, **keyword_arguments)
         ensure_registered!(name)
 
         callback = @callbacks[name.to_sym]
-        callback.call(*arguments)
+        callback.call(*arguments, **keyword_arguments)
       end
 
       private

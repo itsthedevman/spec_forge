@@ -1,0 +1,14 @@
+# Tests array responses with size and shape validation
+
+- name: "List items"
+  request:
+    method: GET
+    url: "/api/items"
+  expect:
+    - status: 200
+      json:
+        size: 3
+        shape:
+          - id: integer
+            name: string
+            active: boolean
