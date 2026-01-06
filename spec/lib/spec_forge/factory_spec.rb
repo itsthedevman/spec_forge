@@ -1,6 +1,28 @@
 # frozen_string_literal: true
 
 RSpec.describe SpecForge::Factory do
+  describe ".load_from_files" do
+    around do |example|
+      original_path = SpecForge.forge_path
+      SpecForge.instance_variable_set(:@forge_path, fixtures_path)
+      example.run
+      SpecForge.instance_variable_set(:@forge_path, original_path)
+    end
+
+    it "loads factories from YAML files" do
+      factories = described_class.load_from_files
+
+      expect(factories).to be_an(Array)
+      expect(factories.size).to eq(1)
+
+      factory = factories.first
+      expect(factory.name).to eq(:test_product)
+      expect(factory.model_class).to eq("Product")
+      expect(factory.attributes[:name].resolved).to eq("Test Product")
+      expect(factory.attributes[:price].resolved).to eq(9.99)
+    end
+  end
+
   describe ".load_and_register" do
     let(:path) { SpecForge.forge_path }
 

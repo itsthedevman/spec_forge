@@ -1,5 +1,17 @@
 # frozen_string_literal: true
 
+require "simplecov"
+SimpleCov.start do
+  add_filter "/spec/"
+  add_filter "/vendor/"
+
+  add_group "Attributes", "lib/spec_forge/attribute"
+  add_group "Forge", "lib/spec_forge/forge"
+  add_group "HTTP", "lib/spec_forge/http"
+  add_group "CLI", "lib/spec_forge/cli"
+  add_group "Core", "lib/spec_forge"
+end
+
 # Set a flag to disable some RSpec overwrites
 SPEC_FORGE_INTERNAL_TESTING = true
 

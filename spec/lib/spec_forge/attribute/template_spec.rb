@@ -214,4 +214,64 @@ RSpec.describe SpecForge::Attribute::Template do
       expect(result1).to eq(result2)
     end
   end
+
+  describe "type casting for single-template expressions" do
+    context "when template resolves to an integer" do
+      let(:input) { "{{ count }}" }
+
+      it "returns an integer" do
+        result = resolve_with(count: 42)
+        expect(result).to eq(42)
+        expect(result).to be_an(Integer)
+      end
+    end
+
+    context "when template resolves to a float" do
+      let(:input) { "{{ price }}" }
+
+      it "returns a float" do
+        result = resolve_with(price: 19.99)
+        expect(result).to eq(19.99)
+        expect(result).to be_a(Float)
+      end
+    end
+
+    context "when template resolves to true" do
+      let(:input) { "{{ flag }}" }
+
+      it "returns true" do
+        result = resolve_with(flag: true)
+        expect(result).to eq(true)
+      end
+    end
+
+    context "when template resolves to false" do
+      let(:input) { "{{ flag }}" }
+
+      it "returns false" do
+        result = resolve_with(flag: false)
+        expect(result).to eq(false)
+      end
+    end
+
+    context "when template resolves to an array" do
+      let(:input) { "{{ items }}" }
+
+      it "returns an array" do
+        result = resolve_with(items: [1, 2, 3])
+        expect(result).to eq([1, 2, 3])
+        expect(result).to be_an(Array)
+      end
+    end
+
+    context "when template resolves to a hash" do
+      let(:input) { "{{ config }}" }
+
+      it "returns a hash" do
+        result = resolve_with(config: {key: "value"})
+        expect(result).to eq({key: "value"})
+        expect(result).to be_a(Hash)
+      end
+    end
+  end
 end

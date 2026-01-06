@@ -158,4 +158,137 @@ RSpec.describe SpecForge::Error do
       end
     end
   end
+
+  describe SpecForge::Error::InvalidBuildStrategy do
+    subject(:error) { described_class.new("invalid_strategy") }
+
+    it "includes the invalid strategy name" do
+      expect(error.message).to include('"invalid_strategy"')
+    end
+
+    it "includes valid strategies" do
+      expect(error.message).to include("Valid strategies include:")
+    end
+  end
+
+  describe SpecForge::Error::InvalidStructureError do
+    context "with SpecForge errors" do
+      let(:errors) { [SpecForge::Error.new("test error")] }
+
+      subject(:error) { described_class.new(errors) }
+
+      it "includes the error message" do
+        expect(error.message).to include("test error")
+      end
+    end
+
+    context "with non-SpecForge errors" do
+      let(:standard_error) do
+        raise StandardError, "something went wrong"
+      rescue => e
+        e
+      end
+      let(:errors) { [standard_error] }
+
+      subject(:error) { described_class.new(errors) }
+
+      it "includes the error inspect output" do
+        expect(error.message).to include("StandardError")
+        expect(error.message).to include("something went wrong")
+      end
+    end
+  end
+
+  describe SpecForge::Error::LoadStepError do
+    context "with a simple error" do
+      let(:inner_error) { StandardError.new("inner problem") }
+      let(:step) { {name: "test step", line_number: 10} }
+
+      subject(:error) { described_class.new(inner_error, step) }
+
+      it "includes the step name and line number" do
+        expect(error.message).to include("Step: test step (line 10)")
+      end
+
+      it "includes the cause" do
+        expect(error.message).to include("Caused by: inner problem")
+      end
+    end
+
+    context "with a nested LoadStepError" do
+      let(:inner_error) { StandardError.new("root cause") }
+      let(:inner_step) { {name: "inner step", line_number: 5} }
+      let(:inner_load_error) { described_class.new(inner_error, inner_step) }
+      let(:outer_step) { {name: "outer step", line_number: 15} }
+
+      subject(:error) { described_class.new(inner_load_error, outer_step) }
+
+      it "includes both step names" do
+        expect(error.message).to include("Step: outer step")
+        expect(error.message).to include("Step: inner step")
+      end
+    end
+
+    context "with a multi-line error message" do
+      let(:inner_error) { StandardError.new("line one\nline two\nline three") }
+      let(:step) { {name: "test step"} }
+
+      subject(:error) { described_class.new(inner_error, step) }
+
+      it "formats multi-line errors with indentation" do
+        expect(error.message).to include("Caused by:")
+        expect(error.message).to include("line one")
+        expect(error.message).to include("line two")
+      end
+    end
+
+    context "with unnamed step" do
+      let(:inner_error) { StandardError.new("error") }
+      let(:step) { {name: nil} }
+
+      subject(:error) { described_class.new(inner_error, step) }
+
+      it "shows unnamed placeholder" do
+        expect(error.message).to include("Step: (unnamed)")
+      end
+    end
+  end
+
+  describe SpecForge::Error::UndefinedCallbackError do
+    context "with available callbacks" do
+      subject(:error) { described_class.new(:missing_callback, [:setup, :teardown]) }
+
+      it "includes the callback name" do
+        expect(error.message).to include('"missing_callback"')
+      end
+
+      it "lists available callbacks" do
+        expect(error.message).to include("Available callbacks are:")
+        expect(error.message).to include('"setup"')
+        expect(error.message).to include('"teardown"')
+      end
+    end
+
+    context "without available callbacks" do
+      subject(:error) { described_class.new(:missing_callback, []) }
+
+      it "includes registration example" do
+        expect(error.message).to include("SpecForge.register_callback(:missing_callback)")
+      end
+    end
+  end
+
+  describe SpecForge::Error::ExpectationFailure do
+    let(:failed_examples) { ["example1", "example2", "example3"] }
+
+    subject(:error) { described_class.new(failed_examples) }
+
+    it "includes the count of failed examples" do
+      expect(error.message).to eq("Failed expectations (3)")
+    end
+
+    it "stores the failed examples" do
+      expect(error.failed_examples).to eq(failed_examples)
+    end
+  end
 end

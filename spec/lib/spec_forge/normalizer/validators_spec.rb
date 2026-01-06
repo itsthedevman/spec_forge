@@ -77,4 +77,50 @@ RSpec.describe SpecForge::Normalizer::Validators do
         .to raise_error(SpecForge::Error, /request method/)
     end
   end
+
+  describe "#json_expectation" do
+    it "passes when only shape is defined" do
+      expect { validator.json_expectation({shape: {id: "kind_of.integer"}}) }.not_to raise_error
+    end
+
+    it "passes when only schema is defined" do
+      expect { validator.json_expectation({schema: {type: "object"}}) }.not_to raise_error
+    end
+
+    it "passes when neither is defined" do
+      expect { validator.json_expectation({}) }.not_to raise_error
+    end
+
+    it "raises error when both shape and schema are defined" do
+      expect {
+        validator.json_expectation({shape: {id: "kind_of.integer"}, schema: {type: "object"}})
+      }.to raise_error(SpecForge::Error, /Cannot define both "shape" and "schema"/)
+    end
+  end
+
+  describe "#json_schema" do
+    it "validates nested structure arrays" do
+      schema = {
+        type: "array",
+        structure: [
+          {type: "string"},
+          {type: "integer"}
+        ]
+      }
+
+      expect { validator.json_schema(schema) }.not_to raise_error
+    end
+
+    it "validates nested structure hashes" do
+      schema = {
+        type: "object",
+        structure: {
+          name: {type: "string"},
+          age: {type: "integer"}
+        }
+      }
+
+      expect { validator.json_schema(schema) }.not_to raise_error
+    end
+  end
 end
