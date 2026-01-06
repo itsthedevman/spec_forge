@@ -15,6 +15,10 @@ gem "pry"
 
 gem "benchmark-ips", "~> 2.14"
 
+group :test do
+  gem "simplecov", require: false
+end
+
 gem "ruby-lsp", require: false
 
 group :development, :documentation do
