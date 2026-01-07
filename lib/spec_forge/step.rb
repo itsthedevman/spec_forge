@@ -64,9 +64,15 @@ module SpecForge
         request[:http_verb] = verb
       end
 
-      if (headers = input[:headers]) && headers.present?
-        headers["Content-Type"] ||= input[:json] ? "application/json" : "text/plain"
+      headers = input[:headers] || {}
 
+      if input[:json].present?
+        headers["Content-Type"] ||= "application/json"
+      elsif headers.present?
+        headers["Content-Type"] ||= "text/plain"
+      end
+
+      if headers.present?
         request[:headers] = Attribute.from(headers)
       end
 
