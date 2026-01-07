@@ -104,8 +104,8 @@ RSpec.describe SpecForge::Step do
           expect(resolved).to eq({name: "Test"})
         end
 
-        it "sets Content-Type to application/json" do
-          expect(step.request.headers.resolved["Content-Type"]).to eq("application/json")
+        it "sets content-type to application/json" do
+          expect(step.request.headers.resolved["content-type"]).to eq("application/json")
         end
       end
 
@@ -114,7 +114,7 @@ RSpec.describe SpecForge::Step do
           {
             url: "/api/test",
             http_verb: "POST",
-            headers: {"Content-Type" => "text/plain"},
+            headers: {"content-type" => "text/plain"},
             raw: "raw body content"
           }
         end
@@ -141,18 +141,18 @@ RSpec.describe SpecForge::Step do
         end
       end
 
-      context "when json is present but Content-Type is already set" do
+      context "when json is present but content-type is already set" do
         let(:request_input) do
           {
             url: "/api/test",
             http_verb: "POST",
-            headers: {"Content-Type" => "application/json; charset=utf-8"},
+            headers: {"content-type" => "application/json; charset=utf-8"},
             json: {name: "Test"}
           }
         end
 
-        it "preserves the existing Content-Type" do
-          expect(step.request.headers.resolved["Content-Type"]).to eq("application/json; charset=utf-8")
+        it "preserves the existing content-type" do
+          expect(step.request.headers.resolved["content-type"]).to eq("application/json; charset=utf-8")
         end
       end
 
@@ -166,23 +166,23 @@ RSpec.describe SpecForge::Step do
           }
         end
 
-        it "sets Content-Type to text/plain" do
-          expect(step.request.headers.resolved["Content-Type"]).to eq("text/plain")
+        it "sets content-type to text/plain" do
+          expect(step.request.headers.resolved["content-type"]).to eq("text/plain")
         end
       end
 
-      context "when headers with Content-Type are present but json is not" do
+      context "when headers with content-type are present but json is not" do
         let(:request_input) do
           {
             url: "/api/test",
             http_verb: "POST",
-            headers: {"Content-Type" => "text/xml"},
+            headers: {"content-type" => "text/xml"},
             raw: "<xml>test</xml>"
           }
         end
 
-        it "preserves the existing Content-Type" do
-          expect(step.request.headers.resolved["Content-Type"]).to eq("text/xml")
+        it "preserves the existing content-type" do
+          expect(step.request.headers.resolved["content-type"]).to eq("text/xml")
         end
       end
 

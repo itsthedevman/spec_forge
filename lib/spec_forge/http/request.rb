@@ -15,7 +15,7 @@ module SpecForge
       end
 
       def content_type
-        headers["Content-Type"]
+        headers["content-type"]
       end
 
       def json?

@@ -8,8 +8,8 @@ RSpec.describe SpecForge::Forge::Runner::HeaderValidator do
     subject(:validate!) { described_class.new(headers, expected).validate! }
 
     context "when all matchers succeed" do
-      let(:headers) { {"Content-Type" => "application/json", "X-Request-Id" => "abc123"} }
-      let(:expected) { {"Content-Type" => eq("application/json"), "X-Request-Id" => eq("abc123")} }
+      let(:headers) { {"content-type" => "application/json", "X-Request-Id" => "abc123"} }
+      let(:expected) { {"content-type" => eq("application/json"), "X-Request-Id" => eq("abc123")} }
 
       it "is expected not to raise an error" do
         expect { validate! }.not_to raise_error
@@ -17,14 +17,14 @@ RSpec.describe SpecForge::Forge::Runner::HeaderValidator do
     end
 
     context "when a matcher doesn't match" do
-      let(:headers) { {"Content-Type" => "text/html"} }
-      let(:expected) { {"Content-Type" => eq("application/json")} }
+      let(:headers) { {"content-type" => "text/html"} }
+      let(:expected) { {"content-type" => eq("application/json")} }
 
       it "is expected to raise a HeaderValidationFailure" do
         expect { validate! }
           .to raise_error(SpecForge::Error::HeaderValidationFailure) do |error|
             expect(error.failures.size).to eq(1)
-            expect(error.failures.first[:header]).to eq("Content-Type")
+            expect(error.failures.first[:header]).to eq("content-type")
             expect(error.failures.first[:message]).to include("expected: \"application/json\"")
             expect(error.failures.first[:message]).to include("got: \"text/html\"")
           end
@@ -32,8 +32,8 @@ RSpec.describe SpecForge::Forge::Runner::HeaderValidator do
     end
 
     context "when a header is missing" do
-      let(:headers) { {"Content-Type" => "application/json"} }
-      let(:expected) { {"Content-Type" => eq("application/json"), "X-Request-Id" => eq("abc123")} }
+      let(:headers) { {"content-type" => "application/json"} }
+      let(:expected) { {"content-type" => eq("application/json"), "X-Request-Id" => eq("abc123")} }
 
       it "is expected to raise a HeaderValidationFailure" do
         expect { validate! }
@@ -47,7 +47,7 @@ RSpec.describe SpecForge::Forge::Runner::HeaderValidator do
 
     context "when using case-insensitive header matching" do
       let(:headers) { {"content-type" => "application/json"} }
-      let(:expected) { {"Content-Type" => eq("application/json")} }
+      let(:expected) { {"content-type" => eq("application/json")} }
 
       it "is expected not to raise an error" do
         expect { validate! }.not_to raise_error
@@ -55,7 +55,7 @@ RSpec.describe SpecForge::Forge::Runner::HeaderValidator do
     end
 
     context "when expected key is lowercase and actual is mixed case" do
-      let(:headers) { {"Content-Type" => "application/json"} }
+      let(:headers) { {"content-type" => "application/json"} }
       let(:expected) { {"content-type" => eq("application/json")} }
 
       it "is expected not to raise an error" do
@@ -64,10 +64,10 @@ RSpec.describe SpecForge::Forge::Runner::HeaderValidator do
     end
 
     context "when there are multiple failures" do
-      let(:headers) { {"Content-Type" => "text/html"} }
+      let(:headers) { {"content-type" => "text/html"} }
       let(:expected) do
         {
-          "Content-Type" => eq("application/json"),
+          "content-type" => eq("application/json"),
           "X-Request-Id" => eq("abc123")
         }
       end
@@ -78,15 +78,15 @@ RSpec.describe SpecForge::Forge::Runner::HeaderValidator do
             expect(error.failures.size).to eq(2)
 
             headers_with_failures = error.failures.map { |f| f[:header] }
-            expect(headers_with_failures).to contain_exactly("Content-Type", "X-Request-Id")
+            expect(headers_with_failures).to contain_exactly("content-type", "X-Request-Id")
           end
       end
     end
 
     context "when using different matcher types" do
       context "when using include matcher" do
-        let(:headers) { {"Content-Type" => "application/json; charset=utf-8"} }
-        let(:expected) { {"Content-Type" => include("application/json")} }
+        let(:headers) { {"content-type" => "application/json; charset=utf-8"} }
+        let(:expected) { {"content-type" => include("application/json")} }
 
         it "is expected not to raise an error" do
           expect { validate! }.not_to raise_error
@@ -103,8 +103,8 @@ RSpec.describe SpecForge::Forge::Runner::HeaderValidator do
       end
 
       context "when using start_with matcher" do
-        let(:headers) { {"Content-Type" => "application/json"} }
-        let(:expected) { {"Content-Type" => start_with("application/")} }
+        let(:headers) { {"content-type" => "application/json"} }
+        let(:expected) { {"content-type" => start_with("application/")} }
 
         it "is expected not to raise an error" do
           expect { validate! }.not_to raise_error
@@ -123,8 +123,8 @@ RSpec.describe SpecForge::Forge::Runner::HeaderValidator do
       end
 
       context "when using symbol keys in expected" do
-        let(:headers) { {"Content-Type" => "application/json"} }
-        let(:expected) { {"Content-Type": eq("application/json")} }
+        let(:headers) { {"content-type" => "application/json"} }
+        let(:expected) { {"content-type": eq("application/json")} }
 
         it "is expected not to raise an error" do
           expect { validate! }.not_to raise_error

@@ -64,12 +64,12 @@ module SpecForge
         request[:http_verb] = verb
       end
 
-      headers = input[:headers] || {}
+      headers = (input[:headers] || {}).transform_keys(&:downcase)
 
       if input[:json].present?
-        headers["Content-Type"] ||= "application/json"
+        headers["content-type"] ||= "application/json"
       elsif headers.present?
-        headers["Content-Type"] ||= "text/plain"
+        headers["content-type"] ||= "text/plain"
       end
 
       if headers.present?

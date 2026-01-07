@@ -45,7 +45,7 @@ RSpec.describe SpecForge::HTTP::Request do
     end
 
     context "when 'headers' are provided" do
-      let(:headers) { {"Content-Type" => "application/json", "Authorization" => "Bearer token"} }
+      let(:headers) { {"content-type" => "application/json", "Authorization" => "Bearer token"} }
 
       it "stores headers as provided" do
         expect(request.headers).to eq(headers)
@@ -84,15 +84,15 @@ RSpec.describe SpecForge::HTTP::Request do
   end
 
   describe "#content_type" do
-    context "when Content-Type header is set" do
-      let(:headers) { {"Content-Type" => "application/json"} }
+    context "when content-type header is set" do
+      let(:headers) { {"content-type" => "application/json"} }
 
       it "returns the content type" do
         expect(request.content_type).to eq("application/json")
       end
     end
 
-    context "when Content-Type header is not set" do
+    context "when content-type header is not set" do
       it "returns nil" do
         expect(request.content_type).to be_nil
       end
@@ -101,7 +101,7 @@ RSpec.describe SpecForge::HTTP::Request do
 
   describe "#json?" do
     context "when content type is application/json" do
-      let(:headers) { {"Content-Type" => "application/json"} }
+      let(:headers) { {"content-type" => "application/json"} }
 
       it "returns true" do
         expect(request.json?).to be(true)
@@ -109,7 +109,7 @@ RSpec.describe SpecForge::HTTP::Request do
     end
 
     context "when content type is not application/json" do
-      let(:headers) { {"Content-Type" => "text/plain"} }
+      let(:headers) { {"content-type" => "text/plain"} }
 
       it "returns false" do
         expect(request.json?).to be(false)
@@ -124,7 +124,7 @@ RSpec.describe SpecForge::HTTP::Request do
   end
 
   describe "#to_h" do
-    let(:headers) { {"Content-Type" => "application/json"} }
+    let(:headers) { {"content-type" => "application/json"} }
     let(:body) { {name: "Test"} }
 
     it "returns a hash representation" do
