@@ -273,5 +273,30 @@ RSpec.describe SpecForge::Attribute::Template do
         expect(result).to be_a(Hash)
       end
     end
+
+    context "when template contains a matcher expression" do
+      let(:input) { "{{ kind_of.string }}" }
+
+      it "preserves the matcher object without converting to string" do
+        result = resolve_with({})
+
+        # Verify the matcher is preserved, not converted to a string
+        expect(result).to respond_to(:matches?)
+        expect(result.matches?("hello")).to be true
+        expect(result.matches?(123)).to be false
+      end
+    end
+
+    context "when template with matcher expression is embedded in text" do
+      let(:input) { "Retry-After: {{ kind_of.string }}" }
+
+      it "converts matcher to string when embedded" do
+        result = resolve_with({})
+
+        # When embedded in a string, it gets converted to_s
+        expect(result).to be_a(String)
+        expect(result).to start_with("Retry-After: #<")
+      end
+    end
   end
 end

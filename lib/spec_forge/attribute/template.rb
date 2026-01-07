@@ -77,8 +77,10 @@ module SpecForge
           input.to_a
         when Hash
           input.to_h
-        else
+        when String
           input
+        else
+          template_value # Matchers, etc.
         end
       end
     end
