@@ -17,6 +17,8 @@ gem "benchmark-ips", "~> 2.14"
 
 group :test do
   gem "simplecov", require: false
+  gem "sinatra"
+  gem "net-http", "~> 0.5.0"  # Pin to 0.5.x for compatibility with faraday-net_http
 end
 
 gem "ruby-lsp", require: false

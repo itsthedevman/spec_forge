@@ -158,8 +158,10 @@ GEM
     mime-types-data (3.2025.0924)
     mini_mime (1.1.5)
     minitest (5.26.2)
-    net-http (0.8.0)
-      uri (>= 0.11.1)
+    mustermann (3.0.4)
+      ruby2_keywords (~> 0.0.1)
+    net-http (0.5.0)
+      uri
     net-imap (0.5.12)
       date
       net-protocol
@@ -195,6 +197,10 @@ GEM
       nio4r (~> 2.0)
     racc (1.8.1)
     rack (3.2.4)
+    rack-protection (4.2.1)
+      base64 (>= 0.1.0)
+      logger (>= 1.6.0)
+      rack (>= 3.0.0, < 4)
     rack-session (2.1.1)
       base64 (>= 0.1.0)
       rack (>= 3.0.0)
@@ -280,6 +286,7 @@ GEM
       prism (>= 1.2, < 2.0)
       rbs (>= 3, < 5)
     ruby-progressbar (1.13.0)
+    ruby2_keywords (0.0.5)
     securerandom (0.4.1)
     sem_version (2.0.1)
     simplecov (0.22.0)
@@ -288,6 +295,13 @@ GEM
       simplecov_json_formatter (~> 0.1)
     simplecov-html (0.13.2)
     simplecov_json_formatter (0.1.4)
+    sinatra (4.2.1)
+      logger (>= 1.6.0)
+      mustermann (~> 3.0)
+      rack (>= 3.0.0, < 4)
+      rack-protection (= 4.2.1)
+      rack-session (>= 2.0.0, < 3)
+      tilt (~> 2.0)
     standard (1.52.0)
       language_server-protocol (~> 3.17.0.2)
       lint_roller (~> 1.0)
@@ -302,6 +316,7 @@ GEM
       rubocop-performance (~> 1.25.0)
     stringio (3.1.9)
     thor (1.4.0)
+    tilt (2.6.1)
     timeout (0.4.4)
     tsort (0.2.0)
     tty-color (0.6.0)
@@ -326,12 +341,14 @@ PLATFORMS
 DEPENDENCIES
   benchmark-ips (~> 2.14)
   kramdown
+  net-http (~> 0.5.0)
   pry
   puma
   rails (~> 8.0)
   rake (~> 13.0)
   ruby-lsp
   simplecov
+  sinatra
   spec_forge!
   standard (~> 1.49)
   yard
