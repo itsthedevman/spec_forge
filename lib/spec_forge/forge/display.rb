@@ -112,6 +112,8 @@ module SpecForge
           return if details.blank?
 
           if error
+            puts format_with_indent(@color.red(error.message), indent:) unless error.is_a?(Error::ExpectationFailure)
+            puts ""
             puts format_with_indent(@color.dim("━" * (LINE_LENGTH * 0.75)), indent:)
             puts ""
           end
