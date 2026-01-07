@@ -11,8 +11,8 @@ module SpecForge
         self
       end
 
-      def run(blueprints)
-        new(blueprints).run
+      def run(blueprints, verbosity_level: 0)
+        new(blueprints, verbosity_level:).run
       end
 
       def context

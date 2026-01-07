@@ -23,14 +23,14 @@ module SpecForge
       program :name, "SpecForge"
       program :version, SpecForge::VERSION
       program :description, <<~DESC.strip
-        Write expressive API tests in YAML with the power of RSpec matchers.
+        Write API tests as sequential workflows in YAML with RSpec matchers.
 
         Quick Start:
-          spec_forge init              # Set up your project
-          spec_forge new spec users    # Create your first test
-          spec_forge run               # Execute tests
-          spec_forge docs              # Generate API docs
-          spec_forge serve             # Serve API docs locally
+          spec_forge init                    # Set up your project
+          spec_forge new blueprint users     # Create your first workflow
+          spec_forge run                     # Execute workflows
+          spec_forge docs                    # Generate OpenAPI docs
+          spec_forge serve                   # Preview docs locally
       DESC
 
       register_commands

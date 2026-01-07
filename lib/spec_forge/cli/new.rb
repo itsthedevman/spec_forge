@@ -3,70 +3,121 @@
 module SpecForge
   class CLI
     #
-    # Command for generating new specs or factories
+    # Command for generating new blueprints or factories from templates
     #
-    # @example Creating a new spec
-    #   spec_forge new spec users
+    # Creates workflow blueprints or test data factories with sensible defaults
+    # and realistic examples to get you started quickly.
+    #
+    # @example Creating a new blueprint
+    #   spec_forge new blueprint users
     #
     # @example Creating a new factory
     #   spec_forge new factory user
     #
     class New < Command
       command_name "new"
-      summary "Create new test specs or data factories"
+      summary "Create new workflow blueprints or data factories"
 
       description <<~DESC
-        Generate new files from templates.
+        Generate new files from templates with realistic examples.
 
         Types:
-          • spec - Creates YAML test files with common patterns
-          • factory - Creates FactoryBot factories for test data
+          • blueprint - Creates workflow files with complete CRUD examples
+          • factory   - Creates FactoryBot factories for test data
 
-        Files are created in the appropriate spec_forge/ subdirectory.
+        Blueprints include examples of:
+          • Variable storage and interpolation
+          • Sequential request workflows
+          • Multiple HTTP methods (GET, POST, PATCH, DELETE)
+          • Different expectation patterns
+          • Response value chaining
+
+        Files are created in the appropriate spec_forge/ subdirectory
+        with proper naming conventions and ready-to-run examples.
       DESC
 
       syntax "new <type> <name>"
 
-      example "new spec users",
-        "Creates a new spec located at 'spec_forge/specs/users.yml'"
+      example "new blueprint users",
+        "Creates spec_forge/blueprints/users.yml with CRUD examples"
+
+      example "new blueprint auth/login",
+        "Creates spec_forge/blueprints/auth/login.yml in subdirectory"
 
       example "new factory user",
-        "Creates a new factory located at 'spec_forge/factories/user.yml'"
+        "Creates spec_forge/factories/user.yml"
 
-      example "generate spec accounts",
-        "Uses the generate alias (shorthand 'g') instead of 'new'"
-
-      aliases :generate, :g
+      aliases :generate, :g, :n
 
       #
-      # Creates a new spec or factory file in the corresponding directory using templates
+      # Creates a new blueprint or factory file from templates
+      #
+      # @return [void]
       #
       def call
-        type = arguments.first.downcase
+        type = arguments.first&.downcase
         name = arguments.second
 
-        # Cleanup
-        name.delete_suffix!(".yml") if name.end_with?(".yml")
-        name.delete_suffix!(".yaml") if name.end_with?(".yaml")
+        if type.nil? || name.nil?
+          puts "Error: Both type and name are required."
+          puts "Usage: spec_forge new <type> <name>"
+          puts ""
+          puts "Examples:"
+          puts "  spec_forge new blueprint users"
+          puts "  spec_forge new factory user"
+          exit(1)
+        end
+
+        # Clean up the name
+        name = normalize_name(name)
 
         case type
-        when "spec"
-          create_new_spec(name)
-        when "factory"
+        when "blueprint", "blueprints", "spec", "specs"
+          create_new_blueprint(name)
+        when "factory", "factories"
           create_new_factory(name)
+        else
+          puts "Error: Unknown type '#{type}'"
+          puts "Valid types: blueprint, factory"
+          exit(1)
         end
       end
 
       private
 
-      def create_new_spec(name)
+      #
+      # Normalizes the name by removing extensions
+      #
+      # @param name [String] The raw name from user input
+      #
+      # @return [String] Cleaned name without extensions
+      #
+      def normalize_name(name)
+        name.delete_suffix(".yml").delete_suffix(".yaml")
+      end
+
+      #
+      # Creates a new blueprint file with workflow template
+      #
+      # @param name [String] The blueprint name
+      #
+      # @return [void]
+      #
+      def create_new_blueprint(name)
         actions.template(
-          "new_spec.yml.tt",
+          "new_blueprint.yml.tt",
           SpecForge.forge_path.join("blueprints", "#{name}.yml"),
           context: Proxy.new(name).call
         )
       end
 
+      #
+      # Creates a new factory file with template
+      #
+      # @param name [String] The factory name
+      #
+      # @return [void]
+      #
       def create_new_factory(name)
         actions.template(
           "new_factory.yml.tt",
