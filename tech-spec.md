@@ -1473,6 +1473,91 @@ About http_verb:
 
 ---
 
+### Global Headers (Why They Don't Exist)
+
+**SpecForge 1.0 does not support global headers in configuration.** This is intentional. Here's why and what to use instead:
+
+#### The Problem with Global Headers
+
+Global headers create "magic" - someone reading a blueprint can't tell what headers are actually being sent without checking `forge_helper.rb`. This violates the principle that blueprints should be self-documenting.
+
+```yaml
+# ❌ This looks like it has no auth, but maybe global config adds it?
+- request:
+    url: /users
+```
+
+#### Solution 1: Use Nesting + Inheritance
+
+The cleanest pattern for shared headers is explicit nesting:
+
+```yaml
+- name: "Authenticated operations"
+  request:
+    headers:
+      Authorization: "Bearer {{ auth_token }}"
+  steps:
+  - name: "Create user"
+    request:
+      url: /users
+      method: POST
+      
+  - name: "Update user"
+    request:
+      url: /users/{{ user_id }}
+      method: PATCH
+```
+
+**Benefits:**
+
+- Explicit - you can see exactly what headers are sent
+- Self-documenting - no need to check config files
+- Scoped - different sections can have different headers
+
+#### Solution 2: Use Global Variables
+
+For headers that truly need to be defined once and used everywhere:
+
+```ruby
+# forge_helper.rb
+SpecForge.configure do |config|
+  config.global_variables = {
+    auth_header: "Bearer #{ENV['API_TOKEN']}"
+  }
+end
+```
+
+```yaml
+# blueprint.yml
+- request:
+    url: /users
+    headers:
+      Authorization: "{{ auth_header }}"
+```
+
+**Benefits:**
+
+- Headers are still visible in the blueprint
+- Token value can be environment-specific
+- Easy to override per-blueprint with local variables
+
+#### When to Use Which
+
+**Use nesting** when:
+
+- Headers apply to a logical group of operations
+- You want the blueprint to be self-contained
+- Different sections need different headers
+
+**Use global variables** when:
+
+- The same header value is used across multiple blueprints
+- The value depends on environment (dev/staging/prod)
+- You need to change the value in one place
+
+**Never try to add global headers to config** - the patterns above handle all real-world cases more explicitly and maintainably.
+
+---
 ## Complete Examples
 
 ### Simple CRUD Workflow
