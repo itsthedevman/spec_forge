@@ -32,7 +32,7 @@ module SpecForge
         end
       end
 
-      def normalize_steps(steps)
+      def normalize_steps(steps, parent: nil)
         steps.map do |step|
           # System data (not included in normalizer)
           source = step.delete(:source)
@@ -41,14 +41,22 @@ module SpecForge
           sub_steps = step.delete(:steps) || []
 
           step = Normalizer.normalize!(step, using: :step)
+          step = inherit_from_parent(step, parent) if parent
 
-          step[:steps] = normalize_steps(sub_steps)
+          step[:steps] = normalize_steps(sub_steps, parent: step)
           step[:source] = source
 
           step
         rescue => e
           raise Error::LoadStepError.new(e, step)
         end
+      end
+
+      def inherit_from_parent(step, parent)
+        return step if parent[:request].blank?
+
+        step[:request] = parent[:request].deep_merge(step[:request])
+        step
       end
 
       def expand_steps(steps)

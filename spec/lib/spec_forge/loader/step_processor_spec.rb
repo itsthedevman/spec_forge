@@ -522,4 +522,129 @@ RSpec.describe SpecForge::Loader::StepProcessor do
       end
     end
   end
+
+  describe ".normalize_steps with request config inheritance" do
+    context "with parent headers and child url" do
+      let(:steps) do
+        [
+          {
+            name: "Parent",
+            line_number: 1,
+            request: {headers: {"Authorization" => "Bearer token"}},
+            steps: [
+              {
+                name: "Child",
+                line_number: 2,
+                request: {url: "/users"}
+              }
+            ]
+          }
+        ]
+      end
+
+      it "merges parent headers into child request" do
+        result = processor.send(:normalize_steps, steps)
+
+        child = result[0][:steps][0]
+        expect(child[:request]).to include(
+          headers: {"Authorization" => "Bearer token"},
+          url: "/users"
+        )
+      end
+    end
+
+    context "with overlapping headers" do
+      let(:steps) do
+        [
+          {
+            name: "Parent",
+            line_number: 1,
+            request: {
+              headers: {"Authorization" => "Bearer old", "X-App" => "1.0"}
+            },
+            steps: [
+              {
+                name: "Child",
+                line_number: 2,
+                request: {
+                  url: "/users",
+                  headers: {"Authorization" => "Bearer new"}
+                }
+              }
+            ]
+          }
+        ]
+      end
+
+      it "lets child headers override parent headers" do
+        result = processor.send(:normalize_steps, steps)
+
+        child = result[0][:steps][0]
+        expect(child[:request][:headers]).to eq({
+          "Authorization" => "Bearer new",  # Child wins
+          "X-App" => "1.0"                  # Parent preserved
+        })
+      end
+    end
+
+    context "with multiple nesting levels" do
+      let(:steps) do
+        [
+          {
+            name: "L1",
+            line_number: 1,
+            request: {headers: {"X-Level" => "1"}},
+            steps: [
+              {
+                name: "L2",
+                line_number: 2,
+                request: {headers: {"X-Level" => "2"}},
+                steps: [
+                  {
+                    name: "L3",
+                    line_number: 3,
+                    request: {url: "/deep"}
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      end
+
+      it "cascades through all levels with child winning" do
+        result = processor.send(:normalize_steps, steps)
+
+        l3 = result[0][:steps][0][:steps][0]
+        expect(l3[:request][:headers]).to eq({"X-Level" => "2"})
+        expect(l3[:request][:url]).to eq("/deep")
+      end
+    end
+
+    context "with nil/blank parent request" do
+      let(:steps) do
+        [
+          {
+            name: "Parent",
+            line_number: 1,
+            request: {},
+            steps: [
+              {
+                name: "Child",
+                line_number: 2,
+                request: {url: "/users"}
+              }
+            ]
+          }
+        ]
+      end
+
+      it "doesn't modify child request" do
+        result = processor.send(:normalize_steps, steps)
+
+        child = result[0][:steps][0]
+        expect(child[:request]).to eq({url: "/users"})
+      end
+    end
+  end
 end
