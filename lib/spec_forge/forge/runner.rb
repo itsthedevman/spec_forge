@@ -43,7 +43,7 @@ module SpecForge
       end
 
       def create_example_group(forge, step, expectation)
-        RSpec::Core::ExampleGroup.describe(step.source.to_s) do
+        RSpec::Core::ExampleGroup.describe(step.source.to_s, :spec_forge) do
           let(:response) { forge.variables[:response] }
 
           let(:headers) { response[:headers] }
