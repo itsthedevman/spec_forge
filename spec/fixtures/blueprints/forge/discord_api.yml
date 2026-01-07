@@ -1,7 +1,6 @@
 # Discord-Style API Tests
-# Independent endpoint tests - each validates a specific API contract
 
-# Auth setup for all requests
+# Auth setup
 - store:
     bot_token: "Bot MTk4NjIyNDgzNDcxOTI1MjQ4.Cl2FMQ.ZnCjm1XVW7vRze4b"
     base_url: "/api/v10"
@@ -10,301 +9,297 @@
 # Guild Endpoints
 #
 
-- name: "Get Guild"
-  tags: [guilds, get]
+- name: "Guild Operations"
+  tags: [guilds]
   request:
-    method: GET
-    url: "{{ base_url }}/guilds/81384788765712384"
     headers:
       Authorization: "{{ bot_token }}"
-  expect:
-    - status: 200
-      json:
-        shape:
-          id: string
-          name: string
-          icon: ?string
-          owner_id: string
-          permissions: string
-          features: [string]
-          member_count: integer
-          presence_count: integer
-          channels:
-            - id: string
-              type: integer
+  steps:
+    - name: "Get Guild"
+      tags: [get]
+      request:
+        method: GET
+        url: "{{ base_url }}/guilds/81384788765712384"
+      expect:
+        - status: 200
+          json:
+            shape:
+              id: string
               name: string
+              icon: ?string
+              owner_id: string
+              permissions: string
+              features: [string]
+              member_count: integer
+              presence_count: integer
+              channels:
+                - id: string
+                  type: integer
+                  name: string
 
-- name: "Get Guild Channels"
-  tags: [guilds, channels]
-  request:
-    method: GET
-    url: "{{ base_url }}/guilds/81384788765712384/channels"
-    headers:
-      Authorization: "{{ bot_token }}"
-  expect:
-    - status: 200
-      json:
-        shape:
-          - id: string
-            type: integer
-            name: string
-            position: integer
-            permission_overwrites: array
-            parent_id: ?string
-            nsfw: ?boolean
+    - name: "Get Guild Channels"
+      tags: [channels]
+      request:
+        method: GET
+        url: "{{ base_url }}/guilds/81384788765712384/channels"
+      expect:
+        - status: 200
+          json:
+            shape:
+              - id: string
+                type: integer
+                name: string
+                position: integer
+                permission_overwrites: array
+                parent_id: ?string
+                nsfw: ?boolean
 
-- name: "Create Guild Channel"
-  tags: [guilds, channels, create]
-  request:
-    method: POST
-    url: "{{ base_url }}/guilds/81384788765712384/channels"
-    headers:
-      Authorization: "{{ bot_token }}"
-    json:
-      name: "new-channel"
-      type: 0
-      topic: "A channel created via API"
-      parent_id: "399942396007890945"
-  expect:
-    - status: 201
-      json:
-        shape:
-          id: string
-          type: integer
-          guild_id: string
-          name: string
-          topic: ?string
-          position: integer
-        content:
+    - name: "Create Guild Channel"
+      tags: [channels, create]
+      request:
+        method: POST
+        url: "{{ base_url }}/guilds/81384788765712384/channels"
+        json:
           name: "new-channel"
           type: 0
-  store:
-    created_channel_id: "{{ response.body.id }}"
-
-- name: "Get Guild Members"
-  tags: [guilds, members]
-  request:
-    method: GET
-    url: "{{ base_url }}/guilds/81384788765712384/members"
-    headers:
-      Authorization: "{{ bot_token }}"
-    query:
-      limit: 100
-  expect:
-    - status: 200
-      json:
-        shape:
-          - user:
+          topic: "A channel created via API"
+          parent_id: "399942396007890945"
+      expect:
+        - status: 201
+          json:
+            shape:
               id: string
-              username: string
-              discriminator: string
-              avatar: ?string
-            nick: ?string
-            roles: [string]
-            joined_at: string
-            deaf: boolean
-            mute: boolean
+              type: integer
+              guild_id: string
+              name: string
+              topic: ?string
+              position: integer
+            content:
+              name: "new-channel"
+              type: 0
+      store:
+        created_channel_id: "{{ response.body.id }}"
+
+    - name: "Get Guild Members"
+      tags: [members]
+      request:
+        method: GET
+        url: "{{ base_url }}/guilds/81384788765712384/members"
+        query:
+          limit: 100
+      expect:
+        - status: 200
+          json:
+            shape:
+              - user:
+                  id: string
+                  username: string
+                  discriminator: string
+                  avatar: ?string
+                nick: ?string
+                roles: [string]
+                joined_at: string
+                deaf: boolean
+                mute: boolean
 
 #
 # Channel Endpoints
 #
 
-- name: "Get Channel"
-  tags: [channels, get]
+- name: "Channel Operations"
+  tags: [channels]
   request:
-    method: GET
-    url: "{{ base_url }}/channels/399942396007890945"
     headers:
       Authorization: "{{ bot_token }}"
-  expect:
-    - status: 200
-      json:
-        shape:
-          id: string
-          type: integer
-          guild_id: ?string
-          name: string
-          topic: ?string
-          nsfw: ?boolean
-          last_message_id: ?string
-          rate_limit_per_user: ?integer
+  steps:
+    - name: "Get Channel"
+      tags: [get]
+      request:
+        method: GET
+        url: "{{ base_url }}/channels/399942396007890945"
+      expect:
+        - status: 200
+          json:
+            shape:
+              id: string
+              type: integer
+              guild_id: ?string
+              name: string
+              topic: ?string
+              nsfw: ?boolean
+              last_message_id: ?string
+              rate_limit_per_user: ?integer
 
-- name: "Modify Channel"
-  tags: [channels, update]
-  request:
-    method: PATCH
-    url: "{{ base_url }}/channels/{{ created_channel_id }}"
-    headers:
-      Authorization: "{{ bot_token }}"
-    json:
-      name: "renamed-channel"
-      topic: "Updated topic"
-  expect:
-    - status: 200
-      json:
-        content:
+    - name: "Modify Channel"
+      tags: [update]
+      request:
+        method: PATCH
+        url: "{{ base_url }}/channels/{{ created_channel_id }}"
+        json:
           name: "renamed-channel"
           topic: "Updated topic"
+      expect:
+        - status: 200
+          json:
+            content:
+              name: "renamed-channel"
+              topic: "Updated topic"
 
-- name: "Delete Channel"
-  tags: [channels, delete]
-  request:
-    method: DELETE
-    url: "{{ base_url }}/channels/{{ created_channel_id }}"
-    headers:
-      Authorization: "{{ bot_token }}"
-  expect:
-    - status: 200
-      json:
-        shape:
-          id: string
-          type: integer
-          name: string
+    - name: "Delete Channel"
+      tags: [delete]
+      request:
+        method: DELETE
+        url: "{{ base_url }}/channels/{{ created_channel_id }}"
+      expect:
+        - status: 200
+          json:
+            shape:
+              id: string
+              type: integer
+              name: string
 
 #
 # Message Endpoints
 #
 
-- name: "Get Channel Messages"
-  tags: [messages, list]
+- name: "Message Operations"
+  tags: [messages]
   request:
-    method: GET
-    url: "{{ base_url }}/channels/399942396007890945/messages"
     headers:
       Authorization: "{{ bot_token }}"
-    query:
-      limit: 50
-  expect:
-    - status: 200
-      json:
-        shape:
-          - id: string
-            channel_id: string
-            author:
-              id: string
-              username: string
-            content: string
-            timestamp: string
-            edited_timestamp: ?string
-            mentions: array
-            attachments: array
-            embeds: array
+  steps:
+    - name: "Get Channel Messages"
+      tags: [list]
+      request:
+        method: GET
+        url: "{{ base_url }}/channels/399942396007890945/messages"
+        query:
+          limit: 50
+      expect:
+        - status: 200
+          json:
+            shape:
+              - id: string
+                channel_id: string
+                author:
+                  id: string
+                  username: string
+                content: string
+                timestamp: string
+                edited_timestamp: ?string
+                mentions: array
+                attachments: array
+                embeds: array
 
-- name: "Create Message"
-  tags: [messages, create]
-  request:
-    method: POST
-    url: "{{ base_url }}/channels/399942396007890945/messages"
-    headers:
-      Authorization: "{{ bot_token }}"
-    json:
-      content: "Hello from SpecForge!"
-      embeds:
-        - title: "Test Embed"
-          description: "This is a test embed"
-          color: 5814783
-  expect:
-    - status: 200
-      json:
-        shape:
-          id: string
-          channel_id: string
-          content: string
-          embeds:
-            - title: ?string
-              description: ?string
-              color: ?integer
-          author:
-            id: string
-            username: string
-        content:
+    - name: "Create Message"
+      tags: [create]
+      request:
+        method: POST
+        url: "{{ base_url }}/channels/399942396007890945/messages"
+        json:
           content: "Hello from SpecForge!"
-  store:
-    message_id: "{{ response.body.id }}"
+          embeds:
+            - title: "Test Embed"
+              description: "This is a test embed"
+              color: 5814783
+      expect:
+        - status: 200
+          json:
+            shape:
+              id: string
+              channel_id: string
+              content: string
+              embeds:
+                - title: ?string
+                  description: ?string
+                  color: ?integer
+              author:
+                id: string
+                username: string
+            content:
+              content: "Hello from SpecForge!"
+      store:
+        message_id: "{{ response.body.id }}"
 
-- name: "Edit Message"
-  tags: [messages, update]
-  request:
-    method: PATCH
-    url: "{{ base_url }}/channels/399942396007890945/messages/{{ message_id }}"
-    headers:
-      Authorization: "{{ bot_token }}"
-    json:
-      content: "Edited message from SpecForge!"
-  expect:
-    - status: 200
-      json:
-        content:
+    - name: "Edit Message"
+      tags: [update]
+      request:
+        method: PATCH
+        url: "{{ base_url }}/channels/399942396007890945/messages/{{ message_id }}"
+        json:
           content: "Edited message from SpecForge!"
+      expect:
+        - status: 200
+          json:
+            content:
+              content: "Edited message from SpecForge!"
 
-- name: "Delete Message"
-  tags: [messages, delete]
-  request:
-    method: DELETE
-    url: "{{ base_url }}/channels/399942396007890945/messages/{{ message_id }}"
-    headers:
-      Authorization: "{{ bot_token }}"
-  expect:
-    - status: 204
+    - name: "Delete Message"
+      tags: [delete]
+      request:
+        method: DELETE
+        url: "{{ base_url }}/channels/399942396007890945/messages/{{ message_id }}"
+      expect:
+        - status: 204
 
 #
 # User Endpoints
 #
 
-- name: "Get Current User"
-  tags: [users, me]
+- name: "User Operations"
+  tags: [users]
   request:
-    method: GET
-    url: "{{ base_url }}/users/@me"
     headers:
       Authorization: "{{ bot_token }}"
-  expect:
-    - status: 200
-      json:
-        shape:
-          id: string
-          username: string
-          discriminator: string
-          avatar: ?string
-          bot: ?boolean
-          email: ?string
-          verified: ?boolean
-          flags: ?integer
+  steps:
+    - name: "Get Current User"
+      tags: [me]
+      request:
+        method: GET
+        url: "{{ base_url }}/users/@me"
+      expect:
+        - status: 200
+          json:
+            shape:
+              id: string
+              username: string
+              discriminator: string
+              avatar: ?string
+              bot: ?boolean
+              email: ?string
+              verified: ?boolean
+              flags: ?integer
 
-- name: "Get User"
-  tags: [users, get]
-  request:
-    method: GET
-    url: "{{ base_url }}/users/80351110224678912"
-    headers:
-      Authorization: "{{ bot_token }}"
-  expect:
-    - status: 200
-      json:
-        shape:
-          id: string
-          username: string
-          discriminator: string
-          avatar: ?string
-          banner: ?string
-          accent_color: ?integer
+    - name: "Get User"
+      tags: [get]
+      request:
+        method: GET
+        url: "{{ base_url }}/users/80351110224678912"
+      expect:
+        - status: 200
+          json:
+            shape:
+              id: string
+              username: string
+              discriminator: string
+              avatar: ?string
+              banner: ?string
+              accent_color: ?integer
 
-- name: "Get User Guilds"
-  tags: [users, guilds]
-  request:
-    method: GET
-    url: "{{ base_url }}/users/@me/guilds"
-    headers:
-      Authorization: "{{ bot_token }}"
-  expect:
-    - status: 200
-      json:
-        shape:
-          - id: string
-            name: string
-            icon: ?string
-            owner: boolean
-            permissions: string
+    - name: "Get User Guilds"
+      tags: [guilds]
+      request:
+        method: GET
+        url: "{{ base_url }}/users/@me/guilds"
+      expect:
+        - status: 200
+          json:
+            shape:
+              - id: string
+                name: string
+                icon: ?string
+                owner: boolean
+                permissions: string
 
 #
 # Error Responses
@@ -324,69 +319,68 @@
         content:
           code: 0
 
-- name: "Forbidden - Missing Permissions"
-  tags: [errors, permissions]
+- name: "Error Responses (Authenticated)"
+  tags: [errors]
   request:
-    method: DELETE
-    url: "{{ base_url }}/guilds/81384788765712384"
     headers:
       Authorization: "{{ bot_token }}"
-  expect:
-    - status: 403
-      json:
-        shape:
-          message: string
-          code: integer
+  steps:
+    - name: "Forbidden - Missing Permissions"
+      tags: [permissions]
+      request:
+        method: DELETE
+        url: "{{ base_url }}/guilds/81384788765712384"
+      expect:
+        - status: 403
+          json:
+            shape:
+              message: string
+              code: integer
 
-- name: "Not Found - Unknown Resource"
-  tags: [errors, not_found]
-  request:
-    method: GET
-    url: "{{ base_url }}/channels/000000000000000000"
-    headers:
-      Authorization: "{{ bot_token }}"
-  expect:
-    - status: 404
-      json:
-        shape:
-          message: string
-          code: integer
-        content:
-          code: 10003
+    - name: "Not Found - Unknown Resource"
+      tags: [not_found]
+      request:
+        method: GET
+        url: "{{ base_url }}/channels/000000000000000000"
+      expect:
+        - status: 404
+          json:
+            shape:
+              message: string
+              code: integer
+            content:
+              code: 10003
 
-- name: "Rate Limited"
-  tags: [errors, rate_limit]
-  request:
-    method: GET
-    url: "{{ base_url }}/gateway"
-    headers:
-      Authorization: "{{ bot_token }}"
-      X-RateLimit-Precision: "millisecond"
-  expect:
-    - status: 429
-      headers:
-        Retry-After: "{{ kind_of.string }}"
-        X-RateLimit-Global: "{{ kind_of.string }}"
-      json:
-        shape:
-          message: string
-          retry_after: number
-          global: boolean
+    - name: "Rate Limited"
+      tags: [rate_limit]
+      request:
+        method: GET
+        url: "{{ base_url }}/gateway"
+        headers:
+          X-RateLimit-Precision: "millisecond"
+      expect:
+        - status: 429
+          headers:
+            Retry-After: "{{ kind_of.string }}"
+            X-RateLimit-Global: "{{ kind_of.string }}"
+          json:
+            shape:
+              message: string
+              retry_after: number
+              global: boolean
 
-- name: "Validation Error - Invalid Channel Name"
-  tags: [errors, validation]
-  request:
-    method: POST
-    url: "{{ base_url }}/guilds/81384788765712384/channels"
-    headers:
-      Authorization: "{{ bot_token }}"
-    json:
-      name: ""
-      type: 0
-  expect:
-    - status: 400
-      json:
-        shape:
-          message: string
-          code: integer
-          errors: hash
+    - name: "Validation Error - Invalid Channel Name"
+      tags: [validation]
+      request:
+        method: POST
+        url: "{{ base_url }}/guilds/81384788765712384/channels"
+        json:
+          name: ""
+          type: 0
+      expect:
+        - status: 400
+          json:
+            shape:
+              message: string
+              code: integer
+              errors: hash
