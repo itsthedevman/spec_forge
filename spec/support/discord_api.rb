@@ -22,8 +22,8 @@ class DiscordAPI < Sinatra::Base
     def json_body
       body_content = request.body.read
       JSON.parse(body_content, symbolize_names: true)
-    rescue JSON::ParserError
-      halt 400, {message: "Invalid JSON", code: 50109}.to_json
+    rescue JSON::ParserError => e
+      halt 400, {error: "Invalid JSON: #{e.message}", body: body_content.inspect}.to_json
     end
 
     def authenticate!

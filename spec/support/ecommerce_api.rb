@@ -68,7 +68,7 @@ class EcommerceAPI < Sinatra::Base
 
       JSON.parse(body_content, symbolize_names: true)
     rescue JSON::ParserError => e
-      halt 400, {error: "Invalid JSON: #{e.message}", body: body_content}.to_json
+      halt 400, {error: "Invalid JSON: #{e.message}", body: body_content.inspect}.to_json
     end
 
     def authenticate!
