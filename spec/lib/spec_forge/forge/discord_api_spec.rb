@@ -25,9 +25,6 @@ RSpec.describe "Forge: Discord API", :integration do
         }
       )
     end
-
-    # Wait for server to be ready
-    sleep 0.5
   end
 
   after(:all) do
