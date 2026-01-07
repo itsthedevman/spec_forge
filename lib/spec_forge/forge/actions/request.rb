@@ -8,7 +8,8 @@ module SpecForge
 
         forge.display.action(:request, "#{sendable_request.http_verb} #{sendable_request.url}", color: :yellow)
 
-        response = forge.http_client.perform(sendable_request).to_h.deep_symbolize_keys
+        response = forge.http_client.perform(sendable_request)
+        response = parse_response(response)
 
         # Only store the original resolved request before we modify it
         forge.variables[:request] = resolved_request
@@ -30,6 +31,17 @@ module SpecForge
           end
 
         [HTTP::Request.new(**request), resolved_request]
+      end
+
+      def parse_response(response)
+        response.to_hash.tap do |response|
+          response[:headers] = response.delete(:response_headers)
+
+          case response[:headers]["content-type"]
+          when "application/json"
+            response[:body] = response[:body].to_h
+          end
+        end
       end
     end
   end

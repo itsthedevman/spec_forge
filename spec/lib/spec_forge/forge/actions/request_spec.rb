@@ -14,9 +14,15 @@ RSpec.describe SpecForge::Forge::Request do
   end
 
   let(:display) { instance_double(SpecForge::Forge::Display, action: nil) }
+
   let(:faraday_response) do
-    double("Faraday::Response", to_h: {status: 200, body: {id: 1}})
+    double("Faraday::Response", to_hash: {
+      status: 200,
+      body: double("Body", to_h: {id: 1}),
+      response_headers: {"content-type" => "application/json"}
+    })
   end
+
   let(:http_client) { instance_double(SpecForge::HTTP::Client, perform: faraday_response) }
   let(:variables) { {} }
 
@@ -67,6 +73,46 @@ RSpec.describe SpecForge::Forge::Request do
 
       expect(variables[:response]).to be_a(Hash)
       expect(variables[:response][:status]).to eq(200)
+    end
+
+    it "renames response_headers to headers in the response" do
+      run
+
+      expect(variables[:response]).to have_key(:headers)
+      expect(variables[:response]).not_to have_key(:response_headers)
+      expect(variables[:response][:headers]).to eq({"content-type" => "application/json"})
+    end
+
+    context "when response content-type is application/json" do
+      let(:faraday_response) do
+        double("Faraday::Response", to_hash: {
+          status: 200,
+          body: double("Body", to_h: {id: 1, name: "Test"}),
+          response_headers: {"content-type" => "application/json"}
+        })
+      end
+
+      it "parses the body as JSON" do
+        run
+
+        expect(variables[:response][:body]).to eq({id: 1, name: "Test"})
+      end
+    end
+
+    context "when response content-type is not application/json" do
+      let(:faraday_response) do
+        double("Faraday::Response", to_hash: {
+          status: 200,
+          body: "<html>Hello</html>",
+          response_headers: {"content-type" => "text/html"}
+        })
+      end
+
+      it "leaves the body as-is" do
+        run
+
+        expect(variables[:response][:body]).to eq("<html>Hello</html>")
+      end
     end
   end
 end
