@@ -2,8 +2,19 @@
 
 module SpecForge
   class Forge
+    #
+    # Executes expectations using RSpec as the underlying test framework
+    #
+    # Runner wraps RSpec to run individual expectation blocks, capturing
+    # results and formatting them for display. It creates isolated RSpec
+    # example groups for each expectation.
+    #
     class Runner
-      attr_reader :output_io, :error_io
+      # @return [ArrayIO] Output stream for RSpec formatter
+      attr_reader :output_io
+
+      # @return [StringIO] Error stream for RSpec formatter
+      attr_reader :error_io
 
       def initialize(cli_args = [])
         options = RSpec::Core::ConfigurationOptions.new(cli_args)
@@ -19,6 +30,15 @@ module SpecForge
         @runner.configure(@error_io, @output_io)
       end
 
+      #
+      # Runs an expectation and returns any failed examples
+      #
+      # @param forge [Forge] The forge instance
+      # @param step [Step] The current step
+      # @param expectation [Step::Expect] The expectation to run
+      #
+      # @return [Array<Hash>] List of failed examples (empty if all passed)
+      #
       def run(forge, step, expectation)
         configure_formatters(forge)
 

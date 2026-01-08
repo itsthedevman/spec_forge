@@ -2,7 +2,22 @@
 
 module SpecForge
   class Forge
+    #
+    # Action for the `debug:` step attribute
+    #
+    # Triggers a debug breakpoint when a step has debug: true, invoking the
+    # configured debug handler (e.g., binding.pry) to allow interactive debugging.
+    #
     class Debug < Action
+      #
+      # Triggers the debug breakpoint
+      #
+      # @param forge [Forge] The forge instance
+      #
+      # @return [void]
+      #
+      # @raise [Error] If no debug handler is configured
+      #
       def run(forge)
         forge.display.action(:debug, "Debug breakpoint triggered", color: :yellow)
 

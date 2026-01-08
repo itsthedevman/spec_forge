@@ -82,6 +82,16 @@ module SpecForge
         raise Error, "Cannot define both \"shape\" and \"schema\". Use \"shape\" for simple validation or \"schema\" for explicit control."
       end
 
+      #
+      # Validates a JSON schema structure recursively
+      #
+      # Ensures the schema definition follows the expected format,
+      # validating nested structures and patterns.
+      #
+      # @param value [Hash] The schema definition to validate
+      #
+      # @raise [Error::InvalidStructureError] If the schema is invalid
+      #
       def json_schema(value)
         Normalizer.validate!(value, using: :json_schema)
         json_schema(value[:pattern]) if value[:pattern]

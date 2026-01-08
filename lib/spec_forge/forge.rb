@@ -1,8 +1,20 @@
 # frozen_string_literal: true
 
 module SpecForge
+  #
+  # The main execution engine for running blueprints
+  #
+  # Forge orchestrates the execution of blueprints by managing the execution
+  # context, HTTP client, variable storage, and display output. It processes
+  # each step sequentially and tracks statistics across the run.
+  #
   class Forge
     class << self
+      #
+      # Initializes SpecForge by loading the forge_helper and factories
+      #
+      # @return [Class] self for chaining
+      #
       def ignite
         load_forge_helper
         Factory.load_and_register
@@ -11,14 +23,36 @@ module SpecForge
         self
       end
 
+      #
+      # Creates a new Forge instance and runs the given blueprints
+      #
+      # @param blueprints [Array<Blueprint>] The blueprints to execute
+      # @param verbosity_level [Integer] Output verbosity (0-3)
+      #
+      # @return [void]
+      #
       def run(blueprints, verbosity_level: 0)
         new(blueprints, verbosity_level:).run
       end
 
+      #
+      # Returns the current execution context for the current thread
+      #
+      # @return [Context, nil] The current context or nil if not executing
+      #
       def context
         Thread.current[:spec_forge_context]
       end
 
+      #
+      # Executes a block with a given context
+      #
+      # @param context [Context] The context to use during execution
+      #
+      # @yield Block to execute with the context
+      #
+      # @return [Object] The result of the block
+      #
       def with_context(context)
         old_context = Thread.current[:spec_forge_context]
         Thread.current[:spec_forge_context] = context
@@ -40,14 +74,31 @@ module SpecForge
       end
     end
 
+    # @return [Array<Blueprint>] The blueprints being executed
     attr_reader :blueprints
+
+    # @return [Callbacks] Callback registry for this forge run
     attr_reader :callbacks
+
+    # @return [Display] Display handler for output formatting
     attr_reader :display
+
+    # @return [Array<Hash>] List of failed expectations
     attr_reader :failures
+
+    # @return [HTTP::Client] HTTP client for making requests
     attr_reader :http_client
+
+    # @return [Runner] RSpec runner for executing expectations
     attr_reader :runner
+
+    # @return [Hash] Statistics about the current run
     attr_reader :stats
+
+    # @return [Timer] Timer for tracking execution duration
     attr_reader :timer
+
+    # @return [Variables] Variable storage for the current run
     attr_reader :variables
 
     def initialize(blueprints, verbosity_level: 0)
@@ -64,6 +115,11 @@ module SpecForge
       reset_stats
     end
 
+    #
+    # Executes all blueprints and their steps
+    #
+    # @return [void]
+    #
     def run
       context = Context.new(variables:)
 

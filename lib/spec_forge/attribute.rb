@@ -201,6 +201,15 @@ module SpecForge
       end
     end
 
+    #
+    # Converts the resolved value into an RSpec matcher
+    #
+    # Transforms the attribute's resolved value into an appropriate RSpec matcher
+    # for use in expectations. Handles arrays, hashes, matchers, regexes, and
+    # literal values differently to produce the correct matcher type.
+    #
+    # @return [RSpec::Matchers::BuiltIn::BaseMatcher] An RSpec matcher for the value
+    #
     def resolve_as_matcher
       methods = Attribute::Matcher::MATCHER_METHODS
 

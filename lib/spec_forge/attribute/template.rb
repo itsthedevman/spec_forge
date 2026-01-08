@@ -2,7 +2,23 @@
 
 module SpecForge
   class Attribute
+    #
+    # Handles string interpolation with {{ }} template syntax
+    #
+    # Parses strings containing {{ variable }} placeholders and resolves them
+    # at runtime by looking up variables, faker calls, or other attribute types.
+    #
+    # @example Template interpolation
+    #   Template.new("Hello {{ user_name }}!")
+    #   # When resolved with user_name = "Alice": "Hello Alice!"
+    #
+    # @example Multiple templates
+    #   Template.new("/users/{{ user_id }}/posts/{{ post_id }}")
+    #
     class Template < Attribute
+      # Regex pattern for matching {{ variable }} placeholders
+      #
+      # @return [Regexp]
       REGEX = /\{\{\s*[\w.]+\s*\}\}/
 
       def initialize(...)
@@ -11,6 +27,15 @@ module SpecForge
         @parsed, @templates = parse_templates
       end
 
+      #
+      # Returns the interpolated string value
+      #
+      # Replaces all {{ }} placeholders with their resolved values.
+      # If the entire string is a single placeholder, returns the value
+      # in its original type (not stringified).
+      #
+      # @return [Object] The interpolated value
+      #
       def value
         value =
           @templates.each_with_object(@parsed.dup) do |(placeholder, attribute), string|

@@ -3,6 +3,12 @@
 module SpecForge
   class Forge
     class Runner
+      #
+      # RSpec formatter listener for tracking test results
+      #
+      # Receives notifications from RSpec when examples pass or fail,
+      # updating the forge's statistics and display accordingly.
+      #
       class Reporter
         def initialize(forge = nil)
           @forge = forge
@@ -10,6 +16,13 @@ module SpecForge
           @display = forge&.display
         end
 
+        #
+        # Called when an RSpec example fails
+        #
+        # @param notification [RSpec::Core::Notifications::ExampleNotification] The failure notification
+        #
+        # @return [void]
+        #
         def example_failed(notification)
           return if @stats.nil? || @display.nil?
 
@@ -17,6 +30,13 @@ module SpecForge
           @display.expectation_failed(notification.example.description, indent: 1)
         end
 
+        #
+        # Called when an RSpec example passes
+        #
+        # @param notification [RSpec::Core::Notifications::ExampleNotification] The success notification
+        #
+        # @return [void]
+        #
         def example_passed(notification)
           return if @stats.nil? || @display.nil?
 

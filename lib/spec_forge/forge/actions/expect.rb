@@ -2,6 +2,12 @@
 
 module SpecForge
   class Forge
+    #
+    # Action for the `expect:` step attribute
+    #
+    # Runs expectations against the current response, validating status codes,
+    # headers, and JSON body against expected values using RSpec matchers.
+    #
     class Expect < Action
       def run(forge)
         show_expectation_count = step.expects.size > 1

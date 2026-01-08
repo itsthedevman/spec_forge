@@ -2,6 +2,19 @@
 
 module SpecForge
   class Attribute
+    #
+    # Represents a variable reference in a template
+    #
+    # Variables are resolved at runtime by looking up values stored in the
+    # current execution context. Supports dot notation for accessing nested
+    # properties (e.g., "response.body.id").
+    #
+    # @example Simple variable
+    #   Variable.new("user_id")  # Looks up :user_id in context
+    #
+    # @example Nested access
+    #   Variable.new("response.body.token")  # response[:body][:token]
+    #
     class Variable < Attribute
       include Chainable
 
@@ -18,6 +31,16 @@ module SpecForge
         @invocation_chain = sections[1..] || []
       end
 
+      #
+      # Returns the base object for this variable from the current context
+      #
+      # Looks up the variable name in the current Forge context's variables.
+      # Raises an error if the variable is not defined.
+      #
+      # @return [Object] The value stored under this variable name
+      #
+      # @raise [Error::MissingVariableError] If the variable is not defined
+      #
       def base_object
         @base_object ||= begin
           variables = Forge.context&.variables || {}

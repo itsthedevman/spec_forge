@@ -150,6 +150,11 @@ module SpecForge
       end
     end
 
+    #
+    # Raised when a referenced variable is not defined in the current context
+    #
+    # Provides helpful suggestions for similar variable names using spell checking.
+    #
     class MissingVariableError < Error
       def initialize(variable_name, available_variables: [])
         message = "Undefined variable \"#{variable_name}\""
@@ -202,6 +207,12 @@ module SpecForge
       end
     end
 
+    #
+    # Raised when an error occurs while loading a step during blueprint processing
+    #
+    # Wraps the original error with step context information to help identify
+    # which step caused the problem.
+    #
     class LoadStepError < Error
       def initialize(error, step, depth = 0)
         step_name = step[:name].presence || "(unnamed)"
@@ -302,6 +313,11 @@ module SpecForge
     class InvalidOASDocument < Error
     end
 
+    #
+    # Raised when one or more expectations fail during step execution
+    #
+    # Contains the list of failed RSpec examples for reporting purposes.
+    #
     class ExpectationFailure < Error
       attr_reader :failed_examples
 
@@ -361,6 +377,11 @@ module SpecForge
       end
     end
 
+    #
+    # Raised when JSON content validation fails
+    #
+    # Contains structured failure information for content mismatches.
+    #
     class ContentValidationFailure < Error
       attr_reader :failures
 
@@ -381,6 +402,11 @@ module SpecForge
       end
     end
 
+    #
+    # Raised when HTTP header validation fails
+    #
+    # Contains structured failure information for header mismatches.
+    #
     class HeaderValidationFailure < Error
       attr_reader :failures
 

@@ -2,11 +2,23 @@
 
 module SpecForge
   class Loader
+    #
+    # Processes raw step hashes into normalized, flattened step arrays
+    #
+    # Handles the heavy lifting of load-time processing: normalizing step
+    # structures, expanding includes, inheriting configuration from parents,
+    # applying tags, and flattening nested hierarchies.
+    #
     class StepProcessor
       def initialize(blueprints)
         @blueprints = blueprints
       end
 
+      #
+      # Processes all blueprints and returns flattened step arrays
+      #
+      # @return [Array<Hash>] Processed blueprints with flattened steps
+      #
       def run
         # This is important to be done to every blueprint before expanding the includes
         @blueprints.each do |name, blueprint|

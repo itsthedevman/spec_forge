@@ -1,7 +1,23 @@
 # frozen_string_literal: true
 
 module SpecForge
+  #
+  # Loads and processes blueprint YAML files into executable Blueprint objects
+  #
+  # The Loader handles the load-time phase of SpecForge, reading YAML files,
+  # parsing steps with line numbers, expanding includes, flattening hierarchies,
+  # and applying filters.
+  #
   class Loader
+    #
+    # Loads blueprints from disk with optional filtering
+    #
+    # @param path [Pathname, nil] Specific path to load (defaults to blueprints/)
+    # @param tags [Array<String>] Tags to include
+    # @param skip_tags [Array<String>] Tags to exclude
+    #
+    # @return [Array<Blueprint>] Loaded blueprint objects
+    #
     def self.load_blueprints(path: nil, tags: [], skip_tags: [])
       new(filter: {path:, tags:, skip_tags:}).load
     end
@@ -11,6 +27,11 @@ module SpecForge
       @filter = filter
     end
 
+    #
+    # Loads and processes all blueprints
+    #
+    # @return [Array<Blueprint>] Processed blueprint objects
+    #
     def load
       read_blueprints
         .index_by { |b| b[:name] }

@@ -75,6 +75,11 @@ module SpecForge
       @forge_path ||= root.join("spec_forge")
     end
 
+    #
+    # Returns SpecForge's blueprints directory
+    #
+    # @return [Pathname] The spec_forge blueprints directory path
+    #
     def blueprints_path
       @blueprints_path ||= forge_path.join("blueprints")
     end

@@ -3,6 +3,13 @@
 module SpecForge
   class Forge
     class Runner
+      #
+      # Validates JSON structure against a schema definition
+      #
+      # Validates that response data matches the expected types and structure
+      # defined in shape: or schema: blocks. Supports nested objects, arrays
+      # with patterns, and nullable types.
+      #
       class SchemaValidator
         def initialize(data, schema)
           @data = data

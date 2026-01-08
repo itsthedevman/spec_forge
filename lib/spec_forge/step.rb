@@ -1,6 +1,14 @@
 # frozen_string_literal: true
 
 module SpecForge
+  #
+  # Represents a single executable step within a blueprint
+  #
+  # Steps are the fundamental unit of execution in SpecForge. Each step
+  # can contain a request, expectations, store operations, callbacks,
+  # and debug triggers. Steps are immutable value objects created from
+  # normalized YAML data.
+  #
   class Step < Data.define(
     :name,
     :call,
@@ -14,6 +22,11 @@ module SpecForge
     :store,
     :tags
   )
+    # @return [Boolean] Whether debug mode is enabled for this step
+    # @return [Boolean] Whether this step has a call action
+    # @return [Boolean] Whether this step has a request action
+    # @return [Boolean] Whether this step has expectations
+    # @return [Boolean] Whether this step has store operations
     attr_predicate :debug, :call, :request, :expect, :store
 
     def initialize(**step)

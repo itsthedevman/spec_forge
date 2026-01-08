@@ -2,6 +2,12 @@
 
 module SpecForge
   class Forge
+    #
+    # Manages registered callbacks that can be invoked from blueprints
+    #
+    # Callbacks are Ruby blocks registered in forge_helper.rb that can be
+    # called during step execution using the call: attribute.
+    #
     class Callbacks
       def initialize
         @callbacks = {}
@@ -21,6 +27,17 @@ module SpecForge
         @callbacks.key?(name.to_sym)
       end
 
+      #
+      # Executes a registered callback with the given arguments
+      #
+      # @param name [String, Symbol] The callback name
+      # @param arguments [Array] Positional arguments to pass
+      # @param keyword_arguments [Hash] Keyword arguments to pass
+      #
+      # @return [Object] The callback's return value
+      #
+      # @raise [Error::UndefinedCallbackError] If the callback is not registered
+      #
       def run(name, *arguments, **keyword_arguments)
         ensure_registered!(name)
 

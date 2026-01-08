@@ -2,9 +2,21 @@
 
 module SpecForge
   class Forge
+    #
+    # Handles formatted output for forge execution
+    #
+    # Display manages the console output during test runs, adapting
+    # its verbosity based on the configured level (0-3). It formats
+    # step headers, action indicators, expectation results, and
+    # failure summaries.
+    #
     class Display
+      # Maximum line length for output formatting
+      #
+      # @return [Integer]
       LINE_LENGTH = 120
 
+      # @return [Integer] Current verbosity level (0-3)
       attr_reader :verbosity_level
 
       def initialize(verbosity_level: 0)
@@ -28,6 +40,17 @@ module SpecForge
         verbosity_level >= 3
       end
 
+      #
+      # Displays an action indicator with appropriate symbol and color
+      #
+      # @param type [Symbol] The action type (:request, :store, :call, :debug, :success, :error)
+      # @param message [String] The message to display
+      # @param color [Symbol] The color to use
+      # @param style [Symbol] The text style
+      # @param indent [Integer] Indentation level
+      #
+      # @return [void]
+      #
       def action(type, message, color: :bright_black, style: :clear, indent: 0)
         return if default_mode?
 
@@ -50,18 +73,44 @@ module SpecForge
         puts format_with_indent("#{@color.decorate(symbol, style, color)} #{message}", indent:)
       end
 
+      #
+      # Displays a passing expectation indicator (green dot)
+      #
+      # @param message [String] The expectation message (unused in default mode)
+      # @param indent [Integer] Indentation level
+      #
+      # @return [void]
+      #
       def expectation_passed(message, indent: 0)
         return if verbose?
 
         print @color.green(".")
       end
 
+      #
+      # Displays a failing expectation indicator (red F)
+      #
+      # @param message [String] The expectation message (unused in default mode)
+      # @param indent [Integer] Indentation level
+      #
+      # @return [void]
+      #
       def expectation_failed(message, indent: 0)
         return if verbose?
 
         print @color.red("F")
       end
 
+      #
+      # Displays the result summary for a completed expectation
+      #
+      # @param failed_examples [Array] List of failed RSpec examples
+      # @param total_count [Integer] Total number of assertions in the expectation
+      # @param index [Integer] The expectation index (1-based)
+      # @param show_index [Boolean] Whether to display the index prefix
+      #
+      # @return [void]
+      #
       def expectation_finished(failed_examples:, total_count:, index: 0, show_index: false)
         return if default_mode?
 
@@ -89,17 +138,38 @@ module SpecForge
         end
       end
 
-      ##########################################################################
-
+      #
+      # Called when a blueprint begins execution
+      #
+      # @param blueprint [Blueprint] The blueprint starting
+      #
+      # @return [void]
+      #
       def blueprint_start(blueprint)
       end
 
+      #
+      # Called when a step begins execution
+      #
+      # @param step [Step] The step starting
+      #
+      # @return [void]
+      #
       def step_start(step)
         return if default_mode?
 
         print_verbose_step_header(step)
       end
 
+      #
+      # Called when a step finishes execution
+      #
+      # @param forge [Forge] The forge instance
+      # @param step [Step] The step that finished
+      # @param error [Exception, nil] Any error that occurred
+      #
+      # @return [void]
+      #
       def step_end(forge, step, error: nil)
         return unless verbose?
 
@@ -122,6 +192,14 @@ module SpecForge
         end
       end
 
+      #
+      # Called when a blueprint finishes execution
+      #
+      # @param blueprint [Blueprint] The blueprint that finished
+      # @param success [Boolean] Whether all steps passed
+      #
+      # @return [void]
+      #
       def blueprint_end(blueprint, success: true)
         return if default_mode?
 
@@ -134,6 +212,13 @@ module SpecForge
         end
       end
 
+      #
+      # Called when the entire forge run completes
+      #
+      # @param forge [Forge] The forge instance
+      #
+      # @return [void]
+      #
       def forge_end(forge)
         puts "\n\n"
 

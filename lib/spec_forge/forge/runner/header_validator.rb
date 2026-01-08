@@ -3,6 +3,12 @@
 module SpecForge
   class Forge
     class Runner
+      #
+      # Validates HTTP response headers against expected matchers
+      #
+      # Performs case-insensitive header name matching and runs
+      # RSpec matchers against header values.
+      #
       class HeaderValidator
         def initialize(headers, expected)
           @headers = headers

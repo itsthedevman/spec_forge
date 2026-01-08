@@ -2,11 +2,26 @@
 
 module SpecForge
   class Loader
+    #
+    # Filters blueprints and steps by path and tags
+    #
+    # Applied after step processing to reduce the set of blueprints
+    # and steps that will be executed based on CLI options.
+    #
     class Filter
       def initialize(blueprints)
         @blueprints = blueprints
       end
 
+      #
+      # Applies filters to the blueprints
+      #
+      # @param path [Pathname, nil] Path prefix to filter by
+      # @param tags [Array<String>] Tags that steps must have (OR logic)
+      # @param skip_tags [Array<String>] Tags that exclude steps
+      #
+      # @return [Array<Hash>] Filtered blueprints
+      #
       def run(path: nil, tags: [], skip_tags: [])
         filter_by_path(path)
         filter_by_tags(tags, skip_tags)

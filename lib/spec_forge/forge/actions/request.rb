@@ -2,7 +2,21 @@
 
 module SpecForge
   class Forge
+    #
+    # Action for the `request:` step attribute
+    #
+    # Builds and executes an HTTP request based on the step's configuration,
+    # then stores both the request and response in the forge's variables for
+    # use by subsequent actions.
+    #
     class Request < Action
+      #
+      # Executes the HTTP request and stores the response
+      #
+      # @param forge [Forge] The forge instance
+      #
+      # @return [void]
+      #
       def run(forge)
         sendable_request, resolved_request = build_requests
 

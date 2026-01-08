@@ -1,6 +1,20 @@
 # frozen_string_literal: true
 
 module SpecForge
+  #
+  # Represents a loaded blueprint containing a sequence of test steps
+  #
+  # A Blueprint is the runtime representation of a YAML blueprint file.
+  # It contains metadata about the file and an ordered list of Step objects
+  # ready for execution.
+  #
+  # @example
+  #   blueprint = Blueprint.new(
+  #     file_path: Pathname.new("spec_forge/blueprints/users.yml"),
+  #     name: "users",
+  #     steps: [{name: "Create user", request: {...}}]
+  #   )
+  #
   class Blueprint < Data.define(:file_path, :file_name, :name, :steps)
     def initialize(file_path:, name:, steps: [])
       file_name = file_path.basename.to_s

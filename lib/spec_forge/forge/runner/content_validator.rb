@@ -3,6 +3,12 @@
 module SpecForge
   class Forge
     class Runner
+      #
+      # Validates JSON content against expected matchers
+      #
+      # Recursively walks through the response body and expected values,
+      # running RSpec matchers at each leaf node and collecting failures.
+      #
       class ContentValidator
         def initialize(data, expected)
           @data = data

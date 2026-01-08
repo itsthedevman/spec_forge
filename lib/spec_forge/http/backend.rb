@@ -2,6 +2,12 @@
 
 module SpecForge
   module HTTP
+    #
+    # Low-level HTTP client wrapper around Faraday
+    #
+    # Backend provides methods for each HTTP verb and handles the actual
+    # communication with the server. It's used internally by HTTP::Client.
+    #
     class Backend
       #
       # The configured Faraday connection
@@ -17,11 +23,11 @@ module SpecForge
       #
       # Executes a DELETE request to <base_url>/<provided_url>
       #
-      # @param url [String] The URL path to DELETE
-      # @param base_url [String] The base URL to use for the request
-      # @param headers [Hash] HTTP headers to add
-      # @param query [Hash] Any query parameters to send
-      # @param body [Hash] Any body data to send
+      # @option options [String] :url The URL path to DELETE
+      # @option options [String] :base_url The base URL to use for the request
+      # @option options [Hash] :headers HTTP headers to add
+      # @option options [Hash] :query Any query parameters to send
+      # @option options [Hash] :body Any body data to send
       #
       # @return [Faraday::Response] The HTTP response
       #
@@ -32,11 +38,11 @@ module SpecForge
       #
       # Executes a GET request to <base_url>/<provided_url>
       #
-      # @param url [String] The URL path to GET
-      # @param base_url [String] The base URL to use for the request
-      # @param headers [Hash] HTTP headers to add
-      # @param query [Hash] Any query parameters to send
-      # @param body [Hash] Any body data to send
+      # @option options [String] :url The URL path to GET
+      # @option options [String] :base_url The base URL to use for the request
+      # @option options [Hash] :headers HTTP headers to add
+      # @option options [Hash] :query Any query parameters to send
+      # @option options [Hash] :body Any body data to send
       #
       # @return [Faraday::Response] The HTTP response
       #
@@ -47,11 +53,11 @@ module SpecForge
       #
       # Executes a PATCH request to <base_url>/<provided_url>
       #
-      # @param url [String] The URL path to PATCH
-      # @param base_url [String] The base URL to use for the request
-      # @param headers [Hash] HTTP headers to add
-      # @param query [Hash] Any query parameters to send
-      # @param body [Hash] Any body data to send
+      # @option options [String] :url The URL path to PATCH
+      # @option options [String] :base_url The base URL to use for the request
+      # @option options [Hash] :headers HTTP headers to add
+      # @option options [Hash] :query Any query parameters to send
+      # @option options [Hash] :body Any body data to send
       #
       # @return [Faraday::Response] The HTTP response
       #
@@ -62,11 +68,11 @@ module SpecForge
       #
       # Executes a POST request to <base_url>/<provided_url>
       #
-      # @param url [String] The URL path to POST
-      # @param base_url [String] The base URL to use for the request
-      # @param headers [Hash] HTTP headers to add
-      # @param query [Hash] Any query parameters to send
-      # @param body [Hash] Any body data to send
+      # @option options [String] :url The URL path to POST
+      # @option options [String] :base_url The base URL to use for the request
+      # @option options [Hash] :headers HTTP headers to add
+      # @option options [Hash] :query Any query parameters to send
+      # @option options [Hash] :body Any body data to send
       #
       # @return [Faraday::Response] The HTTP response
       #
@@ -77,11 +83,11 @@ module SpecForge
       #
       # Executes a PUT request to <base_url>/<provided_url>
       #
-      # @param url [String] The URL path to PUT
-      # @param base_url [String] The base URL to use for the request
-      # @param headers [Hash] HTTP headers to add
-      # @param query [Hash] Any query parameters to send
-      # @param body [Hash] Any body data to send
+      # @option options [String] :url The URL path to PUT
+      # @option options [String] :base_url The base URL to use for the request
+      # @option options [Hash] :headers HTTP headers to add
+      # @option options [Hash] :query Any query parameters to send
+      # @option options [Hash] :body Any body data to send
       #
       # @return [Faraday::Response] The HTTP response
       #

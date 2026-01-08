@@ -2,7 +2,17 @@
 
 module SpecForge
   class Normalizer
+    #
+    # Represents a parsed structure definition for normalization
+    #
+    # Structure definitions specify the expected shape of input data,
+    # including types, defaults, aliases, and nested structures.
+    # They are loaded from YAML files and normalized themselves.
+    #
     class Structure < Hash
+      # Meta-structure defining the format of structure definitions
+      #
+      # @return [Hash]
       STRUCTURE = {
         type: {
           type: [String, Array, Class],
@@ -31,6 +41,7 @@ module SpecForge
         }
       }.freeze
 
+      # @return [String] Human-readable label for this structure
       attr_reader :label
 
       def initialize(input, label: "")

@@ -1,6 +1,13 @@
 # frozen_string_literal: true
 
 module SpecForge
+  #
+  # Validates and transforms input data against structure definitions
+  #
+  # The Normalizer system ensures that YAML input conforms to expected
+  # structures, applying defaults, type checking, and custom validations.
+  # Structure definitions are loaded from YAML files in the normalizers/ directory.
+  #
   class Normalizer
     #
     # Mapping of structure names to their human-readable labels
