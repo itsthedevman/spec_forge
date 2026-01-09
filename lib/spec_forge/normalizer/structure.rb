@@ -38,6 +38,15 @@ module SpecForge
         },
         transformer: {
           type: String
+        },
+        description: {
+          type: String
+        },
+        examples: {
+          type: Array,
+          structure: {
+            type: [String, Integer, Float, Hash, Array, TrueClass, FalseClass]
+          }
         }
       }.freeze
 
