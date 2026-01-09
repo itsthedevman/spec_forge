@@ -59,11 +59,14 @@ module SpecForge
           # We'll normalize these separately (not included in normalizer)
           sub_steps = step.delete(:steps) || []
 
-          step = Normalizer.normalize!(step, using: :step)
-          step = inherit_from_parent(step, parent) if parent
+          begin
+            step = Normalizer.normalize!(step, using: :step)
+            step = inherit_from_parent(step, parent) if parent
 
-          step[:steps] = normalize_steps(sub_steps, parent: step)
-          step[:source] = source
+            step[:steps] = normalize_steps(sub_steps, parent: step)
+          ensure
+            step[:source] = source
+          end
 
           step
         rescue => e
