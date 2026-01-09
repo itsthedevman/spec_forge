@@ -60,7 +60,7 @@ module SpecForge
           sub_steps = step.delete(:steps) || []
 
           begin
-            step = Normalizer.normalize!(step, using: :step)
+            step = Normalizer.normalize!(step, using: :step, label: "")
             step = inherit_from_parent(step, parent) if parent
 
             step[:steps] = normalize_steps(sub_steps, parent: step)
