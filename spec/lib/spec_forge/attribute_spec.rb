@@ -256,6 +256,32 @@ RSpec.describe SpecForge::Attribute do
         ]
       ])
     end
+
+    context "when called multiple times" do
+      let(:input) { {name: "faker.name.name"} }
+      let(:attribute) { described_class.from(input) }
+
+      it "returns fresh values each time" do
+        results = 10.times.map { attribute.resolve[:name] }
+
+        # With faker, we should get at least some different values in 10 tries
+        expect(results.uniq.size).to be > 1
+      end
+    end
+  end
+
+  describe "#resolved" do
+    context "when called multiple times" do
+      let(:input) { {name: "faker.name.name"} }
+      let(:attribute) { described_class.from(input) }
+
+      it "returns the same cached value each time" do
+        first_result = attribute.resolved[:name]
+        results = 10.times.map { attribute.resolved[:name] }
+
+        expect(results.uniq).to eq([first_result])
+      end
+    end
   end
 
   describe "#==" do

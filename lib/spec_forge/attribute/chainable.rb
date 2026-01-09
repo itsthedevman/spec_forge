@@ -58,6 +58,8 @@ module SpecForge
       #
       # Initializes a new chainable attribute by parsing the input into components
       #
+      # Parses the input string into keyword, header, and invocation chain parts.
+      #
       def initialize(...)
         super
 

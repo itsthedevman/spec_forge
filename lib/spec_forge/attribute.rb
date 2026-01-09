@@ -193,9 +193,9 @@ module SpecForge
     def resolve
       case value
       when Array
-        value.map(&resolved_proc)
+        value.map(&resolve_proc)
       when Hash
-        value.transform_values(&resolved_proc)
+        value.transform_values(&resolve_proc)
       else
         value
       end
