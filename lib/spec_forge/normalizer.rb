@@ -292,7 +292,8 @@ module SpecForge
         error_label += " (aliases #{aliases})"
       end
 
-      error_label + " in #{@label}"
+      error_label += " in #{@label}" if @label.present?
+      error_label
     end
 
     #
