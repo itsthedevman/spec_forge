@@ -155,9 +155,7 @@ module SpecForge
           end
 
           if opts[:examples].present?
-            examples = opts[:examples].map { |e| e.to_yaml(stringify_names: true).gsub(/^---\s*/, "") }
-
-            message += "\n\nExamples:\n  #{examples.join("  ")}"
+            message += "\n\nExamples:\n  #{opts[:examples].join("\n\n").gsub("\n", "\n  ")}"
           end
         end
 
@@ -236,7 +234,7 @@ module SpecForge
           "#{source[:file_name]}:#{source[:line_number]}"
         end
 
-        message = "Step: #{step_name.in_quotes} (#{line_info})"
+        message = "Step: #{step_name.in_quotes} [#{line_info}]"
 
         cause_message = if error.is_a?(LoadStepError)
           "\n#{error.message}"
