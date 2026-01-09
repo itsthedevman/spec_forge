@@ -344,4 +344,56 @@ RSpec.describe SpecForge::Normalizer::Transformers do
       end
     end
   end
+
+  describe "#abs" do
+    subject(:result) { described_class.call(:abs, value) }
+
+    context "when the value is a positive integer" do
+      let(:value) { 42 }
+
+      it "is expected to return the same value" do
+        is_expected.to eq(42)
+      end
+    end
+
+    context "when the value is a negative integer" do
+      let(:value) { -42 }
+
+      it "is expected to return the absolute value" do
+        is_expected.to eq(42)
+      end
+    end
+
+    context "when the value is zero" do
+      let(:value) { 0 }
+
+      it "is expected to return zero" do
+        is_expected.to eq(0)
+      end
+    end
+
+    context "when the value is a positive float" do
+      let(:value) { 3.14 }
+
+      it "is expected to return the same value" do
+        is_expected.to eq(3.14)
+      end
+    end
+
+    context "when the value is a negative float" do
+      let(:value) { -3.14 }
+
+      it "is expected to return the absolute value" do
+        is_expected.to eq(3.14)
+      end
+    end
+
+    context "when the value is nil" do
+      let(:value) { nil }
+
+      it "is expected to return nil" do
+        is_expected.to be_nil
+      end
+    end
+  end
 end

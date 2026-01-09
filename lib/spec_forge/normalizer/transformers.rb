@@ -103,6 +103,10 @@ module SpecForge
           {type: Type.from_string(value)}
         end
       end
+
+      def abs(value)
+        value&.abs
+      end
     end
   end
 end
