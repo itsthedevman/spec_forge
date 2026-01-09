@@ -368,17 +368,17 @@ module SpecForge
         variables = forge.variables.to_hash.symbolize_keys
         if (request = variables.delete(:request))
           output << format_with_indent("Request:", indent:)
-          output << format_with_indent(request.to_h.deep_stringify_keys.to_yaml.sub("---\n", ""), indent: indent + 1)
+          output << format_with_indent(request.to_h.to_yaml(stringify_names: true).sub("---\n", ""), indent: indent + 1)
         end
 
         if (response = variables.delete(:response))
           output << format_with_indent("Response:", indent:)
-          output << format_with_indent(response.to_h.deep_stringify_keys.to_yaml.sub("---\n", ""), indent: indent + 1)
+          output << format_with_indent(response.to_h.to_yaml(stringify_names: true).sub("---\n", ""), indent: indent + 1)
         end
 
         if variables.present?
           output << format_with_indent("Variables:", indent:)
-          output << format_with_indent(variables.to_h.deep_stringify_keys.to_yaml.sub("---\n", ""), indent: indent + 1)
+          output << format_with_indent(variables.to_h.to_yaml(stringify_names: true).sub("---\n", ""), indent: indent + 1)
         end
 
         if (expects = step.expects) && expects.present?
@@ -405,7 +405,7 @@ module SpecForge
 
           if expectations.size > 0
             output << format_with_indent("Expectations:", indent:)
-            output << format_with_indent(expectations.to_yaml.sub("---\n", ""), indent: indent + 1)
+            output << format_with_indent(expectations.to_yaml(stringify_names: true).sub("---\n", ""), indent: indent + 1)
           end
         end
 
