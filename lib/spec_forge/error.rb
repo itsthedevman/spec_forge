@@ -146,6 +146,21 @@ module SpecForge
         message = "Expected #{expected_type}, got #{object.class}"
         message += " for #{opts[:for]}" if opts[:for].present?
 
+        if opts[:description] || opts[:examples]
+          message += "\n"
+
+          if opts[:description]
+            message += "\nAbout #{opts[:attribute_name].in_quotes}:"
+            message += "\n  #{opts[:description].gsub("\n", "\n  ")}"
+          end
+
+          if opts[:examples].present?
+            examples = opts[:examples].map { |e| e.to_yaml(stringify_names: true).gsub(/^---\s*/, "") }
+
+            message += "\n\nExamples:\n  #{examples.join("  ")}"
+          end
+        end
+
         super(message)
       end
     end
@@ -216,20 +231,17 @@ module SpecForge
     class LoadStepError < Error
       def initialize(error, step, depth = 0)
         step_name = step[:name].presence || "(unnamed)"
-        line_info = step[:line_number] ? " (line #{step[:line_number]})" : ""
 
-        message = "Step: #{step_name}#{line_info}"
+        line_info = if (source = step[:source])
+          "#{source[:file_name]}:#{source[:line_number]}"
+        end
+
+        message = "Step: #{step_name.in_quotes} (#{line_info})"
 
         cause_message = if error.is_a?(LoadStepError)
           "\n#{error.message}"
         else
-          # Final error - add spacing and the actual problem
-          error_lines = error.message.split("\n").map(&:strip).reject(&:empty?)
-          if error_lines.size > 1
-            "\n\nCaused by:\n  " + error_lines.join("\n  ")
-          else
-            "\n\nCaused by: #{error.message}"
-          end
+          "\n\nCaused by: \n  #{error.message.gsub("\n", "\n  ")}"
         end
 
         super(message + cause_message)

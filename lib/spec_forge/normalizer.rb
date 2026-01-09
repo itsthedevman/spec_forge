@@ -396,13 +396,15 @@ module SpecForge
 
       error_label = generate_error_label(key, aliases)
 
-      # Type + existence check
       if !valid_class?(value, type_class, nilable: has_default)
-        if (line_number = @input[:line_number])
-          error_label += " (line #{line_number})"
-        end
-
-        raise Error::InvalidTypeError.new(value, type_class, for: error_label)
+        raise Error::InvalidTypeError.new(
+          value,
+          type_class,
+          for: error_label,
+          attribute_name: key.to_s,
+          description: definition[:description],
+          examples: definition[:examples]
+        )
       end
 
       # Call the transformer if it has one
