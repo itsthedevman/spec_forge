@@ -1,4 +1,3 @@
-
 # SpecForge 1.0 Technical Specification
 
 ## Table of Contents
@@ -14,14 +13,14 @@
 - [Request Configuration](#request-configuration)
 - [Expectations](#expectations)
 - [Store](#store)
-- [Callbacks](#callbacks)
 - [Grouping Steps](#grouping-steps)
 - [Including Files](#including-files)
 - [Tags and Filtering](#tags-and-filtering)
-- [Special Features](#special-features)
+- [Callbacks and Hooks](#callbacks-and-hooks)
 - [Directory Structure](#directory-structure)
 - [Test Output and Verbosity](#test-output-and-verbosity)
 - [Error Messages](#error-messages)
+- [Global Headers (Why They Don't Exist)](#global-headers-why-they-dont-exist)
 - [Complete Examples](#complete-examples)
 
 ---
@@ -68,7 +67,7 @@ Each YAML file in `blueprints/` represents a complete workflow consisting of seq
 
 ```yaml
 # users_workflow.yml
-- hooks:
+- hook:
     before_file: prepare_database
     after_file: cleanup_database
 
@@ -108,20 +107,20 @@ Each YAML file in `blueprints/` represents a complete workflow consisting of seq
 
 ## Reserved Namespaces
 
-The following prefixes trigger special behavior. How you use them depends on **position**:
+The following prefixes trigger special behavior:
 
-|Namespace|Purpose|Value Position Example|Key Position Example|
-|---|---|---|---|
-|`faker.`|Generate fake data|`"{{ faker.name.first_name }}"`|`faker.number.between:`|
-|`factories.`|Use FactoryBot|`"{{ factories.user.id }}"`|`factories.user:`|
-|`generate.`|Generate arbitrary data|N/A|`generate.array:`|
-|`env.`|Environment variables|`"{{ env.API_TOKEN }}"`|N/A|
-|`kind_of.`|Type matchers|`"{{ kind_of.string }}"`|N/A|
-|`matcher.`|RSpec matchers|`"{{ matcher.eq }}"`|`matcher.include:`|
-|`be.`|Predicate matchers|`"{{ be.true }}"`|`be.greater_than:`|
-|`transform.`|Data transformations|N/A|`transform.join:`|
+|Namespace|Purpose|Example Usage|
+|---|---|---|
+|`faker.`|Generate fake data|`"{{ faker.name.first_name }}"` or `faker.number.between:`|
+|`factories.`|Use FactoryBot|`"{{ factories.user.id }}"` or `factories.user:`|
+|`generate.`|Generate arbitrary data|`generate.array:`|
+|`env.`|Environment variables|`"{{ env.API_TOKEN }}"`|
+|`kind_of.`|Type matchers|`"{{ kind_of.string }}"`|
+|`matcher.`|RSpec matchers|`"{{ matcher.eq }}"` or `matcher.include:`|
+|`be.`|Predicate matchers|`"{{ be.true }}"` or `be.greater_than:`|
+|`transform.`|Data transformations|`transform.join:`|
 
-**Position determines syntax** - see [String Interpolation](#string-interpolation) for details.
+See [String Interpolation](#string-interpolation) for position-based syntax rules.
 
 ---
 
@@ -291,69 +290,57 @@ expect:
         be.greater_than: 5
 ```
 
+### Data Generation
+
+**`generate.array`** - Creates arrays of arbitrary size for testing:
+
+```yaml
+json:
+  discord_ids:
+    generate.array:
+      size: 101
+      value: "{{ faker.string.alphanumeric }}"
+```
+
+**With template:**
+
+```yaml
+generate.array:
+  size: 50
+  template: "user_{{ index }}"  # index available in template
+```
+
 ---
 
 ## Step Attributes
 
-Every step is a hash that can contain any of these attributes:
+Every step is a hash that can contain these attributes:
 
 ```
 Step
-├── name (String, optional)
-├── line_number (Integer, system-managed)
-├── debug (Boolean, optional, default: false)
-├── tags (Array<String>, optional, inheritable)
-├── documentation (Hash, optional)
-│   ├── summary (String)
-│   ├── description (String)
-│   └── tags (Array<String>)
-├── request (Hash, optional, triggers HTTP behavior)
-│   ├── base_url (String, inheritable)
-│   ├── url (String, required if request present)
-│   ├── method (String, optional, default: "GET")
-│   ├── headers (Hash, inheritable, mergeable)
-│   ├── query (Hash, inheritable, mergeable)
-│   ├── raw (String, body format)
-│   ├── json (Hash, body format)
-│   └── xml (Hash, body format - future)
-├── expect (Array<Expectation>, optional)
-│   └── Expectation
-│       ├── name (String, optional)
-│       ├── status (Integer or Matcher, optional)
-│       ├── headers (Hash, optional)
-│       ├── raw (String or Matcher, optional)
-│       ├── json (Hash, optional)
-│       │   ├── size (Integer or Matcher, optional)
-│       │   ├── pattern (Array or Hash, optional)
-│       │   ├── structure (Array or Hash, optional)
-│       │   └── content (Array or Hash, optional)
-│       └── xml (Hash, optional - future)
-│           ├── structure (Array or Hash)
-│           └── content (Array or Hash)
-├── store (Hash, optional, context-driven)
-│   └── key: value (values support {{ }} interpolation)
-├── call (String or Hash, optional, immediate callback)
-├── steps (Array<Step>, optional, nested hierarchy)
-└── include (Array<String>, optional, file injection)
+├── name: String (optional)
+├── debug: Boolean (optional, default: false)
+├── tags: Array<String> (optional, inheritable)
+├── documentation: Hash (optional)
+├── request: Hash (optional, triggers HTTP behavior)
+│   ├── base_url, url, method, headers, query
+│   └── raw, json, xml (body formats)
+├── expect: Array<Expectation> (optional)
+│   └── status, headers, raw, json, xml
+├── store: Hash (optional, context-driven)
+├── call: String or Hash (optional)
+├── hook: Hash (optional, lifecycle events)
+├── steps: Array<Step> (optional, load-time only)
+└── include: Array<String> (optional, load-time only)
 ```
 
-### Load-time vs Run-time Attributes
-
-**Resolved at load-time (gone by runtime):**
-
+**Load-time only** (gone by runtime):
 - `include` - File injection directive
 - `steps` - Hierarchy flattened to sequential steps
 
 **Modified at load-time:**
-
-- `tags` - Inherited from parents, applied to step
-- `request` - Merged with parent config, stamped on step
-
-**Used at run-time:**
-
-- `name`, `debug`, `documentation` - Step metadata
-- `request`, `expect`, `store` - Execution behavior
-- `call` - Lifecycle management
+- `tags` - Inherited from parents
+- `request` - Merged with parent config
 
 ---
 
@@ -441,11 +428,8 @@ request:
 
 **Inheritance rules:**
 
-- `base_url` - Child overrides parent
-- `url` - Child overrides parent
-- `method` - Child overrides parent
-- `headers` - Child **merges** with parent (child wins conflicts)
-- `query` - Child **merges** with parent (child wins conflicts)
+- `base_url`, `url`, `method` - Child overrides parent
+- `headers`, `query` - Child **merges** with parent (child wins conflicts)
 
 ---
 
@@ -457,13 +441,11 @@ Defines assertions against the response. Each array item is a separate test that
 
 ```yaml
 expect:
-- name: "Success response"     # Optional - describes what you're testing
+- name: "Success response"     # Optional
   status: 200                   # Expected HTTP status
   headers: {}                   # Expected headers
-  
-  # Body validation - choose one approach:
-  raw: ""                       # Validate raw string response
-  json: {}                      # Validate JSON response
+  raw: ""                       # Validate raw string
+  json: {}                      # Validate JSON
 ```
 
 **Single test with multiple assertions:**
@@ -495,28 +477,24 @@ expect:
 
 ### JSON Validation Modes
 
-SpecForge provides two modes for validating JSON responses: **simple mode** (`shape`) for everyday testing and **advanced mode** (`schema`) for edge cases.
+SpecForge provides two modes: **simple mode** (`shape`) for everyday testing and **advanced mode** (`schema`) for edge cases.
 
 #### Simple Mode: `shape`
 
-The `shape` keyword handles 85% of real-world API responses with minimal syntax. Use this for validating object structures and array patterns.
+Handles 85% of real-world API responses with minimal syntax.
 
-**Flat object validation:**
+**Basic structures:**
 
 ```yaml
-# Response: {"id": 123, "email": "alice@test.com", "active": true}
+# Flat object: {"id": 123, "email": "alice@test.com", "active": true}
 expect:
 - json:
     shape:
       id: integer
       email: string
       active: boolean
-```
-
-**Nested objects:**
-
-```yaml
-# Response: {"id": 1, "user": {"name": "Alice", "role": "admin"}}
+      
+# Nested object: {"id": 1, "user": {"name": "Alice", "role": "admin"}}
 expect:
 - json:
     shape:
@@ -526,45 +504,27 @@ expect:
         role: string
 ```
 
-**Arrays of objects (the most common pattern):**
+**Arrays (most common pattern):**
 
 ```yaml
-# Response: [{"id": 1, "name": "Alice"}, {"id": 2, "name": "Bob"}]
+# Array of objects: [{"id": 1, "name": "Alice"}, {"id": 2, "name": "Bob"}]
 expect:
 - json:
     shape:
       - id: integer
         name: string
-```
 
-**Arrays of primitives:**
-
-```yaml
-# Response: {"tags": ["ruby", "api", "testing"]}
+# Array of primitives: {"tags": ["ruby", "api", "testing"]}
 expect:
 - json:
     shape:
       tags: [string]
 ```
 
-**Nested arrays in objects:**
+**Paginated responses:**
 
 ```yaml
-# Response: {"total": 50, "users": [{"id": 1}, {"id": 2}]}
-expect:
-- json:
-    shape:
-      total: integer
-      users:
-        - id: integer
-          email: string
-          created_at: string
-```
-
-**Paginated API responses:**
-
-```yaml
-# Response: {"data": [{...}, {...}], "page": 2, "has_more": true}
+# {"data": [{...}, {...}], "page": 2, "has_more": true}
 expect:
 - json:
     shape:
@@ -576,10 +536,10 @@ expect:
       has_more: boolean
 ```
 
-**Deep nesting with arrays:**
+**Deep nesting:**
 
 ```yaml
-# GitHub-style pull request response
+# GitHub-style pull request
 expect:
 - json:
     shape:
@@ -604,22 +564,11 @@ expect:
       metadata: ?hash           # Can be hash or null
 ```
 
-**Fields named "type" (no conflict in simple mode!):**
-
-```yaml
-# Response: {"type": "error", "message": "Invalid request"}
-expect:
-- json:
-    shape:
-      type: string              # Just a regular field
-      message: string
-```
-
 ---
 
 #### Advanced Mode: `schema`
 
-The `schema` keyword provides explicit control for edge cases that simple mode can't handle:
+Provides explicit control for edge cases:
 
 1. Positional/tuple arrays (where order matters)
 2. When you want to be very explicit about structure
@@ -628,7 +577,7 @@ The `schema` keyword provides explicit control for edge cases that simple mode c
 **Positional array (tuple):**
 
 ```yaml
-# Response: [200, "OK", {"success": true}]
+# [200, "OK", {"success": true}]
 expect:
 - json:
     schema:
@@ -642,7 +591,7 @@ expect:
 **Webhook payload with event tuple:**
 
 ```yaml
-# Response: [1640000000, "user.created", {"user_id": 123}]
+# [1640000000, "user.created", {"user_id": 123}]
 expect:
 - json:
     schema:
@@ -656,7 +605,6 @@ expect:
 **Explicit pattern definition:**
 
 ```yaml
-# When you want to be very explicit about array patterns
 expect:
 - json:
     schema:
@@ -669,25 +617,6 @@ expect:
             structure:
               id: integer
               name: string
-```
-
-**Mixed validation (simple structure with schema pattern):**
-
-```yaml
-# Sometimes you need both!
-expect:
-- json:
-    shape:
-      total: integer
-    schema:
-      type: hash
-      structure:
-        users:
-          type: array
-          structure:
-            - integer   # User ID
-            - string    # User name
-            - boolean   # Is active
 ```
 
 ---
@@ -726,9 +655,9 @@ expect:
       id: integer
       status: string
     content:
-      id: 42                    # Exact value
-      status: "active"          # Exact value
-      created_at: "{{ kind_of.string }}"  # Matcher
+      id: 42
+      status: "active"
+      created_at: "{{ kind_of.string }}"
 ```
 
 **With arrays:**
@@ -753,7 +682,7 @@ expect:
 For recursive data like comment threads, validate to a reasonable depth then punt:
 
 ```yaml
-# Response: Comments with nested replies
+# Comments with nested replies
 expect:
 - json:
     shape:
@@ -762,10 +691,8 @@ expect:
         replies:
           - id: integer
             text: string
-            replies: array    # Just validate it's an array, don't go deeper
+            replies: array    # Just validate it's an array
 ```
-
-This mirrors how you'd test recursion manually - check a few levels deep, then trust the pattern continues.
 
 ---
 
@@ -782,7 +709,7 @@ Available types for validation:
 - `hash`, `?hash` - Objects (alias: `object`)
 - `null`, `nil` - Explicitly null/nil
 
-The `?` prefix makes any type nullable - allowing either the type or null.
+The `?` prefix makes any type nullable.
 
 ---
 
@@ -858,69 +785,6 @@ json:
 
 ---
 
-## Callbacks
-
-### `call` (String or Hash)
-
-Immediately executes callback(s) at this point in the sequence. Unlike `hooks`, which schedule callbacks for later, `call` runs them right now.
-
-**Single callback:**
-
-```yaml
-- call: seed_test_data
-
-- name: "Test with seeded data"
-  request: ...
-```
-
-**With arguments:**
-
-```yaml
-- call:
-    name: seed_database
-    arguments:
-      count: 50
-      type: "posts"
-
-- call:
-    name: run_migration
-    arguments: [up, version_123]  # Positional
-```
-
-### Defining Callbacks
-
-Callbacks are defined in `forge_helper.rb`:
-
-```ruby
-SpecForge.configure do |config|
-  # Simple callback - no args
-  config.register_callback("seed_test_data") do |context|
-    # ...
-  end
-  
-  # With keyword args
-  config.register_callback("seed_database") do |context, count:, type:|
-    # ...
-  end
-  
-  # With positional args
-  config.register_callback("run_migration") do |context, direction, version|
-    # ...
-  end
-end
-```
-
-**Context parameter:**
-
-The `context` parameter provides access to:
-
-- `context.step` - Current step being executed
-- `context.blueprint` - Current blueprint
-- `context.store` - Stored values from previous steps
-- Other runtime state
-
----
-
 ## Grouping Steps
 
 ### `steps` (Array)
@@ -953,31 +817,7 @@ Creates nested hierarchy with shared configuration. **At load-time**, flattened 
       method: DELETE
 ```
 
-**After loading**, runtime sees:
-
-```ruby
-Step(
-  name: "Create user",
-  request: {
-    url: "/users",
-    method: "POST",
-    headers: {Authorization: "Bearer ..."},
-    json: {name: "Test User"}
-  }
-)
-Step(
-  name: "Update user",
-  request: {
-    url: "/users/42",
-    method: "PUT",
-    headers: {Authorization: "Bearer ..."},
-    json: {name: "Updated"}
-  }
-)
-# etc...
-```
-
-No parent-child relationship exists at runtime - just flat sequential steps with baked-in config.
+**After loading**, runtime sees flat sequential steps with baked-in config - no parent-child relationship exists.
 
 ---
 
@@ -995,7 +835,7 @@ No parent-child relationship exists at runtime - just flat sequential steps with
 
 **Not allowed:**
 
-- Any config attributes (`request`, `store`, `hooks`, etc.) → Error
+- Any config attributes (`request`, `store`, `hook`, etc.) → Error
 
 ```yaml
 # ✅ Valid - tags are organizational metadata
@@ -1027,39 +867,6 @@ No parent-child relationship exists at runtime - just flat sequential steps with
   - include: user_operations.yml  # All inherit the header
   - include: post_operations.yml  # These too
 ```
-
-**How it works:**
-
-```yaml
-# What you write in main.yml
-- include: auth_setup.yml
-  tags: [bootstrap]
-
-- name: "Create resource"
-  request: ...
-```
-
-```yaml
-# What's in auth_setup.yml
-- name: "Login"
-  request:
-    path: /login
-  store:
-    token: "{{ response.body.token }}"
-```
-
-**After loading:**
-
-```ruby
-Blueprint(
-  steps: [
-    Step(name: "Login", tags: ["bootstrap"], ...),
-    Step(name: "Create resource", ...)
-  ]
-)
-```
-
-The include vanished - replaced with actual steps from the file.
 
 ---
 
@@ -1135,28 +942,169 @@ tags: [skip-docs, internal]
 
 ---
 
-## Special Features
+## Callbacks and Hooks
 
-### Data Generation
+SpecForge provides two mechanisms for executing code at specific points: **named callbacks** (user-controlled) and **global hooks** (framework-level).
 
-#### `generate.array`
+### Named Callbacks
 
-Creates arrays of arbitrary size for testing:
+Named callbacks are registered in `forge_helper.rb` and invoked explicitly from YAML using the `hook:` attribute or `call:` step attribute.
 
-```yaml
-json:
-  discord_ids:
-    generate.array:
-      size: 101
-      value: "{{ faker.string.alphanumeric }}"
+**Registration:**
+
+```ruby
+SpecForge.configure do |config|
+  # Simple callback - no arguments
+  config.register_callback("seed_database") do |context|
+    User.create!(email: "test@test.com")
+  end
+  
+  # With keyword arguments
+  config.register_callback("create_records") do |context, count:, type:|
+    count.times { type.constantize.create! }
+  end
+  
+  # With positional arguments
+  config.register_callback("run_migration") do |context, direction, version|
+    # ...
+  end
+end
 ```
 
-**With template:**
+**Usage in YAML:**
 
 ```yaml
-generate.array:
-  size: 50
-  template: "user_{{ index }}"  # index available in template
+# Inline execution with call:
+- call: seed_database
+
+# Lifecycle hooks
+hook:
+  before_file: seed_database
+  after_file: cleanup_database
+  
+# With arguments
+hook:
+  before_file:
+    name: create_records
+    arguments:
+      count: 50
+      type: "User"
+```
+
+### Global Hooks
+
+Global hooks are registered in `forge_helper.rb` and execute automatically at framework lifecycle events. They run for all blueprints and cannot be controlled from YAML.
+
+**Registration:**
+
+```ruby
+SpecForge.configure do |config|
+  # Runs once before any blueprints execute
+  config.register_hook(:before_forge) do |context|
+    DatabaseCleaner.start
+  end
+  
+  # Runs after every step in every blueprint
+  config.register_hook(:after_each) do |context, step:|
+    logger.info("Completed: #{step.name}")
+  end
+  
+  # Runs once after all blueprints complete
+  config.register_hook(:after_forge) do |context|
+    DatabaseCleaner.clean
+  end
+end
+```
+
+### Available Events
+
+**YAML-accessible events** (via `hook:` attribute):
+
+- `before_file` - Runs once before the first step in a blueprint
+- `after_file` - Runs once after the last step in a blueprint
+- `before_each` - Runs before each step in a blueprint
+- `after_each` - Runs after each step (even if step failed)
+
+**Global events** (via `register_hook` only):
+
+- `before_forge` - Runs once before any blueprints execute
+- `after_forge` - Runs once after all blueprints complete
+
+### YAML Syntax
+
+The `hook:` attribute supports three syntax variations:
+
+**Array syntax** (multiple callbacks):
+
+```yaml
+hook:
+  before_file:
+    - seed_database
+    - setup_auth
+  after_each: log_response
+```
+
+**Hash syntax** (single callback per event):
+
+```yaml
+hook:
+  before_file: seed_database
+  after_each: log_response
+```
+
+**With arguments:**
+
+```yaml
+hook:
+  before_file:
+    name: create_records
+    arguments:
+      count: 50
+      type: "User"
+      
+  after_each:
+    name: conditional_cleanup
+    arguments: [force, "2024-01-01"]  # Positional
+```
+
+### Execution Order
+
+Hooks execute in registration order. Since global hooks are registered before YAML is loaded:
+
+1. Global hooks from `register_hook` (in registration order)
+2. Named callbacks from YAML `hook:` (in definition order)
+
+**Example:**
+
+```ruby
+# forge_helper.rb
+config.register_hook(:after_each) { puts "Global hook 1" }
+config.register_hook(:after_each) { puts "Global hook 2" }
+config.register_callback("user_hook") { puts "User callback" }
+```
+
+```yaml
+# blueprint.yml
+hook:
+  after_each: user_hook
+```
+
+**Output after each step:**
+
+```
+Global hook 1
+Global hook 2
+User callback
+```
+
+### Context Parameter
+
+All callbacks and hooks receive a `context` parameter providing access to runtime state:
+
+```ruby
+config.register_hook(:after_each) do |context, step:|
+  context.variables      # Current variable state
+end
 ```
 
 ---
@@ -1322,27 +1270,6 @@ Shows everything for every step, regardless of success or failure. Use this to t
 spec_forge run -vvv
 ```
 
-**Output includes full details for all steps:**
-```
-[simple_lifecycle:08] Create a user *********************************************
-  → POST /api/users
-    Expect 1: ✓ (1/1 passed)
-      ✓ Status: 201
-      
-      Request:
-        POST /api/users
-        Body: { "name": "John Doe" }
-      
-      Response:
-        Status: 201
-        Body: { "id": 42, "name": "John Doe" }
-      
-      Variables:
-        auth_token: "abc123"
-      
-      Timing: 87ms
-```
-
 ### Expectation Output
 
 Expectations are grouped by their YAML block and show a summary count before expanding on failures.
@@ -1392,8 +1319,6 @@ SpecForge.configure do |config|
   config.on_debug { binding.pry }
 end
 ```
-
-This gives you full access to inspect variables, the response object, and step context interactively.
 
 ### CI/CD Considerations
 
@@ -1473,11 +1398,11 @@ About http_verb:
 
 ---
 
-### Global Headers (Why They Don't Exist)
+## Global Headers (Why They Don't Exist)
 
 **SpecForge 1.0 does not support global headers in configuration.** This is intentional. Here's why and what to use instead:
 
-#### The Problem with Global Headers
+### The Problem with Global Headers
 
 Global headers create "magic" - someone reading a blueprint can't tell what headers are actually being sent without checking `forge_helper.rb`. This violates the principle that blueprints should be self-documenting.
 
@@ -1487,7 +1412,7 @@ Global headers create "magic" - someone reading a blueprint can't tell what head
     url: /users
 ```
 
-#### Solution 1: Use Nesting + Inheritance
+### Solution 1: Use Nesting + Inheritance
 
 The cleanest pattern for shared headers is explicit nesting:
 
@@ -1514,7 +1439,7 @@ The cleanest pattern for shared headers is explicit nesting:
 - Self-documenting - no need to check config files
 - Scoped - different sections can have different headers
 
-#### Solution 2: Use Global Variables
+### Solution 2: Use Global Variables
 
 For headers that truly need to be defined once and used everywhere:
 
@@ -1541,7 +1466,7 @@ end
 - Token value can be environment-specific
 - Easy to override per-blueprint with local variables
 
-#### When to Use Which
+### When to Use Which
 
 **Use nesting** when:
 
@@ -1558,12 +1483,13 @@ end
 **Never try to add global headers to config** - the patterns above handle all real-world cases more explicitly and maintainably.
 
 ---
+
 ## Complete Examples
 
 ### Simple CRUD Workflow
 
 ```yaml
-- hooks:
+- hook:
     before_file: clean_database
     after_file: clean_database
 
