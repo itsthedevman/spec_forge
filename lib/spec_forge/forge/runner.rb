@@ -16,6 +16,13 @@ module SpecForge
       # @return [StringIO] Error stream for RSpec formatter
       attr_reader :error_io
 
+      #
+      # Creates a new RSpec runner with the specified CLI arguments
+      #
+      # @param cli_args [Array<String>] Command line arguments for RSpec configuration
+      #
+      # @return [Runner] A new runner instance
+      #
       def initialize(cli_args = [])
         options = RSpec::Core::ConfigurationOptions.new(cli_args)
 

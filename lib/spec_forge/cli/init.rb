@@ -28,7 +28,7 @@ module SpecForge
 
       #
       # Creates the "spec_forge", "spec_forge/factories", and "spec_forge/blueprints" directories
-      # Also creates the "spec_forge.rb" initialization file
+      # Also creates the "forge_helper.rb" initialization file
       #
       def call
         initialize_forge

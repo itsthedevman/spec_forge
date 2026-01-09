@@ -14,6 +14,11 @@ module SpecForge
       # @return [Time, nil] Time when the timer stopped
       attr_reader :stopped_at
 
+      #
+      # Creates a new timer in the reset state
+      #
+      # @return [Timer] A new timer instance
+      #
       def initialize
         reset
       end
@@ -56,10 +61,20 @@ module SpecForge
         self
       end
 
+      #
+      # Returns whether the timer has been started
+      #
+      # @return [Boolean] True if the timer has been started
+      #
       def started?
         !started_at.nil?
       end
 
+      #
+      # Returns whether the timer has been stopped
+      #
+      # @return [Boolean] True if the timer has been stopped
+      #
       def stopped?
         !stopped_at.nil?
       end

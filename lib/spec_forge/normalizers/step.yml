@@ -1,7 +1,33 @@
-# User defined
+# =============================================================================
+# Step Structure Definition
+# =============================================================================
+# Defines the structure for individual steps in a SpecForge blueprint.
+# Steps are the fundamental building blocks of API test workflows.
+#
+# A step can perform various actions:
+#   - Send HTTP requests and validate responses
+#   - Store values for later use
+#   - Include other blueprint files
+#   - Execute callbacks
+#
+# Steps execute sequentially, with later steps able to reference values
+# from earlier steps via the {{ variable }} syntax.
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Core Attributes
+# -----------------------------------------------------------------------------
+
 name:
   type: string
   default: ""
+  description: |-
+    Human-readable identifier for the step, displayed in test output.
+    Helps identify which step failed and documents the test's purpose.
+  examples:
+    - "Create new user"
+    - "Login as admin"
+    - "Verify user was deleted"
 
 debug:
   type: boolean
@@ -9,45 +35,103 @@ debug:
     - pry
     - breakpoint
   default: false
+  description: |-
+    When true, triggers a breakpoint before executing this step.
+    Useful for interactive debugging. Configure the debug handler
+    in forge_helper.rb with config.on_debug { binding.pry }.
+    Note: Does NOT inherit to child steps.
+  examples:
+    - true
+    - false
 
 tags:
   type: array
   default: []
   structure:
     type: string
+  description: |-
+    Labels for organizing and filtering steps. Tags cascade down through
+    nesting and are applied to included files. Use CLI flags like
+    --tags smoke or --skip-tags slow to filter execution.
+  examples:
+    - ["smoke", "auth"]
+    - ["crud", "users", "fast"]
+    - ["integration", "slow"]
 
 documentation:
   type: hash
   default: {}
+  description: |-
+    Metadata for OpenAPI documentation generation. Contains information
+    about the API endpoint being tested, used when generating API docs.
+  examples:
+    - summary: "Creates a new user"
+      description: "Registers a user account with email and password"
+      tags: ["users", "authentication"]
+
+# -----------------------------------------------------------------------------
+# Request Configuration
+# -----------------------------------------------------------------------------
 
 request:
   type: hash
   default: {}
+  description: |-
+    Defines the HTTP request to send. When present, the step becomes a
+    request step that sends an HTTP request and optionally validates
+    the response. Child steps inherit and can override parent request config.
   structure:
-    # Default all of these to null so they don't show up in the default request hash
     base_url:
       type: string
       default: null
       aliases:
         - base_path
+      description: |-
+        The base URL for the request (e.g., "https://api.example.com").
+        Overrides the global base_url from configuration.
+      examples:
+        - "https://api.example.com"
+        - "http://localhost:3000"
 
     url:
       type: string
       default: null
       aliases:
         - path
+      description: |-
+        The URL path for the request. Combined with base_url to form
+        the full request URL. Supports variable interpolation.
+      examples:
+        - "/users"
+        - "/posts/{{ post_id }}"
+        - "/api/v1/users/{{ user_id }}/comments"
 
     http_verb:
       type: string
-      default: null # Do not default this to "GET". Leave it null. Seriously.
+      default: null
       aliases:
         - method
         - http_method
       validator: http_verb
+      description: |-
+        The HTTP method for the request. If not specified, defaults to GET.
+      examples:
+        - "GET"
+        - "POST"
+        - "PUT"
+        - "PATCH"
+        - "DELETE"
 
     headers:
       type: hash
       default: null
+      description: |-
+        HTTP headers to include with the request. Child steps merge with
+        parent headers (child wins on conflicts). Supports variable interpolation.
+      examples:
+        - Authorization: "Bearer {{ auth_token }}"
+          Content-Type: "application/json"
+        - X-API-Key: "{{ env.API_KEY }}"
 
     query:
       type:
@@ -56,6 +140,13 @@ request:
       default: null
       aliases:
         - params
+      description: |-
+        Query parameters appended to the URL. Can be a hash or a raw
+        query string. Supports variable interpolation.
+      examples:
+        - page: 1
+          per_page: 25
+        - "filter=active&sort=name"
 
     raw:
       type: string
@@ -63,6 +154,12 @@ request:
       aliases:
         - body
         - data
+      description: |-
+        Raw request body as a string. Use for non-JSON payloads or when
+        you need exact control over the request body format.
+      examples:
+        - "<xml><user><name>Test</name></user></xml>"
+        - "plain text body"
 
     json:
       type: hash
@@ -70,10 +167,25 @@ request:
       aliases:
         - hash
         - array
+      description: |-
+        JSON request body. Automatically serialized and sets Content-Type
+        to application/json. Supports variable interpolation and data generation.
+      examples:
+        - name: "{{ faker.name.first_name }}"
+          email: "{{ faker.internet.email }}"
+        - ids: ["id1", "id2", "id3"]
+
+# -----------------------------------------------------------------------------
+# Expectations (Response Validation)
+# -----------------------------------------------------------------------------
 
 expect:
   type: array
   default: []
+  description: |-
+    Array of expectations to validate against the response. Each expectation
+    is a separate test that runs independently. Validates status codes,
+    headers, and response body content/structure.
   structure:
     type: hash
     default: {}
@@ -82,10 +194,22 @@ expect:
         type:
           - string
           - integer
+        description: |-
+          Expected HTTP status code. Can be an exact value or a matcher.
+        examples:
+          - 200
+          - 201
+          - "{{ kind_of.integer }}"
 
       headers:
         type: hash
         default: {}
+        description: |-
+          Expected response headers. Keys are header names, values are
+          expected values or matchers. Case insensitive.
+        examples:
+          - Content-Type: "application/json"
+            Location: "/users/{{ user_id }}"
 
       raw:
         type: string
@@ -93,6 +217,9 @@ expect:
         aliases:
           - body
           - data
+        description: |-
+          Expected raw response body as a string. Use for non-JSON
+          responses or exact string matching.
 
       json:
         type: hash
@@ -101,41 +228,125 @@ expect:
           - array
           - hash
         validator: json_expectation
+        description: |-
+          JSON response validation. Supports structure validation (shape/schema),
+          size validation, and content matching. Use shape for simple cases,
+          schema for complex or positional array validation.
         structure:
           size:
             type:
               - string
               - integer
+            description: |-
+              Validates the size of an array response. Can be an exact
+              number or a matcher for range validation.
+            examples:
+              - 5
+              - be.greater_than: 3
+
           shape:
             type:
               - array
               - hash
             transformer: normalize_shape
+            description: |-
+              Simple mode for JSON structure validation. Handles most cases.
+              Use array syntax for array responses, hash syntax for object responses.
+              Prefix types with ? for nullable.
+            examples:
+              - id: integer
+                name: string
+                email: ?string
+              - - id: integer
+                  name: string
+
           schema:
             type:
               - hash
             transformer: normalize_schema
             validator: json_schema
+            description: |-
+              Advanced mode for explicit JSON structure control. Use for
+              positional/tuple arrays or when you need very explicit
+              structure definitions. Requires type and structure/pattern keys.
+            examples:
+              - type: array
+                structure:
+                  - integer
+                  - string
+                  - hash
+
           content:
             type:
               - array
               - hash
+            description: |-
+              Validates specific values in the response alongside structure.
+              Use to check exact field values while shape/schema validates types.
+            examples:
+              - id: 42
+                status: "active"
+              - - id: 1
+                  name: "Alice"
+                - id: 2
+                  name: "Bob"
+
+# -----------------------------------------------------------------------------
+# Variable Storage
+# -----------------------------------------------------------------------------
 
 store:
   type: hash
   default: {}
+  description: |-
+    Context-driven keyword with two behaviors:
+    - Without request: Sets variables (like local variables)
+    - With request: Captures values from the response
+    Values are available to all subsequent steps via {{ variable }} syntax.
+  examples:
+    - email: "test@example.com"
+      password: "secret123"
+    - auth_token: "{{ response.body.token }}"
+      user_id: "{{ response.body.user.id }}"
+
+# -----------------------------------------------------------------------------
+# Callbacks
+# -----------------------------------------------------------------------------
 
 call:
   type: [string, hash]
   default: {}
   transformer: normalize_callback
+  description: |-
+    Executes a named callback registered in forge_helper.rb. Use for
+    database seeding, cleanup, or other custom operations. Can pass
+    arguments as a hash (keyword args) or array (positional args).
+  examples:
+    - "seed_database"
+    - name: "create_records"
+      arguments:
+        count: 50
+        type: "User"
   structure:
     name:
       type: string
+      description: The name of the registered callback to execute.
     arguments:
       type: [array, hash]
+      description: Arguments to pass to the callback.
+
+# -----------------------------------------------------------------------------
+# File Inclusion
+# -----------------------------------------------------------------------------
 
 include:
   type: [string, array]
   default: []
   transformer: normalize_includes
+  description: |-
+    Injects steps from other blueprint files at load-time. Included steps
+    become indistinguishable from locally defined ones after loading.
+    Cannot be combined with config attributes like request or store.
+  examples:
+    - "auth_setup"
+    - ["auth_setup", "database_seed"]

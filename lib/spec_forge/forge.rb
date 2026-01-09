@@ -101,6 +101,14 @@ module SpecForge
     # @return [Variables] Variable storage for the current run
     attr_reader :variables
 
+    #
+    # Creates a new Forge instance with the specified blueprints
+    #
+    # @param blueprints [Array<Blueprint>] The blueprints to execute
+    # @param verbosity_level [Integer] Output verbosity (0-3)
+    #
+    # @return [Forge] A new forge instance
+    #
     def initialize(blueprints, verbosity_level: 0)
       @blueprints = blueprints
       @callbacks = Callbacks.new

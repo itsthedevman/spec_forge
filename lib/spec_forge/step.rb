@@ -29,6 +29,24 @@ module SpecForge
     # @return [Boolean] Whether this step has store operations
     attr_predicate :debug, :call, :request, :expect, :store
 
+    #
+    # Creates a new Step from the given attributes
+    #
+    # @param step [Hash] Step attributes from normalized YAML
+    # @option step [String] :name The step name
+    # @option step [Hash] :call Callback configuration
+    # @option step [Boolean] :debug Whether debug mode is enabled
+    # @option step [String] :description Step description
+    # @option step [Hash] :documentation Documentation metadata
+    # @option step [Array<Hash>] :expect Expectation definitions
+    # @option step [Hash] :included_by Source of include if this step was included
+    # @option step [Hash] :request Request configuration
+    # @option step [Hash] :source Source file and line number
+    # @option step [Hash] :store Variables to store
+    # @option step [Array<String>] :tags Tags for filtering
+    #
+    # @return [Step] A new step instance
+    #
     def initialize(**step)
       step[:call] = transform_call(step[:call])
       step[:debug] = step[:debug] == true

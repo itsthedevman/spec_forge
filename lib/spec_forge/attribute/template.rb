@@ -21,6 +21,11 @@ module SpecForge
       # @return [Regexp]
       REGEX = /\{\{\s*[\w.]+\s*\}\}/
 
+      #
+      # Creates a new template attribute by parsing placeholders
+      #
+      # @see Attribute#initialize
+      #
       def initialize(...)
         super
 

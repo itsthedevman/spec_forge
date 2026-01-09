@@ -19,23 +19,50 @@ module SpecForge
       # @return [Integer] Current verbosity level (0-3)
       attr_reader :verbosity_level
 
+      #
+      # Creates a new display handler with the specified verbosity level
+      #
+      # @param verbosity_level [Integer] Output verbosity (0=minimal, 1=verbose, 2=debug, 3=trace)
+      #
+      # @return [Display] A new display instance
+      #
       def initialize(verbosity_level: 0)
         @verbosity_level = verbosity_level
         @color = Pastel.new
       end
 
+      #
+      # Returns whether display is in default (minimal) mode
+      #
+      # @return [Boolean] True if verbosity is 0
+      #
       def default_mode?
         verbosity_level == 0
       end
 
+      #
+      # Returns whether display is in verbose mode or higher
+      #
+      # @return [Boolean] True if verbosity is 1 or higher
+      #
       def verbose?
         verbosity_level >= 1
       end
 
+      #
+      # Returns whether display is in very verbose (debug) mode or higher
+      #
+      # @return [Boolean] True if verbosity is 2 or higher
+      #
       def very_verbose?
         verbosity_level >= 2
       end
 
+      #
+      # Returns whether display is in maximum verbose (trace) mode
+      #
+      # @return [Boolean] True if verbosity is 3 or higher
+      #
       def max_verbose?
         verbosity_level >= 3
       end

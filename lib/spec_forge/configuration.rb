@@ -42,6 +42,11 @@ module SpecForge
     # @return [Hash{Symbol => Proc}] Registered callbacks
     attr_reader :callbacks
 
+    #
+    # Creates a new Configuration with default values
+    #
+    # @return [Configuration] A new configuration instance
+    #
     def initialize
       # Validated
       @base_url = "http://localhost:3000"

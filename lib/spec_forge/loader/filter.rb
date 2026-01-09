@@ -9,6 +9,13 @@ module SpecForge
     # and steps that will be executed based on CLI options.
     #
     class Filter
+      #
+      # Creates a new filter for the given blueprints
+      #
+      # @param blueprints [Array<Hash>] The blueprints to filter
+      #
+      # @return [Filter] A new filter instance
+      #
       def initialize(blueprints)
         @blueprints = blueprints
       end

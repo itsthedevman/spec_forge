@@ -10,12 +10,27 @@ module SpecForge
       # running RSpec matchers at each leaf node and collecting failures.
       #
       class ContentValidator
+        #
+        # Creates a new content validator
+        #
+        # @param data [Hash, Array] The response data to validate
+        # @param expected [Hash, Array] The expected content matchers
+        #
+        # @return [ContentValidator] A new validator instance
+        #
         def initialize(data, expected)
           @data = data
           @expected = expected
           @failures = []
         end
 
+        #
+        # Validates the data against expected content matchers
+        #
+        # @return [void]
+        #
+        # @raise [Error::ContentValidationFailure] If validation fails
+        #
         def validate!
           check_content(@data, @expected, path: "")
 

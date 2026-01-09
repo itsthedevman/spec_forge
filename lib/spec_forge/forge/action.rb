@@ -13,6 +13,13 @@ module SpecForge
       # @return [Step] The step being executed
       attr_reader :step
 
+      #
+      # Creates a new action for the given step
+      #
+      # @param step [Step] The step this action belongs to
+      #
+      # @return [Action] A new action instance
+      #
       def initialize(step)
         @step = step
       end

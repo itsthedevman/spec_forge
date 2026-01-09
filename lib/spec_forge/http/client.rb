@@ -9,6 +9,11 @@ module SpecForge
     # HTTP::Request objects and returning responses.
     #
     class Client
+      #
+      # Creates a new HTTP client with a backend
+      #
+      # @return [Client] A new client instance
+      #
       def initialize
         @backend = Backend.new
       end

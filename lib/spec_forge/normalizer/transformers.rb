@@ -47,6 +47,18 @@ module SpecForge
         {name: value}
       end
 
+      #
+      # Normalizes a shape definition into a structured schema format
+      #
+      # Converts shorthand shape syntax (arrays, hashes, type strings) into
+      # the full schema structure with :type, :pattern, and :structure keys.
+      #
+      # @param value [Array, Hash, String] The shape definition to normalize
+      #
+      # @return [Hash] Normalized schema structure
+      #
+      # @raise [ArgumentError] If value is nil
+      #
       def normalize_shape(value)
         raise ArgumentError, "Shape cannot be nil" if value.nil?
 
@@ -73,6 +85,18 @@ module SpecForge
         end
       end
 
+      #
+      # Normalizes a schema definition by converting type strings to classes
+      #
+      # Recursively processes schema definitions, converting string type
+      # specifications into their Ruby class equivalents.
+      #
+      # @param value [Array, Hash, String] The schema definition to normalize
+      #
+      # @return [Hash, Array] Normalized schema with type classes
+      #
+      # @raise [ArgumentError] If value is nil
+      #
       def normalize_schema(value)
         raise ArgumentError, "Schema cannot be nil" if value.nil?
 
@@ -104,6 +128,13 @@ module SpecForge
         end
       end
 
+      #
+      # Returns the absolute value of a number
+      #
+      # @param value [Numeric, nil] The value to convert
+      #
+      # @return [Numeric, nil] The absolute value, or nil if input is nil
+      #
       def abs(value)
         value&.abs
       end

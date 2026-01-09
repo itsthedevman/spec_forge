@@ -10,12 +10,27 @@ module SpecForge
       # RSpec matchers against header values.
       #
       class HeaderValidator
+        #
+        # Creates a new header validator
+        #
+        # @param headers [Hash] The response headers to validate
+        # @param expected [Hash] The expected header matchers
+        #
+        # @return [HeaderValidator] A new validator instance
+        #
         def initialize(headers, expected)
           @headers = headers
           @expected = expected
           @failures = []
         end
 
+        #
+        # Validates the headers against expected matchers
+        #
+        # @return [void]
+        #
+        # @raise [Error::HeaderValidationFailure] If validation fails
+        #
         def validate!
           @expected.each do |key, matcher|
             actual_key = find_header_key(key)

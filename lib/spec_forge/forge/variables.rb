@@ -10,6 +10,14 @@ module SpecForge
     # variables are restored when clear is called.
     #
     class Variables < Hash
+      #
+      # Creates a new Variables hash with static and dynamic values
+      #
+      # @param static [Hash] Variables that persist across blueprint clears
+      # @param dynamic [Hash] Variables that are cleared between blueprints
+      #
+      # @return [Variables] A new variables instance
+      #
       def initialize(static: {}, dynamic: {})
         @static = static.deep_dup
 

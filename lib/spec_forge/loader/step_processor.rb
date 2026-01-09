@@ -10,6 +10,13 @@ module SpecForge
     # applying tags, and flattening nested hierarchies.
     #
     class StepProcessor
+      #
+      # Creates a new step processor for the given blueprints
+      #
+      # @param blueprints [Hash<String, Hash>] Blueprints indexed by name
+      #
+      # @return [StepProcessor] A new step processor instance
+      #
       def initialize(blueprints)
         @blueprints = blueprints
       end

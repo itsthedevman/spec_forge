@@ -9,10 +9,24 @@ module SpecForge
     # called during step execution using the call: attribute.
     #
     class Callbacks
+      #
+      # Creates a new empty callback registry
+      #
+      # @return [Callbacks] A new callbacks instance
+      #
       def initialize
         @callbacks = {}
       end
 
+      #
+      # Registers a callback with the given name
+      #
+      # @param name [String, Symbol] The name to register the callback under
+      #
+      # @yield The block to execute when the callback is invoked
+      #
+      # @raise [ArgumentError] If no block is provided
+      #
       def register(name, &block)
         raise ArgumentError, "A block must be provided" unless block.is_a?(Proc)
 
@@ -23,6 +37,13 @@ module SpecForge
         @callbacks[name.to_sym] = block
       end
 
+      #
+      # Checks if a callback with the given name has been registered
+      #
+      # @param name [String, Symbol] The callback name to check
+      #
+      # @return [Boolean] Whether the callback is registered
+      #
       def registered?(name)
         @callbacks.key?(name.to_sym)
       end

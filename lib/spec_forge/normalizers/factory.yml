@@ -1,13 +1,47 @@
+# =============================================================================
+# Factory Structure Definition
+# =============================================================================
+# Defines the structure for FactoryBot factory definitions within SpecForge.
+# Factories allow creating test data using FactoryBot's build strategies.
+#
+# Factories are referenced in blueprints using the factories. namespace:
+#   {{ factories.user.id }}
+#   {{ factories.post.title }}
+# =============================================================================
+
 model_class:
   type: string
   default: ""
   aliases:
-  - class
+    - class
+  description: |-
+    The model class name for the factory. Used when the factory name
+    doesn't match the model class (e.g., factory :admin_user for User model).
+    Usually inferred automatically from the factory name.
+  examples:
+    - "User"
+    - "Admin::Account"
+    - "API::V1::Resource"
 
 variables:
   type: hash
   default: {}
+  description: |-
+    Variables scoped to this factory definition. Can be used within
+    the factory's attributes using {{ variable }} syntax.
+  examples:
+    - company_name: "Test Corp"
+      department: "Engineering"
 
 attributes:
   type: hash
   default: {}
+  description: |-
+    Attribute overrides passed to FactoryBot when building the record.
+    These override the factory's default values. Supports variable
+    interpolation and faker data generation.
+  examples:
+    - name: "{{ faker.name.first_name }}"
+      email: "{{ faker.internet.email }}"
+    - role: "admin"
+      active: true

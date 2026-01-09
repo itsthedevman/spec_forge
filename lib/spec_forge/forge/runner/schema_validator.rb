@@ -11,12 +11,27 @@ module SpecForge
       # with patterns, and nullable types.
       #
       class SchemaValidator
+        #
+        # Creates a new schema validator
+        #
+        # @param data [Hash, Array] The response data to validate
+        # @param schema [Hash] The schema definition to validate against
+        #
+        # @return [SchemaValidator] A new validator instance
+        #
         def initialize(data, schema)
           @data = data
           @schema = schema
           @failures = []
         end
 
+        #
+        # Validates the data against the schema definition
+        #
+        # @return [void]
+        #
+        # @raise [Error::SchemaValidationFailure] If validation fails
+        #
         def validate!
           check_schema(@data, @schema, path: "")
 

@@ -44,6 +44,14 @@ module SpecForge
       # @return [String] Human-readable label for this structure
       attr_reader :label
 
+      #
+      # Creates a new Structure from the given input definition
+      #
+      # @param input [Hash] The raw structure definition from YAML
+      # @param label [String] Human-readable label for error messages
+      #
+      # @return [Structure] A new structure instance
+      #
       def initialize(input, label: "")
         @label = label
 

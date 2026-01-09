@@ -22,6 +22,14 @@ module SpecForge
       new(filter: {path:, tags:, skip_tags:}).load
     end
 
+    #
+    # Creates a new Loader with the specified base path and filter options
+    #
+    # @param base_path [Pathname, String, nil] Base path for loading blueprints (defaults to blueprints/)
+    # @param filter [Hash] Filter options for path, tags, and skip_tags
+    #
+    # @return [Loader] A new loader instance
+    #
     def initialize(base_path: nil, filter: {})
       @base_path = base_path.present? ? Pathname.new(base_path) : SpecForge.forge_path.join("blueprints")
       @filter = filter

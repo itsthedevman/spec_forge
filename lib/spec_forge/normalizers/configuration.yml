@@ -1,22 +1,69 @@
+# =============================================================================
+# Configuration Structure Definition
+# =============================================================================
+# Defines the structure for SpecForge global configuration.
+# Configuration is set in forge_helper.rb via SpecForge.configure block.
+#
+# Example usage in forge_helper.rb:
+#   SpecForge.configure do |config|
+#     config.base_url = "https://api.example.com"
+#     config.global_variables = { api_version: "v1" }
+#   end
+# =============================================================================
+
 base_url:
   type: string
   required: true
+  description: |-
+    The default base URL for all API requests. This is prepended to
+    the url/path specified in each step's request configuration.
+    Can be overridden per-step using request.base_url.
+  examples:
+    - "https://api.example.com"
+    - "http://localhost:3000"
+    - "https://staging.api.example.com/v1"
 
 global_variables:
   type: hash
   default: {}
+  description: |-
+    Variables available to all blueprints. Accessed in YAML via
+    {{ variable_name }} syntax. Local variables (defined with store:)
+    can shadow global variables within a blueprint.
+  examples:
+    - api_version: "v1"
+      admin_email: "admin@test.com"
+    - auth_header: "Bearer {{ env.API_TOKEN }}"
+      default_timeout: 5000
 
 factories:
   type: hash
   default: {}
+  description: |-
+    Configuration for FactoryBot integration. Controls how factories
+    are discovered and loaded for use in blueprints via the
+    factories. namespace.
   structure:
-    ###########################################
     auto_discover:
       type: boolean
       default: true
+      description: |-
+        When true, automatically discovers and loads factory definitions
+        from standard Rails locations (spec/factories, test/factories).
+        Set to false if you want to manually specify factory paths.
+      examples:
+        - true
+        - false
 
     paths:
       type: array
       default: []
       structure:
         type: [string, pathname]
+      description: |-
+        Additional paths to search for factory definitions. These are
+        searched in addition to (not instead of) auto-discovered paths
+        when auto_discover is true.
+      examples:
+        - ["spec/factories", "spec/support/factories"]
+        - ["custom/factories"]

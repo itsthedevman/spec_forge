@@ -34,10 +34,15 @@ module SpecForge
         join
       ].freeze
 
+      # @return [String] The transformation function name
       attr_reader :function
 
       #
       # Creates a new transform attribute with the specified function and arguments
+      #
+      # @raise [Error::InvalidTransformFunctionError] If the function is not supported
+      #
+      # @see Parameterized#initialize
       #
       def initialize(...)
         super

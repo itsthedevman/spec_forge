@@ -9,6 +9,15 @@ module SpecForge
     # headers, and JSON body against expected values using RSpec matchers.
     #
     class Expect < Action
+      #
+      # Runs all expectations for the step against the current response
+      #
+      # @param forge [Forge] The forge instance containing response data
+      #
+      # @return [void]
+      #
+      # @raise [Error::ExpectationFailure] If any expectations fail
+      #
       def run(forge)
         show_expectation_count = step.expects.size > 1
 

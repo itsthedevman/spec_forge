@@ -10,6 +10,13 @@ module SpecForge
       # updating the forge's statistics and display accordingly.
       #
       class Reporter
+        #
+        # Creates a new reporter for the given forge instance
+        #
+        # @param forge [Forge, nil] The forge instance to report to
+        #
+        # @return [Reporter] A new reporter instance
+        #
         def initialize(forge = nil)
           @forge = forge
           @stats = forge&.stats

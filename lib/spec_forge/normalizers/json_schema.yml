@@ -1,14 +1,63 @@
+# =============================================================================
+# JSON Schema Structure Definition
+# =============================================================================
+# Defines the structure for advanced JSON validation using explicit schemas.
+# Used when the simpler "shape" syntax isn't sufficient, particularly for:
+#   - Positional/tuple arrays where element order matters
+#   - Very explicit structure definitions
+#   - Complex nested validation scenarios
+#
+# Example usage in blueprints:
+#   expect:
+#   - json:
+#       schema:
+#         type: array
+#         structure:
+#           - integer    # First element must be integer
+#           - string     # Second element must be string
+#           - hash       # Third element must be hash
+# =============================================================================
+
 type:
   type:
     - array
     - string
+  description: |-
+    The expected type of the JSON value. Can be a single type or an
+    array of allowed types. Supports all standard JSON types plus
+    nullable variants (prefixed with ?).
+  examples:
+    - "array"
+    - "hash"
+    - ["string", "integer"]
 
 structure:
   type:
     - hash
     - array
   default: null
+  description: |-
+    Defines the internal structure of the value. Behavior depends on type:
+    - For arrays: Can be an array (positional/tuple) or use pattern
+    - For hashes: A hash mapping keys to their type definitions
+    Each element can be a type string or a nested schema definition.
+  examples:
+    - - integer
+      - string
+      - hash
+    - id: integer
+      name: string
+      email: "?string"
 
 pattern:
   type: hash
   default: null
+  description: |-
+    Defines a repeating pattern for array elements. Use when all array
+    elements should match the same structure (alternative to positional
+    structure). Contains a nested schema definition.
+  examples:
+    - type: hash
+      structure:
+        id: integer
+        name: string

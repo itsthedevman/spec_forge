@@ -1,15 +1,57 @@
+# =============================================================================
+# Factory Reference Structure Definition
+# =============================================================================
+# Defines the structure for referencing factories within blueprints.
+# Factory references allow inline factory usage with custom attributes
+# and build strategies.
+#
+# Example usage in blueprints:
+#   factories.user:
+#     attributes:
+#       role: "admin"
+#     strategy: build
+# =============================================================================
+
 attributes:
   type: hash
   default: {}
+  description: |-
+    Attribute overrides for this specific factory invocation.
+    Merged with the factory's default attributes. Supports variable
+    interpolation and faker data generation.
+  examples:
+    - name: "Custom Name"
+      email: "custom@test.com"
+    - role: "{{ user_role }}"
+      active: true
 
 build_strategy:
   type: string
   default: create
   aliases:
-  - strategy
+    - strategy
+  description: |-
+    The FactoryBot build strategy to use. Determines whether records
+    are persisted to the database or just built in memory.
+    - create: Persists to database (default)
+    - build: Builds without saving
+    - build_stubbed: Builds with stubbed ID
+  examples:
+    - "create"
+    - "build"
+    - "build_stubbed"
 
 size:
   type: integer
   default: 0
   aliases:
-  - count
+    - count
+  transformer: abs
+  description: |-
+    Number of records to create. When 0 (default), creates a single
+    record. When > 0, creates that many records and returns an array.
+    Useful for testing list endpoints or batch operations.
+  examples:
+    - 0
+    - 5
+    - 100

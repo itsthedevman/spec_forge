@@ -20,6 +20,11 @@ module SpecForge
 
       alias_method :variable_name, :header
 
+      #
+      # Creates a new variable attribute
+      #
+      # @param input [String] The variable path (e.g., "user_id", "response.body.id")
+      #
       def initialize(input)
         super
 

@@ -62,6 +62,10 @@ module SpecForge
       #
       # Creates a new matcher attribute with the specified matcher and arguments
       #
+      # @raise [Error::UndefinedMatcherError] If the matcher is not available
+      #
+      # @see Parameterized#initialize
+      #
       def initialize(...)
         super
 

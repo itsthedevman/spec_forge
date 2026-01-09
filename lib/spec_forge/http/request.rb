@@ -9,6 +9,19 @@ module SpecForge
     # query parameters, and body for an HTTP request.
     #
     class Request < Struct.new(:base_url, :url, :http_verb, :headers, :query, :body)
+      #
+      # Creates a new HTTP request with the specified options
+      #
+      # @param options [Hash] Request options
+      # @option options [String] :base_url The base URL for the request
+      # @option options [String] :url The URL path for the request
+      # @option options [String] :http_verb The HTTP method (defaults to "GET")
+      # @option options [Hash] :headers HTTP headers
+      # @option options [Hash] :query Query parameters
+      # @option options [Hash, String] :body Request body
+      #
+      # @return [Request] A new request instance
+      #
       def initialize(**options)
         super(
           base_url: options[:base_url] || "",
@@ -29,6 +42,11 @@ module SpecForge
         headers["content-type"]
       end
 
+      #
+      # Returns whether this request has a JSON content type
+      #
+      # @return [Boolean] True if content type is application/json
+      #
       def json?
         content_type == "application/json"
       end

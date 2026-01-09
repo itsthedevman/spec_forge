@@ -16,6 +16,11 @@ module SpecForge
       #
       attr_reader :connection
 
+      #
+      # Creates a new HTTP backend with a Faraday connection
+      #
+      # @return [Backend] A new backend instance
+      #
       def initialize
         @connection = Faraday.new
       end
