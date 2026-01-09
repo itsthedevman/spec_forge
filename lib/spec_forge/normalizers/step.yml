@@ -250,15 +250,21 @@ expect:
               - hash
             transformer: normalize_shape
             description: |-
-              Simple mode for JSON structure validation. Handles most cases.
-              Use array syntax for array responses, hash syntax for object responses.
-              Prefix types with ? for nullable.
+              Simple mode for JSON structure validation. Handles most
+              API responses with minimal syntax. Use array syntax for array responses,
+              hash syntax for object responses. Prefix types with ? for nullable fields.
+
+              This is the recommended approach. Use schema only when you need
+              positional/tuple arrays or very explicit control.
             examples:
               - id: integer
                 name: string
                 email: ?string
               - - id: integer
                   name: string
+              - users:
+                  - id: integer
+                    posts: [string]
 
           schema:
             type:
@@ -266,15 +272,27 @@ expect:
             transformer: normalize_schema
             validator: json_schema
             description: |-
-              Advanced mode for explicit JSON structure control. Use for
-              positional/tuple arrays or when you need very explicit
-              structure definitions. Requires type and structure/pattern keys.
+              Advanced mode for explicit JSON structure control. Use when:
+              - Testing positional/tuple arrays where order matters
+              - You need very explicit structure definitions
+              - Simple mode (shape) can't handle your use case
+
+              Requires explicit type and structure/pattern keys. Start with shape
+              and only use schema when needed.
             examples:
               - type: array
                 structure:
                   - integer
                   - string
                   - hash
+              - type: hash
+                structure:
+                  users:
+                    type: array
+                    pattern:
+                      type: hash
+                      structure:
+                        id: integer
 
           content:
             type:

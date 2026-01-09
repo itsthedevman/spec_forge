@@ -24,11 +24,11 @@ type:
     - string
   description: |-
     The expected type of the JSON value. Can be a single type or an
-    array of allowed types. Supports all standard JSON types plus
-    nullable variants (prefixed with ?).
+    array of allowed types for union types. Prefix with ? to allow null.
   examples:
     - "array"
     - "hash"
+    - "?string"
     - ["string", "integer"]
 
 structure:

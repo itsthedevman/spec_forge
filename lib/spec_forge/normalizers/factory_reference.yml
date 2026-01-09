@@ -33,9 +33,10 @@ build_strategy:
   description: |-
     The FactoryBot build strategy to use. Determines whether records
     are persisted to the database or just built in memory.
-    - create: Persists to database (default)
-    - build: Builds without saving
-    - build_stubbed: Builds with stubbed ID
+    - create: Persists to database (default) - use for integration tests
+    - build: Builds without saving - use when testing logic, not persistence
+    - build_stubbed: Builds with stubbed ID - fastest, use for unit tests
+      that don't need DB interaction
   examples:
     - "create"
     - "build"
