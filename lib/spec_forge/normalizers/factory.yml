@@ -30,7 +30,8 @@ variables:
     Variables scoped to this factory definition. Can be used within
     the factory's attributes using {{ variable }} syntax.
   examples:
-    - company_name: "Test Corp"
+    - |-
+      company_name: "Test Corp"
       department: "Engineering"
 
 attributes:
@@ -41,7 +42,11 @@ attributes:
     These override the factory's default values. Supports variable
     interpolation and faker data generation.
   examples:
-    - name: "{{ faker.name.first_name }}"
-      email: "{{ faker.internet.email }}"
-    - role: "admin"
-      active: true
+    - |-
+      attributes:
+        name: "{{ faker.name.first_name }}"
+        email: "{{ faker.internet.email }}"
+    - |-
+      attributes:
+        role: "admin"
+        active: true

@@ -20,10 +20,14 @@ attributes:
     Merged with the factory's default attributes. Supports variable
     interpolation and faker data generation.
   examples:
-    - name: "Custom Name"
-      email: "custom@test.com"
-    - role: "{{ user_role }}"
-      active: true
+    - |-
+      attributes:
+        name: "Custom Name"
+        email: "custom@test.com"
+    - |-
+      attributes:
+        role: "{{ user_role }}"
+        active: true
 
 build_strategy:
   type: string

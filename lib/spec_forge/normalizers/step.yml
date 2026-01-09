@@ -54,9 +54,9 @@ tags:
     nesting and are applied to included files. Use CLI flags like
     --tags smoke or --skip-tags slow to filter execution.
   examples:
-    - ["smoke", "auth"]
-    - ["crud", "users", "fast"]
-    - ["integration", "slow"]
+    - '["smoke", "auth"]'
+    - '["crud", "users", "fast"]'
+    - '["integration", "slow"]'
 
 documentation:
   type: hash
@@ -65,7 +65,8 @@ documentation:
     Metadata for OpenAPI documentation generation. Contains information
     about the API endpoint being tested, used when generating API docs.
   examples:
-    - summary: "Creates a new user"
+    - |-
+      summary: "Creates a new user"
       description: "Registers a user account with email and password"
       tags: ["users", "authentication"]
 
@@ -129,9 +130,13 @@ request:
         HTTP headers to include with the request. Child steps merge with
         parent headers (child wins on conflicts). Supports variable interpolation.
       examples:
-        - Authorization: "Bearer {{ auth_token }}"
-          Content-Type: "application/json"
-        - X-API-Key: "{{ env.API_KEY }}"
+        - |-
+          headers:
+            Authorization: "Bearer {{ auth_token }}"
+            Content-Type: "application/json"
+        - |-
+          headers:
+            X-API-Key: "{{ env.API_KEY }}"
 
     query:
       type:
@@ -144,9 +149,14 @@ request:
         Query parameters appended to the URL. Can be a hash or a raw
         query string. Supports variable interpolation.
       examples:
-        - page: 1
-          per_page: 25
-        - "filter=active&sort=name"
+        - |-
+          query:
+            page: 1
+            per_page: 25
+        - |-
+          params:
+            filter: active
+            sort: name
 
     raw:
       type: string
@@ -171,9 +181,13 @@ request:
         JSON request body. Automatically serialized and sets Content-Type
         to application/json. Supports variable interpolation and data generation.
       examples:
-        - name: "{{ faker.name.first_name }}"
-          email: "{{ faker.internet.email }}"
-        - ids: ["id1", "id2", "id3"]
+        - |-
+          json:
+            name: "{{ faker.name.first_name }}"
+            email: "{{ faker.internet.email }}"
+        - |-
+          json:
+            ids: ["id1", "id2", "id3"]
 
 # -----------------------------------------------------------------------------
 # Expectations (Response Validation)
@@ -208,8 +222,10 @@ expect:
           Expected response headers. Keys are header names, values are
           expected values or matchers. Case insensitive.
         examples:
-          - Content-Type: "application/json"
-            Location: "/users/{{ user_id }}"
+          - |-
+            headers:
+              Content-Type: "application/json"
+              Location: "/users/{{ user_id }}"
 
       raw:
         type: string
@@ -242,7 +258,7 @@ expect:
               number or a matcher for range validation.
             examples:
               - 5
-              - be.greater_than: 3
+              - "be.greater_than: 3"
 
           shape:
             type:
@@ -257,14 +273,20 @@ expect:
               This is the recommended approach. Use schema only when you need
               positional/tuple arrays or very explicit control.
             examples:
-              - id: integer
-                name: string
-                email: ?string
-              - - id: integer
+              - |-
+                shape:
+                  id: integer
                   name: string
-              - users:
+                  email: ?string
+              - |-
+                shape:
                   - id: integer
-                    posts: [string]
+                    name: string
+              - |-
+                shape:
+                  users:
+                    - id: integer
+                      posts: [string]
 
           schema:
             type:
@@ -280,19 +302,23 @@ expect:
               Requires explicit type and structure/pattern keys. Start with shape
               and only use schema when needed.
             examples:
-              - type: array
-                structure:
-                  - integer
-                  - string
-                  - hash
-              - type: hash
-                structure:
-                  users:
-                    type: array
-                    pattern:
-                      type: hash
-                      structure:
-                        id: integer
+              - |-
+                schema:
+                  type: array
+                  structure:
+                    - integer
+                    - string
+                    - hash
+              - |-
+                schema:
+                  type: hash
+                  structure:
+                    users:
+                      type: array
+                      pattern:
+                        type: hash
+                        structure:
+                          id: integer
 
           content:
             type:
@@ -302,12 +328,16 @@ expect:
               Validates specific values in the response alongside structure.
               Use to check exact field values while shape/schema validates types.
             examples:
-              - id: 42
-                status: "active"
-              - - id: 1
-                  name: "Alice"
-                - id: 2
-                  name: "Bob"
+              - |-
+                content:
+                  id: 42
+                  status: "active"
+              - |-
+                content:
+                  - id: 1
+                    name: "Alice"
+                  - id: 2
+                    name: "Bob"
 
 # -----------------------------------------------------------------------------
 # Variable Storage
@@ -322,9 +352,11 @@ store:
     - With request: Captures values from the response
     Values are available to all subsequent steps via {{ variable }} syntax.
   examples:
-    - email: "test@example.com"
+    - |-
+      email: "test@example.com"
       password: "secret123"
-    - auth_token: "{{ response.body.token }}"
+    - |-
+      auth_token: "{{ response.body.token }}"
       user_id: "{{ response.body.user.id }}"
 
 # -----------------------------------------------------------------------------
@@ -341,7 +373,8 @@ call:
     arguments as a hash (keyword args) or array (positional args).
   examples:
     - "seed_database"
-    - name: "create_records"
+    - |-
+      name: "create_records"
       arguments:
         count: 50
         type: "User"
@@ -367,4 +400,4 @@ include:
     Cannot be combined with config attributes like request or store.
   examples:
     - "auth_setup"
-    - ["auth_setup", "database_seed"]
+    - '["auth_setup", "database_seed"]'

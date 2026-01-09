@@ -29,7 +29,7 @@ type:
     - "array"
     - "hash"
     - "?string"
-    - ["string", "integer"]
+    - '["string", "integer"]'
 
 structure:
   type:
@@ -42,12 +42,16 @@ structure:
     - For hashes: A hash mapping keys to their type definitions
     Each element can be a type string or a nested schema definition.
   examples:
-    - - integer
-      - string
-      - hash
-    - id: integer
-      name: string
-      email: "?string"
+    - |-
+      structure:
+        - integer
+        - string
+        - hash
+    - |-
+      structure:
+        id: integer
+        name: string
+        email: "?string"
 
 pattern:
   type: hash
@@ -57,7 +61,9 @@ pattern:
     elements should match the same structure (alternative to positional
     structure). Contains a nested schema definition.
   examples:
-    - type: hash
-      structure:
-        id: integer
-        name: string
+    - |-
+      pattern:
+        type: hash
+        structure:
+          id: integer
+          name: string

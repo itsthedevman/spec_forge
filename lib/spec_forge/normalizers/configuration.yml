@@ -31,10 +31,14 @@ global_variables:
     {{ variable_name }} syntax. Local variables (defined with store:)
     can shadow global variables within a blueprint.
   examples:
-    - api_version: "v1"
-      admin_email: "admin@test.com"
-    - auth_header: "Bearer {{ env.API_TOKEN }}"
-      default_timeout: 5000
+    - |-
+      global_variables:
+        api_version: "v1"
+        admin_email: "admin@test.com"
+    - |-
+      global_variables:
+        auth_header: "Bearer {{ env.API_TOKEN }}"
+        default_timeout: 5000
 
 factories:
   type: hash
@@ -65,5 +69,5 @@ factories:
         searched in addition to (not instead of) auto-discovered paths
         when auto_discover is true.
       examples:
-        - ["spec/factories", "spec/support/factories"]
-        - ["custom/factories"]
+        - '["spec/factories", "spec/support/factories"]'
+        - '["custom/factories"]'
