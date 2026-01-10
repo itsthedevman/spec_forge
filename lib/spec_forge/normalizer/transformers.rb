@@ -37,14 +37,23 @@ module SpecForge
       #
       # Normalizes callback shorthand into full hash format
       #
-      # @param value [String, Hash] Callback name or full definition
+      # Converts string callback names into the full hash structure with
+      # a :name key. Hashes pass through unchanged. Arrays are processed
+      # recursively to normalize each element.
       #
-      # @return [Hash] Normalized callback hash with :name key
+      # @param value [String, Hash, Array] Callback name, full definition, or array of callbacks
+      #
+      # @return [Hash, Array<Hash>] Normalized callback hash(es) with :name key
       #
       def normalize_callback(value)
-        return value if value.is_a?(Hash)
-
-        {name: value}
+        case value
+        when Hash
+          value
+        when Array
+          value.map { |v| normalize_callback(v) }
+        else
+          {name: value}
+        end
       end
 
       #

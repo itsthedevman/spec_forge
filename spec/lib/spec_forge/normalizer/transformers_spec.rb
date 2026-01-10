@@ -345,6 +345,90 @@ RSpec.describe SpecForge::Normalizer::Transformers do
     end
   end
 
+  describe "#normalize_callback" do
+    subject(:callback) { described_class.call(:normalize_callback, value) }
+
+    context "when the value is a string" do
+      let(:value) { "my_method" }
+
+      it "is expected to return a hash with the value as the name" do
+        is_expected.to eq({name: "my_method"})
+      end
+    end
+
+    context "when the value is a symbol" do
+      let(:value) { :my_method }
+
+      it "is expected to return a hash with the symbol as the name" do
+        is_expected.to eq({name: :my_method})
+      end
+    end
+
+    context "when the value is a hash" do
+      let(:value) { {name: "my_method", arguments: {}} }
+
+      it "is expected to return the hash with no changes" do
+        is_expected.to eq(value)
+      end
+    end
+
+    context "when the value is a hash with only a name" do
+      let(:value) { {name: "my_method"} }
+
+      it "is expected to return the hash with no changes" do
+        is_expected.to eq(value)
+      end
+    end
+
+    context "when the value is an array" do
+      let(:value) do
+        [
+          {name: "my_method"},
+          "my_other_method"
+        ]
+      end
+
+      it "is expected to return an array with each element normalized" do
+        is_expected.to eq([
+          {name: "my_method"},
+          {name: "my_other_method"}
+        ])
+      end
+    end
+
+    context "when the value is an array of only strings" do
+      let(:value) { ["first_callback", "second_callback"] }
+
+      it "is expected to normalize each string to a hash" do
+        is_expected.to eq([
+          {name: "first_callback"},
+          {name: "second_callback"}
+        ])
+      end
+    end
+
+    context "when the value is an array of only hashes" do
+      let(:value) do
+        [
+          {name: "first", arguments: {id: 1}},
+          {name: "second", arguments: {id: 2}}
+        ]
+      end
+
+      it "is expected to return the array unchanged" do
+        is_expected.to eq(value)
+      end
+    end
+
+    context "when the value is an empty array" do
+      let(:value) { [] }
+
+      it "is expected to return an empty array" do
+        is_expected.to eq([])
+      end
+    end
+  end
+
   describe "#abs" do
     subject(:result) { described_class.call(:abs, value) }
 

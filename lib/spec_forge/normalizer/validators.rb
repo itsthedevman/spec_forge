@@ -75,6 +75,19 @@ module SpecForge
         raise Error, "Invalid HTTP verb #{value.in_quotes} for #{@label}. Valid values are: #{valid_verbs.join_map(", ", &:in_quotes)}"
       end
 
+      #
+      # Validates that shape and schema are not both defined
+      #
+      # Ensures only one of shape or schema is used for JSON validation,
+      # as they represent different validation approaches that cannot be combined.
+      #
+      # @param value [Hash] The expectation hash containing shape and/or schema keys
+      #
+      # @raise [Error] If both shape and schema are defined
+      #
+      # @example Using the validator in a structure
+      #   json: {type: Hash, validator: :json_expectation}
+      #
       def json_expectation(value)
         # Both shape and schema cannot be defined at the same time
         return if value[:shape].blank? || value[:schema].blank?
@@ -101,6 +114,29 @@ module SpecForge
           value[:structure].each { |v| json_schema(v) }
         when Hash
           value[:structure].each_value { |v| json_schema(v) }
+        end
+      end
+
+      #
+      # Validates a callback definition
+      #
+      # Ensures the callback has a valid structure with a required name
+      # and optional arguments. Handles both single callbacks and arrays
+      # of callbacks.
+      #
+      # @param value [Hash, Array<Hash>] The callback definition(s) to validate
+      #
+      # @raise [Error::InvalidStructureError] If the callback structure is invalid
+      #
+      # @example Using the validator in a structure
+      #   call: {type: Hash, validator: :callback}
+      #
+      def callback(value)
+        case value
+        when Array
+          value.each { |v| Normalizer.validate!(v, using: :callback) }
+        else
+          Normalizer.validate!(value, using: :callback)
         end
       end
     end

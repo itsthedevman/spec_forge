@@ -367,24 +367,73 @@ call:
   type: [string, hash]
   default: {}
   transformer: normalize_callback
+  validator: callback
   description: |-
     Executes a named callback registered in forge_helper.rb. Use for
     database seeding, cleanup, or other custom operations. Can pass
     arguments as a hash (keyword args) or array (positional args).
   examples:
-    - "seed_database"
+    - "call: seed_database"
     - |-
-      name: "create_records"
-      arguments:
-        count: 50
-        type: "User"
+      call:
+        name: "create_records"
+        arguments:
+          count: 50
+          type: "User"
+    - |-
+      call:
+        name: "increment_counter"
+        arguments: [1]
+
+hook:
+  type: hash
+  default: {}
+  description: |-
+    Lifecycle hooks that execute callbacks at specific points during test
+    execution. Hooks allow setup and teardown logic to run before/after
+    files or individual steps.
+  examples:
+    - |-
+      hook:
+        before_file: seed_database
+        after_file: cleanup_database
+    - |-
+      hook:
+        before_each:
+          name: create_user
+          arguments:
+            role: admin
+        after_each: delete_user
+    - |-
+      hook:
+        before_file:
+          - seed_users
+          - seed_posts
   structure:
-    name:
-      type: string
-      description: The name of the registered callback to execute.
-    arguments:
-      type: [array, hash]
-      description: Arguments to pass to the callback.
+    before_file:
+      type: [string, hash, array]
+      transformer: normalize_callback
+      validator: callback
+      description: |-
+        Executes once before all steps in the file.
+    after_file:
+      type: [string, hash, array]
+      transformer: normalize_callback
+      validator: callback
+      description: |-
+        Executes once after all steps in the file complete.
+    before_each:
+      type: [string, hash, array]
+      transformer: normalize_callback
+      validator: callback
+      description: |-
+        Executes before each step in the file.
+    after_each:
+      type: [string, hash, array]
+      transformer: normalize_callback
+      validator: callback
+      description: |-
+        Executes after each step in the file completes.
 
 # -----------------------------------------------------------------------------
 # File Inclusion

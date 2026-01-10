@@ -123,4 +123,77 @@ RSpec.describe SpecForge::Normalizer::Validators do
       expect { validator.json_schema(schema) }.not_to raise_error
     end
   end
+
+  describe "#callback" do
+    context "when the value is a hash" do
+      it "passes when value has a valid name" do
+        expect { validator.callback({name: "my_callback"}) }.not_to raise_error
+      end
+
+      it "passes when value has a name and hash arguments" do
+        expect { validator.callback({name: "my_callback", arguments: {id: 1}}) }.not_to raise_error
+      end
+
+      it "passes when value has a name and array arguments" do
+        expect { validator.callback({name: "my_callback", arguments: [1, 2, 3]}) }.not_to raise_error
+      end
+
+      it "passes when value has a name and empty arguments" do
+        expect { validator.callback({name: "my_callback", arguments: {}}) }.not_to raise_error
+        expect { validator.callback({name: "my_callback", arguments: []}) }.not_to raise_error
+      end
+
+      it "raises error when name is missing" do
+        expect { validator.callback({arguments: {id: 1}}) }
+          .to raise_error(SpecForge::Error)
+      end
+
+      it "raises error when name is wrong type" do
+        expect { validator.callback({name: 123}) }
+          .to raise_error(SpecForge::Error)
+      end
+
+      it "raises error when arguments is wrong type" do
+        expect { validator.callback({name: "my_callback", arguments: "invalid"}) }
+          .to raise_error(SpecForge::Error)
+      end
+    end
+
+    context "when the value is an array of hashes" do
+      it "passes when all callbacks are valid" do
+        expect {
+          validator.callback([
+            {name: "first_callback"},
+            {name: "second_callback", arguments: {id: 1}}
+          ])
+        }.not_to raise_error
+      end
+
+      it "passes when array has a single valid callback" do
+        expect { validator.callback([{name: "my_callback"}]) }.not_to raise_error
+      end
+
+      it "passes when array is empty" do
+        expect { validator.callback([]) }.not_to raise_error
+      end
+
+      it "raises error when any callback is missing name" do
+        expect {
+          validator.callback([
+            {name: "valid_callback"},
+            {arguments: {id: 1}}
+          ])
+        }.to raise_error(SpecForge::Error)
+      end
+
+      it "raises error when any callback has wrong type for name" do
+        expect {
+          validator.callback([
+            {name: "valid_callback"},
+            {name: 123}
+          ])
+        }.to raise_error(SpecForge::Error)
+      end
+    end
+  end
 end

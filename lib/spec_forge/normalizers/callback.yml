@@ -1,0 +1,36 @@
+# =============================================================================
+# Callback Structure Definition
+# =============================================================================
+# Defines the structure for callback invocations in SpecForge blueprints.
+# Callbacks execute registered Ruby code during test execution for tasks
+# like database seeding, cleanup, or custom operations.
+#
+# Callbacks are registered in forge_helper.rb:
+#   SpecForge.configure do |config|
+#     config.register_callback(:seed_users) do |count:|
+#       count.times { User.create!(name: Faker::Name.name) }
+#     end
+#   end
+# =============================================================================
+
+name:
+  type: string
+  required: true
+  description: The name of the registered callback to execute.
+  examples:
+    - "seed_database"
+    - "cleanup_records"
+    - "create_admin_user"
+
+arguments:
+  type: [array, hash]
+  description: |-
+    Arguments to pass to the callback. Use a hash for keyword arguments
+    or an array for positional arguments.
+  examples:
+    - |-
+      arguments:
+        count: 10
+        type: "User"
+    - |-
+      arguments: [1, 2, 3]
