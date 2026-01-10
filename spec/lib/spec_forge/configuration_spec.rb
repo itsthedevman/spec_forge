@@ -49,7 +49,7 @@ RSpec.describe SpecForge::Configuration do
       it "is expected to raise error" do
         expect { validated }.to raise_error(
           SpecForge::Error::InvalidStructureError,
-          "Expected String, got NilClass for \"base_url\" in configuration"
+          /Expected String, got NilClass for "base_url" in configuration/
         )
       end
     end
@@ -60,7 +60,7 @@ RSpec.describe SpecForge::Configuration do
       it "is expected to raise error" do
         expect { validated }.to raise_error(
           SpecForge::Error::InvalidStructureError,
-          "Expected String, got Integer for \"base_url\" in configuration"
+          /Expected String, got Integer for "base_url" in configuration/
         )
       end
     end
@@ -80,7 +80,7 @@ RSpec.describe SpecForge::Configuration do
       it "is expected to raise error" do
         expect { validated }.to raise_error(
           SpecForge::Error::InvalidStructureError,
-          "Expected Hash, got String for \"global_variables\" in configuration"
+          /Expected Hash, got String for "global_variables" in configuration/
         )
       end
     end

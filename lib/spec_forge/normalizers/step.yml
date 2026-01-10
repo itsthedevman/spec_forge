@@ -364,7 +364,7 @@ store:
 # -----------------------------------------------------------------------------
 
 call:
-  type: [string, hash]
+  type: [string, hash, array]
   default: {}
   transformer: normalize_callback
   validator: callback

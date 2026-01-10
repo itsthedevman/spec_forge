@@ -423,8 +423,8 @@ RSpec.describe SpecForge::Normalizer::Transformers do
     context "when the value is an empty array" do
       let(:value) { [] }
 
-      it "is expected to return an empty array" do
-        is_expected.to eq([])
+      it "is expected to return nil" do
+        is_expected.to be_nil
       end
     end
   end

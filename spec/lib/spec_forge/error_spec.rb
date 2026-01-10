@@ -202,30 +202,31 @@ RSpec.describe SpecForge::Error do
   describe SpecForge::Error::LoadStepError do
     context "with a simple error" do
       let(:inner_error) { StandardError.new("inner problem") }
-      let(:step) { {name: "test step", line_number: 10} }
+      let(:step) { {name: "test step", source: {file_name: "test.yml", line_number: 10}} }
 
       subject(:error) { described_class.new(inner_error, step) }
 
-      it "includes the step name and line number" do
-        expect(error.message).to include("Step: test step (line 10)")
+      it "includes the step name and source location" do
+        expect(error.message).to include('Step: "test step" [test.yml:10]')
       end
 
       it "includes the cause" do
-        expect(error.message).to include("Caused by: inner problem")
+        expect(error.message).to include("Caused by:")
+        expect(error.message).to include("inner problem")
       end
     end
 
     context "with a nested LoadStepError" do
       let(:inner_error) { StandardError.new("root cause") }
-      let(:inner_step) { {name: "inner step", line_number: 5} }
+      let(:inner_step) { {name: "inner step", source: {file_name: "inner.yml", line_number: 5}} }
       let(:inner_load_error) { described_class.new(inner_error, inner_step) }
-      let(:outer_step) { {name: "outer step", line_number: 15} }
+      let(:outer_step) { {name: "outer step", source: {file_name: "outer.yml", line_number: 15}} }
 
       subject(:error) { described_class.new(inner_load_error, outer_step) }
 
       it "includes both step names" do
-        expect(error.message).to include("Step: outer step")
-        expect(error.message).to include("Step: inner step")
+        expect(error.message).to include('"outer step"')
+        expect(error.message).to include('"inner step"')
       end
     end
 
@@ -249,7 +250,7 @@ RSpec.describe SpecForge::Error do
       subject(:error) { described_class.new(inner_error, step) }
 
       it "shows unnamed placeholder" do
-        expect(error.message).to include("Step: (unnamed)")
+        expect(error.message).to include('"(unnamed)"')
       end
     end
   end

@@ -132,10 +132,12 @@ module SpecForge
       #   call: {type: Hash, validator: :callback}
       #
       def callback(value)
+        return if value.blank?
+
         case value
         when Array
           value.each { |v| Normalizer.validate!(v, using: :callback) }
-        else
+        when Hash
           Normalizer.validate!(value, using: :callback)
         end
       end

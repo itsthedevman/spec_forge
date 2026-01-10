@@ -46,6 +46,8 @@ module SpecForge
       # @return [Hash, Array<Hash>] Normalized callback hash(es) with :name key
       #
       def normalize_callback(value)
+        return if value.blank?
+
         case value
         when Hash
           value
