@@ -194,6 +194,21 @@ RSpec.describe SpecForge::Normalizer::Validators do
           ])
         }.to raise_error(SpecForge::Error)
       end
+
+      it "raises error when array contains nested arrays" do
+        expect {
+          validator.callback([
+            {name: "valid_callback"},
+            [{name: "nested_callback"}]
+          ])
+        }.to raise_error(SpecForge::Error)
+      end
+
+      it "raises error when array is deeply nested" do
+        expect {
+          validator.callback([[{name: "deeply_nested"}]])
+        }.to raise_error(SpecForge::Error)
+      end
     end
   end
 end
