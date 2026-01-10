@@ -16,18 +16,20 @@ module SpecForge
     :description,
     :documentation,
     :expect,
+    :hook,
     :included_by,
     :request,
     :source,
     :store,
     :tags
   )
-    # @return [Boolean] Whether debug mode is enabled for this step
     # @return [Boolean] Whether this step has a call action
-    # @return [Boolean] Whether this step has a request action
+    # @return [Boolean] Whether debug mode is enabled for this step
+    # @return [Boolean] Whether this step registers callback hooks
     # @return [Boolean] Whether this step has expectations
+    # @return [Boolean] Whether this step has a request action
     # @return [Boolean] Whether this step has store operations
-    attr_predicate :debug, :call, :request, :expect, :store
+    attr_predicate :call, :debug, :expect, :hook, :request, :store
 
     #
     # Creates a new Step from the given attributes
@@ -39,6 +41,7 @@ module SpecForge
     # @option step [String] :description Step description
     # @option step [Hash] :documentation Documentation metadata
     # @option step [Array<Hash>] :expect Expectation definitions
+    # @option step [Hash] :hook Event hooks for callbacks
     # @option step [Hash] :included_by Source of include if this step was included
     # @option step [Hash] :request Request configuration
     # @option step [Hash] :source Source file and line number
@@ -53,6 +56,7 @@ module SpecForge
       step[:description] ||= nil
       step[:documentation] ||= nil
       step[:expect] = transform_expect(step[:expect])
+      step[:hook] = transform_hooks(step[:hook])
       step[:included_by] = transform_source(step[:included_by])
       step[:request] = transform_request(step[:request])
       step[:source] = transform_source(step[:source])
@@ -63,6 +67,7 @@ module SpecForge
     end
 
     alias_method :expects, :expect
+    alias_method :hooks, :hook
 
     private
 
@@ -130,6 +135,15 @@ module SpecForge
       return if store.blank?
 
       store.transform_values { |v| Attribute.from(v) }
+    end
+
+    def transform_hooks(hooks)
+      hooks = hooks&.compact_blank
+      return if hooks.blank?
+
+      hooks.transform_values do |call|
+        Array.wrap(call).map { |c| Call.new(callback_name: c[:name], arguments: c[:arguments]) }
+      end
     end
   end
 end
