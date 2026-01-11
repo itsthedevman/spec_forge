@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "spec_helper"
 require_relative "../../../support/ecommerce_api"
 
 RSpec.describe "Forge: E-commerce Flow", :integration do

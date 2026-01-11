@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "spec_helper"
 require_relative "../../../support/discord_api"
 
 RSpec.describe "Forge: Discord API", :integration do
