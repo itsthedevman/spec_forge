@@ -59,8 +59,8 @@ module SpecForge
       @events = {
         before_forge: [],
         before_blueprint: [],
-        before_each: [],
-        after_each: [],
+        before_step: [],
+        after_step: [],
         after_blueprint: [],
         after_forge: []
       }
@@ -140,7 +140,7 @@ module SpecForge
     # Global hooks run for all blueprints and execute in registration order.
     # Callbacks must be registered with #register_callback before attaching.
     #
-    # @param event [Symbol] The lifecycle event (:forge, :blueprint, or :each)
+    # @param event [Symbol] The lifecycle event (:forge, :blueprint, or :step)
     # @param callback_name [String, Symbol] The name of a registered callback
     #
     # @raise [ArgumentError] If the event is invalid
@@ -152,7 +152,7 @@ module SpecForge
     #
     #   config.before(:forge, :setup)      # Runs once before any blueprints
     #   config.before(:blueprint, :log)    # Runs before each blueprint
-    #   config.before(:each, :log)         # Runs before each step
+    #   config.before(:step, :log)         # Runs before each step
     #
     def before(event, callback_name)
       add_event("before", event, callback_name)
@@ -164,7 +164,7 @@ module SpecForge
     # Global hooks run for all blueprints and execute in registration order.
     # Callbacks must be registered with #register_callback before attaching.
     #
-    # @param event [Symbol] The lifecycle event (:forge, :blueprint, or :each)
+    # @param event [Symbol] The lifecycle event (:forge, :blueprint, or :step)
     # @param callback_name [String, Symbol] The name of a registered callback
     #
     # @raise [ArgumentError] If the event is invalid
@@ -174,7 +174,7 @@ module SpecForge
     #   config.register_callback(:cleanup) { |context| Database.clean }
     #   config.register_callback(:log) { |context| Logger.info("Done") }
     #
-    #   config.after(:each, :log)          # Runs after each step
+    #   config.after(:step, :log)          # Runs after each step
     #   config.after(:blueprint, :log)     # Runs after each blueprint
     #   config.after(:forge, :cleanup)     # Runs once after all blueprints
     #
