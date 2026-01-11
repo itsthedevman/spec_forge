@@ -51,15 +51,25 @@ module SpecForge
     private
 
     def read_blueprints
-      paths = Dir.glob(@base_path.join("**", "*.{yml,yaml}"))
+      paths =
+        if @base_path.directory?
+          Dir.glob(@base_path.join("**", "*.{yml,yaml}"))
+        else
+          [@base_path]
+        end
 
       paths.map! do |file_path|
         file_path = Pathname.new(file_path)
         content = File.read(file_path)
 
-        name = file_path.relative_path_from(@base_path).to_s
-          .delete_suffix(".yml")
-          .delete_suffix(".yaml")
+        file_path =
+          if @base_path.directory?
+            file_path.relative_path_from(@base_path)
+          else
+            file_path.relative_path_from(@base_path.dirname)
+          end
+
+        name = file_path.to_s.delete_suffix(".yml").delete_suffix(".yaml")
 
         steps = parse_steps(content)
 
