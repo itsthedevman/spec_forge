@@ -157,6 +157,190 @@ RSpec.describe SpecForge::Configuration do
     end
   end
 
+  describe "#before" do
+    let(:callback_block) { proc { |context| "before hook" } }
+
+    before do
+      configuration.register_callback(:my_callback, &callback_block)
+    end
+
+    it "is expected to attach a callback to a before event" do
+      configuration.before(:each, :my_callback)
+
+      events = configuration.instance_variable_get(:@events)
+      expect(events[:before_each]).to include(callback_block)
+    end
+
+    it "is expected to accept string callback names and convert to symbols" do
+      configuration.before(:each, "my_callback")
+
+      events = configuration.instance_variable_get(:@events)
+      expect(events[:before_each]).to include(callback_block)
+    end
+
+    context "when using valid events" do
+      it "is expected to accept :forge event" do
+        configuration.before(:forge, :my_callback)
+
+        events = configuration.instance_variable_get(:@events)
+        expect(events[:before_forge]).to include(callback_block)
+      end
+
+      it "is expected to accept :blueprint event" do
+        configuration.before(:blueprint, :my_callback)
+
+        events = configuration.instance_variable_get(:@events)
+        expect(events[:before_blueprint]).to include(callback_block)
+      end
+
+      it "is expected to accept :each event" do
+        configuration.before(:each, :my_callback)
+
+        events = configuration.instance_variable_get(:@events)
+        expect(events[:before_each]).to include(callback_block)
+      end
+    end
+
+    context "when the event is invalid" do
+      it "is expected to raise an ArgumentError" do
+        expect { configuration.before(:invalid, :my_callback) }.to raise_error(
+          ArgumentError,
+          /Invalid event.*Expected one of/
+        )
+      end
+    end
+
+    context "when the callback is not registered" do
+      it "is expected to raise an ArgumentError" do
+        expect { configuration.before(:each, :unregistered_callback) }.to raise_error(
+          ArgumentError,
+          /Invalid callback/
+        )
+      end
+    end
+
+    context "when attaching the same callback to multiple events" do
+      it "is expected to allow the callback to be reused" do
+        configuration.before(:forge, :my_callback)
+        configuration.before(:blueprint, :my_callback)
+        configuration.before(:each, :my_callback)
+
+        events = configuration.instance_variable_get(:@events)
+        expect(events[:before_forge]).to include(callback_block)
+        expect(events[:before_blueprint]).to include(callback_block)
+        expect(events[:before_each]).to include(callback_block)
+      end
+    end
+
+    context "when attaching multiple callbacks to the same event" do
+      let(:second_callback) { proc { |context| "second callback" } }
+
+      before do
+        configuration.register_callback(:second_callback, &second_callback)
+      end
+
+      it "is expected to maintain registration order" do
+        configuration.before(:each, :my_callback)
+        configuration.before(:each, :second_callback)
+
+        events = configuration.instance_variable_get(:@events)
+        expect(events[:before_each]).to eq([callback_block, second_callback])
+      end
+    end
+  end
+
+  describe "#after" do
+    let(:callback_block) { proc { |context| "after hook" } }
+
+    before do
+      configuration.register_callback(:my_callback, &callback_block)
+    end
+
+    it "is expected to attach a callback to an after event" do
+      configuration.after(:each, :my_callback)
+
+      events = configuration.instance_variable_get(:@events)
+      expect(events[:after_each]).to include(callback_block)
+    end
+
+    it "is expected to accept string callback names and convert to symbols" do
+      configuration.after(:each, "my_callback")
+
+      events = configuration.instance_variable_get(:@events)
+      expect(events[:after_each]).to include(callback_block)
+    end
+
+    context "when using valid events" do
+      it "is expected to accept :forge event" do
+        configuration.after(:forge, :my_callback)
+
+        events = configuration.instance_variable_get(:@events)
+        expect(events[:after_forge]).to include(callback_block)
+      end
+
+      it "is expected to accept :blueprint event" do
+        configuration.after(:blueprint, :my_callback)
+
+        events = configuration.instance_variable_get(:@events)
+        expect(events[:after_blueprint]).to include(callback_block)
+      end
+
+      it "is expected to accept :each event" do
+        configuration.after(:each, :my_callback)
+
+        events = configuration.instance_variable_get(:@events)
+        expect(events[:after_each]).to include(callback_block)
+      end
+    end
+
+    context "when the event is invalid" do
+      it "is expected to raise an ArgumentError" do
+        expect { configuration.after(:invalid, :my_callback) }.to raise_error(
+          ArgumentError,
+          /Invalid event.*Expected one of/
+        )
+      end
+    end
+
+    context "when the callback is not registered" do
+      it "is expected to raise an ArgumentError" do
+        expect { configuration.after(:each, :unregistered_callback) }.to raise_error(
+          ArgumentError,
+          /Invalid callback/
+        )
+      end
+    end
+
+    context "when attaching the same callback to multiple events" do
+      it "is expected to allow the callback to be reused" do
+        configuration.after(:forge, :my_callback)
+        configuration.after(:blueprint, :my_callback)
+        configuration.after(:each, :my_callback)
+
+        events = configuration.instance_variable_get(:@events)
+        expect(events[:after_forge]).to include(callback_block)
+        expect(events[:after_blueprint]).to include(callback_block)
+        expect(events[:after_each]).to include(callback_block)
+      end
+    end
+
+    context "when attaching multiple callbacks to the same event" do
+      let(:second_callback) { proc { |context| "second callback" } }
+
+      before do
+        configuration.register_callback(:second_callback, &second_callback)
+      end
+
+      it "is expected to maintain registration order" do
+        configuration.after(:each, :my_callback)
+        configuration.after(:each, :second_callback)
+
+        events = configuration.instance_variable_get(:@events)
+        expect(events[:after_each]).to eq([callback_block, second_callback])
+      end
+    end
+  end
+
   describe "Factories" do
     subject(:factories) { described_class::Factories.new }
 

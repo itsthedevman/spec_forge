@@ -56,6 +56,14 @@ module SpecForge
       # Internal
       @on_debug_proc = nil
       @callbacks = {}
+      @events = {
+        before_forge: [],
+        before_blueprint: [],
+        before_each: [],
+        after_each: [],
+        after_blueprint: [],
+        after_forge: []
+      }
     end
 
     #
@@ -124,6 +132,73 @@ module SpecForge
     #
     def register_callback(name, &block)
       @callbacks[name.to_sym] = block
+    end
+
+    #
+    # Attaches a registered callback to a before lifecycle event
+    #
+    # Global hooks run for all blueprints and execute in registration order.
+    # Callbacks must be registered with #register_callback before attaching.
+    #
+    # @param event [Symbol] The lifecycle event (:forge, :blueprint, or :each)
+    # @param callback_name [String, Symbol] The name of a registered callback
+    #
+    # @raise [ArgumentError] If the event is invalid
+    # @raise [ArgumentError] If the callback is not registered
+    #
+    # @example Attach callbacks to lifecycle events
+    #   config.register_callback(:setup) { |context| Database.seed }
+    #   config.register_callback(:log) { |context| Logger.info("Starting") }
+    #
+    #   config.before(:forge, :setup)      # Runs once before any blueprints
+    #   config.before(:blueprint, :log)    # Runs before each blueprint
+    #   config.before(:each, :log)         # Runs before each step
+    #
+    def before(event, callback_name)
+      add_event("before", event, callback_name)
+    end
+
+    #
+    # Attaches a registered callback to an after lifecycle event
+    #
+    # Global hooks run for all blueprints and execute in registration order.
+    # Callbacks must be registered with #register_callback before attaching.
+    #
+    # @param event [Symbol] The lifecycle event (:forge, :blueprint, or :each)
+    # @param callback_name [String, Symbol] The name of a registered callback
+    #
+    # @raise [ArgumentError] If the event is invalid
+    # @raise [ArgumentError] If the callback is not registered
+    #
+    # @example Attach callbacks to lifecycle events
+    #   config.register_callback(:cleanup) { |context| Database.clean }
+    #   config.register_callback(:log) { |context| Logger.info("Done") }
+    #
+    #   config.after(:each, :log)          # Runs after each step
+    #   config.after(:blueprint, :log)     # Runs after each blueprint
+    #   config.after(:forge, :cleanup)     # Runs once after all blueprints
+    #
+    def after(event, callback_name)
+      add_event("after", event, callback_name)
+    end
+
+    private
+
+    def add_event(timing, event, callback_name)
+      event = :"#{timing}_#{event}"
+      callback_name = callback_name.to_sym
+
+      if !@events.key?(event)
+        keys = @events.keys.select { |k| k.to_s.start_with?(timing) }.map(&:in_quotes)
+        raise ArgumentError, "Invalid event #{event.in_quotes}. Expected one of #{keys.to_or_sentence}"
+      end
+
+      if !@callbacks[callback_name]
+        keys = @callbacks.keys.map(&:in_quotes)
+        raise ArgumentError, "Invalid callback #{callback_name.in_quotes}. Expected one of #{keys.to_or_sentence}"
+      end
+
+      @events[event] << @callbacks[callback_name]
     end
   end
 end
