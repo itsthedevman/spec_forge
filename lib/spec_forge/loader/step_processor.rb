@@ -34,6 +34,7 @@ module SpecForge
 
         @blueprints.each do |name, blueprint|
           blueprint[:steps] = normalize_steps(blueprint[:steps])
+            .then { |s| inherit_request(s) }
             .then { |s| expand_steps(s) }
             .then { |s| tag_steps(s) }
             .then { |s| flatten_steps(s) }
@@ -51,7 +52,7 @@ module SpecForge
         end
       end
 
-      def normalize_steps(steps, parent: nil)
+      def normalize_steps(steps)
         steps.map do |step|
           # System data (not included in normalizer)
           source = step.delete(:source)
@@ -61,9 +62,7 @@ module SpecForge
 
           begin
             step = Normalizer.normalize!(step, using: :step, label: "")
-            step = inherit_from_parent(step, parent) if parent
-
-            step[:steps] = normalize_steps(sub_steps, parent: step)
+            step[:steps] = normalize_steps(sub_steps)
           ensure
             step[:source] = source
           end
@@ -74,11 +73,12 @@ module SpecForge
         end
       end
 
-      def inherit_from_parent(step, parent)
-        return step if parent[:request].blank?
+      def inherit_request(steps, parent_request: nil)
+        steps.each do |step|
+          step[:request] = parent_request.deep_merge(step[:request] || {}) if parent_request.present?
 
-        step[:request] = parent[:request].deep_merge(step[:request])
-        step
+          inherit_request(step[:steps], parent_request: step[:request]) if step[:steps]
+        end
       end
 
       def expand_steps(steps)

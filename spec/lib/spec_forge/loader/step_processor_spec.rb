@@ -523,7 +523,7 @@ RSpec.describe SpecForge::Loader::StepProcessor do
     end
   end
 
-  describe ".normalize_steps with request config inheritance" do
+  describe ".inherit_request" do
     context "with parent headers and child url" do
       let(:steps) do
         [
@@ -544,6 +544,7 @@ RSpec.describe SpecForge::Loader::StepProcessor do
 
       it "merges parent headers into child request" do
         result = processor.send(:normalize_steps, steps)
+        processor.send(:inherit_request, result)
 
         child = result[0][:steps][0]
         expect(child[:request]).to include(
@@ -578,6 +579,7 @@ RSpec.describe SpecForge::Loader::StepProcessor do
 
       it "lets child headers override parent headers" do
         result = processor.send(:normalize_steps, steps)
+        processor.send(:inherit_request, result)
 
         child = result[0][:steps][0]
         expect(child[:request][:headers]).to eq({
@@ -614,6 +616,7 @@ RSpec.describe SpecForge::Loader::StepProcessor do
 
       it "cascades through all levels with child winning" do
         result = processor.send(:normalize_steps, steps)
+        processor.send(:inherit_request, result)
 
         l3 = result[0][:steps][0][:steps][0]
         expect(l3[:request][:headers]).to eq({"X-Level" => "2"})
@@ -641,6 +644,7 @@ RSpec.describe SpecForge::Loader::StepProcessor do
 
       it "doesn't modify child request" do
         result = processor.send(:normalize_steps, steps)
+        processor.send(:inherit_request, result)
 
         child = result[0][:steps][0]
         expect(child[:request]).to eq({url: "/users"})
