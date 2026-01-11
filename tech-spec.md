@@ -955,17 +955,17 @@ Named callbacks are registered in `forge_helper.rb` and invoked explicitly from 
 ```ruby
 SpecForge.configure do |config|
   # Simple callback - no arguments
-  config.register_callback("seed_database") do |context|
+  config.register_callback(:seed_database) do |context|
     User.create!(email: "test@test.com")
   end
   
   # With keyword arguments
-  config.register_callback("create_records") do |context, count:, type:|
+  config.register_callback(:create_records) do |context, count:, type:|
     count.times { type.constantize.create! }
   end
   
   # With positional arguments
-  config.register_callback("run_migration") do |context, direction, version|
+  config.register_callback(:run_migration) do |context, direction, version|
     # ...
   end
 end
@@ -979,12 +979,12 @@ end
 
 # Lifecycle hooks
 hook:
-  before_file: seed_database
-  after_file: cleanup_database
+  before_blueprint: seed_database
+  after_blueprint: cleanup_database
   
 # With arguments
 hook:
-  before_file:
+  before_blueprint:
     name: create_records
     arguments:
       count: 50
@@ -993,42 +993,61 @@ hook:
 
 ### Global Hooks
 
-Global hooks are registered in `forge_helper.rb` and execute automatically at framework lifecycle events. They run for all blueprints and cannot be controlled from YAML.
+Global hooks attach callbacks to framework lifecycle events. They run for all blueprints and cannot be controlled from YAML. Callbacks must be registered before being attached to hooks.
 
 **Registration:**
 
 ```ruby
 SpecForge.configure do |config|
-  # Runs once before any blueprints execute
-  config.register_hook(:before_forge) do |context|
+  # Define the callbacks first
+  config.register_callback(:start_cleaner) do |context|
     DatabaseCleaner.start
   end
   
-  # Runs after every step in every blueprint
-  config.register_hook(:after_each) do |context, step:|
+  config.register_callback(:log_step) do |context, step:|
     logger.info("Completed: #{step.name}")
   end
   
-  # Runs once after all blueprints complete
-  config.register_hook(:after_forge) do |context|
+  config.register_callback(:cleanup) do |context|
     DatabaseCleaner.clean
   end
+  
+  # Attach them to lifecycle events
+  config.before(:forge, :start_cleaner)
+  config.after(:each, :log_step)
+  config.after(:forge, :cleanup)
 end
+```
+
+**Note:** Callbacks are reusable - the same callback can be attached to multiple events:
+
+```ruby
+config.register_callback(:log_event) do |context|
+  logger.info("Event triggered")
+end
+
+config.before(:forge, :log_event)
+config.before(:blueprint, :log_event)
+config.before(:each, :log_event)
 ```
 
 ### Available Events
 
 **YAML-accessible events** (via `hook:` attribute):
 
-- `before_file` - Runs once before the first step in a blueprint
-- `after_file` - Runs once after the last step in a blueprint
+- `before_blueprint` - Runs once before the first step in a blueprint
+- `after_blueprint` - Runs once after the last step in a blueprint
 - `before_each` - Runs before each step in a blueprint
 - `after_each` - Runs after each step (even if step failed)
 
-**Global events** (via `register_hook` only):
+**Global events** (via `before/after` only):
 
-- `before_forge` - Runs once before any blueprints execute
-- `after_forge` - Runs once after all blueprints complete
+- `before(:forge, callback)` - Runs once before any blueprints execute
+- `after(:forge, callback)` - Runs once after all blueprints complete
+- `before(:blueprint, callback)` - Runs before each blueprint
+- `after(:blueprint, callback)` - Runs after each blueprint
+- `before(:each, callback)` - Runs before each step
+- `after(:each, callback)` - Runs after each step
 
 ### YAML Syntax
 
@@ -1038,7 +1057,7 @@ The `hook:` attribute supports three syntax variations:
 
 ```yaml
 hook:
-  before_file:
+  before_blueprint:
     - seed_database
     - setup_auth
   after_each: log_response
@@ -1048,7 +1067,7 @@ hook:
 
 ```yaml
 hook:
-  before_file: seed_database
+  before_blueprint: seed_database
   after_each: log_response
 ```
 
@@ -1056,7 +1075,7 @@ hook:
 
 ```yaml
 hook:
-  before_file:
+  before_blueprint:
     name: create_records
     arguments:
       count: 50
@@ -1071,16 +1090,19 @@ hook:
 
 Hooks execute in registration order. Since global hooks are registered before YAML is loaded:
 
-1. Global hooks from `register_hook` (in registration order)
+1. Global hooks from `before/after` (in registration order)
 2. Named callbacks from YAML `hook:` (in definition order)
 
 **Example:**
 
 ```ruby
 # forge_helper.rb
-config.register_hook(:after_each) { puts "Global hook 1" }
-config.register_hook(:after_each) { puts "Global hook 2" }
-config.register_callback("user_hook") { puts "User callback" }
+config.register_callback(:global_1) { puts "Global hook 1" }
+config.register_callback(:global_2) { puts "Global hook 2" }
+config.register_callback(:user_hook) { puts "User callback" }
+
+config.after(:each, :global_1)
+config.after(:each, :global_2)
 ```
 
 ```yaml
@@ -1099,12 +1121,14 @@ User callback
 
 ### Context Parameter
 
-All callbacks and hooks receive a `context` parameter providing access to runtime state:
+All callbacks receive a `context` parameter providing access to runtime state:
 
 ```ruby
-config.register_hook(:after_each) do |context, step:|
-  context.variables      # Current variable state
+config.register_callback(:log_vars) do |context, step:|
+  context.variables  # Current variable state
 end
+
+config.after(:each, :log_vars)
 ```
 
 ---
