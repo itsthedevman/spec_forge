@@ -944,7 +944,7 @@ tags: [skip-docs, internal]
 
 ## Callbacks and Hooks
 
-SpecForge provides two mechanisms for executing code at specific points: **named callbacks** (user-controlled) and **global hooks** (framework-level).
+SpecForge provides two mechanisms for executing code at specific points: **named callbacks** (user-controlled) and **lifecycle hooks** (framework-level).
 
 ### Named Callbacks
 
@@ -991,6 +991,136 @@ hook:
       type: "User"
 ```
 
+### Lifecycle Hooks
+
+Lifecycle hooks execute callbacks at specific framework events. Hooks are defined in YAML using the `hook:` attribute and are processed during load-time into three distinct scopes.
+
+#### Hook Scopes
+
+**Forge-level hooks** - Execute once per test run:
+- `before_forge` - Runs once before any blueprints execute
+- `after_forge` - Runs once after all blueprints complete
+
+**Blueprint-level hooks** - Execute once per blueprint file:
+- `before_blueprint` - Runs once before the first step in a blueprint
+- `after_blueprint` - Runs once after the last step in a blueprint
+
+**Step-level hooks** - Execute around each step:
+- `before_step` - Runs before each step executes
+- `after_step` - Runs after each step completes (even if step failed)
+
+#### Load-time Processing
+
+During load-time, the `hook:` attribute is extracted from steps and organized by scope:
+
+```yaml
+# YAML input
+- hook:
+    before_forge: setup_env
+    before_blueprint: seed_db
+    before_step: log_start
+  
+- name: "Auth tests"
+  hook:
+    before_step: extra_logger
+  steps:
+    - name: "Login"
+    - name: "Get token"
+```
+
+**After processing:**
+
+- **Forge hooks:** `{before: [setup_env], after: []}`  
+  Collected from all blueprints, deduplicated by callback name
+
+- **Blueprint hooks:** `{before: [seed_db], after: []}`  
+  Collected from all steps in the file, deduplicated by callback name
+
+- **Step hooks (stamped on each step):**
+  - Login step: `{before: [log_start, extra_logger], after: []}`
+  - Get token step: `{before: [log_start, extra_logger], after: []}`
+
+#### Hook Inheritance and Accumulation
+
+Step-level hooks (`before_step` / `after_step`) accumulate as they're stamped onto nested steps during flattening:
+
+```yaml
+- hook:
+    before_step: outer_logger
+  steps:
+  - hook:
+      before_step: inner_logger
+    steps:
+    - name: "Deep step"
+      # Effective hooks: {before: [outer_logger, inner_logger], after: []}
+```
+
+**Inheritance rules:**
+- Nested hooks **accumulate** with parent hooks (never replace)
+- Execution order is parent-to-child (outer hooks run first)
+- Hooks are scoped to their subtree - sibling branches don't inherit each other's hooks
+- Included files inherit hooks from their parent scope
+
+**Example showing scoping:**
+
+```yaml
+- hook:
+    before_step: log_auth
+  steps:
+    - name: "Login"        # Gets log_auth
+    - name: "Get token"    # Gets log_auth
+    
+- name: "Create user"      # Doesn't get log_auth
+```
+
+#### Deduplication
+
+Hooks are deduplicated by callback name at each scope to prevent duplicate execution:
+
+```yaml
+# Both steps define the same blueprint hook
+- hook:
+    before_blueprint: seed_db
+    
+- hook:
+    before_blueprint: seed_db  # Only runs once!
+```
+
+Deduplication applies at all three scopes:
+- **Forge hooks** - If multiple blueprints define `before_forge: setup_env`, it runs once
+- **Blueprint hooks** - If multiple steps define `before_blueprint: seed_db`, it runs once
+- **Step hooks** - If the same callback appears multiple times in the accumulation chain, it runs once per step
+
+#### Runtime Execution
+
+Hooks execute at their designated lifecycle points:
+
+**Forge lifecycle:**
+```
+before_forge hooks
+  Blueprint 1
+    before_blueprint hooks
+      Step 1
+        before_step hooks
+        [step actions]
+        after_step hooks
+      Step 2...
+    after_blueprint hooks
+  Blueprint 2...
+after_forge hooks
+```
+
+**Step execution detail:**
+```
+before_step hooks
+  call: actions
+  request: action
+  debug: action
+  expect: actions
+  store: actions
+after_step hooks
+```
+
 ### Global Hooks
 
 Global hooks attach callbacks to framework lifecycle events. They run for all blueprints and cannot be controlled from YAML. Callbacks must be registered before being attached to hooks.
@@ -1014,7 +1144,7 @@ SpecForge.configure do |config|
   
   # Attach them to lifecycle events
   config.before(:forge, :start_cleaner)
-  config.after(:each, :log_step)
+  config.after(:step, :log_step)
   config.after(:forge, :cleanup)
 end
 ```
@@ -1028,7 +1158,7 @@ end
 
 config.before(:forge, :log_event)
 config.before(:blueprint, :log_event)
-config.before(:each, :log_event)
+config.before(:step, :log_event)
 ```
 
 ### Available Events
@@ -1037,8 +1167,8 @@ config.before(:each, :log_event)
 
 - `before_blueprint` - Runs once before the first step in a blueprint
 - `after_blueprint` - Runs once after the last step in a blueprint
-- `before_each` - Runs before each step in a blueprint
-- `after_each` - Runs after each step (even if step failed)
+- `before_step` - Runs before each step in a blueprint
+- `after_step` - Runs after each step (even if step failed)
 
 **Global events** (via `before/after` only):
 
@@ -1046,8 +1176,8 @@ config.before(:each, :log_event)
 - `after(:forge, callback)` - Runs once after all blueprints complete
 - `before(:blueprint, callback)` - Runs before each blueprint
 - `after(:blueprint, callback)` - Runs after each blueprint
-- `before(:each, callback)` - Runs before each step
-- `after(:each, callback)` - Runs after each step
+- `before(:step, callback)` - Runs before each step
+- `after(:step, callback)` - Runs after each step
 
 ### YAML Syntax
 
@@ -1060,7 +1190,7 @@ hook:
   before_blueprint:
     - seed_database
     - setup_auth
-  after_each: log_response
+  after_step: log_response
 ```
 
 **Hash syntax** (single callback per event):
@@ -1068,7 +1198,7 @@ hook:
 ```yaml
 hook:
   before_blueprint: seed_database
-  after_each: log_response
+  after_step: log_response
 ```
 
 **With arguments:**
@@ -1081,7 +1211,7 @@ hook:
       count: 50
       type: "User"
       
-  after_each:
+  after_step:
     name: conditional_cleanup
     arguments: [force, "2024-01-01"]  # Positional
 ```
@@ -1101,14 +1231,14 @@ config.register_callback(:global_1) { puts "Global hook 1" }
 config.register_callback(:global_2) { puts "Global hook 2" }
 config.register_callback(:user_hook) { puts "User callback" }
 
-config.after(:each, :global_1)
-config.after(:each, :global_2)
+config.after(:step, :global_1)
+config.after(:step, :global_2)
 ```
 
 ```yaml
 # blueprint.yml
 hook:
-  after_each: user_hook
+  after_step: user_hook
 ```
 
 **Output after each step:**
@@ -1128,8 +1258,65 @@ config.register_callback(:log_vars) do |context, step:|
   context.variables  # Current variable state
 end
 
-config.after(:each, :log_vars)
+config.after(:step, :log_vars)
 ```
+
+**Parameters by hook type:**
+- `before_forge` / `after_forge` - Receives `context` only
+- `before_blueprint` / `after_blueprint` - Receives `context` only  
+- `before_step` / `after_step` - Receives `context` and `step:` keyword argument
+
+
+### Conditional Execution
+
+Callbacks can use guards to execute only for specific step types. The `step` parameter provides predicates for checking step attributes:
+
+```ruby
+config.register_callback(:log_requests) do |context, step:|
+  next unless step.request?
+  
+  request = context.variables[:request]
+  puts "→ #{request[:http_verb]} #{request[:url]}"
+end
+
+config.after(:step, :log_requests)
+```
+
+**Available step predicates:**
+
+```ruby
+step.call?      # Has call: attribute
+step.debug?     # Has debug: true
+step.expect?    # Has expect: attribute
+step.request?   # Has request: attribute
+step.store?     # Has store: attribute
+```
+
+**Common patterns:**
+
+```ruby
+# Only validate state after requests
+config.register_callback(:validate_db_state) do |context, step:|
+  next unless step.request?
+  # Check database consistency
+end
+
+# Log response details only when expectations exist
+config.register_callback(:log_validation) do |context, step:|
+  next unless step.expect?
+  
+  response = context.variables[:response]
+  puts "Validated: #{response[:status]}"
+end
+
+# Skip hooks for specific steps
+config.register_callback(:cleanup_cache) do |context, step:|
+  next if step.name.include?("Setup")
+  Cache.clear
+end
+```
+
+This gives you full control over when callbacks execute without adding complexity to the hook system itself.
 
 ---
 
