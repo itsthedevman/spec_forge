@@ -43,18 +43,18 @@ module SpecForge
       #
       # @param value [String, Hash, Array] Callback name, full definition, or array of callbacks
       #
-      # @return [Hash, Array<Hash>] Normalized callback hash(es) with :name key
+      # @return [Array<Hash>] Normalized callback hash(es) with :name key
       #
       def normalize_callback(value)
         return if value.blank?
 
         case value
         when Hash
-          value
+          [value]
         when Array
-          value.map { |v| normalize_callback(v) }
+          value.map { |v| normalize_callback(v) }.flatten
         else
-          {name: value}
+          [{name: value}]
         end
       end
 

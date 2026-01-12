@@ -124,7 +124,7 @@ module SpecForge
       # and optional arguments. Handles both single callbacks and arrays
       # of callbacks.
       #
-      # @param value [Hash, Array<Hash>] The callback definition(s) to validate
+      # @param value [Array<Hash>] The callback definition(s) to validate
       #
       # @raise [Error::InvalidStructureError] If the callback structure is invalid
       #
@@ -134,12 +134,7 @@ module SpecForge
       def callback(value)
         return if value.blank?
 
-        case value
-        when Array
-          value.each { |v| Normalizer.validate!(v, using: :callback) }
-        when Hash
-          Normalizer.validate!(value, using: :callback)
-        end
+        value.each { |v| Normalizer.validate!(v, using: :callback) }
       end
     end
   end

@@ -365,7 +365,7 @@ store:
 
 call:
   type: [string, hash, array]
-  default: {}
+  default: []
   transformer: normalize_callback
   validator: callback
   description: |-
@@ -410,30 +410,42 @@ hook:
           - seed_users
           - seed_posts
   structure:
-    before_file:
+    before_forge:
       type: [string, hash, array]
       transformer: normalize_callback
       validator: callback
       description: |-
-        Executes once before all steps in the file.
-    after_file:
+        Executes once before all blueprints.
+    after_forge:
       type: [string, hash, array]
       transformer: normalize_callback
       validator: callback
       description: |-
-        Executes once after all steps in the file complete.
-    before_each:
+        Executes once after all blueprints complete.
+    before_blueprint:
       type: [string, hash, array]
       transformer: normalize_callback
       validator: callback
       description: |-
-        Executes before each step in the file.
-    after_each:
+        Executes once before all steps in a blueprint.
+    after_blueprint:
       type: [string, hash, array]
       transformer: normalize_callback
       validator: callback
       description: |-
-        Executes after each step in the file completes.
+        Executes once after all steps in a blueprint complete.
+    before_step:
+      type: [string, hash, array]
+      transformer: normalize_callback
+      validator: callback
+      description: |-
+        Executes before each step in a blueprint.
+    after_step:
+      type: [string, hash, array]
+      transformer: normalize_callback
+      validator: callback
+      description: |-
+        Executes after each step in a blueprint completes.
 
 # -----------------------------------------------------------------------------
 # File Inclusion

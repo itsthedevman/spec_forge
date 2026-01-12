@@ -19,28 +19,30 @@ module SpecForge
       #
       def initialize(blueprints)
         @blueprints = blueprints
+        @forge_hooks = {before: [], after: []}
       end
 
-      #
-      # Processes all blueprints and returns flattened step arrays
-      #
-      # @return [Array<Hash>] Processed blueprints with flattened steps
-      #
+      # TODO: Documentation
       def run
-        # This is important to be done to every blueprint before expanding the includes
         @blueprints.each do |name, blueprint|
+          blueprint[:hooks] = {before: [], after: []}
+
+          # This is important to be done to every blueprint before expanding the includes
           blueprint[:steps] = assign_source(blueprint[:steps], file_name: blueprint[:name])
         end
 
         @blueprints.each do |name, blueprint|
           blueprint[:steps] = normalize_steps(blueprint[:steps])
-            .then { |s| inherit_request(s) }
             .then { |s| expand_steps(s) }
+            .then { |s| inherit_request(s) }
+            .then { |s| extract_and_assign_hooks(s, blueprint) }
             .then { |s| tag_steps(s) }
             .then { |s| flatten_steps(s) }
+            .then { |s| remove_empty_steps(s) }
         end
 
-        @blueprints.values
+        File.write("steps.json", JSON.pretty_generate(@blueprints["hooks"][:steps]))
+        [@blueprints.values, {hooks: @forge_hooks}]
       end
 
       private
@@ -53,6 +55,8 @@ module SpecForge
       end
 
       def normalize_steps(steps)
+        return steps if steps.blank?
+
         steps.map do |step|
           # System data (not included in normalizer)
           source = step.delete(:source)
@@ -73,11 +77,53 @@ module SpecForge
         end
       end
 
+      def extract_and_assign_hooks(steps, blueprint, parent: nil, before_step: [], after_step: [])
+        steps.each do |step|
+          @forge_hooks[:before] += step.dig(:hook, :before_forge) || []
+          @forge_hooks[:after] += step.dig(:hook, :after_forge) || []
+
+          blueprint[:hooks][:before] += step.dig(:hook, :before_blueprint) || []
+          blueprint[:hooks][:after] += step.dig(:hook, :after_blueprint) || []
+
+          before_step += step.dig(:hook, :before_step) || []
+          after_step += step.dig(:hook, :after_step) || []
+
+          step[:hooks] =
+            if parent
+              {
+                before: parent.dig(:hooks, :before) + before_step,
+                after: parent.dig(:hooks, :after) + after_step
+              }
+            else
+              {before: before_step, after: after_step}
+            end
+
+          step[:hooks][:before].uniq!
+          step[:hooks][:after].uniq!
+
+          if step[:steps].present?
+            extract_and_assign_hooks(
+              step[:steps], blueprint,
+              parent: step,
+              before_step:, after_step:
+            )
+
+            # Don't allow steps with substeps to have hooks - otherwise hooks will run twice
+            step.delete(:hooks)
+          end
+
+          # Remove the original hook attribute since we've renamed it
+          step.delete(:hook)
+        end
+
+        steps
+      end
+
       def inherit_request(steps, parent_request: nil)
         steps.each do |step|
           step[:request] = parent_request.deep_merge(step[:request] || {}) if parent_request.present?
 
-          inherit_request(step[:steps], parent_request: step[:request]) if step[:steps]
+          inherit_request(step[:steps], parent_request: step[:request]) if step[:steps].present?
         end
       end
 
@@ -144,7 +190,7 @@ module SpecForge
 
       def tag_steps(steps, parent_tags: [])
         steps.each do |step|
-          step[:tags] = (parent_tags + step[:tags]).uniq
+          step[:tags] = (parent_tags + (step[:tags] || [])).uniq
 
           tag_steps(step[:steps], parent_tags: step[:tags]) if step[:steps]
         end
@@ -157,6 +203,16 @@ module SpecForge
           else
             step
           end
+        end
+      end
+
+      def remove_empty_steps(steps)
+        steps.select do |step|
+          step = step.except(:source)
+          step[:hooks]&.compact_blank!
+          step.compact_blank!
+
+          step.present?
         end
       end
     end

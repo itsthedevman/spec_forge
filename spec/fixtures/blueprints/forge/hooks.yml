@@ -1,0 +1,116 @@
+# Forge-level hooks (collected from all blueprints)
+- hook:
+    before_forge: setup_test_environment
+    after_forge: teardown_test_environment
+
+# Blueprint-level hooks with array syntax
+- hook:
+    before_blueprint:
+      - seed_database
+      - setup_auth_tokens
+    after_blueprint: cleanup_database
+
+# Simple step-level hook (string syntax)
+- name: "Step with simple hook"
+  hook:
+    before_step: log_step_start
+    after_step: log_step_end
+  request:
+    path: /health
+    method: GET
+
+# Hook with arguments (hash syntax)
+- name: "Step with parameterized hook"
+  hook:
+    before_step:
+      name: create_test_data
+      arguments:
+        count: 5
+        type: "User"
+  request:
+    path: /users
+    method: GET
+
+# Nested steps showing accumulation
+- name: "Auth section"
+  hook:
+    before_step: log_auth_activity
+  steps:
+    - name: "Login"
+      request:
+        path: /auth/login
+        method: POST
+        json:
+          email: "test@test.com"
+
+    - name: "Nested with additional hook"
+      hook:
+        before_step: extra_auth_validation
+        after_step: clear_auth_cache
+      steps:
+        - name: "Deep nested step"
+          request:
+            path: /auth/refresh
+            method: POST
+
+# Sibling section (doesn't inherit auth hooks)
+- name: "User operations"
+  hook:
+    before_step: validate_user_state
+    after_step: log_user_changes
+  steps:
+    - name: "Create user"
+      request:
+        path: /users
+        method: POST
+        json:
+          name: "Test User"
+
+    - name: "Update user"
+      request:
+        path: /users/123
+        method: PUT
+
+# Include with hook inheritance
+- name: "Common workflows"
+  hook:
+    before_step: track_workflow_steps
+  steps:
+    - include: shared_workflows.yml # These inherit track_workflow_steps
+
+# Demonstrating deduplication
+- hook:
+    before_blueprint: seed_database # Already defined above, won't run twice
+    before_step: log_step_start # Already defined above, won't run twice
+
+# Multiple hooks at once (array + hash with args)
+- name: "Complex hook combo"
+  hook:
+    before_step:
+      - simple_callback_1
+      - simple_callback_2
+      - name: parameterized_callback
+        arguments:
+          mode: "strict"
+    after_step:
+      - name: cleanup_with_args
+        arguments: [true, "force"]
+  request:
+    path: /complex
+    method: POST
+
+# Step with only after_step
+- name: "Cleanup only"
+  request:
+    path: /finalize
+    method: POST
+  hook:
+    after_step: final_cleanup
+
+# Demonstrate forge hooks in middle of file (still runs at forge level)
+- name: "Random middle step"
+  hook:
+    before_forge: another_setup # Collected with other forge hooks
+    after_forge: another_teardown
+  request:
+    path: /middle
