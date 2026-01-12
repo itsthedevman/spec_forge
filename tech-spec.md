@@ -1011,7 +1011,7 @@ Lifecycle hooks execute callbacks at specific framework events. Hooks are define
 
 #### Load-time Processing
 
-During load-time, the `hook:` attribute is extracted from steps and organized by scope:
+During load-time, the `hook:` attribute is extracted from steps and organized by scope. **Important:** Hooks defined on a step affect that step itself - they're stamped onto the step during processing.
 
 ```yaml
 # YAML input
@@ -1019,13 +1019,19 @@ During load-time, the `hook:` attribute is extracted from steps and organized by
     before_forge: setup_env
     before_blueprint: seed_db
     before_step: log_start
-  
-- name: "Auth tests"
-  hook:
-    before_step: extra_logger
-  steps:
-    - name: "Login"
-    - name: "Get token"
+  name: "First step"
+  request: ...
+```
+
+This is functionally equivalent to:
+
+```yaml
+# What actually executes
+- call: setup_env     # before_forge
+- call: seed_db       # before_blueprint
+- call: log_start     # before_step
+- name: "First step"
+  request: ...
 ```
 
 **After processing:**
@@ -1036,41 +1042,101 @@ During load-time, the `hook:` attribute is extracted from steps and organized by
 - **Blueprint hooks:** `{before: [seed_db], after: []}`  
   Collected from all steps in the file, deduplicated by callback name
 
-- **Step hooks (stamped on each step):**
-  - Login step: `{before: [log_start, extra_logger], after: []}`
-  - Get token step: `{before: [log_start, extra_logger], after: []}`
+- **Step hooks:** `{before: [log_start], after: []}`  
+  Stamped onto the step that defined them
 
-#### Hook Inheritance and Accumulation
+#### Hook Inheritance with `shared:`
 
-Step-level hooks (`before_step` / `after_step`) accumulate as they're stamped onto nested steps during flattening:
+Step-level hooks can be inherited by nested steps using the `shared:` wrapper. This makes inheritance visually explicit:
+
+```yaml
+# Blueprint-level hook (affects all subsequent steps)
+- hook:
+    before_step: global_logger
+
+# Section-level hook (only affects nested steps)
+- name: "Auth workflows"
+  tags: [auth]           # Metadata - auto-cascades
+  shared:                # Behavior inheritance wrapper
+    request:
+      headers:
+        Authorization: "{{ token }}"
+    hook:
+      before_step: auth_logger
+  steps:
+    - name: "Login"      # Gets global_logger + auth_logger + inherits request
+    - name: "Logout"     # Gets global_logger + auth_logger + inherits request
+
+# Another section (doesn't inherit auth stuff)
+- name: "User workflows"
+  steps:
+    - name: "Create user"  # Gets global_logger only
+```
+
+**The `shared:` wrapper contains:**
+- `request` - HTTP configuration that substeps inherit
+- `hook` - Lifecycle callbacks that substeps inherit
+
+**Inheritance rules:**
+- Hooks in `shared:` accumulate with parent hooks (never replace)
+- Execution order is parent-to-child (outer hooks run first)
+- Hooks are scoped to their subtree - sibling sections don't inherit each other's hooks
+- Tags auto-cascade (they're metadata, not in `shared:`)
+
+**Nested accumulation:**
 
 ```yaml
 - hook:
     before_step: outer_logger
+  
+- name: "Section"
+  shared:
+    hook:
+      before_step: middle_logger
   steps:
-  - hook:
-      before_step: inner_logger
+  - name: "Subsection"
+    shared:
+      hook:
+        before_step: inner_logger
     steps:
     - name: "Deep step"
-      # Effective hooks: {before: [outer_logger, inner_logger], after: []}
+      # Effective hooks: {before: [outer_logger, middle_logger, inner_logger], after: []}
 ```
 
-**Inheritance rules:**
-- Nested hooks **accumulate** with parent hooks (never replace)
-- Execution order is parent-to-child (outer hooks run first)
-- Hooks are scoped to their subtree - sibling branches don't inherit each other's hooks
-- Included files inherit hooks from their parent scope
+#### Action + Steps Restriction
 
-**Example showing scoping:**
+Following Ansible's design principle, you cannot combine action attributes with `steps:`. A step either executes an action OR organizes substeps, not both.
 
+**Action attributes** (cannot combine with `steps:`):
+- `request` - Executes HTTP call
+- `expect` - Validates response  
+- `call` - Executes callback
+- `debug` - Triggers breakpoint
+- `store` - Sets variables
+
+**This is an error:**
 ```yaml
-- hook:
-    before_step: log_auth
-  steps:
-    - name: "Login"        # Gets log_auth
-    - name: "Get token"    # Gets log_auth
-    
-- name: "Create user"      # Doesn't get log_auth
+# ❌ Error at load-time
+- name: "Section"
+  request: ...       # Can't mix action with steps
+  steps: [...]
+```
+
+**Instead, use `shared:` for inheritance:**
+```yaml
+# ✅ Use shared wrapper
+- name: "Section"
+  shared:
+    request: ...     # Substeps inherit this
+  steps: [...]
+```
+
+**Or separate steps:**
+```yaml
+# ✅ Execute then organize
+- request: ...       # Execute action
+- name: "Section"    # Then organize substeps
+  steps: [...]
 ```
 
 #### Deduplication
@@ -1183,6 +1249,14 @@ config.before(:step, :log_event)
 
 The `hook:` attribute supports three syntax variations:
 
+**String syntax** (single callback):
+
+```yaml
+hook:
+  before_blueprint: seed_database
+  after_step: log_response
+```
+
 **Array syntax** (multiple callbacks):
 
 ```yaml
@@ -1190,15 +1264,9 @@ hook:
   before_blueprint:
     - seed_database
     - setup_auth
-  after_step: log_response
-```
-
-**Hash syntax** (single callback per event):
-
-```yaml
-hook:
-  before_blueprint: seed_database
-  after_step: log_response
+  after_step:
+    - log_response
+    - cleanup_cache
 ```
 
 **With arguments:**
@@ -1265,7 +1333,6 @@ config.after(:step, :log_vars)
 - `before_forge` / `after_forge` - Receives `context` only
 - `before_blueprint` / `after_blueprint` - Receives `context` only  
 - `before_step` / `after_step` - Receives `context` and `step:` keyword argument
-
 
 ### Conditional Execution
 
