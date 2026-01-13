@@ -181,7 +181,7 @@ module SpecForge
       def flatten_steps(steps)
         steps.flat_map do |step|
           if (sub_steps = step.delete(:steps))
-            flatten_steps(sub_steps)
+            [step] + flatten_steps(sub_steps)
           else
             step
           end
@@ -190,7 +190,7 @@ module SpecForge
 
       def remove_empty_steps(steps)
         steps.select do |step|
-          step = step.except(:name, :source)
+          step = step.except(:name, :source, :tags, :documentation)
           step.compact_blank!
 
           step.except(:hooks).present?
