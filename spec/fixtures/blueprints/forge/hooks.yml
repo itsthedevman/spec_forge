@@ -1,116 +1,169 @@
-# Forge-level hooks (collected from all blueprints)
+# Forge-level hook - runs once before any blueprints
 - hook:
     before_forge: setup_test_environment
     after_forge: teardown_test_environment
 
-# Blueprint-level hooks with array syntax
+# Blueprint-level hook - runs once before first step in this file
 - hook:
-    before_blueprint:
-      - seed_database
-      - setup_auth_tokens
+    before_blueprint: seed_database
     after_blueprint: cleanup_database
 
-# Simple step-level hook (string syntax)
-- name: "Step with simple hook"
-  hook:
-    before_step: log_step_start
-    after_step: log_step_end
-  request:
-    path: /health
-    method: GET
+# Blueprint-level step hook - affects ALL subsequent steps
+- hook:
+    before_step: global_step_logger
+    after_step: global_step_cleanup
 
-# Hook with arguments (hash syntax)
-- name: "Step with parameterized hook"
-  hook:
-    before_step:
-      name: create_test_data
-      arguments:
-        count: 5
-        type: "User"
-  request:
-    path: /users
-    method: GET
+- name: "First step after global hook"
+  store:
+    test_var: "value1"
+  # Effective hooks: {before: [global_step_logger], after: [global_step_cleanup]}
 
-# Nested steps showing accumulation
+- name: "Second step - also gets global hook"
+  store:
+    another_var: "value2"
+  # Effective hooks: {before: [global_step_logger], after: [global_step_cleanup]}
+
+# Section with shared hooks (only affects nested steps)
 - name: "Auth section"
-  hook:
-    before_step: log_auth_activity
+  tags: [auth, critical]
+  shared:
+    hook:
+      before_step: auth_logger
+      after_step: auth_validator
   steps:
     - name: "Login"
-      request:
-        path: /auth/login
-        method: POST
-        json:
-          email: "test@test.com"
+      store:
+        auth_token: "fake_token_123"
+      # Effective hooks: {before: [global_step_logger, auth_logger], after: [auth_validator, global_step_cleanup]}
 
-    - name: "Nested with additional hook"
-      hook:
-        before_step: extra_auth_validation
-        after_step: clear_auth_cache
-      steps:
-        - name: "Deep nested step"
-          request:
-            path: /auth/refresh
-            method: POST
+    - name: "Verify token"
+      store:
+        user_id: 42
+      # Effective hooks: {before: [global_step_logger, auth_logger], after: [auth_validator, global_step_cleanup]}
 
-# Sibling section (doesn't inherit auth hooks)
+# Another section - doesn't inherit auth hooks
 - name: "User operations"
-  hook:
-    before_step: validate_user_state
-    after_step: log_user_changes
+  tags: [users]
+  shared:
+    hook:
+      before_step: user_operation_logger
   steps:
     - name: "Create user"
-      request:
-        path: /users
-        method: POST
-        json:
-          name: "Test User"
+      store:
+        created_user: "john_doe"
+      # Effective hooks: {before: [global_step_logger, user_operation_logger], after: [global_step_cleanup]}
+      # Notice: auth_logger and auth_validator are gone!
 
     - name: "Update user"
-      request:
-        path: /users/123
-        method: PUT
+      store:
+        updated_at: "2025-01-12"
+      # Effective hooks: {before: [global_step_logger, user_operation_logger], after: [global_step_cleanup]}
+
+# Nested sections - accumulation
+- name: "Nested workflows"
+  shared:
+    hook:
+      before_step: outer_logger
+  steps:
+    - name: "Outer step"
+      store:
+        level: "outer"
+      # Effective hooks: {before: [global_step_logger, outer_logger], after: [global_step_cleanup]}
+
+    - name: "Middle section"
+      shared:
+        hook:
+          before_step: middle_logger
+      steps:
+        - name: "Middle step"
+          store:
+            level: "middle"
+          # Effective hooks: {before: [global_step_logger, outer_logger, middle_logger], after: [global_step_cleanup]}
+
+        - name: "Inner section"
+          shared:
+            hook:
+              before_step: inner_logger
+          steps:
+            - name: "Deep step"
+              store:
+                level: "deep"
+              # Effective hooks: {before: [global_step_logger, outer_logger, middle_logger, inner_logger], after: [global_step_cleanup]}
+
+# Hook deduplication test
+- name: "Deduplication section"
+  shared:
+    hook:
+      before_step: duplicate_logger
+      after_step: duplicate_cleanup
+  steps:
+    - name: "First substep"
+      # Has duplicate_logger
+
+    - name: "Second substep with same hook"
+      hook:
+        before_step: duplicate_logger # This gets deduplicated!
+      store:
+        test: "value"
+      # Effective hooks: {before: [global_step_logger, duplicate_logger], after: [duplicate_cleanup, global_step_cleanup]}
+      # duplicate_logger only runs once even though defined twice
 
 # Include with hook inheritance
-- name: "Common workflows"
-  hook:
-    before_step: track_workflow_steps
+- name: "Include shared workflows"
+  tags: [shared]
+  shared:
+    hook:
+      before_step: include_context_logger
   steps:
-    - include: shared_workflows.yml # These inherit track_workflow_steps
+    - include: shared_workflow.yml
+      # All steps from shared_workflow.yml inherit include_context_logger
 
-# Demonstrating deduplication
+# Action + steps restriction examples (these would ERROR in real implementation)
+# Uncomment to test error handling:
+
+# - name: "INVALID - request with steps"
+#   request:
+#     url: /test
+#   steps:
+#     - name: "This should error"
+
+# - name: "INVALID - call with steps"
+#   call: some_callback
+#   steps:
+#     - name: "This should error"
+
+# - name: "INVALID - debug with steps"
+#   debug: true
+#   steps:
+#     - name: "This should error"
+
+# Valid alternatives to above:
+- name: "VALID - use shared for inheritance"
+  shared:
+    request:
+      headers:
+        X-Custom: "value"
+  steps:
+    - name: "This inherits request config"
+      request:
+        url: /test
+        method: GET
+
+- name: "VALID - separate action from organization"
+  call: some_callback
+
+- name: "Then organize"
+  steps:
+    - name: "Step 1"
+    - name: "Step 2"
+
+# Multiple blueprint hooks (deduplicated)
 - hook:
-    before_blueprint: seed_database # Already defined above, won't run twice
-    before_step: log_step_start # Already defined above, won't run twice
+    before_blueprint: duplicate_blueprint_hook
 
-# Multiple hooks at once (array + hash with args)
-- name: "Complex hook combo"
-  hook:
-    before_step:
-      - simple_callback_1
-      - simple_callback_2
-      - name: parameterized_callback
-        arguments:
-          mode: "strict"
-    after_step:
-      - name: cleanup_with_args
-        arguments: [true, "force"]
-  request:
-    path: /complex
-    method: POST
+- hook:
+    before_blueprint: duplicate_blueprint_hook # Only runs once!
 
-# Step with only after_step
-- name: "Cleanup only"
-  request:
-    path: /finalize
-    method: POST
-  hook:
-    after_step: final_cleanup
-
-# Demonstrate forge hooks in middle of file (still runs at forge level)
-- name: "Random middle step"
-  hook:
-    before_forge: another_setup # Collected with other forge hooks
-    after_forge: another_teardown
-  request:
-    path: /middle
+- name: "Step after duplicate blueprint hooks"
+  store:
+    test: "final"
