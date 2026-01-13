@@ -16,7 +16,7 @@ module SpecForge
     :description,
     :documentation,
     :expect,
-    :hook,
+    :hooks,
     :included_by,
     :request,
     :source,
@@ -29,7 +29,7 @@ module SpecForge
     # @return [Boolean] Whether this step has expectations
     # @return [Boolean] Whether this step has a request action
     # @return [Boolean] Whether this step has store operations
-    attr_predicate :call, :debug, :expect, :hook, :request, :store
+    attr_predicate :call, :debug, :expect, :hooks, :request, :store
 
     #
     # Creates a new Step from the given attributes
@@ -41,7 +41,7 @@ module SpecForge
     # @option step [String] :description Step description
     # @option step [Hash] :documentation Documentation metadata
     # @option step [Array<Hash>] :expect Expectation definitions
-    # @option step [Hash] :hook Event hooks for callbacks
+    # @option step [Hash] :hooks Step-level event hooks for callbacks
     # @option step [Hash] :included_by Source of include if this step was included
     # @option step [Hash] :request Request configuration
     # @option step [Hash] :source Source file and line number
@@ -51,12 +51,12 @@ module SpecForge
     # @return [Step] A new step instance
     #
     def initialize(**step)
-      step[:call] = transform_call(step[:call])
+      step[:call] = transform_calls(step[:call])
       step[:debug] = step[:debug] == true
       step[:description] ||= nil
       step[:documentation] ||= nil
       step[:expect] = transform_expect(step[:expect])
-      step[:hook] = transform_hooks(step[:hook])
+      step[:hooks] = transform_hooks(step[:hooks])
       step[:included_by] = transform_source(step[:included_by])
       step[:request] = transform_request(step[:request])
       step[:source] = transform_source(step[:source])
@@ -66,8 +66,8 @@ module SpecForge
       super(step)
     end
 
+    # TODO: Use StepProcessor to rename :expects, and :calls
     alias_method :expects, :expect
-    alias_method :hooks, :hook
 
     private
 
@@ -77,10 +77,10 @@ module SpecForge
       Source.new(file_name: source[:file_name], line_number: source[:line_number])
     end
 
-    def transform_call(call)
-      return if call.blank?
+    def transform_calls(calls)
+      return if calls.blank?
 
-      Call.new(callback_name: call[:name], arguments: call[:arguments])
+      calls.map { |call| Call.new(callback_name: call[:name], arguments: call[:arguments]) }
     end
 
     def transform_request(input)

@@ -16,7 +16,7 @@ module SpecForge
     # @param tags [Array<String>] Tags to include
     # @param skip_tags [Array<String>] Tags to exclude
     #
-    # @return [Array<Blueprint>] Loaded blueprint objects
+    # @return [Array<Blueprint>, Hash] Loaded blueprint objects and any forge hooks
     #
     def self.load_blueprints(path: nil, tags: [], skip_tags: [])
       new(filter: {path:, tags:, skip_tags:}).load
@@ -36,16 +36,18 @@ module SpecForge
     end
 
     #
-    # Loads and processes all blueprints
+    # Loads and processes all blueprints, extracting any hook data at the same time
     #
-    # @return [Array<Blueprint>] Processed blueprint objects
+    # @return [Array<Blueprint>, Hash] Loaded blueprint objects and any forge hooks
     #
     def load
-      read_blueprints
+      blueprints, forge_hooks = read_blueprints
         .index_by { |b| b[:name] }
         .then { |blueprints| StepProcessor.new(blueprints).run }
-        .then { |blueprints| Filter.new(blueprints).run(**@filter) }
-        .map { |b| Blueprint.new(**b) }
+
+      blueprints = Filter.new(blueprints).run(**@filter).map { |b| Blueprint.new(**b) }
+
+      [blueprints, forge_hooks]
     end
 
     private

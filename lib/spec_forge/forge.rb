@@ -106,14 +106,16 @@ module SpecForge
     #
     # @param blueprints [Array<Blueprint>] The blueprints to execute
     # @param verbosity_level [Integer] Output verbosity (0-3)
+    # @param hooks [Hash] Forge-level event hooks
     #
     # @return [Forge] A new forge instance
     #
-    def initialize(blueprints, verbosity_level: 0)
+    def initialize(blueprints, verbosity_level: 0, hooks: {})
       @blueprints = blueprints
       @callbacks = Callbacks.new
       @display = Display.new(verbosity_level:)
       @failures = []
+      @hooks = hooks
       @http_client = HTTP::Client.new
       @runner = Runner.new
       @stats = {}

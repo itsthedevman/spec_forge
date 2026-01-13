@@ -75,14 +75,14 @@ module SpecForge
         skip_tags = parse_tags(options.skip_tags)
         verbosity_level = determine_verbosity_level
 
-        blueprints = Loader.load_blueprints(path:, tags:, skip_tags:)
+        blueprints, forge_hooks = Loader.load_blueprints(path:, tags:, skip_tags:)
 
         if blueprints.empty?
           puts "No blueprints found matching the criteria."
           exit(0)
         end
 
-        Forge.ignite.run(blueprints, verbosity_level:)
+        Forge.ignite.run(blueprints, verbosity_level:, hooks: forge_hooks)
       end
 
       private

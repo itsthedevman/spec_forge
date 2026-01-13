@@ -15,12 +15,13 @@ module SpecForge
   #     steps: [{name: "Create user", request: {...}}]
   #   )
   #
-  class Blueprint < Data.define(:file_path, :file_name, :name, :steps)
-    def initialize(file_path:, name:, steps: [])
+  # TODO: Update docs for :hooks (blueprint-level hooks)
+  class Blueprint < Data.define(:file_path, :file_name, :hooks, :name, :steps)
+    def initialize(file_path:, name:, steps: [], hooks: {})
       file_name = file_path.basename.to_s
       steps = steps.map { |s| Step.new(**s) }
 
-      super(file_path:, file_name:, name:, steps:,)
+      super(file_path:, file_name:, hooks:, name:, steps:,)
     end
   end
 end

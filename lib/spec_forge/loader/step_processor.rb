@@ -41,7 +41,7 @@ module SpecForge
             .then { |s| remove_empty_steps(s) }
         end
 
-        [@blueprints.values, {hooks: @forge_hooks}]
+        [@blueprints.values, @forge_hooks]
       end
 
       private
