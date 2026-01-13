@@ -19,29 +19,28 @@ module SpecForge
       #
       def initialize(blueprints)
         @blueprints = blueprints
-        @forge_hooks = {before: [], after: []}
+        @forge_hooks = {before: Set.new, after: Set.new}
       end
 
       # TODO: Documentation
       def run
+        # Do a preprocessing pass to ensure all steps are normalized and ready to be referenced
         @blueprints.each do |name, blueprint|
-          blueprint[:hooks] = {before: [], after: []}
+          blueprint[:hooks] = {before: Set.new, after: Set.new}
 
-          # This is important to be done to every blueprint before expanding the includes
           blueprint[:steps] = assign_source(blueprint[:steps], file_name: blueprint[:name])
+            .then { |s| normalize_steps(s) }
         end
 
         @blueprints.each do |name, blueprint|
-          blueprint[:steps] = normalize_steps(blueprint[:steps])
-            .then { |s| expand_steps(s) }
-            .then { |s| inherit_request(s) }
-            .then { |s| extract_and_assign_hooks(s, blueprint) }
+          blueprint[:steps] = expand_steps(blueprint[:steps])
+            .then { |s| inherit_shared(s) }
+            .then { |s| extract_and_assign_hooks(s, blueprint, all: {before: Set.new, after: Set.new}) }
             .then { |s| tag_steps(s) }
             .then { |s| flatten_steps(s) }
             .then { |s| remove_empty_steps(s) }
         end
 
-        File.write("steps.json", JSON.pretty_generate(@blueprints["hooks"][:steps]))
         [@blueprints.values, {hooks: @forge_hooks}]
       end
 
@@ -77,53 +76,28 @@ module SpecForge
         end
       end
 
-      def extract_and_assign_hooks(steps, blueprint, parent: nil, before_step: [], after_step: [])
+      def extract_and_assign_hooks(steps, blueprint, all:)
         steps.each do |step|
-          @forge_hooks[:before] += step.dig(:hook, :before_forge) || []
-          @forge_hooks[:after] += step.dig(:hook, :after_forge) || []
+          hooks = step.delete(:hook) || {}
+          hooks.default = []
 
-          blueprint[:hooks][:before] += step.dig(:hook, :before_blueprint) || []
-          blueprint[:hooks][:after] += step.dig(:hook, :after_blueprint) || []
+          # Forge
+          @forge_hooks[:before].merge(hooks[:before_forge])
+          @forge_hooks[:after].merge(hooks[:after_forge])
 
-          before_step += step.dig(:hook, :before_step) || []
-          after_step += step.dig(:hook, :after_step) || []
+          # Blueprint
+          blueprint[:hooks][:before].merge(hooks[:before_blueprint])
+          blueprint[:hooks][:after].merge(hooks[:after_blueprint])
 
-          step[:hooks] =
-            if parent
-              {
-                before: parent.dig(:hooks, :before) + before_step,
-                after: parent.dig(:hooks, :after) + after_step
-              }
-            else
-              {before: before_step, after: after_step}
-            end
+          # Step
+          before = all[:before].merge(hooks[:before_step])
+          after = all[:after].merge(hooks[:after_step])
 
-          step[:hooks][:before].uniq!
-          step[:hooks][:after].uniq!
-
-          if step[:steps].present?
-            extract_and_assign_hooks(
-              step[:steps], blueprint,
-              parent: step,
-              before_step:, after_step:
-            )
-
-            # Don't allow steps with substeps to have hooks - otherwise hooks will run twice
-            step.delete(:hooks)
+          if step[:steps].blank?
+            step[:hooks] = {before: before.to_a, after: after.to_a.reverse}
+          else
+            extract_and_assign_hooks(step[:steps], blueprint, all: all.deep_dup)
           end
-
-          # Remove the original hook attribute since we've renamed it
-          step.delete(:hook)
-        end
-
-        steps
-      end
-
-      def inherit_request(steps, parent_request: nil)
-        steps.each do |step|
-          step[:request] = parent_request.deep_merge(step[:request] || {}) if parent_request.present?
-
-          inherit_request(step[:steps], parent_request: step[:request]) if step[:steps].present?
         end
       end
 
@@ -188,6 +162,14 @@ module SpecForge
         end
       end
 
+      def inherit_shared(steps, shared: {})
+        steps.each do |step|
+          # Copy request and hooks to each step
+          step.deep_merge!(shared) if shared.present?
+          inherit_shared(step[:steps], shared: step.delete(:shared) || {}) if step[:steps].present?
+        end
+      end
+
       def tag_steps(steps, parent_tags: [])
         steps.each do |step|
           step[:tags] = (parent_tags + (step[:tags] || [])).uniq
@@ -208,11 +190,10 @@ module SpecForge
 
       def remove_empty_steps(steps)
         steps.select do |step|
-          step = step.except(:source)
-          step[:hooks]&.compact_blank!
+          step = step.except(:name, :source)
           step.compact_blank!
 
-          step.present?
+          step.except(:hooks).present?
         end
       end
     end
