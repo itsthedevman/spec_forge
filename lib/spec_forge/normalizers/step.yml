@@ -74,7 +74,7 @@ documentation:
 # Request Configuration
 # -----------------------------------------------------------------------------
 
-request:
+request: &request_structure
   type: hash
   default: {}
   description: |-
@@ -385,7 +385,7 @@ call:
         name: "increment_counter"
         arguments: [1]
 
-hook:
+hook: &hook_structure
   type: hash
   default: {}
   description: |-
@@ -462,3 +462,13 @@ include:
   examples:
     - "auth_setup"
     - '["auth_setup", "database_seed"]'
+
+# -----------------------------------------------------------------------------
+# Inheritance
+# -----------------------------------------------------------------------------
+
+shared:
+  type: hash
+  structure:
+    request: *request_structure
+    hook: *hook_structure

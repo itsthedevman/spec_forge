@@ -167,7 +167,7 @@ module SpecForge
             # Include the directory name in the path to include normalizers in directories
             name = path.relative_path_from(base_path).to_s.delete_suffix(".yml").to_sym
 
-            input = YAML.safe_load_file(path, symbolize_names: true)
+            input = YAML.safe_load_file(path, symbolize_names: true, aliases: true)
             raise Error, "Normalizer defined at #{path.to_s.in_quotes} is empty" if input.blank?
 
             hash[name] = Structure.new(input, label: LABELS[name] || name.to_s.humanize.downcase)
