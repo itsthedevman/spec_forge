@@ -70,6 +70,10 @@ module SpecForge
             step[:source] = source
           end
 
+          # Pluralize these to be consistent
+          step.rename_key_unordered!(:call, :calls)
+          step.rename_key_unordered!(:expect, :expects)
+
           step
         rescue => e
           raise Error::LoadStepError.new(e, step)

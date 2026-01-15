@@ -196,6 +196,7 @@ request: &request_structure
 expect:
   type: array
   default: []
+  aliases: [expects]
   description: |-
     Array of expectations to validate against the response. Each expectation
     is a separate test that runs independently. Validates status codes,
@@ -366,6 +367,7 @@ store:
 call:
   type: [string, hash, array]
   default: []
+  aliases: [calls]
   transformer: normalize_callback
   validator: callback
   description: |-
@@ -388,6 +390,7 @@ call:
 hook: &hook_structure
   type: hash
   default: {}
+  aliases: [hooks]
   description: |-
     Lifecycle hooks that execute callbacks at specific points during test
     execution. Hooks allow setup and teardown logic to run before/after
@@ -454,6 +457,7 @@ hook: &hook_structure
 include:
   type: [string, array]
   default: []
+  aliases: [includes]
   transformer: normalize_includes
   description: |-
     Injects steps from other blueprint files at load-time. Included steps

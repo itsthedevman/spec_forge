@@ -11,11 +11,11 @@ module SpecForge
   #
   class Step < Data.define(
     :name,
-    :call,
+    :calls,
     :debug,
     :description,
     :documentation,
-    :expect,
+    :expects,
     :hooks,
     :included_by,
     :request,
@@ -23,39 +23,21 @@ module SpecForge
     :store,
     :tags
   )
-    # @return [Boolean] Whether this step has a call action
+    # @return [Boolean] Whether this step uses callbacks
     # @return [Boolean] Whether debug mode is enabled for this step
     # @return [Boolean] Whether this step registers callback hooks
     # @return [Boolean] Whether this step has expectations
     # @return [Boolean] Whether this step has a request action
     # @return [Boolean] Whether this step has store operations
-    attr_predicate :call, :debug, :expect, :hooks, :request, :store
+    attr_predicate :calls, :debug, :expects, :hooks, :request, :store
 
-    #
-    # Creates a new Step from the given attributes
-    #
-    # @param step [Hash] Step attributes from normalized YAML
-    # @option step [String] :name The step name
-    # @option step [Hash] :call Callback configuration
-    # @option step [Boolean] :debug Whether debug mode is enabled
-    # @option step [String] :description Step description
-    # @option step [Hash] :documentation Documentation metadata
-    # @option step [Array<Hash>] :expect Expectation definitions
-    # @option step [Hash] :hooks Step-level event hooks for callbacks
-    # @option step [Hash] :included_by Source of include if this step was included
-    # @option step [Hash] :request Request configuration
-    # @option step [Hash] :source Source file and line number
-    # @option step [Hash] :store Variables to store
-    # @option step [Array<String>] :tags Tags for filtering
-    #
-    # @return [Step] A new step instance
-    #
+    # TODO: Documentation
     def initialize(**step)
-      step[:call] = transform_calls(step[:call])
+      step[:calls] = transform_calls(step[:calls])
       step[:debug] = step[:debug] == true
       step[:description] ||= nil
       step[:documentation] ||= nil
-      step[:expect] = transform_expect(step[:expect])
+      step[:expects] = transform_expect(step[:expects])
       step[:hooks] = transform_hooks(step[:hooks])
       step[:included_by] = transform_source(step[:included_by])
       step[:request] = transform_request(step[:request])
@@ -65,9 +47,6 @@ module SpecForge
 
       super(step)
     end
-
-    # TODO: Use StepProcessor to rename :expects, and :calls
-    alias_method :expects, :expect
 
     private
 
