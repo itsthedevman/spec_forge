@@ -117,12 +117,7 @@ module SpecForge
     end
 
     def transform_hooks(hooks)
-      hooks = hooks&.compact_blank
-      return if hooks.blank?
-
-      hooks.transform_values do |call|
-        Array.wrap(call).map { |c| Call.new(callback_name: c[:name], arguments: c[:arguments]) }
-      end
+      Step::Call.wrap_hooks(hooks)
     end
   end
 end

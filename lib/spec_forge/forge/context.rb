@@ -2,13 +2,16 @@
 
 module SpecForge
   class Forge
-    #
-    # Holds the execution context for a forge run
-    #
-    # Context provides access to runtime state like variables that are
-    # passed to callbacks and used during attribute resolution.
-    #
-    class Context < Data.define(:variables)
+    # TODO: documentation
+    class Context < Data.define(:variables, :blueprint, :step, :error)
+      def initialize(**context)
+        context[:variables] ||= nil
+        context[:blueprint] ||= nil
+        context[:step] ||= nil
+        context[:error] ||= nil
+
+        super(context)
+      end
     end
   end
 end

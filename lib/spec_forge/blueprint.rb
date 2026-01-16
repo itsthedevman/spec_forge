@@ -20,6 +20,7 @@ module SpecForge
     def initialize(file_path:, name:, steps: [], hooks: {})
       file_name = file_path.basename.to_s
       steps = steps.map { |s| Step.new(**s) }
+      hooks = Step::Call.wrap_hooks(hooks)
 
       super(file_path:, file_name:, hooks:, name:, steps:,)
     end

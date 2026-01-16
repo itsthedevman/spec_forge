@@ -86,6 +86,9 @@ module SpecForge
     # @return [Array<Hash>] List of failed expectations
     attr_reader :failures
 
+    # TODO: documentation
+    attr_reader :hooks
+
     # @return [HTTP::Client] HTTP client for making requests
     attr_reader :http_client
 
@@ -115,7 +118,7 @@ module SpecForge
       @callbacks = Callbacks.new
       @display = Display.new(verbosity_level:)
       @failures = []
-      @hooks = hooks
+      @hooks = Step::Call.wrap_hooks(hooks)
       @http_client = HTTP::Client.new
       @runner = Runner.new
       @stats = {}
@@ -172,7 +175,10 @@ module SpecForge
       # Load the callbacks from the configuration
       SpecForge.configuration.callbacks.each { |name, block| @callbacks.register(name, &block) }
 
+      @display.forge_start(self)
       @timer.start
+
+      Hook.before_forge(self)
     end
 
     def blueprint_start(blueprint)
@@ -180,10 +186,14 @@ module SpecForge
       @failures.clear
 
       @display.blueprint_start(blueprint)
+
+      Hook.before_blueprint(self, blueprint)
     end
 
     def step_start(step)
       @display.step_start(step)
+
+      Hook.before_step(self, step)
     end
 
     def step_action(step)
@@ -202,6 +212,8 @@ module SpecForge
         @failures += error.failed_examples.map { |example| {step:, example:} }
       end
 
+      Hook.after_step(self, step, error:)
+
       @display.step_end(self, step, error:)
 
       # Bubble up only AFTER display has been updated
@@ -216,12 +228,17 @@ module SpecForge
       @stats[:blueprints] += 1
 
       @display.blueprint_end(blueprint, success: @failures.empty?)
+
+      Hook.after_blueprint(self, blueprint)
     end
 
     def forge_end
       @timer.stop
 
       @display.forge_end(self)
+      Hook.after_forge(self)
+
+      @display.stats(self)
     end
   end
 end

@@ -20,7 +20,10 @@ module SpecForge
       def run(forge)
         sendable_request, resolved_request = build_requests
 
-        forge.display.action(:request, "#{sendable_request.http_verb} #{sendable_request.url}", color: :yellow)
+        forge.display.action(
+          "#{sendable_request.http_verb} #{sendable_request.url}",
+          symbol: :right_arrow, symbol_styles: :yellow
+        )
 
         response = forge.http_client.perform(sendable_request)
         response = parse_response(response)

@@ -67,37 +67,15 @@ module SpecForge
         verbosity_level >= 3
       end
 
-      #
-      # Displays an action indicator with appropriate symbol and color
-      #
-      # @param type [Symbol] The action type (:request, :store, :call, :debug, :success, :error)
-      # @param message [String] The message to display
-      # @param color [Symbol] The color to use
-      # @param style [Symbol] The text style
-      # @param indent [Integer] Indentation level
-      #
-      # @return [void]
-      #
-      def action(type, message, color: :bright_black, style: :clear, indent: 0)
+      def empty_line
+        puts ""
+      end
+
+      # TODO: Documentation (see #format)
+      def action(message, **options)
         return if default_mode?
 
-        symbol =
-          case type
-          when :request
-            "→"
-          when :store
-            "▸"
-          when :call
-            "●"
-          when :debug
-            "⚑"
-          when :success
-            "✓"
-          when :error
-            "✗"
-          end
-
-        puts format_with_indent("#{@color.decorate(symbol, style, color)} #{message}", indent:)
+        puts format(message, indent: 1, **options)
       end
 
       #
@@ -165,14 +143,23 @@ module SpecForge
         end
       end
 
-      #
-      # Called when a blueprint begins execution
-      #
-      # @param blueprint [Blueprint] The blueprint starting
-      #
-      # @return [void]
-      #
+      # TODO: Documentation
+      def forge_start(forge)
+        line = "#{@color.magenta("[forge]")} Ignited"
+        filler = @color.magenta("━" * (LINE_LENGTH - line.length))
+
+        puts ""
+        puts "#{line} #{filler}"
+      end
+
+      # TODO: Documentation
       def blueprint_start(blueprint)
+        puts ""
+
+        line = "#{@color.bright_blue("[#{blueprint.name}]")} Setup"
+        filler = @color.bright_blue("━" * (LINE_LENGTH - line.length))
+
+        puts "#{line} #{filler}"
       end
 
       #
@@ -185,7 +172,23 @@ module SpecForge
       def step_start(step)
         return if default_mode?
 
-        print_verbose_step_header(step)
+        line = step.source.line_number.to_s.rjust(2, "0")
+        location = @color.cyan("[#{step.source.file_name}:#{line}]")
+
+        filler_size = LINE_LENGTH - location.length
+
+        if step.name.present?
+          name = step.name
+          filler_size -= (name.size - 1)
+        else
+          name = @color.dim("(unnamed)")
+          filler_size -= name.length
+        end
+
+        filler = @color.cyan("━" * filler_size)
+
+        puts "#{location} #{name} #{filler}"
+        puts step.description if step.description.present?
       end
 
       #
@@ -230,13 +233,14 @@ module SpecForge
       def blueprint_end(blueprint, success: true)
         return if default_mode?
 
-        header_length = LINE_LENGTH - 15
+        style = success ? :bright_green : :bright_red
 
-        if success
-          puts @color.bold.green("━" * header_length)
-        else
-          puts @color.bold.red("━" * header_length)
-        end
+        line = "#{@color.decorate("[#{blueprint.name}]", style)} Cleanup"
+        length = LINE_LENGTH - line.length
+
+        filler = @color.decorate("━" * length, style)
+
+        puts "#{line} #{filler}"
       end
 
       #
@@ -247,7 +251,16 @@ module SpecForge
       # @return [void]
       #
       def forge_end(forge)
-        puts "\n\n"
+        line = "#{@color.magenta("[forge]")} Quenched"
+        filler = @color.magenta("━" * (LINE_LENGTH - line.length))
+
+        puts ""
+        puts "#{line} #{filler}"
+      end
+
+      # TODO: Documentation
+      def stats(forge)
+        puts ""
 
         if forge.failures.size > 0
           puts "Failures:\n\n"
@@ -261,30 +274,38 @@ module SpecForge
 
       private
 
+      def format(message, indent: 0, message_styles: nil, symbol: nil, symbol_styles: nil)
+        symbol =
+          case symbol
+          when :right_arrow
+            "→"
+          when :flag
+            "⚑"
+          when :checkmark, :success
+            "✓"
+          when :x, :error
+            "✗"
+          else
+            ""
+          end
+
+        if symbol_styles.present?
+          symbol = @color.decorate(symbol, *Array.wrap(symbol_styles))
+        end
+
+        if message_styles.present?
+          message = @color.decorate(message, *Array.wrap(message_styles))
+        end
+
+        message = "#{symbol} #{message}" if symbol.present?
+
+        format_with_indent(message, indent:)
+      end
+
       def format_with_indent(message, indent: 0)
         indent = (indent == 0) ? "" : " " * (indent * 2) # 2 spaces
 
         "#{indent}#{message.gsub("\n", "\n#{indent}")}"
-      end
-
-      def print_verbose_step_header(step)
-        line = step.source.line_number.to_s.rjust(2, "0")
-        location = @color.bright_blue("[#{step.source.file_name}:#{line}]")
-
-        filler_size = LINE_LENGTH - location.length
-
-        if step.name.present?
-          name = @color.white(step.name)
-          filler_size -= (name.size - 1)
-        else
-          name = @color.dim("(unnamed)")
-          filler_size -= name.size
-        end
-
-        filler = @color.dim("*" * filler_size)
-
-        puts "#{location} #{name} #{filler}"
-        puts step.description if step.description.present?
       end
 
       def format_failures(failures)

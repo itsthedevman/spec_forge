@@ -48,30 +48,22 @@ module SpecForge
         @callbacks.key?(name.to_sym)
       end
 
-      #
-      # Executes a registered callback with the given arguments
-      #
-      # @param name [String, Symbol] The callback name
-      # @param arguments [Array] Positional arguments to pass
-      # @param keyword_arguments [Hash] Keyword arguments to pass
-      #
-      # @return [Object] The callback's return value
-      #
-      # @raise [Error::UndefinedCallbackError] If the callback is not registered
-      #
-      def run(name, *arguments, **keyword_arguments)
-        ensure_registered!(name)
+      # TODO: documentation
+      def run(name, context = nil, arguments = [])
+        raise Error::UndefinedCallbackError.new(name, @callbacks.keys) unless registered?(name)
 
         callback = @callbacks[name.to_sym]
-        callback.call(*arguments, **keyword_arguments)
-      end
 
-      private
+        # No arguments? Just call
+        return callback.call if callback.arity == 0
+        return callback.call(context) if callback.arity == 1
 
-      def ensure_registered!(name)
-        return if registered?(name)
-
-        raise Error::UndefinedCallbackError.new(name, @callbacks.keys)
+        case arguments
+        when Array
+          callback.call(context, *arguments)
+        when Hash
+          callback.call(context, **arguments)
+        end
       end
     end
   end

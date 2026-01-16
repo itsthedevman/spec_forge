@@ -9,26 +9,17 @@ module SpecForge
     # Callbacks can receive the current context and optional arguments.
     #
     class Call < Action
-      #
-      # Executes the callback with appropriate arguments
-      #
-      # @param forge [Forge] The forge instance
-      #
-      # @return [Object] The callback's return value
-      #
+      # TODO: Documentation
       def run(forge)
-        forge.display.action(:call, "Call #{step.call.callback_name.in_quotes}", color: :yellow)
-
         context = SpecForge::Forge.context
-        arguments = step.call.arguments
 
-        case arguments
-        when Array
-          forge.callbacks.run(step.call.callback_name, context, *arguments)
-        when Hash
-          forge.callbacks.run(step.call.callback_name, context, **arguments)
-        else
-          forge.callbacks.run(step.call.callback_name, context)
+        step.calls.each do |call|
+          callback_name = call.callback_name
+          arguments = call.arguments
+
+          forge.display.action("Call #{callback_name}", symbol: :checkmark, symbol_styles: :yellow)
+
+          forge.callbacks.run(callback_name, context, arguments)
         end
       end
     end

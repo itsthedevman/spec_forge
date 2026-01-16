@@ -19,7 +19,7 @@ module SpecForge
       # @raise [Error] If no debug handler is configured
       #
       def run(forge)
-        forge.display.action(:debug, "Debug breakpoint triggered", color: :yellow)
+        forge.display.action("Debug breakpoint triggered", symbol: :flag, symbol_styles: :yellow)
 
         callback = SpecForge.configuration.on_debug_proc
         if callback.nil?
