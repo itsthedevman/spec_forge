@@ -10,7 +10,7 @@ RSpec.describe "Forge: Hooks", :integration do
     [blueprints.find { |b| b.name == "hooks" }]
   end
 
-  subject(:forge) { SpecForge::Forge.new(blueprints, verbosity_level: 2, hooks: forge_hooks) }
+  subject(:forge) { SpecForge::Forge.new(blueprints, verbosity_level: 0, hooks: forge_hooks) }
 
   before do
     # Forge-level hooks
@@ -49,9 +49,9 @@ RSpec.describe "Forge: Hooks", :integration do
     # Valid section callback
     forge.callbacks.register(:some_callback) { hook_tracker << :some_callback }
 
-    # # Silence display output
-    # allow_any_instance_of(SpecForge::Forge::Display).to receive(:puts)
-    # allow_any_instance_of(SpecForge::Forge::Display).to receive(:print)
+    # Silence display output
+    allow_any_instance_of(SpecForge::Forge::Display).to receive(:puts)
+    allow_any_instance_of(SpecForge::Forge::Display).to receive(:print)
   end
 
   describe "forge-level hooks" do
