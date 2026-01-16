@@ -172,7 +172,7 @@ module SpecForge
       def flatten_steps(steps)
         steps.flat_map do |step|
           if (sub_steps = step.delete(:steps))
-            [step] + flatten_steps(sub_steps)
+            flatten_steps(sub_steps)
           else
             step
           end
