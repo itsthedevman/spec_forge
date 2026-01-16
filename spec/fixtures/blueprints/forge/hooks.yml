@@ -121,12 +121,6 @@
 # Action + steps restriction examples (these would ERROR in real implementation)
 # Uncomment to test error handling:
 
-# - name: "INVALID - request with steps"
-#   request:
-#     url: /test
-#   steps:
-#     - name: "This should error"
-
 # - name: "INVALID - call with steps"
 #   call: some_callback
 #   steps:
@@ -138,16 +132,6 @@
 #     - name: "This should error"
 
 # Valid alternatives to above:
-- name: "VALID - use shared for inheritance"
-  shared:
-    request:
-      headers:
-        X-Custom: "value"
-  steps:
-    - name: "This inherits request config"
-      request:
-        url: /test
-        method: GET
 
 - name: "VALID - separate action from organization"
   call: some_callback
