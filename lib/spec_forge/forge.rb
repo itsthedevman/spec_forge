@@ -178,7 +178,7 @@ module SpecForge
       @display.forge_start(self)
       @timer.start
 
-      Hook.before_forge(self)
+      Hooks.before_forge(self)
     end
 
     def blueprint_start(blueprint)
@@ -187,13 +187,13 @@ module SpecForge
 
       @display.blueprint_start(blueprint)
 
-      Hook.before_blueprint(self, blueprint)
+      Hooks.before_blueprint(self, blueprint)
     end
 
     def step_start(step)
       @display.step_start(step)
 
-      Hook.before_step(self, step)
+      Hooks.before_step(self, step)
     end
 
     def step_action(step)
@@ -212,7 +212,7 @@ module SpecForge
         @failures += error.failed_examples.map { |example| {step:, example:} }
       end
 
-      Hook.after_step(self, step, error:)
+      Hooks.after_step(self, step, error:)
 
       @display.step_end(self, step, error:)
 
@@ -229,14 +229,14 @@ module SpecForge
 
       @display.blueprint_end(blueprint, success: @failures.empty?)
 
-      Hook.after_blueprint(self, blueprint)
+      Hooks.after_blueprint(self, blueprint)
     end
 
     def forge_end
       @timer.stop
 
       @display.forge_end(self)
-      Hook.after_forge(self)
+      Hooks.after_forge(self)
 
       @display.stats(self)
     end

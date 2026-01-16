@@ -2,7 +2,7 @@
 
 module SpecForge
   class Forge
-    class Hook
+    class Hooks
       class << self
         def before_forge(forge)
           hooks = forge.hooks[:before]
