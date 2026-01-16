@@ -13,7 +13,6 @@ module SpecForge
     :name,
     :calls,
     :debug,
-    :description,
     :documentation,
     :expects,
     :hooks,
@@ -35,7 +34,6 @@ module SpecForge
     def initialize(**step)
       step[:calls] = transform_calls(step[:calls])
       step[:debug] = step[:debug] == true
-      step[:description] ||= nil
       step[:documentation] ||= nil
       step[:expects] = transform_expect(step[:expects])
       step[:hooks] = transform_hooks(step[:hooks])

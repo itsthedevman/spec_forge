@@ -125,7 +125,7 @@ module SpecForge
       end
 
       def load_included_steps(step, names)
-        imported_steps =
+        step[:steps] +=
           names.flat_map do |name|
             blueprint = @blueprints[name]
 
@@ -143,19 +143,6 @@ module SpecForge
             steps
           end
 
-        # Count total steps being included
-        total_steps = imported_steps.size
-
-        # Change the original step to be a display notice
-        step[:description] =
-          if names.size == 1
-            "-> Including #{names.first}.yml (#{total_steps} steps)"
-          else
-            files = names.join_map(", ", &:in_quotes)
-            "-> Including #{files} (#{total_steps} steps total)"
-          end
-
-        step[:steps] += imported_steps
         step
       end
 
