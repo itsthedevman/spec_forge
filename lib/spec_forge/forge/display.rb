@@ -156,7 +156,7 @@ module SpecForge
       # TODO: Documentation
       def forge_start(forge)
         line = "#{@color.magenta("[forge]")} Ignited"
-        filler = @color.magenta("━" * (LINE_LENGTH - 15)) # Calculated, because reasons
+        filler = @color.magenta("━" * (LINE_LENGTH - 15)) # [forge] ignited
 
         puts ""
         puts "#{line} #{filler}"
@@ -185,8 +185,11 @@ module SpecForge
 
         line = step.source.line_number.to_s.rjust(2, "0")
 
-        visual_length = "[#{step.source.file_name}:#{line}]".size
-        location = @color.cyan("[#{step.source.file_name}:#{line}]")
+        line = "#{step.source.file_name}:#{line}"
+        line = "#{step.included_by.file_name}→#{line}" if step.included_by.present?
+
+        visual_length = line.size + 2
+        line = @color.cyan("[#{line}]")
 
         filler_size = LINE_LENGTH - visual_length
 
@@ -201,8 +204,7 @@ module SpecForge
 
         filler = @color.cyan("━" * filler_size)
 
-        puts "#{location} #{name} #{filler}"
-        puts step.description if step.description.present?
+        puts "#{line} #{name} #{filler}"
       end
 
       #
@@ -359,8 +361,8 @@ module SpecForge
 
         blueprints = "#{blueprint_count} #{"blueprint".pluralize(blueprint_count)}"
         steps = "#{step_count} #{"step".pluralize(step_count)}"
-        passed = "#{passed_count} #{"example".pluralize(passed_count)}"
-        failures = "#{failures_count} #{"failures".pluralize(failures_count)}"
+        passed = "#{passed_count} #{"expectation".pluralize(passed_count)}"
+        failures = "#{failures_count} #{"failure".pluralize(failures_count)}"
 
         message = "#{blueprints}, #{steps}, #{passed}, #{failures}"
 
