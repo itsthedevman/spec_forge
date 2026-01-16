@@ -124,9 +124,19 @@ module SpecForge
         print format_with_indent("#{index}:  ", indent: 1) if show_index
 
         if failed_count == 0
-          action(:success, "(#{total_count}/#{total_count} passed)", color: :green, indent: show_index ? 0 : 1)
+          action(
+            "(#{total_count}/#{total_count} passed)",
+            symbol: :success,
+            symbol_styles: :green,
+            indent: show_index ? 0 : 1
+          )
         else
-          action(:error, "(#{failed_count}/#{total_count} failed)", color: :red, indent: show_index ? 0 : 1)
+          action(
+            "(#{failed_count}/#{total_count} failed)",
+            symbol: :error,
+            symbol_styles: :red,
+            indent: show_index ? 0 : 1
+          )
         end
 
         return if failed_examples.blank?
@@ -146,7 +156,7 @@ module SpecForge
       # TODO: Documentation
       def forge_start(forge)
         line = "#{@color.magenta("[forge]")} Ignited"
-        filler = @color.magenta("━" * (LINE_LENGTH - line.length))
+        filler = @color.magenta("━" * (LINE_LENGTH - 15)) # Calculated, because reasons
 
         puts ""
         puts "#{line} #{filler}"
@@ -156,8 +166,9 @@ module SpecForge
       def blueprint_start(blueprint)
         puts ""
 
+        visual_length = "[#{blueprint.name}] Setup".size
         line = "#{@color.bright_blue("[#{blueprint.name}]")} Setup"
-        filler = @color.bright_blue("━" * (LINE_LENGTH - line.length))
+        filler = @color.bright_blue("━" * (LINE_LENGTH - visual_length))
 
         puts "#{line} #{filler}"
       end
@@ -173,16 +184,19 @@ module SpecForge
         return if default_mode?
 
         line = step.source.line_number.to_s.rjust(2, "0")
+
+        visual_length = "[#{step.source.file_name}:#{line}]".size
         location = @color.cyan("[#{step.source.file_name}:#{line}]")
 
-        filler_size = LINE_LENGTH - location.length
+        filler_size = LINE_LENGTH - visual_length
 
+        # +1 offset to match forge/blueprint headers
         if step.name.present?
           name = step.name
-          filler_size -= (name.size - 1)
+          filler_size -= (name.size + 1)
         else
           name = @color.dim("(unnamed)")
-          filler_size -= name.length
+          filler_size -= 10 # (unnamed) + 1
         end
 
         filler = @color.cyan("━" * filler_size)
@@ -235,8 +249,9 @@ module SpecForge
 
         style = success ? :bright_green : :bright_red
 
+        visual_length = "[#{blueprint.name}] Cleanup".size
         line = "#{@color.decorate("[#{blueprint.name}]", style)} Cleanup"
-        length = LINE_LENGTH - line.length
+        length = LINE_LENGTH - visual_length
 
         filler = @color.decorate("━" * length, style)
 
@@ -252,7 +267,7 @@ module SpecForge
       #
       def forge_end(forge)
         line = "#{@color.magenta("[forge]")} Quenched"
-        filler = @color.magenta("━" * (LINE_LENGTH - line.length))
+        filler = @color.magenta("━" * (LINE_LENGTH - 16))
 
         puts ""
         puts "#{line} #{filler}"
