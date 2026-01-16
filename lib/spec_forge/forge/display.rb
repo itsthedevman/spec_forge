@@ -183,10 +183,13 @@ module SpecForge
       def step_start(step)
         return if default_mode?
 
-        line = step.source.line_number.to_s.rjust(2, "0")
+        line_number = step.source.line_number.to_s.rjust(2, "0")
+        line = "#{step.source.file_name}:#{line_number}"
 
-        line = "#{step.source.file_name}:#{line}"
-        line = "#{step.included_by.file_name}→#{line}" if step.included_by.present?
+        if step.included_by.present?
+          line_number = step.included_by.line_number.to_s.rjust(2, "0")
+          line = "#{step.included_by.file_name}:#{line_number} → #{line}"
+        end
 
         visual_length = line.size + 2
         line = @color.cyan("[#{line}]")
