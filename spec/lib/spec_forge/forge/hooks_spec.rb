@@ -101,20 +101,18 @@ RSpec.describe "Forge: Hooks", :integration do
       # - Auth section: "Login", "Verify token"
       # - User operations: "Create user", "Update user"
       # - Nested workflows: "Outer step", "Middle step", "Deep step"
-      # - Deduplication: "First substep", "Second substep with same hook"
+      # - Deduplication: "Second substep with same hook" (First substep has no action)
       # - Include shared workflows: 3 steps from shared_workflow.yml
-      # - VALID - use shared: "This inherits request config"
       # - "VALID - separate action from organization" (call step)
-      # - Then organize: "Step 1", "Step 2"
       # - "Step after duplicate blueprint hooks"
-      # Total: 18 steps
-      expect(hook_tracker.count(:global_step_logger)).to eq(18)
+      # Total: 15 steps (steps with no action are not executed)
+      expect(hook_tracker.count(:global_step_logger)).to eq(15)
     end
 
     it "executes global after_step hook for every step" do
       forge.run
 
-      expect(hook_tracker.count(:global_step_cleanup)).to eq(18)
+      expect(hook_tracker.count(:global_step_cleanup)).to eq(15)
     end
   end
 
@@ -152,10 +150,11 @@ RSpec.describe "Forge: Hooks", :integration do
     it "deduplicates step hooks with the same name" do
       forge.run
 
-      # Deduplication section has 2 steps, duplicate_logger is defined in shared
-      # and again on "Second substep" - should only run once per step
-      expect(hook_tracker.count(:duplicate_logger)).to eq(2)
-      expect(hook_tracker.count(:duplicate_cleanup)).to eq(2)
+      # Deduplication section has 2 steps, but "First substep" has no action so it's not executed
+      # duplicate_logger is defined in shared and again on "Second substep" - should only run once per step
+      # Only "Second substep with same hook" runs, so duplicate_logger fires once
+      expect(hook_tracker.count(:duplicate_logger)).to eq(1)
+      expect(hook_tracker.count(:duplicate_cleanup)).to eq(1)
     end
   end
 
@@ -208,7 +207,6 @@ RSpec.describe "Forge: Hooks", :integration do
       # For the "Deep step", hooks should execute: global_step_logger, outer_logger, middle_logger, inner_logger
       # Find a sequence where all four appear in order
       deep_step_before_hooks = []
-      in_deep_step = false
 
       hook_tracker.each_with_index do |hook, i|
         if hook == :global_step_logger
