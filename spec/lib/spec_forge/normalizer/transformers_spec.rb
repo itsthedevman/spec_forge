@@ -351,32 +351,32 @@ RSpec.describe SpecForge::Normalizer::Transformers do
     context "when the value is a string" do
       let(:value) { "my_method" }
 
-      it "is expected to return a hash with the value as the name" do
-        is_expected.to eq({name: "my_method"})
+      it "is expected to return an array with a hash containing the name" do
+        is_expected.to eq([{name: "my_method"}])
       end
     end
 
     context "when the value is a symbol" do
       let(:value) { :my_method }
 
-      it "is expected to return a hash with the symbol as the name" do
-        is_expected.to eq({name: :my_method})
+      it "is expected to return an array with a hash containing the symbol as the name" do
+        is_expected.to eq([{name: :my_method}])
       end
     end
 
     context "when the value is a hash" do
       let(:value) { {name: "my_method", arguments: {}} }
 
-      it "is expected to return the hash with no changes" do
-        is_expected.to eq(value)
+      it "is expected to return an array containing the hash" do
+        is_expected.to eq([value])
       end
     end
 
     context "when the value is a hash with only a name" do
       let(:value) { {name: "my_method"} }
 
-      it "is expected to return the hash with no changes" do
-        is_expected.to eq(value)
+      it "is expected to return an array containing the hash" do
+        is_expected.to eq([value])
       end
     end
 

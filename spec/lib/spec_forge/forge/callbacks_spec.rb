@@ -53,8 +53,8 @@ RSpec.describe SpecForge::Forge::Callbacks do
     end
 
     it "passes multiple arguments to the callback" do
-      callbacks.register(:add) { |a, b, c| a + b + c }
-      result = callbacks.run(:add, 1, 2, 3)
+      callbacks.register(:add) { |_context, a, b, c| a + b + c }
+      result = callbacks.run(:add, nil, [1, 2, 3])
       expect(result).to eq(6)
     end
 

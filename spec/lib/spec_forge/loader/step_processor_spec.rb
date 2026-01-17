@@ -68,6 +68,17 @@ RSpec.describe SpecForge::Loader::StepProcessor do
       expect(result[1][:steps][0][:name]).to eq("Nested Step")
     end
 
+    it "is expected to rename call to calls and expect to expects" do
+      steps_with_call = [{name: "Step", call: {name: "test_callback"}, expect: [{status: 200}]}]
+
+      result = processor.send(:normalize_steps, steps_with_call)
+
+      expect(result[0]).to have_key(:calls)
+      expect(result[0]).to have_key(:expects)
+      expect(result[0]).not_to have_key(:call)
+      expect(result[0]).not_to have_key(:expect)
+    end
+
     context "when normalization fails" do
       let(:steps) do
         [{name: 123}] # Invalid type for name field
@@ -233,13 +244,6 @@ RSpec.describe SpecForge::Loader::StepProcessor do
           included_steps = result[1][:steps]
           expect(included_steps[0][:included_by]).to have_key(:file_name)
           expect(included_steps[1][:included_by]).to have_key(:file_name)
-        end
-
-        it "is expected to create display message" do
-          result = processor.send(:expand_steps, steps)
-
-          expect(result[1][:description]).to match(/Including auth_setup/)
-          expect(result[1][:description]).to match(/2 steps/)
         end
 
         it "is expected to not modify the original blueprint steps" do
@@ -451,6 +455,194 @@ RSpec.describe SpecForge::Loader::StepProcessor do
     end
   end
 
+  describe ".inherit_shared" do
+    context "with shared request configuration" do
+      let(:steps) do
+        [
+          {
+            name: "Parent",
+            shared: {
+              request: {headers: {"Authorization" => "Bearer token"}}
+            },
+            steps: [
+              {
+                name: "Child",
+                request: {url: "/users"}
+              }
+            ]
+          }
+        ]
+      end
+
+      it "merges shared request into child steps" do
+        processor.send(:inherit_shared, steps)
+
+        child = steps[0][:steps][0]
+        expect(child[:request]).to include(
+          headers: {"Authorization" => "Bearer token"},
+          url: "/users"
+        )
+      end
+    end
+
+    context "with overlapping shared values" do
+      let(:steps) do
+        [
+          {
+            name: "Parent",
+            shared: {
+              request: {
+                headers: {"Authorization" => "Bearer old", "X-App" => "1.0"}
+              }
+            },
+            steps: [
+              {
+                name: "Child",
+                request: {
+                  url: "/users",
+                  headers: {"Authorization" => "Bearer new"}
+                }
+              }
+            ]
+          }
+        ]
+      end
+
+      it "lets child values override shared values" do
+        processor.send(:inherit_shared, steps)
+
+        child = steps[0][:steps][0]
+        expect(child[:request][:headers]).to eq({
+          "Authorization" => "Bearer new",  # Child wins
+          "X-App" => "1.0"                  # Parent preserved
+        })
+      end
+    end
+
+    context "with multiple nesting levels" do
+      let(:steps) do
+        [
+          {
+            name: "L1",
+            shared: {request: {headers: {"X-Level" => "1"}}},
+            steps: [
+              {
+                name: "L2",
+                shared: {request: {headers: {"X-Level" => "2"}}},
+                steps: [
+                  {
+                    name: "L3",
+                    request: {url: "/deep"}
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      end
+
+      it "cascades through all levels with child winning" do
+        processor.send(:inherit_shared, steps)
+
+        l3 = steps[0][:steps][0][:steps][0]
+        expect(l3[:request][:headers]).to eq({"X-Level" => "2"})
+        expect(l3[:request][:url]).to eq("/deep")
+      end
+    end
+
+    context "with shared hooks" do
+      let(:steps) do
+        [
+          {
+            name: "Parent",
+            shared: {
+              hook: {before_step: [{name: "parent_hook"}]}
+            },
+            steps: [
+              {
+                name: "Child",
+                hook: {before_step: [{name: "child_hook"}]}
+              }
+            ]
+          }
+        ]
+      end
+
+      it "merges shared hooks into child steps" do
+        processor.send(:inherit_shared, steps)
+
+        child = steps[0][:steps][0]
+        
+        # Arrays are concatenated, so both hooks should be present
+        expect(child[:hook][:before_step]).to include(
+          {name: "parent_hook"},
+          {name: "child_hook"}
+        )
+      end
+    end
+
+    context "with deeply nested shared hooks" do
+      let(:steps) do
+        [
+          {
+            name: "Section",
+            shared: {
+              hook: {before_step: [{name: "middle_logger"}]}
+            },
+            steps: [
+              {
+                name: "Subsection",
+                shared: {
+                  hook: {before_step: [{name: "inner_logger"}]}
+                },
+                steps: [
+                  {
+                    name: "Deep step",
+                    hook: {before_step: [{name: "deep_hook"}]}
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      end
+
+      it "accumulates hooks through all nesting levels" do
+        processor.send(:inherit_shared, steps)
+
+        deep_step = steps[0][:steps][0][:steps][0]
+        hook_names = deep_step[:hook][:before_step].map { |h| h[:name] }
+
+        # Per tech-spec: hooks accumulate through nesting levels
+        expect(hook_names).to eq(%w[middle_logger inner_logger deep_hook])
+      end
+    end
+
+    context "with nil/blank shared" do
+      let(:steps) do
+        [
+          {
+            name: "Parent",
+            shared: {},
+            steps: [
+              {
+                name: "Child",
+                request: {url: "/users"}
+              }
+            ]
+          }
+        ]
+      end
+
+      it "doesn't modify child" do
+        processor.send(:inherit_shared, steps)
+
+        child = steps[0][:steps][0]
+        expect(child[:request]).to eq({url: "/users"})
+      end
+    end
+  end
+
   describe ".run" do
     context "with full pipeline integration" do
       let(:blueprints) do
@@ -460,8 +652,8 @@ RSpec.describe SpecForge::Loader::StepProcessor do
             file_name: "auth_setup.yml",
             name: "auth_setup",
             steps: [
-              {name: "Login", tags: ["auth"], line_number: 1},
-              {name: "Token", tags: ["auth"], line_number: 5}
+              {name: "Login", tags: ["auth"], line_number: 1, request: {url: "/login"}},
+              {name: "Token", tags: ["auth"], line_number: 5, request: {url: "/token"}}
             ]
           },
           "main" => {
@@ -480,7 +672,7 @@ RSpec.describe SpecForge::Loader::StepProcessor do
                 tags: ["test"],
                 line_number: 5,
                 steps: [
-                  {name: "Test 1", tags: [], line_number: 6}
+                  {name: "Test 1", tags: [], line_number: 6, request: {url: "/test"}}
                 ]
               }
             ]
@@ -488,10 +680,23 @@ RSpec.describe SpecForge::Loader::StepProcessor do
         }
       end
 
-      it "is expected to process blueprints through full pipeline" do
+      it "is expected to return blueprints and forge_hooks tuple" do
         result = processor.run
 
-        main_result = result.find { |bp| bp[:name] == "main" }
+        expect(result).to be_an(Array)
+        expect(result.size).to eq(2)
+
+        blueprints_result, forge_hooks = result
+        expect(blueprints_result).to be_an(Array)
+        expect(forge_hooks).to be_a(Hash)
+        expect(forge_hooks).to have_key(:before)
+        expect(forge_hooks).to have_key(:after)
+      end
+
+      it "is expected to process blueprints through full pipeline" do
+        blueprints_result, _forge_hooks = processor.run
+
+        main_result = blueprints_result.find { |bp| bp[:name] == "main" }
         steps = main_result[:steps]
 
         # Should have 3 steps total: Login and Token from auth_setup include, Test 1 from Tests
@@ -514,140 +719,11 @@ RSpec.describe SpecForge::Loader::StepProcessor do
       end
 
       it "is expected to return array of processed blueprints" do
-        result = processor.run
+        blueprints_result, _forge_hooks = processor.run
 
-        expect(result).to be_kind_of(Array)
-        expect(result.size).to eq(2)
-        expect(result.all? { |bp| bp.key?(:steps) }).to be true
-      end
-    end
-  end
-
-  describe ".inherit_request" do
-    context "with parent headers and child url" do
-      let(:steps) do
-        [
-          {
-            name: "Parent",
-            line_number: 1,
-            request: {headers: {"Authorization" => "Bearer token"}},
-            steps: [
-              {
-                name: "Child",
-                line_number: 2,
-                request: {url: "/users"}
-              }
-            ]
-          }
-        ]
-      end
-
-      it "merges parent headers into child request" do
-        result = processor.send(:normalize_steps, steps)
-        processor.send(:inherit_request, result)
-
-        child = result[0][:steps][0]
-        expect(child[:request]).to include(
-          headers: {"Authorization" => "Bearer token"},
-          url: "/users"
-        )
-      end
-    end
-
-    context "with overlapping headers" do
-      let(:steps) do
-        [
-          {
-            name: "Parent",
-            line_number: 1,
-            request: {
-              headers: {"Authorization" => "Bearer old", "X-App" => "1.0"}
-            },
-            steps: [
-              {
-                name: "Child",
-                line_number: 2,
-                request: {
-                  url: "/users",
-                  headers: {"Authorization" => "Bearer new"}
-                }
-              }
-            ]
-          }
-        ]
-      end
-
-      it "lets child headers override parent headers" do
-        result = processor.send(:normalize_steps, steps)
-        processor.send(:inherit_request, result)
-
-        child = result[0][:steps][0]
-        expect(child[:request][:headers]).to eq({
-          "Authorization" => "Bearer new",  # Child wins
-          "X-App" => "1.0"                  # Parent preserved
-        })
-      end
-    end
-
-    context "with multiple nesting levels" do
-      let(:steps) do
-        [
-          {
-            name: "L1",
-            line_number: 1,
-            request: {headers: {"X-Level" => "1"}},
-            steps: [
-              {
-                name: "L2",
-                line_number: 2,
-                request: {headers: {"X-Level" => "2"}},
-                steps: [
-                  {
-                    name: "L3",
-                    line_number: 3,
-                    request: {url: "/deep"}
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      end
-
-      it "cascades through all levels with child winning" do
-        result = processor.send(:normalize_steps, steps)
-        processor.send(:inherit_request, result)
-
-        l3 = result[0][:steps][0][:steps][0]
-        expect(l3[:request][:headers]).to eq({"X-Level" => "2"})
-        expect(l3[:request][:url]).to eq("/deep")
-      end
-    end
-
-    context "with nil/blank parent request" do
-      let(:steps) do
-        [
-          {
-            name: "Parent",
-            line_number: 1,
-            request: {},
-            steps: [
-              {
-                name: "Child",
-                line_number: 2,
-                request: {url: "/users"}
-              }
-            ]
-          }
-        ]
-      end
-
-      it "doesn't modify child request" do
-        result = processor.send(:normalize_steps, steps)
-        processor.send(:inherit_request, result)
-
-        child = result[0][:steps][0]
-        expect(child[:request]).to eq({url: "/users"})
+        expect(blueprints_result).to be_kind_of(Array)
+        expect(blueprints_result.size).to eq(2)
+        expect(blueprints_result.all? { |bp| bp.key?(:steps) }).to be true
       end
     end
   end

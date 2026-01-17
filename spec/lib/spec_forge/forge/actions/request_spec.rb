@@ -49,9 +49,9 @@ RSpec.describe SpecForge::Forge::Request do
       run
 
       expect(display).to have_received(:action).with(
-        :request,
         "POST /api/users",
-        color: :yellow
+        symbol: :right_arrow,
+        symbol_styles: :yellow
       )
     end
 

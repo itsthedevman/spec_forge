@@ -4,7 +4,7 @@ require_relative "../../../support/discord_api"
 
 RSpec.describe "Forge: Discord API", :integration do
   let(:blueprints) do
-    all = SpecForge::Loader.new(base_path: fixtures_path.join("blueprints", "forge")).load
+    all, _forge_hooks = SpecForge::Loader.new(base_path: fixtures_path.join("blueprints", "forge")).load
     all.select { |b| b.name == "discord_api" }
   end
 

@@ -22,7 +22,7 @@ RSpec.describe SpecForge::Forge::Call do
         SpecForge::Step.new(
           name: "Step with positional args",
           source: {file_name: "test.yml", line_number: 5},
-          call: {name: :my_callback, arguments: ["value1", "value2"]}
+          calls: [{name: :my_callback, arguments: ["value1", "value2"]}]
         )
       end
 
@@ -30,16 +30,16 @@ RSpec.describe SpecForge::Forge::Call do
         run
 
         expect(display).to have_received(:action).with(
-          :call,
-          'Call "my_callback"',
-          color: :yellow
+          "Call my_callback",
+          symbol: :checkmark,
+          symbol_styles: :yellow
         )
       end
 
       it "runs the callback with the context and positional arguments" do
         run
 
-        expect(callbacks).to have_received(:run).with(:my_callback, anything, "value1", "value2")
+        expect(callbacks).to have_received(:run).with(:my_callback, anything, ["value1", "value2"])
       end
     end
 
@@ -48,7 +48,7 @@ RSpec.describe SpecForge::Forge::Call do
         SpecForge::Step.new(
           name: "Step with keyword args",
           source: {file_name: "test.yml", line_number: 5},
-          call: {name: :my_callback, arguments: {key1: "value1", key2: "value2"}}
+          calls: [{name: :my_callback, arguments: {key1: "value1", key2: "value2"}}]
         )
       end
 
@@ -64,14 +64,50 @@ RSpec.describe SpecForge::Forge::Call do
         SpecForge::Step.new(
           name: "Step with no args",
           source: {file_name: "test.yml", line_number: 5},
-          call: {name: :simple_callback, arguments: nil}
+          calls: [{name: :simple_callback, arguments: nil}]
         )
       end
 
       it "runs the callback with just the context" do
         run
 
-        expect(callbacks).to have_received(:run).with(:simple_callback, anything)
+        expect(callbacks).to have_received(:run).with(:simple_callback, anything, nil)
+      end
+    end
+
+    context "with multiple callbacks" do
+      let(:step) do
+        SpecForge::Step.new(
+          name: "Step with multiple calls",
+          source: {file_name: "test.yml", line_number: 5},
+          calls: [
+            {name: :first_callback, arguments: nil},
+            {name: :second_callback, arguments: {key: "value"}}
+          ]
+        )
+      end
+
+      it "runs all callbacks in order" do
+        run
+
+        expect(callbacks).to have_received(:run).with(:first_callback, anything, nil).ordered
+        expect(callbacks).to have_received(:run).with(:second_callback, anything, {key: "value"}).ordered
+      end
+
+      it "displays each call action" do
+        run
+
+        expect(display).to have_received(:action).with(
+          "Call first_callback",
+          symbol: :checkmark,
+          symbol_styles: :yellow
+        )
+
+        expect(display).to have_received(:action).with(
+          "Call second_callback",
+          symbol: :checkmark,
+          symbol_styles: :yellow
+        )
       end
     end
   end

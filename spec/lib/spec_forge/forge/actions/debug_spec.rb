@@ -36,9 +36,9 @@ RSpec.describe SpecForge::Forge::Debug do
       run
 
       expect(display).to have_received(:action).with(
-        :debug,
         "Debug breakpoint triggered",
-        color: :yellow
+        symbol: :flag,
+        symbol_styles: :yellow
       )
     end
 

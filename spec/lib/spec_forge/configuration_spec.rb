@@ -165,17 +165,17 @@ RSpec.describe SpecForge::Configuration do
     end
 
     it "is expected to attach a callback to a before event" do
-      configuration.before(:each, :my_callback)
+      configuration.before(:step, :my_callback)
 
       events = configuration.instance_variable_get(:@events)
-      expect(events[:before_each]).to include(callback_block)
+      expect(events[:before_step]).to include(callback_block)
     end
 
     it "is expected to accept string callback names and convert to symbols" do
-      configuration.before(:each, "my_callback")
+      configuration.before(:step, "my_callback")
 
       events = configuration.instance_variable_get(:@events)
-      expect(events[:before_each]).to include(callback_block)
+      expect(events[:before_step]).to include(callback_block)
     end
 
     context "when using valid events" do
@@ -193,11 +193,11 @@ RSpec.describe SpecForge::Configuration do
         expect(events[:before_blueprint]).to include(callback_block)
       end
 
-      it "is expected to accept :each event" do
-        configuration.before(:each, :my_callback)
+      it "is expected to accept :step event" do
+        configuration.before(:step, :my_callback)
 
         events = configuration.instance_variable_get(:@events)
-        expect(events[:before_each]).to include(callback_block)
+        expect(events[:before_step]).to include(callback_block)
       end
     end
 
@@ -212,7 +212,7 @@ RSpec.describe SpecForge::Configuration do
 
     context "when the callback is not registered" do
       it "is expected to raise an ArgumentError" do
-        expect { configuration.before(:each, :unregistered_callback) }.to raise_error(
+        expect { configuration.before(:step, :unregistered_callback) }.to raise_error(
           ArgumentError,
           /Invalid callback/
         )
@@ -223,12 +223,12 @@ RSpec.describe SpecForge::Configuration do
       it "is expected to allow the callback to be reused" do
         configuration.before(:forge, :my_callback)
         configuration.before(:blueprint, :my_callback)
-        configuration.before(:each, :my_callback)
+        configuration.before(:step, :my_callback)
 
         events = configuration.instance_variable_get(:@events)
         expect(events[:before_forge]).to include(callback_block)
         expect(events[:before_blueprint]).to include(callback_block)
-        expect(events[:before_each]).to include(callback_block)
+        expect(events[:before_step]).to include(callback_block)
       end
     end
 
@@ -240,11 +240,11 @@ RSpec.describe SpecForge::Configuration do
       end
 
       it "is expected to maintain registration order" do
-        configuration.before(:each, :my_callback)
-        configuration.before(:each, :second_callback)
+        configuration.before(:step, :my_callback)
+        configuration.before(:step, :second_callback)
 
         events = configuration.instance_variable_get(:@events)
-        expect(events[:before_each]).to eq([callback_block, second_callback])
+        expect(events[:before_step]).to eq([callback_block, second_callback])
       end
     end
   end
@@ -257,17 +257,17 @@ RSpec.describe SpecForge::Configuration do
     end
 
     it "is expected to attach a callback to an after event" do
-      configuration.after(:each, :my_callback)
+      configuration.after(:step, :my_callback)
 
       events = configuration.instance_variable_get(:@events)
-      expect(events[:after_each]).to include(callback_block)
+      expect(events[:after_step]).to include(callback_block)
     end
 
     it "is expected to accept string callback names and convert to symbols" do
-      configuration.after(:each, "my_callback")
+      configuration.after(:step, "my_callback")
 
       events = configuration.instance_variable_get(:@events)
-      expect(events[:after_each]).to include(callback_block)
+      expect(events[:after_step]).to include(callback_block)
     end
 
     context "when using valid events" do
@@ -285,11 +285,11 @@ RSpec.describe SpecForge::Configuration do
         expect(events[:after_blueprint]).to include(callback_block)
       end
 
-      it "is expected to accept :each event" do
-        configuration.after(:each, :my_callback)
+      it "is expected to accept :step event" do
+        configuration.after(:step, :my_callback)
 
         events = configuration.instance_variable_get(:@events)
-        expect(events[:after_each]).to include(callback_block)
+        expect(events[:after_step]).to include(callback_block)
       end
     end
 
@@ -304,7 +304,7 @@ RSpec.describe SpecForge::Configuration do
 
     context "when the callback is not registered" do
       it "is expected to raise an ArgumentError" do
-        expect { configuration.after(:each, :unregistered_callback) }.to raise_error(
+        expect { configuration.after(:step, :unregistered_callback) }.to raise_error(
           ArgumentError,
           /Invalid callback/
         )
@@ -315,12 +315,12 @@ RSpec.describe SpecForge::Configuration do
       it "is expected to allow the callback to be reused" do
         configuration.after(:forge, :my_callback)
         configuration.after(:blueprint, :my_callback)
-        configuration.after(:each, :my_callback)
+        configuration.after(:step, :my_callback)
 
         events = configuration.instance_variable_get(:@events)
         expect(events[:after_forge]).to include(callback_block)
         expect(events[:after_blueprint]).to include(callback_block)
-        expect(events[:after_each]).to include(callback_block)
+        expect(events[:after_step]).to include(callback_block)
       end
     end
 
@@ -332,11 +332,11 @@ RSpec.describe SpecForge::Configuration do
       end
 
       it "is expected to maintain registration order" do
-        configuration.after(:each, :my_callback)
-        configuration.after(:each, :second_callback)
+        configuration.after(:step, :my_callback)
+        configuration.after(:step, :second_callback)
 
         events = configuration.instance_variable_get(:@events)
-        expect(events[:after_each]).to eq([callback_block, second_callback])
+        expect(events[:after_step]).to eq([callback_block, second_callback])
       end
     end
   end

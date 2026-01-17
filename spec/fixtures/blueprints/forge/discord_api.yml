@@ -11,9 +11,10 @@
 
 - name: "Guild Operations"
   tags: [guilds]
-  request:
-    headers:
-      Authorization: "{{ bot_token }}"
+  shared:
+    request:
+      headers:
+        Authorization: "{{ bot_token }}"
   steps:
     - name: "Get Guild"
       tags: [get]
@@ -108,9 +109,10 @@
 
 - name: "Channel Operations"
   tags: [channels]
-  request:
-    headers:
-      Authorization: "{{ bot_token }}"
+  shared:
+    request:
+      headers:
+        Authorization: "{{ bot_token }}"
   steps:
     - name: "Get Channel"
       tags: [get]
@@ -164,9 +166,10 @@
 
 - name: "Message Operations"
   tags: [messages]
-  request:
-    headers:
-      Authorization: "{{ bot_token }}"
+  shared:
+    request:
+      headers:
+        Authorization: "{{ bot_token }}"
   steps:
     - name: "Get Channel Messages"
       tags: [list]
@@ -248,9 +251,10 @@
 
 - name: "User Operations"
   tags: [users]
-  request:
-    headers:
-      Authorization: "{{ bot_token }}"
+  shared:
+    request:
+      headers:
+        Authorization: "{{ bot_token }}"
   steps:
     - name: "Get Current User"
       tags: [me]
@@ -321,9 +325,10 @@
 
 - name: "Error Responses (Authenticated)"
   tags: [errors]
-  request:
-    headers:
-      Authorization: "{{ bot_token }}"
+  shared:
+    request:
+      headers:
+        Authorization: "{{ bot_token }}"
   steps:
     - name: "Forbidden - Missing Permissions"
       tags: [permissions]

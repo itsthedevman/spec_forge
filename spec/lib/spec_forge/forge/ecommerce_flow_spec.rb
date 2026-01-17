@@ -6,7 +6,7 @@ RSpec.describe "Forge: E-commerce Flow", :integration do
   let(:callback_tracker) { [] }
 
   let(:blueprints) do
-    all = SpecForge::Loader.new(base_path: fixtures_path.join("blueprints", "forge")).load
+    all, _forge_hooks = SpecForge::Loader.new(base_path: fixtures_path.join("blueprints", "forge")).load
     all.select { |b| b.name == "ecommerce_flow" }
   end
 

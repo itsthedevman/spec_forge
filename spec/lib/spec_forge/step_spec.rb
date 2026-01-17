@@ -81,122 +81,144 @@ RSpec.describe SpecForge::Step do
       end
     end
 
-    describe "transform_call" do
+    describe "transform_calls" do
       subject(:step) do
         described_class.new(
           name: "Test step",
           source: {file_name: "test.yml", line_number: 1},
-          call: call_input
+          calls: calls_input
         )
       end
 
-      context "when call is nil" do
-        let(:call_input) { nil }
+      context "when calls is nil" do
+        let(:calls_input) { nil }
 
         it "returns nil" do
-          expect(step.call).to be_nil
+          expect(step.calls).to be_nil
         end
 
-        it "returns false for call?" do
-          expect(step.call?).to be false
+        it "returns false for calls?" do
+          expect(step.calls?).to be false
         end
       end
 
-      context "when call is empty" do
-        let(:call_input) { {} }
+      context "when calls is empty" do
+        let(:calls_input) { [] }
 
         it "returns nil" do
-          expect(step.call).to be_nil
+          expect(step.calls).to be_nil
         end
       end
 
-      context "when call has name and arguments" do
-        let(:call_input) { {name: "create_user", arguments: {role: "admin", active: true}} }
+      context "when calls has a single callback with name and arguments" do
+        let(:calls_input) { [{name: "create_user", arguments: {role: "admin", active: true}}] }
 
-        it "creates a Call object" do
-          expect(step.call).to be_a(SpecForge::Step::Call)
+        it "creates an array of Call objects" do
+          expect(step.calls).to be_an(Array)
+          expect(step.calls.size).to eq(1)
+          expect(step.calls.first).to be_a(SpecForge::Step::Call)
         end
 
         it "sets the callback_name" do
-          expect(step.call.callback_name).to eq("create_user")
+          expect(step.calls.first.callback_name).to eq("create_user")
         end
 
         it "sets the arguments" do
-          expect(step.call.arguments).to eq({role: "admin", active: true})
+          expect(step.calls.first.arguments).to eq({role: "admin", active: true})
         end
 
-        it "returns true for call?" do
-          expect(step.call?).to be true
+        it "returns true for calls?" do
+          expect(step.calls?).to be true
         end
       end
 
-      context "when call has only name" do
-        let(:call_input) { {name: "setup_database"} }
+      context "when calls has multiple callbacks" do
+        let(:calls_input) do
+          [
+            {name: "setup_database"},
+            {name: "create_user", arguments: {role: "admin"}}
+          ]
+        end
+
+        it "creates an array with multiple Call objects" do
+          expect(step.calls).to be_an(Array)
+          expect(step.calls.size).to eq(2)
+          expect(step.calls).to all(be_a(SpecForge::Step::Call))
+        end
+
+        it "sets the callback_name for each" do
+          expect(step.calls[0].callback_name).to eq("setup_database")
+          expect(step.calls[1].callback_name).to eq("create_user")
+        end
+      end
+
+      context "when calls has only name" do
+        let(:calls_input) { [{name: "setup_database"}] }
 
         it "creates a Call object" do
-          expect(step.call).to be_a(SpecForge::Step::Call)
+          expect(step.calls.first).to be_a(SpecForge::Step::Call)
         end
 
         it "sets the callback_name" do
-          expect(step.call.callback_name).to eq("setup_database")
+          expect(step.calls.first.callback_name).to eq("setup_database")
         end
 
         it "has nil arguments" do
-          expect(step.call.arguments).to be_nil
+          expect(step.calls.first.arguments).to be_nil
         end
       end
     end
 
-    describe "transform_expect" do
+    describe "transform_expects" do
       subject(:step) do
         described_class.new(
           name: "Test step",
           source: {file_name: "test.yml", line_number: 1},
-          expect: expect_input
+          expects: expects_input
         )
       end
 
-      context "when expect is nil" do
-        let(:expect_input) { nil }
+      context "when expects is nil" do
+        let(:expects_input) { nil }
 
         it "returns nil" do
-          expect(step.expect).to be_nil
+          expect(step.expects).to be_nil
         end
 
-        it "returns false for expect?" do
-          expect(step.expect?).to be false
+        it "returns false for expects?" do
+          expect(step.expects?).to be false
         end
       end
 
-      context "when expect is empty" do
-        let(:expect_input) { [] }
+      context "when expects is empty" do
+        let(:expects_input) { [] }
 
         it "returns nil" do
-          expect(step.expect).to be_nil
+          expect(step.expects).to be_nil
         end
       end
 
-      context "when expect has a single expectation" do
-        let(:expect_input) { [{status: 200}] }
+      context "when expects has a single expectation" do
+        let(:expects_input) { [{status: 200}] }
 
         it "returns an array of Expect objects" do
-          expect(step.expect).to be_an(Array)
-          expect(step.expect.size).to eq(1)
-          expect(step.expect.first).to be_a(SpecForge::Step::Expect)
+          expect(step.expects).to be_an(Array)
+          expect(step.expects.size).to eq(1)
+          expect(step.expects.first).to be_a(SpecForge::Step::Expect)
         end
 
-        it "returns true for expect?" do
-          expect(step.expect?).to be true
+        it "returns true for expects?" do
+          expect(step.expects?).to be true
         end
 
         it "sets the status as an Attribute" do
-          expect(step.expect.first.status).to be_a(SpecForge::Attribute)
-          expect(step.expect.first.status.resolved).to eq(200)
+          expect(step.expects.first.status).to be_a(SpecForge::Attribute)
+          expect(step.expects.first.status.resolved).to eq(200)
         end
       end
 
-      context "when expect has multiple expectations" do
-        let(:expect_input) do
+      context "when expects has multiple expectations" do
+        let(:expects_input) do
           [
             {status: 200, json: {content: {id: 1}}},
             {status: 201, headers: {"content-type" => "application/json"}}
@@ -204,75 +226,66 @@ RSpec.describe SpecForge::Step do
         end
 
         it "returns an array with multiple Expect objects" do
-          expect(step.expect.size).to eq(2)
-          expect(step.expect).to all(be_a(SpecForge::Step::Expect))
+          expect(step.expects.size).to eq(2)
+          expect(step.expects).to all(be_a(SpecForge::Step::Expect))
         end
 
         it "sets status on each expectation" do
-          expect(step.expect[0].status.resolved).to eq(200)
-          expect(step.expect[1].status.resolved).to eq(201)
+          expect(step.expects[0].status.resolved).to eq(200)
+          expect(step.expects[1].status.resolved).to eq(201)
         end
       end
 
-      context "when expect has headers" do
-        let(:expect_input) { [{headers: {"X-Custom-Header" => "value", "Content-Type" => "application/json"}}] }
+      context "when expects has headers" do
+        let(:expects_input) { [{headers: {"X-Custom-Header" => "value", "Content-Type" => "application/json"}}] }
 
         it "converts headers to Attributes" do
-          headers = step.expect.first.headers
+          headers = step.expects.first.headers
           expect(headers).to be_a(Hash)
           expect(headers.values).to all(be_a(SpecForge::Attribute))
         end
       end
 
-      context "when expect has json content" do
-        let(:expect_input) { [{json: {content: {name: "Test", items: [1, 2, 3]}}}] }
+      context "when expects has json content" do
+        let(:expects_input) { [{json: {content: {name: "Test", items: [1, 2, 3]}}}] }
 
         it "stores json content as a ResolvableHash" do
-          json = step.expect.first.json
+          json = step.expects.first.json
           expect(json[:content]).to be_a(SpecForge::Attribute::ResolvableHash)
         end
 
         it "resolves json content correctly" do
-          json = step.expect.first.json
+          json = step.expects.first.json
           expect(json[:content].resolved).to eq({name: "Test", items: [1, 2, 3]})
         end
       end
 
-      context "when expect has json size" do
-        let(:expect_input) { [{json: {size: 5}}] }
+      context "when expects has json size" do
+        let(:expects_input) { [{json: {size: 5}}] }
 
         it "stores json size as an Attribute" do
-          json = step.expect.first.json
+          json = step.expects.first.json
           expect(json[:size]).to be_a(SpecForge::Attribute)
           expect(json[:size].resolved).to eq(5)
         end
       end
 
-      context "when expect has json schema" do
-        let(:expect_input) { [{json: {schema: {type: "object", properties: {id: {type: "integer"}}}}}] }
+      context "when expects has json schema" do
+        let(:expects_input) { [{json: {schema: {type: "object", properties: {id: {type: "integer"}}}}}] }
 
         it "stores json schema directly" do
-          json = step.expect.first.json
+          json = step.expects.first.json
           expect(json[:schema]).to eq({type: "object", properties: {id: {type: "integer"}}})
         end
       end
 
-      context "when expect has raw body" do
-        let(:expect_input) { [{raw: "plain text response"}] }
+      context "when expects has raw body" do
+        let(:expects_input) { [{raw: "plain text response"}] }
 
         it "stores raw as an Attribute" do
-          expect(step.expect.first.raw).to be_a(SpecForge::Attribute)
-          expect(step.expect.first.raw.resolved).to eq("plain text response")
+          expect(step.expects.first.raw).to be_a(SpecForge::Attribute)
+          expect(step.expects.first.raw.resolved).to eq("plain text response")
         end
-      end
-
-      it "provides expects alias" do
-        step = described_class.new(
-          name: "Test step",
-          source: {file_name: "test.yml", line_number: 1},
-          expect: [{status: 200}]
-        )
-        expect(step.expects).to eq(step.expect)
       end
     end
 
@@ -354,83 +367,83 @@ RSpec.describe SpecForge::Step do
         described_class.new(
           name: "Test step",
           source: {file_name: "test.yml", line_number: 1},
-          hook: hook_input
+          hooks: hooks_input
         )
       end
 
-      context "when hook is nil" do
-        let(:hook_input) { nil }
+      context "when hooks is nil" do
+        let(:hooks_input) { nil }
 
-        it "returns nil" do
-          expect(step.hook).to be_nil
+        it "returns empty hash" do
+          expect(step.hooks).to eq({})
         end
 
-        it "returns false for hook?" do
-          expect(step.hook?).to be false
-        end
-      end
-
-      context "when hook is empty" do
-        let(:hook_input) { {} }
-
-        it "returns nil" do
-          expect(step.hook).to be_nil
+        it "returns false for hooks?" do
+          expect(step.hooks?).to be false
         end
       end
 
-      context "when hook has blank values" do
-        let(:hook_input) { {before: nil, after: nil} }
+      context "when hooks is empty" do
+        let(:hooks_input) { {} }
 
-        it "returns nil" do
-          expect(step.hook).to be_nil
+        it "returns empty hash" do
+          expect(step.hooks).to eq({})
         end
       end
 
-      context "when hook has a single before callback" do
-        let(:hook_input) { {before: {name: "setup_data", arguments: {count: 5}}} }
+      context "when hooks has blank values" do
+        let(:hooks_input) { {before: nil, after: nil} }
+
+        it "returns empty hash" do
+          expect(step.hooks).to eq({})
+        end
+      end
+
+      context "when hooks has a single before callback" do
+        let(:hooks_input) { {before: [{name: "setup_data", arguments: {count: 5}}]} }
 
         it "creates a hash with an array of Call objects" do
-          expect(step.hook).to be_a(Hash)
-          expect(step.hook[:before]).to be_an(Array)
-          expect(step.hook[:before].first).to be_a(SpecForge::Step::Call)
+          expect(step.hooks).to be_a(Hash)
+          expect(step.hooks[:before]).to be_an(Array)
+          expect(step.hooks[:before].first).to be_a(SpecForge::Step::Call)
         end
 
         it "sets the callback_name" do
-          expect(step.hook[:before].first.callback_name).to eq("setup_data")
+          expect(step.hooks[:before].first.callback_name).to eq("setup_data")
         end
 
         it "sets the arguments" do
-          expect(step.hook[:before].first.arguments).to eq({count: 5})
+          expect(step.hooks[:before].first.arguments).to eq({count: 5})
         end
 
-        it "returns true for hook?" do
-          expect(step.hook?).to be true
+        it "returns true for hooks?" do
+          expect(step.hooks?).to be true
         end
       end
 
-      context "when hook has callbacks for multiple events" do
-        let(:hook_input) do
+      context "when hooks has callbacks for multiple events" do
+        let(:hooks_input) do
           {
-            before: {name: "setup", arguments: {}},
-            after: {name: "cleanup", arguments: {force: true}}
+            before: [{name: "setup", arguments: {}}],
+            after: [{name: "cleanup", arguments: {force: true}}]
           }
         end
 
         it "creates arrays of Call objects for each event" do
-          expect(step.hook[:before]).to be_an(Array)
-          expect(step.hook[:after]).to be_an(Array)
-          expect(step.hook[:before].first).to be_a(SpecForge::Step::Call)
-          expect(step.hook[:after].first).to be_a(SpecForge::Step::Call)
+          expect(step.hooks[:before]).to be_an(Array)
+          expect(step.hooks[:after]).to be_an(Array)
+          expect(step.hooks[:before].first).to be_a(SpecForge::Step::Call)
+          expect(step.hooks[:after].first).to be_a(SpecForge::Step::Call)
         end
 
         it "sets correct callback names" do
-          expect(step.hook[:before].first.callback_name).to eq("setup")
-          expect(step.hook[:after].first.callback_name).to eq("cleanup")
+          expect(step.hooks[:before].first.callback_name).to eq("setup")
+          expect(step.hooks[:after].first.callback_name).to eq("cleanup")
         end
       end
 
-      context "when hook has multiple callbacks for the same event" do
-        let(:hook_input) do
+      context "when hooks has multiple callbacks for the same event" do
+        let(:hooks_input) do
           {
             before: [
               {name: "setup_database", arguments: {reset: true}},
@@ -440,39 +453,30 @@ RSpec.describe SpecForge::Step do
         end
 
         it "creates an array with multiple Call objects" do
-          expect(step.hook[:before]).to be_an(Array)
-          expect(step.hook[:before].size).to eq(2)
-          expect(step.hook[:before]).to all(be_a(SpecForge::Step::Call))
+          expect(step.hooks[:before]).to be_an(Array)
+          expect(step.hooks[:before].size).to eq(2)
+          expect(step.hooks[:before]).to all(be_a(SpecForge::Step::Call))
         end
 
         it "sets correct callback names for each" do
-          expect(step.hook[:before][0].callback_name).to eq("setup_database")
-          expect(step.hook[:before][1].callback_name).to eq("seed_data")
+          expect(step.hooks[:before][0].callback_name).to eq("setup_database")
+          expect(step.hooks[:before][1].callback_name).to eq("seed_data")
         end
 
         it "sets correct arguments for each" do
-          expect(step.hook[:before][0].arguments).to eq({reset: true})
-          expect(step.hook[:before][1].arguments).to eq({count: 10})
+          expect(step.hooks[:before][0].arguments).to eq({reset: true})
+          expect(step.hooks[:before][1].arguments).to eq({count: 10})
         end
       end
 
-      context "when hook has mixed nil and valid values" do
-        let(:hook_input) { {before: nil, after: {name: "cleanup"}} }
+      context "when hooks has mixed nil and valid values" do
+        let(:hooks_input) { {before: nil, after: [{name: "cleanup"}]} }
 
         it "only includes non-nil hooks" do
-          expect(step.hook.keys).to eq([:after])
-          expect(step.hook[:after]).to be_an(Array)
-          expect(step.hook[:after].first).to be_a(SpecForge::Step::Call)
+          expect(step.hooks.keys).to eq([:after])
+          expect(step.hooks[:after]).to be_an(Array)
+          expect(step.hooks[:after].first).to be_a(SpecForge::Step::Call)
         end
-      end
-
-      it "provides hooks alias" do
-        step = described_class.new(
-          name: "Test step",
-          source: {file_name: "test.yml", line_number: 1},
-          hook: {before: {name: "setup"}}
-        )
-        expect(step.hooks).to eq(step.hook)
       end
     end
 
@@ -531,29 +535,13 @@ RSpec.describe SpecForge::Step do
         described_class.new(
           name: "Test step",
           source: {file_name: "test.yml", line_number: 1},
-          description: description_input,
           documentation: documentation_input,
           tags: tags_input
         )
       end
 
-      let(:description_input) { nil }
       let(:documentation_input) { nil }
       let(:tags_input) { nil }
-
-      context "when description is nil" do
-        it "returns nil" do
-          expect(step.description).to be_nil
-        end
-      end
-
-      context "when description is provided" do
-        let(:description_input) { "This step creates a new user" }
-
-        it "returns the description" do
-          expect(step.description).to eq("This step creates a new user")
-        end
-      end
 
       context "when documentation is nil" do
         it "returns nil" do
