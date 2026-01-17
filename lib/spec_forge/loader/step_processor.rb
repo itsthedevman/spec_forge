@@ -155,10 +155,37 @@ module SpecForge
 
       def inherit_shared(steps, shared: {})
         steps.each do |step|
-          # Copy request and hooks to each step
-          step.deep_merge!(shared) if shared.present?
-          inherit_shared(step[:steps], shared: step.delete(:shared) || {}) if step[:steps].present?
+          # Apply inherited values to this step
+          step[:request] = merge_request(shared[:request], step[:request])
+          step[:hook] = merge_hooks(shared[:hook], step[:hook])
+
+          if step[:steps].present?
+            step_shared = step.delete(:shared) || {}
+
+            # Combine parent's shared with this step's shared for children
+            inherit_shared(
+              step[:steps],
+              shared: {
+                request: merge_request(shared[:request], step_shared[:request]),
+                hook: merge_hooks(shared[:hook], step_shared[:hook])
+              }
+            )
+          end
         end
+      end
+
+      def merge_request(parent, child)
+        return child if parent.blank?
+        return parent if child.blank?
+
+        parent.deep_merge(child)
+      end
+
+      def merge_hooks(parent, child)
+        return child if parent.blank?
+        return parent if child.blank?
+
+        parent.merge(child) { |_, a, b| a + b }
       end
 
       def tag_steps(steps, parent_tags: [])
