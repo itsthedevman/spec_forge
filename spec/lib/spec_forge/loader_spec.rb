@@ -1,17 +1,24 @@
 # frozen_string_literal: true
 
 RSpec.describe SpecForge::Loader do
-  let(:path) { nil }
+  let(:base_path) { fixtures_path.join("loader", "blueprints") }
+  let(:paths) { [] }
   let(:tags) { [] }
   let(:skip_tags) { [] }
 
-  subject(:blueprints) { described_class.load_blueprints(path:, tags:, skip_tags:) }
+  subject(:result) { described_class.load_blueprints(base_path:, paths:, tags:, skip_tags:) }
 
-  before do
-    allow(SpecForge).to receive(:forge_path).and_return(fixtures_path.join("loader"))
-  end
+  let(:blueprints) { result.first }
+  let(:forge_hooks) { result.last }
 
   describe "loading blueprints" do
+    it "is expected to return blueprints and forge_hooks tuple" do
+      expect(result).to be_an(Array)
+      expect(result.size).to eq(2)
+      expect(blueprints).to be_an(Array)
+      expect(forge_hooks).to be_a(Hash)
+    end
+
     it "is expected to load all blueprints from the blueprints/ directory" do
       expect(blueprints.size).to eq(5)
       expect(blueprints.map(&:name)).to contain_exactly(
@@ -28,14 +35,12 @@ RSpec.describe SpecForge::Loader do
     end
 
     it "is expected to set correct file metadata" do
-      blueprints_path = fixtures_path.join("loader", "blueprints")
-
       auth = blueprints.find { |b| b.name == "auth" }
-      expect(auth.file_path).to eq(blueprints_path.join("auth.yml"))
+      expect(auth.file_path).to eq(Pathname.new("auth.yml"))
       expect(auth.file_name).to eq("auth.yml")
 
       user_crud = blueprints.find { |b| b.name == "users/crud" }
-      expect(user_crud.file_path).to eq(blueprints_path.join("users", "crud.yml"))
+      expect(user_crud.file_path).to eq(Pathname.new("users/crud.yml"))
       expect(user_crud.file_name).to eq("crud.yml")
     end
 
@@ -51,30 +56,55 @@ RSpec.describe SpecForge::Loader do
     end
   end
 
-  describe "path filtering" do
-    context "when path targets a specific file" do
-      let(:path) { fixtures_path.join("loader", "blueprints", "auth.yml") }
+  describe "paths parameter" do
+    context "when paths targets specific files" do
+      let(:paths) { [fixtures_path.join("loader", "blueprints", "auth.yml")] }
 
-      it "is expected to load only that blueprint" do
+      it "is expected to load only the specified blueprints" do
         expect(blueprints.size).to eq(1)
         expect(blueprints[0].name).to eq("auth")
       end
     end
 
-    context "when path targets a directory" do
-      let(:path) { fixtures_path.join("loader", "blueprints", "users") }
+    context "when paths targets multiple specific files" do
+      let(:paths) do
+        [
+          fixtures_path.join("loader", "blueprints", "auth.yml"),
+          fixtures_path.join("loader", "blueprints", "posts.yml")
+        ]
+      end
 
-      it "is expected to load only blueprints in that directory" do
+      it "is expected to load all specified blueprints" do
         expect(blueprints.size).to eq(2)
-        expect(blueprints.map(&:name)).to contain_exactly("users/crud", "users/search")
+        expect(blueprints.map(&:name)).to contain_exactly("auth", "posts")
       end
     end
 
-    context "when path does not exist" do
-      let(:path) { fixtures_path.join("loader", "blueprints", "nonexistent") }
+    context "when paths includes files that reference each other via include" do
+      let(:paths) do
+        [
+          fixtures_path.join("loader", "blueprints", "auth.yml"),
+          fixtures_path.join("loader", "blueprints", "setup.yml")
+        ]
+      end
 
-      it "is expected to return no blueprints" do
-        expect(blueprints).to be_empty
+      it "is expected to resolve includes between loaded files" do
+        setup = blueprints.find { |b| b.name == "setup" }
+
+        # setup includes auth, so should have auth steps expanded
+        expect(setup.steps.size).to eq(4)
+        expect(setup.steps[0].name).to eq("Login as admin")
+      end
+    end
+  end
+
+  describe "base_path parameter" do
+    context "when base_path targets a subdirectory" do
+      let(:base_path) { fixtures_path.join("loader", "blueprints", "users") }
+
+      it "is expected to load only blueprints in that directory" do
+        expect(blueprints.size).to eq(2)
+        expect(blueprints.map(&:name)).to contain_exactly("crud", "search")
       end
     end
   end
@@ -138,25 +168,25 @@ RSpec.describe SpecForge::Loader do
   end
 
   describe "combined filtering" do
-    context "with path and tag filters" do
-      let(:path) { fixtures_path.join("loader", "blueprints", "users") }
+    context "with base_path and tag filters" do
+      let(:base_path) { fixtures_path.join("loader", "blueprints", "users") }
       let(:tags) { ["crud"] }
 
       it "is expected to apply both filters" do
         expect(blueprints.size).to eq(1)
-        expect(blueprints[0].name).to eq("users/crud")
+        expect(blueprints[0].name).to eq("crud")
         expect(blueprints[0].steps.size).to eq(4)
       end
     end
 
     context "with all filters combined" do
-      let(:path) { fixtures_path.join("loader", "blueprints", "users") }
+      let(:base_path) { fixtures_path.join("loader", "blueprints", "users") }
       let(:tags) { ["crud"] }
       let(:skip_tags) { ["write"] }
 
       it "is expected to apply all filters in order" do
         expect(blueprints.size).to eq(1)
-        expect(blueprints[0].name).to eq("users/crud")
+        expect(blueprints[0].name).to eq("crud")
         expect(blueprints[0].steps.size).to eq(1)
         expect(blueprints[0].steps[0].name).to eq("Get user")
       end

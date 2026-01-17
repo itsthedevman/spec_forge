@@ -12,26 +12,29 @@ module SpecForge
     #
     # Loads blueprints from disk with optional filtering
     #
-    # @param path [Pathname, nil] Specific path to load (defaults to blueprints/)
+    # @param base_path [Pathname, String, nil] Base directory for glob loading (defaults to blueprints/)
+    # @param paths [Array<Pathname, String>] Specific file paths to load (no globbing)
     # @param tags [Array<String>] Tags to include
     # @param skip_tags [Array<String>] Tags to exclude
     #
     # @return [Array<Blueprint>, Hash] Loaded blueprint objects and any forge hooks
     #
-    def self.load_blueprints(path: nil, tags: [], skip_tags: [])
-      new(filter: {path:, tags:, skip_tags:}).load
+    def self.load_blueprints(base_path: nil, paths: [], tags: [], skip_tags: [])
+      new(base_path:, paths:, filter: {tags:, skip_tags:}).load
     end
 
     #
     # Creates a new Loader with the specified base path and filter options
     #
-    # @param base_path [Pathname, String, nil] Base path for loading blueprints (defaults to blueprints/)
-    # @param filter [Hash] Filter options for path, tags, and skip_tags
+    # @param base_path [Pathname, String, nil] Base directory for glob loading (defaults to blueprints/)
+    # @param paths [Array<Pathname, String>] Specific file paths to load (no globbing)
+    # @param filter [Hash] Filter options for tags and skip_tags
     #
     # @return [Loader] A new loader instance
     #
-    def initialize(base_path: nil, filter: {})
+    def initialize(base_path: nil, paths: [], filter: {})
       @base_path = base_path.present? ? Pathname.new(base_path) : SpecForge.forge_path.join("blueprints")
+      @paths = Array.wrap(paths).map { |p| Pathname.new(p) }
       @filter = filter
     end
 
@@ -53,29 +56,31 @@ module SpecForge
     private
 
     def read_blueprints
-      paths =
-        if @base_path.directory?
-          Dir.glob(@base_path.join("**", "*.{yml,yaml}"))
+      # Use specific paths if provided, otherwise glob from base_path
+      file_paths =
+        if @paths.present?
+          @paths
         else
-          [@base_path]
+          Dir.glob(@base_path.join("**", "*.{yml,yaml}")).map { |p| Pathname.new(p) }
         end
 
-      paths.map! do |file_path|
-        file_path = Pathname.new(file_path)
+      file_paths.map do |file_path|
         content = File.read(file_path)
 
-        file_path =
-          if @base_path.directory?
-            file_path.relative_path_from(@base_path)
+        # Determine the relative path for naming
+        relative_path =
+          if @paths.present?
+            # For specific paths, use the filename as the base
+            file_path.basename
           else
-            file_path.relative_path_from(@base_path.dirname)
+            # For glob loading, use path relative to base_path
+            file_path.relative_path_from(@base_path)
           end
 
-        name = file_path.to_s.delete_suffix(".yml").delete_suffix(".yaml")
-
+        name = relative_path.to_s.delete_suffix(".yml").delete_suffix(".yaml")
         steps = parse_steps(content)
 
-        {file_path:, name:, steps:}
+        {file_path: relative_path, name:, steps:}
       end
     end
 
