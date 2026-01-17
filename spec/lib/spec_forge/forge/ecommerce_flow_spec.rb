@@ -5,12 +5,14 @@ require_relative "../../../support/ecommerce_api"
 RSpec.describe "Forge: E-commerce Flow", :integration do
   let(:callback_tracker) { [] }
 
-  let(:blueprints) do
-    all, _forge_hooks = SpecForge::Loader.new(base_path: fixtures_path.join("blueprints", "forge")).load
-    all.select { |b| b.name == "ecommerce_flow" }
+  let(:load_results) do
+    SpecForge::Loader.new(paths: fixtures_path.join("blueprints", "forge", "ecommerce_flow.yml")).load
   end
 
-  subject(:forge) { SpecForge::Forge.new(blueprints, verbosity_level: 0) }
+  let(:blueprints) { load_results.first }
+  let(:forge_hooks) { load_results.second }
+
+  subject(:forge) { SpecForge::Forge.new(blueprints, verbosity_level: 0, hooks: forge_hooks) }
 
   # Start API server in background thread
   before(:all) do

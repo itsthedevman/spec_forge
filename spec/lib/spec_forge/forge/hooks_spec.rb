@@ -4,11 +4,17 @@ RSpec.describe "Forge: Hooks", :integration do
   let(:hook_tracker) { [] }
   let(:forge_hooks) { {} }
 
-  let(:blueprints) do
-    blueprints, hooks = SpecForge::Loader.new(base_path: fixtures_path.join("blueprints", "forge")).load
-    forge_hooks.merge!(hooks)
-    [blueprints.find { |b| b.name == "hooks" }]
+  let(:load_results) do
+    SpecForge::Loader.new(
+      paths: [
+        fixtures_path.join("blueprints", "forge", "hooks.yml"),
+        fixtures_path.join("blueprints", "forge", "shared_workflow.yml")
+      ]
+    ).load
   end
+
+  let(:blueprints) { [load_results.first.first] } # Only run the hooks.yml
+  let(:forge_hooks) { load_results.second }
 
   subject(:forge) { SpecForge::Forge.new(blueprints, verbosity_level: 0, hooks: forge_hooks) }
 
