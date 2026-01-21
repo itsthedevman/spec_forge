@@ -133,6 +133,55 @@ RSpec.describe SpecForge::Configuration do
     end
   end
 
+  describe "#deregister_callback" do
+    let(:callback_block) { proc { |context| "my callback" } }
+
+    before do
+      configuration.register_callback(:my_callback, &callback_block)
+    end
+
+    it "is expected to remove the callback from the callbacks hash" do
+      configuration.deregister_callback(:my_callback)
+
+      callbacks = configuration.instance_variable_get(:@callbacks)
+      expect(callbacks).not_to have_key(:my_callback)
+    end
+
+    it "is expected to return the removed callback" do
+      result = configuration.deregister_callback(:my_callback)
+
+      expect(result).to eq(callback_block)
+    end
+
+    it "is expected to convert string names to symbols" do
+      configuration.deregister_callback("my_callback")
+
+      callbacks = configuration.instance_variable_get(:@callbacks)
+      expect(callbacks).not_to have_key(:my_callback)
+    end
+
+    it "is expected to return nil when callback does not exist" do
+      result = configuration.deregister_callback(:nonexistent)
+
+      expect(result).to be_nil
+    end
+
+    context "when callback is attached to events" do
+      before do
+        configuration.before(:step, :my_callback)
+        configuration.after(:blueprint, :my_callback)
+      end
+
+      it "is expected to remove the callback from all events" do
+        configuration.deregister_callback(:my_callback)
+
+        events = configuration.instance_variable_get(:@events)
+        expect(events[:before_step]).not_to include(callback_block)
+        expect(events[:after_blueprint]).not_to include(callback_block)
+      end
+    end
+  end
+
   describe "#rspec" do
     it "is expected to respond to rspec" do
       expect(configuration).to respond_to(:rspec)
@@ -176,6 +225,47 @@ RSpec.describe SpecForge::Configuration do
 
       events = configuration.instance_variable_get(:@events)
       expect(events[:before_step]).to include(callback_block)
+    end
+
+    it "is expected to return the callback name" do
+      result = configuration.before(:step, :my_callback)
+
+      expect(result).to eq(:my_callback)
+    end
+
+    context "when given a block" do
+      it "is expected to register and attach the callback in one call" do
+        configuration.before(:step) { |context| "inline callback" }
+
+        events = configuration.instance_variable_get(:@events)
+        expect(events[:before_step].size).to eq(1)
+        expect(events[:before_step].first).to be_a(Proc)
+      end
+
+      it "is expected to return an auto-generated callback name" do
+        result = configuration.before(:step) { |context| "inline callback" }
+
+        expect(result).to be_a(String)
+        expect(result).to start_with("__sf_cb_")
+      end
+
+      it "is expected to register the callback with the auto-generated name" do
+        result = configuration.before(:step) { |context| "inline callback" }
+
+        callbacks = configuration.instance_variable_get(:@callbacks)
+        expect(callbacks).to have_key(result.to_sym)
+      end
+
+      it "is expected to allow deregistration using the returned name" do
+        callback_name = configuration.before(:step) { |context| "inline callback" }
+        configuration.deregister_callback(callback_name)
+
+        callbacks = configuration.instance_variable_get(:@callbacks)
+        events = configuration.instance_variable_get(:@events)
+
+        expect(callbacks).not_to have_key(callback_name.to_sym)
+        expect(events[:before_step]).to be_empty
+      end
     end
 
     context "when using valid events" do
@@ -268,6 +358,47 @@ RSpec.describe SpecForge::Configuration do
 
       events = configuration.instance_variable_get(:@events)
       expect(events[:after_step]).to include(callback_block)
+    end
+
+    it "is expected to return the callback name" do
+      result = configuration.after(:step, :my_callback)
+
+      expect(result).to eq(:my_callback)
+    end
+
+    context "when given a block" do
+      it "is expected to register and attach the callback in one call" do
+        configuration.after(:step) { |context| "inline callback" }
+
+        events = configuration.instance_variable_get(:@events)
+        expect(events[:after_step].size).to eq(1)
+        expect(events[:after_step].first).to be_a(Proc)
+      end
+
+      it "is expected to return an auto-generated callback name" do
+        result = configuration.after(:step) { |context| "inline callback" }
+
+        expect(result).to be_a(String)
+        expect(result).to start_with("__sf_cb_")
+      end
+
+      it "is expected to register the callback with the auto-generated name" do
+        result = configuration.after(:step) { |context| "inline callback" }
+
+        callbacks = configuration.instance_variable_get(:@callbacks)
+        expect(callbacks).to have_key(result.to_sym)
+      end
+
+      it "is expected to allow deregistration using the returned name" do
+        callback_name = configuration.after(:step) { |context| "inline callback" }
+        configuration.deregister_callback(callback_name)
+
+        callbacks = configuration.instance_variable_get(:@callbacks)
+        events = configuration.instance_variable_get(:@events)
+
+        expect(callbacks).not_to have_key(callback_name.to_sym)
+        expect(events[:after_step]).to be_empty
+      end
     end
 
     context "when using valid events" do

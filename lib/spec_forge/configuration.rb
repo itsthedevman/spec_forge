@@ -135,51 +135,108 @@ module SpecForge
     end
 
     #
-    # Attaches a registered callback to a before lifecycle event
+    # Removes a registered callback and detaches it from all lifecycle events
     #
-    # Global hooks run for all blueprints and execute in registration order.
-    # Callbacks must be registered with #register_callback before attaching.
+    # @param name [String, Symbol] The callback name to remove
     #
-    # @param event [Symbol] The lifecycle event (:forge, :blueprint, or :step)
-    # @param callback_name [String, Symbol] The name of a registered callback
+    # @return [Proc, nil] The removed callback proc, or nil if not found
     #
-    # @raise [ArgumentError] If the event is invalid
-    # @raise [ArgumentError] If the callback is not registered
+    # @example Remove a callback
+    #   config.register_callback(:my_hook) { |context| puts "hook" }
+    #   config.before(:step, :my_hook)
+    #   config.deregister_callback(:my_hook)  # Removes from callbacks and events
     #
-    # @example Attach callbacks to lifecycle events
-    #   config.register_callback(:setup) { |context| Database.seed }
-    #   config.register_callback(:log) { |context| Logger.info("Starting") }
-    #
-    #   config.before(:forge, :setup)      # Runs once before any blueprints
-    #   config.before(:blueprint, :log)    # Runs before each blueprint
-    #   config.before(:step, :log)         # Runs before each step
-    #
-    def before(event, callback_name)
-      add_event("before", event, callback_name)
+    def deregister_callback(name)
+      name = name.to_sym
+      callback = @callbacks.delete(name)
+
+      @events.each_value { |a| a.delete(callback) }
+
+      callback
     end
 
     #
-    # Attaches a registered callback to an after lifecycle event
+    # Attaches a callback to a before lifecycle event
     #
     # Global hooks run for all blueprints and execute in registration order.
-    # Callbacks must be registered with #register_callback before attaching.
+    # Can either reference a pre-registered callback by name, or accept a block
+    # to register and attach a callback in one step (like RSpec's before hooks).
     #
     # @param event [Symbol] The lifecycle event (:forge, :blueprint, or :step)
-    # @param callback_name [String, Symbol] The name of a registered callback
+    # @param callback_name [String, Symbol, nil] The name of a registered callback
+    #   (optional if block is provided)
+    #
+    # @yield [context] Block to execute (registers callback automatically)
+    # @yieldparam context [Forge::Context] The current execution context
+    #
+    # @return [String, Symbol] The callback name (auto-generated if block provided)
     #
     # @raise [ArgumentError] If the event is invalid
-    # @raise [ArgumentError] If the callback is not registered
+    # @raise [ArgumentError] If the callback is not registered (when using name)
     #
-    # @example Attach callbacks to lifecycle events
+    # @example Attach a pre-registered callback
+    #   config.register_callback(:setup) { |context| Database.seed }
+    #   config.before(:forge, :setup)
+    #
+    # @example Register and attach with a block (like RSpec)
+    #   config.before(:step) { |context| Logger.info("Starting step") }
+    #   config.before(:blueprint) { |context| Database.clean }
+    #
+    # @example Store the callback name for later deregistration
+    #   callback_name = config.before(:step) { |context| puts "hook" }
+    #   config.deregister_callback(callback_name)
+    #
+    def before(event, callback_name = nil, &block)
+      if block
+        callback_name = "__sf_cb_#{SecureRandom.uuid.tr("-", "")}"
+        register_callback(callback_name, &block)
+      end
+
+      add_event("before", event, callback_name)
+
+      callback_name
+    end
+
+    #
+    # Attaches a callback to an after lifecycle event
+    #
+    # Global hooks run for all blueprints and execute in registration order.
+    # Can either reference a pre-registered callback by name, or accept a block
+    # to register and attach a callback in one step (like RSpec's after hooks).
+    #
+    # @param event [Symbol] The lifecycle event (:forge, :blueprint, or :step)
+    # @param callback_name [String, Symbol, nil] The name of a registered callback
+    #   (optional if block is provided)
+    #
+    # @yield [context] Block to execute (registers callback automatically)
+    # @yieldparam context [Forge::Context] The current execution context
+    #
+    # @return [String, Symbol] The callback name (auto-generated if block provided)
+    #
+    # @raise [ArgumentError] If the event is invalid
+    # @raise [ArgumentError] If the callback is not registered (when using name)
+    #
+    # @example Attach a pre-registered callback
     #   config.register_callback(:cleanup) { |context| Database.clean }
-    #   config.register_callback(:log) { |context| Logger.info("Done") }
+    #   config.after(:forge, :cleanup)
     #
-    #   config.after(:step, :log)          # Runs after each step
-    #   config.after(:blueprint, :log)     # Runs after each blueprint
-    #   config.after(:forge, :cleanup)     # Runs once after all blueprints
+    # @example Register and attach with a block (like RSpec)
+    #   config.after(:step) { |context| Logger.info("Step complete") }
+    #   config.after(:blueprint) { |context| Database.rollback }
     #
-    def after(event, callback_name)
+    # @example Store the callback name for later deregistration
+    #   callback_name = config.after(:step) { |context| puts "done" }
+    #   config.deregister_callback(callback_name)
+    #
+    def after(event, callback_name = nil, &block)
+      if block
+        callback_name = "__sf_cb_#{SecureRandom.uuid.tr("-", "")}"
+        register_callback(callback_name, &block)
+      end
+
       add_event("after", event, callback_name)
+
+      callback_name
     end
 
     private
