@@ -2,23 +2,8 @@
 
 module SpecForge
   module Documentation
-    class Loader
-      #
-      # Manages caching of test execution data for documentation generation
-      #
-      # Provides caching of endpoint data extracted from tests,
-      # checking file modification times to determine cache validity and
-      # avoiding unnecessary test re-execution when specs haven't changed.
-      #
-      # @example Using the cache
-      #   cache = Cache.new
-      #   if cache.valid?
-      #     endpoints = cache.read
-      #   else
-      #     endpoints = run_tests_and_extract_data
-      #     cache.create(endpoints)
-      #   end
-      #
+    class Builder
+      # TODO: Docs
       class Cache
         #
         # Creates a new cache manager
