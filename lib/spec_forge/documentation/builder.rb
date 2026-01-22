@@ -4,21 +4,25 @@ module SpecForge
   module Documentation
     # TODO: Documentation
     class Builder
-      def self.load_document(base_path: nil, paths: nil, use_cache: false)
-        endpoints = new(use_cache:).endpoints
-
-        Builder.document_from_endpoints(endpoints)
+      def self.create_document!(**)
+        new(**)
+          .endpoints
+          .then { |e| Compiler.document_from_endpoints(e) }
       end
 
       # TODO: Documentation
-      def initialize(use_cache: false)
-        @use_cache = use_cache
+      def initialize(base_path: nil, paths: nil, verbosity_level: 0, use_cache: false)
         @cache = Cache.new
+
+        @base_path = base_path
+        @paths = paths
+        @use_cache = use_cache
+        @verbosity_level = verbosity_level
       end
 
       # TODO: Documentation
       def endpoints
-        return cache.read if use_cache && cache.valid?
+        return @cache.read if @use_cache && @cache.valid?
 
         endpoints = capture_endpoint_data
         @cache.create(endpoints)
@@ -29,28 +33,46 @@ module SpecForge
       private
 
       def capture_endpoint_data
-        successes = []
+        # contexts will be empty until the blueprints have been ran
+        # Must be done before blueprints are loaded
+        contexts = register_callback
 
-        # Hook a callback to collect the successful request steps
-        callback_name =
-          SpecForge.configuration.after(:step) do |context|
+        blueprints, forge_hooks = SpecForge::Loader.load_blueprints(base_path: @base_path, paths: @paths)
+        raise NoBlueprintsError if blueprints.empty?
+
+        run_blueprints(blueprints, verbosity_level: @verbosity_level, hooks: forge_hooks)
+        build_endpoints(contexts)
+      ensure
+        SpecForge.configuration.deregister_callback(:documentation_builder)
+      end
+
+      def register_callback
+        contexts = []
+
+        SpecForge.configure do |config|
+          config.register_callback(:documentation_builder) do |context|
             next if context.failure?
 
             step = context.step
             next if step.nil? || step.documentation == false
+
             next unless step.request?
 
-            successes << context
+            contexts << context
           end
 
-        blueprints, forge_hooks = SpecForge::Loader.load_blueprints
-        raise NoBlueprintsError if blueprints.empty?
+          config.after(:step, :documentation_builder)
+        end
 
-        SpecForge::Forge.ignite.run(blueprints, verbosity_level:, hooks: forge_hooks)
+        contexts
+      end
 
-        successes.map { |d| extract_endpoint(d) }
-      ensure
-        SpecForge.configuration.deregister_callback(callback_name) if callback_name
+      def run_blueprints(blueprints, **)
+        SpecForge::Forge.ignite.run(blueprints, **)
+      end
+
+      def build_endpoints(contexts)
+        contexts.map { |context| Extractor.new(context).extract_endpoint }
       end
     end
   end
