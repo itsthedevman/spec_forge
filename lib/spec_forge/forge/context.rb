@@ -12,6 +12,16 @@ module SpecForge
 
         super(context)
       end
+
+      # TODO: Documentation
+      def success?
+        error.nil?
+      end
+
+      # TODO: Documentation
+      def failure?
+        !success?
+      end
     end
   end
 end
