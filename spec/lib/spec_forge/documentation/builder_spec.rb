@@ -17,6 +17,8 @@ RSpec.describe SpecForge::Documentation::Builder, :integration do
         }
       )
     end
+
+    sleep 0.0001
   end
 
   after(:all) do

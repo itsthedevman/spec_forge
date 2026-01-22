@@ -26,6 +26,8 @@ RSpec.describe "Forge: Discord API", :integration do
         }
       )
     end
+    
+    sleep 0.0001
   end
 
   after(:all) do
