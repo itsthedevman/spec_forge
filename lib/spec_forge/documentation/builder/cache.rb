@@ -26,41 +26,41 @@ module SpecForge
         #
         # Creates a new cache manager
         #
-        # Sets up file paths for endpoint and spec caches in the OpenAPI
+        # Sets up file paths for endpoint and blueprint caches in the OpenAPI
         # generated directory structure.
         #
         # @return [Cache] A new cache instance
         #
         def initialize
           @endpoint_cache = SpecForge.openapi_path.join("generated", ".cache", "endpoints.yml")
-          @spec_cache = SpecForge.openapi_path.join("generated", ".cache", "specs.yml")
+          @blueprint_cache = SpecForge.openapi_path.join("generated", ".cache", "blueprints.yml")
         end
 
         #
         # Checks if the cache is valid and can be used
         #
         # Determines cache validity by checking if endpoint cache exists
-        # and whether any spec files have been modified since the cache
+        # and whether any blueprint files have been modified since the cache
         # was created.
         #
         # @return [Boolean] true if cache is valid and can be used
         #
         def valid?
-          endpoint_cache? && !specs_updated?
+          endpoint_cache? && !blueprints_updated?
         end
 
         #
-        # Creates a cache entry with endpoint data and spec file metadata
+        # Creates a cache entry with endpoint data and blueprint file metadata
         #
-        # Writes both the endpoint data and current spec file modification times
-        # to enable cache invalidation when specs change.
+        # Writes both the endpoint data and current blueprint file modification times
+        # to enable cache invalidation when blueprints change.
         #
         # @param endpoints [Array<Hash>] Endpoint data to cache
         #
         # @return [void]
         #
         def create(endpoints)
-          write_spec_cache
+          write_blueprint_cache
           write(endpoints)
         end
 
@@ -96,11 +96,11 @@ module SpecForge
           YAML.safe_load_file(path, symbolize_names: true, permitted_classes: [Symbol, Time])
         end
 
-        def specs_updated?
-          return true if !File.exist?(@spec_cache)
+        def blueprints_updated?
+          return true if !File.exist?(@blueprint_cache)
 
-          cache = read_from_file(@spec_cache)
-          new_cache = generate_spec_cache
+          cache = read_from_file(@blueprint_cache)
+          new_cache = generate_blueprint_cache
 
           different?(cache, new_cache)
         end
@@ -109,7 +109,7 @@ module SpecForge
           File.exist?(@endpoint_cache)
         end
 
-        def generate_spec_cache
+        def generate_blueprint_cache
           paths = SpecForge.forge_path.join("blueprints", "**", "*.{yml,yaml}")
 
           Dir[paths].each_with_object({}) do |path, hash|
@@ -117,9 +117,9 @@ module SpecForge
           end
         end
 
-        def write_spec_cache
-          data = generate_spec_cache
-          write_to_file(data, @spec_cache)
+        def write_blueprint_cache
+          data = generate_blueprint_cache
+          write_to_file(data, @blueprint_cache)
         end
 
         def different?(cache_left, cache_right)
