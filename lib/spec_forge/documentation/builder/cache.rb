@@ -3,7 +3,25 @@
 module SpecForge
   module Documentation
     class Builder
-      # TODO: Docs
+      #
+      # Manages caching of endpoint data to avoid re-running blueprints
+      #
+      # The Cache stores extracted endpoint data and tracks blueprint file
+      # modification times. When blueprints haven't changed, cached data
+      # can be reused to speed up documentation generation.
+      #
+      # Cache files are stored in the OpenAPI generated directory under
+      # a .cache subdirectory.
+      #
+      # @example Using the cache
+      #   cache = Cache.new
+      #   if cache.valid?
+      #     endpoints = cache.read
+      #   else
+      #     endpoints = extract_from_blueprints
+      #     cache.create(endpoints)
+      #   end
+      #
       class Cache
         #
         # Creates a new cache manager

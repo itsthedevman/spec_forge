@@ -2,8 +2,40 @@
 
 module SpecForge
   module Documentation
-    # TODO: Documentation
+    #
+    # Builds API documentation by running blueprints and extracting endpoint data
+    #
+    # The Builder orchestrates the documentation generation process by:
+    # 1. Loading and running blueprint test files
+    # 2. Capturing request/response data from successful test executions
+    # 3. Compiling the raw data into a structured Document
+    #
+    # It supports caching to avoid re-running tests when blueprints haven't changed.
+    #
+    # @example Creating a document from blueprints
+    #   document = Builder.create_document!(paths: "spec/blueprints/api.yml")
+    #
+    # @example Using the builder directly for raw endpoint data
+    #   builder = Builder.new(paths: "spec/blueprints/api.yml")
+    #   endpoints = builder.endpoints
+    #
     class Builder
+      #
+      # Creates a complete Document from blueprint files
+      #
+      # This is the primary entry point for generating documentation.
+      # It instantiates a Builder, extracts endpoints, compiles them,
+      # and returns a structured Document object.
+      #
+      # @param base_path [String, Pathname, nil] Base directory for blueprint files
+      # @param paths [String, Pathname, nil] Specific blueprint file paths
+      # @param verbosity_level [Integer] Output verbosity (0 = silent)
+      # @param use_cache [Boolean] Whether to use cached endpoint data if available
+      #
+      # @return [Document] A structured document containing all API endpoints
+      #
+      # @raise [Error::NoBlueprintsError] If no blueprints are found
+      #
       def self.create_document!(**)
         endpoints = new(**).endpoints
         endpoints = Compiler.new(endpoints).compile
@@ -11,7 +43,16 @@ module SpecForge
         Document.new(endpoints:)
       end
 
-      # TODO: Documentation
+      #
+      # Creates a new Builder instance
+      #
+      # @param base_path [String, Pathname, nil] Base directory for blueprint files
+      # @param paths [String, Pathname, nil] Specific blueprint file paths
+      # @param verbosity_level [Integer] Output verbosity during test execution (0 = silent)
+      # @param use_cache [Boolean] Whether to use cached endpoint data if valid
+      #
+      # @return [Builder] A new builder instance
+      #
       def initialize(base_path: nil, paths: nil, verbosity_level: 0, use_cache: false)
         @cache = Cache.new
 
@@ -21,7 +62,18 @@ module SpecForge
         @verbosity_level = verbosity_level
       end
 
-      # TODO: Documentation
+      #
+      # Extracts endpoint data from blueprint test executions
+      #
+      # Runs all blueprints and captures request/response data from each
+      # successful test step. Results are cached for subsequent calls
+      # when caching is enabled.
+      #
+      # @return [Array<Hash>] Array of endpoint data hashes containing
+      #   request and response information
+      #
+      # @raise [Error::NoBlueprintsError] If no blueprints are found
+      #
       def endpoints
         return @cache.read if @use_cache && @cache.valid?
 

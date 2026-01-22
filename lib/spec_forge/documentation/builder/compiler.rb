@@ -3,20 +3,32 @@
 module SpecForge
   module Documentation
     class Builder
-      # TODO: Docs
+      #
+      # Compiles raw endpoint data into structured documentation format
+      #
+      # The Compiler transforms flat endpoint data extracted from test runs
+      # into a hierarchical structure organized by URL path and HTTP method.
+      # It handles:
+      # - Grouping endpoints by path and HTTP verb
+      # - Sanitizing error responses to exclude invalid request data
+      # - Merging multiple operations with the same status code
+      # - Normalizing parameters, request bodies, and responses
+      # - Type detection for all values
+      #
+      # @example Compiling endpoints
+      #   compiler = Compiler.new(endpoints)
+      #   compiled = compiler.compile
+      #   # => { "/users" => { "GET" => { id: "...", responses: [...] } } }
+      #
       class Compiler
-        # Source: https://gist.github.com/johnelliott/cf77003f72f889abbc3f32785fa3df8d
-        UUID_REGEX = /^[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$/i
-
         #
-        # Regular expression for matching floating point numbers in strings
+        # Regular expression for matching UUID v4 strings
         #
-        # Matches decimal numbers with optional negative sign, used for type detection
-        # when analyzing API response data.
+        # @see https://gist.github.com/johnelliott/cf77003f72f889abbc3f32785fa3df8d
         #
         # @api private
         #
-        INTEGER_REGEX = /^-?\d+$/
+        UUID_REGEX = /^[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$/i
 
         #
         # Regular expression for matching integer numbers in strings
@@ -26,14 +38,40 @@ module SpecForge
         #
         # @api private
         #
+        INTEGER_REGEX = /^-?\d+$/
+
+        #
+        # Regular expression for matching floating point numbers in strings
+        #
+        # Matches decimal numbers with optional negative sign, used for type detection
+        # when analyzing API response data.
+        #
+        # @api private
+        #
         FLOAT_REGEX = /^-?\d+\.\d+$/
 
-        # TODO: Docs
+        #
+        # Creates a new Compiler instance
+        #
+        # @param endpoints [Array<Hash>] Raw endpoint data from the Extractor
+        #
+        # @return [Compiler] A new compiler instance
+        #
         def initialize(endpoints)
           @endpoints = endpoints
         end
 
-        # TODO: Docs
+        #
+        # Compiles endpoints into a structured documentation format
+        #
+        # Processes all endpoints through grouping, sanitization, merging,
+        # and normalization steps to produce a hash structure suitable
+        # for documentation generation.
+        #
+        # @return [Hash] Compiled endpoints organized by path and HTTP method.
+        #   Each operation contains :id, :description, :parameters, :requests,
+        #   and :responses keys.
+        #
         def compile
           # Step one, group the endpoints by their paths and verb
           # { path: {get: [], post: []}, path_2: {get: []}, ... }
