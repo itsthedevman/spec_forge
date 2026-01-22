@@ -20,21 +20,6 @@ module SpecForge
           end
 
           #
-          # Generates OpenAPI documentation from test data with optional caching
-          #
-          # Loads endpoint data from tests (either fresh or cached), creates a document,
-          # and generates the OpenAPI specification using the appropriate version generator.
-          #
-          # @param use_cache [Boolean] Whether to use cached test data if available
-          #
-          # @return [Hash] The generated OpenAPI specification
-          #
-          def self.generate(use_cache: false)
-            document = Documentation::Loader.load_document(use_cache:)
-            new(document).generate
-          end
-
-          #
           # Validates an OpenAPI specification against the standard
           #
           # Uses the openapi3_parser gem to validate the generated specification
