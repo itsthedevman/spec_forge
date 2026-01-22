@@ -572,7 +572,7 @@ RSpec.describe SpecForge::Loader::StepProcessor do
         processor.send(:inherit_shared, steps)
 
         child = steps[0][:steps][0]
-        
+
         # Arrays are concatenated, so both hooks should be present
         expect(child[:hook][:before_step]).to include(
           {name: "parent_hook"},
@@ -639,6 +639,102 @@ RSpec.describe SpecForge::Loader::StepProcessor do
 
         child = steps[0][:steps][0]
         expect(child[:request]).to eq({url: "/users"})
+      end
+    end
+  end
+
+  describe "global hooks integration" do
+    let(:blueprints) do
+      {
+        "test_blueprint" => {
+          file_path: base_path.join("test.yml"),
+          file_name: "test.yml",
+          name: "test_blueprint",
+          steps: [
+            {name: "Test Step", tags: [], line_number: 1, request: {url: "/test"}}
+          ]
+        }
+      }
+    end
+
+    before do
+      SpecForge.configuration.register_callback(:forge_before) { |ctx| "forge before" }
+      SpecForge.configuration.register_callback(:forge_after) { |ctx| "forge after" }
+      SpecForge.configuration.register_callback(:blueprint_before) { |ctx| "blueprint before" }
+      SpecForge.configuration.register_callback(:blueprint_after) { |ctx| "blueprint after" }
+      SpecForge.configuration.register_callback(:step_before) { |ctx| "step before" }
+      SpecForge.configuration.register_callback(:step_after) { |ctx| "step after" }
+
+      SpecForge.configuration.before(:forge, :forge_before)
+      SpecForge.configuration.after(:forge, :forge_after)
+      SpecForge.configuration.before(:blueprint, :blueprint_before)
+      SpecForge.configuration.after(:blueprint, :blueprint_after)
+      SpecForge.configuration.before(:step, :step_before)
+      SpecForge.configuration.after(:step, :step_after)
+    end
+
+    it "includes global forge hooks in forge_hooks" do
+      _blueprints_result, forge_hooks = processor.run
+
+      expect(forge_hooks[:before]).to include({name: :forge_before})
+      expect(forge_hooks[:after]).to include({name: :forge_after})
+    end
+
+    it "includes global blueprint hooks in blueprint hooks" do
+      blueprints_result, _forge_hooks = processor.run
+
+      blueprint = blueprints_result.first
+      expect(blueprint[:hooks][:before]).to include({name: :blueprint_before})
+      expect(blueprint[:hooks][:after]).to include({name: :blueprint_after})
+    end
+
+    it "includes global step hooks in step hooks" do
+      blueprints_result, _forge_hooks = processor.run
+
+      step = blueprints_result.first[:steps].first
+      expect(step[:hooks][:before]).to include({name: :step_before})
+      expect(step[:hooks][:after]).to include({name: :step_after})
+    end
+
+    context "when combining global and local hooks" do
+      before do
+        SpecForge.configuration.register_callback(:local_step_before) { |ctx| "local before" }
+        SpecForge.configuration.register_callback(:local_step_after) { |ctx| "local after" }
+      end
+
+      let(:blueprints) do
+        {
+          "test_blueprint" => {
+            file_path: base_path.join("test.yml"),
+            file_name: "test.yml",
+            name: "test_blueprint",
+            steps: [
+              {
+                name: "Test Step",
+                tags: [],
+                line_number: 1,
+                request: {url: "/test"},
+                hook: {
+                  before_step: [{name: "local_step_before"}],
+                  after_step: [{name: "local_step_after"}]
+                }
+              }
+            ]
+          }
+        }
+      end
+
+      it "merges global and local step hooks" do
+        blueprints_result, _forge_hooks = processor.run
+
+        step = blueprints_result.first[:steps].first
+        before_names = step[:hooks][:before].map { |h| h[:name].to_sym }
+        after_names = step[:hooks][:after].map { |h| h[:name].to_sym }
+
+        expect(before_names).to include(:step_before)
+        expect(before_names).to include(:local_step_before)
+        expect(after_names).to include(:step_after)
+        expect(after_names).to include(:local_step_after)
       end
     end
   end
