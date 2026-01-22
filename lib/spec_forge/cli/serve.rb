@@ -62,6 +62,8 @@ module SpecForge
       option "--ui=UI", "Documentation interface: swagger or redoc (default: swagger)"
       option "--port=PORT", "Port to serve documentation on (default: 8080)"
 
+      # TODO: Add verbosity flags for Forge
+
       aliases :s
 
       #

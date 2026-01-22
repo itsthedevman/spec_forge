@@ -59,6 +59,8 @@ module SpecForge
       option "--output=PATH", "Full file path for generated documentation"
       option "--skip-validation", "Skip OpenAPI specification validation during generation"
 
+      # TODO: Add verbosity flags for Forge
+
       #
       # Generates OpenAPI documentation from tests
       #
