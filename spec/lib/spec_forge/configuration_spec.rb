@@ -166,18 +166,17 @@ RSpec.describe SpecForge::Configuration do
       expect(result).to be_nil
     end
 
-    context "when callback is attached to events" do
+    context "when callback is attached to hooks" do
       before do
         configuration.before(:step, :my_callback)
         configuration.after(:blueprint, :my_callback)
       end
 
-      it "is expected to remove the callback from all events" do
+      it "is expected to remove the callback from all hooks" do
         configuration.deregister_callback(:my_callback)
 
-        events = configuration.instance_variable_get(:@events)
-        expect(events[:before_step]).not_to include(callback_block)
-        expect(events[:after_blueprint]).not_to include(callback_block)
+        expect(configuration.hooks[:before_step]).not_to include(:my_callback)
+        expect(configuration.hooks[:after_blueprint]).not_to include(:my_callback)
       end
     end
   end
@@ -213,18 +212,16 @@ RSpec.describe SpecForge::Configuration do
       configuration.register_callback(:my_callback, &callback_block)
     end
 
-    it "is expected to attach a callback to a before event" do
+    it "is expected to attach a callback to a before hook" do
       configuration.before(:step, :my_callback)
 
-      events = configuration.instance_variable_get(:@events)
-      expect(events[:before_step]).to include(callback_block)
+      expect(configuration.hooks[:before_step]).to include(:my_callback)
     end
 
     it "is expected to accept string callback names and convert to symbols" do
       configuration.before(:step, "my_callback")
 
-      events = configuration.instance_variable_get(:@events)
-      expect(events[:before_step]).to include(callback_block)
+      expect(configuration.hooks[:before_step]).to include(:my_callback)
     end
 
     it "is expected to return the callback name" do
@@ -235,11 +232,10 @@ RSpec.describe SpecForge::Configuration do
 
     context "when given a block" do
       it "is expected to register and attach the callback in one call" do
-        configuration.before(:step) { |context| "inline callback" }
+        callback_name = configuration.before(:step) { |context| "inline callback" }
 
-        events = configuration.instance_variable_get(:@events)
-        expect(events[:before_step].size).to eq(1)
-        expect(events[:before_step].first).to be_a(Proc)
+        expect(configuration.hooks[:before_step].size).to eq(1)
+        expect(configuration.hooks[:before_step].first).to eq(callback_name.to_sym)
       end
 
       it "is expected to return an auto-generated callback name" do
@@ -252,19 +248,15 @@ RSpec.describe SpecForge::Configuration do
       it "is expected to register the callback with the auto-generated name" do
         result = configuration.before(:step) { |context| "inline callback" }
 
-        callbacks = configuration.instance_variable_get(:@callbacks)
-        expect(callbacks).to have_key(result.to_sym)
+        expect(configuration.callbacks).to have_key(result.to_sym)
       end
 
       it "is expected to allow deregistration using the returned name" do
         callback_name = configuration.before(:step) { |context| "inline callback" }
         configuration.deregister_callback(callback_name)
 
-        callbacks = configuration.instance_variable_get(:@callbacks)
-        events = configuration.instance_variable_get(:@events)
-
-        expect(callbacks).not_to have_key(callback_name.to_sym)
-        expect(events[:before_step]).to be_empty
+        expect(configuration.callbacks).not_to have_key(callback_name.to_sym)
+        expect(configuration.hooks[:before_step]).to be_empty
       end
     end
 
@@ -272,22 +264,19 @@ RSpec.describe SpecForge::Configuration do
       it "is expected to accept :forge event" do
         configuration.before(:forge, :my_callback)
 
-        events = configuration.instance_variable_get(:@events)
-        expect(events[:before_forge]).to include(callback_block)
+        expect(configuration.hooks[:before_forge]).to include(:my_callback)
       end
 
       it "is expected to accept :blueprint event" do
         configuration.before(:blueprint, :my_callback)
 
-        events = configuration.instance_variable_get(:@events)
-        expect(events[:before_blueprint]).to include(callback_block)
+        expect(configuration.hooks[:before_blueprint]).to include(:my_callback)
       end
 
       it "is expected to accept :step event" do
         configuration.before(:step, :my_callback)
 
-        events = configuration.instance_variable_get(:@events)
-        expect(events[:before_step]).to include(callback_block)
+        expect(configuration.hooks[:before_step]).to include(:my_callback)
       end
     end
 
@@ -309,20 +298,19 @@ RSpec.describe SpecForge::Configuration do
       end
     end
 
-    context "when attaching the same callback to multiple events" do
+    context "when attaching the same callback to multiple hooks" do
       it "is expected to allow the callback to be reused" do
         configuration.before(:forge, :my_callback)
         configuration.before(:blueprint, :my_callback)
         configuration.before(:step, :my_callback)
 
-        events = configuration.instance_variable_get(:@events)
-        expect(events[:before_forge]).to include(callback_block)
-        expect(events[:before_blueprint]).to include(callback_block)
-        expect(events[:before_step]).to include(callback_block)
+        expect(configuration.hooks[:before_forge]).to include(:my_callback)
+        expect(configuration.hooks[:before_blueprint]).to include(:my_callback)
+        expect(configuration.hooks[:before_step]).to include(:my_callback)
       end
     end
 
-    context "when attaching multiple callbacks to the same event" do
+    context "when attaching multiple callbacks to the same hook" do
       let(:second_callback) { proc { |context| "second callback" } }
 
       before do
@@ -333,8 +321,7 @@ RSpec.describe SpecForge::Configuration do
         configuration.before(:step, :my_callback)
         configuration.before(:step, :second_callback)
 
-        events = configuration.instance_variable_get(:@events)
-        expect(events[:before_step]).to eq([callback_block, second_callback])
+        expect(configuration.hooks[:before_step]).to eq([:my_callback, :second_callback])
       end
     end
   end
@@ -346,18 +333,16 @@ RSpec.describe SpecForge::Configuration do
       configuration.register_callback(:my_callback, &callback_block)
     end
 
-    it "is expected to attach a callback to an after event" do
+    it "is expected to attach a callback to an after hook" do
       configuration.after(:step, :my_callback)
 
-      events = configuration.instance_variable_get(:@events)
-      expect(events[:after_step]).to include(callback_block)
+      expect(configuration.hooks[:after_step]).to include(:my_callback)
     end
 
     it "is expected to accept string callback names and convert to symbols" do
       configuration.after(:step, "my_callback")
 
-      events = configuration.instance_variable_get(:@events)
-      expect(events[:after_step]).to include(callback_block)
+      expect(configuration.hooks[:after_step]).to include(:my_callback)
     end
 
     it "is expected to return the callback name" do
@@ -368,11 +353,10 @@ RSpec.describe SpecForge::Configuration do
 
     context "when given a block" do
       it "is expected to register and attach the callback in one call" do
-        configuration.after(:step) { |context| "inline callback" }
+        callback_name = configuration.after(:step) { |context| "inline callback" }
 
-        events = configuration.instance_variable_get(:@events)
-        expect(events[:after_step].size).to eq(1)
-        expect(events[:after_step].first).to be_a(Proc)
+        expect(configuration.hooks[:after_step].size).to eq(1)
+        expect(configuration.hooks[:after_step].first).to eq(callback_name.to_sym)
       end
 
       it "is expected to return an auto-generated callback name" do
@@ -385,19 +369,15 @@ RSpec.describe SpecForge::Configuration do
       it "is expected to register the callback with the auto-generated name" do
         result = configuration.after(:step) { |context| "inline callback" }
 
-        callbacks = configuration.instance_variable_get(:@callbacks)
-        expect(callbacks).to have_key(result.to_sym)
+        expect(configuration.callbacks).to have_key(result.to_sym)
       end
 
       it "is expected to allow deregistration using the returned name" do
         callback_name = configuration.after(:step) { |context| "inline callback" }
         configuration.deregister_callback(callback_name)
 
-        callbacks = configuration.instance_variable_get(:@callbacks)
-        events = configuration.instance_variable_get(:@events)
-
-        expect(callbacks).not_to have_key(callback_name.to_sym)
-        expect(events[:after_step]).to be_empty
+        expect(configuration.callbacks).not_to have_key(callback_name.to_sym)
+        expect(configuration.hooks[:after_step]).to be_empty
       end
     end
 
@@ -405,22 +385,19 @@ RSpec.describe SpecForge::Configuration do
       it "is expected to accept :forge event" do
         configuration.after(:forge, :my_callback)
 
-        events = configuration.instance_variable_get(:@events)
-        expect(events[:after_forge]).to include(callback_block)
+        expect(configuration.hooks[:after_forge]).to include(:my_callback)
       end
 
       it "is expected to accept :blueprint event" do
         configuration.after(:blueprint, :my_callback)
 
-        events = configuration.instance_variable_get(:@events)
-        expect(events[:after_blueprint]).to include(callback_block)
+        expect(configuration.hooks[:after_blueprint]).to include(:my_callback)
       end
 
       it "is expected to accept :step event" do
         configuration.after(:step, :my_callback)
 
-        events = configuration.instance_variable_get(:@events)
-        expect(events[:after_step]).to include(callback_block)
+        expect(configuration.hooks[:after_step]).to include(:my_callback)
       end
     end
 
@@ -442,20 +419,19 @@ RSpec.describe SpecForge::Configuration do
       end
     end
 
-    context "when attaching the same callback to multiple events" do
+    context "when attaching the same callback to multiple hooks" do
       it "is expected to allow the callback to be reused" do
         configuration.after(:forge, :my_callback)
         configuration.after(:blueprint, :my_callback)
         configuration.after(:step, :my_callback)
 
-        events = configuration.instance_variable_get(:@events)
-        expect(events[:after_forge]).to include(callback_block)
-        expect(events[:after_blueprint]).to include(callback_block)
-        expect(events[:after_step]).to include(callback_block)
+        expect(configuration.hooks[:after_forge]).to include(:my_callback)
+        expect(configuration.hooks[:after_blueprint]).to include(:my_callback)
+        expect(configuration.hooks[:after_step]).to include(:my_callback)
       end
     end
 
-    context "when attaching multiple callbacks to the same event" do
+    context "when attaching multiple callbacks to the same hook" do
       let(:second_callback) { proc { |context| "second callback" } }
 
       before do
@@ -466,8 +442,7 @@ RSpec.describe SpecForge::Configuration do
         configuration.after(:step, :my_callback)
         configuration.after(:step, :second_callback)
 
-        events = configuration.instance_variable_get(:@events)
-        expect(events[:after_step]).to eq([callback_block, second_callback])
+        expect(configuration.hooks[:after_step]).to eq([:my_callback, :second_callback])
       end
     end
   end

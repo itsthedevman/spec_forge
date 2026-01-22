@@ -151,9 +151,9 @@ module SpecForge
     #
     def deregister_callback(name)
       name = name.to_sym
-      callback = @callbacks.delete(name)
 
-      @hooks.each_value { |a| a.delete(callback) }
+      callback = @callbacks.delete(name)
+      @hooks.each_value { |a| a.delete(name) }
 
       callback
     end
