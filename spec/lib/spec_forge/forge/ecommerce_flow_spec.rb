@@ -29,7 +29,7 @@ RSpec.describe "Forge: E-commerce Flow", :integration do
       )
     end
 
-    sleep 0.0001
+    sleep 0.01
   end
 
   after(:all) do
