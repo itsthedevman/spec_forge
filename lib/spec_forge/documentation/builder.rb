@@ -5,9 +5,10 @@ module SpecForge
     # TODO: Documentation
     class Builder
       def self.create_document!(**)
-        new(**)
-          .endpoints
-          .then { |e| Compiler.document_from_endpoints(e) }
+        endpoints = new(**).endpoints
+        endpoints = Compiler.new(endpoints).compile
+
+        Document.new(endpoints:)
       end
 
       # TODO: Documentation
@@ -38,7 +39,7 @@ module SpecForge
         contexts = register_callback
 
         blueprints, forge_hooks = SpecForge::Loader.load_blueprints(base_path: @base_path, paths: @paths)
-        raise NoBlueprintsError if blueprints.empty?
+        raise Error::NoBlueprintsError if blueprints.empty?
 
         run_blueprints(blueprints, verbosity_level: @verbosity_level, hooks: forge_hooks)
         build_endpoints(contexts)

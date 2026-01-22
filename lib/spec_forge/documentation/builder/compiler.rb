@@ -3,6 +3,7 @@
 module SpecForge
   module Documentation
     class Builder
+      # TODO: Docs
       class Compiler
         # Source: https://gist.github.com/johnelliott/cf77003f72f889abbc3f32785fa3df8d
         UUID_REGEX = /^[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$/i
@@ -27,52 +28,16 @@ module SpecForge
         #
         FLOAT_REGEX = /^-?\d+\.\d+$/
 
-        #
-        # Creates a document from endpoint data
-        #
-        # @param endpoints [Array<Hash>] Array of endpoint data extracted from tests
-        #
-        # @return [Document] A structured documentation document
-        #
-        def self.document_from_endpoints(endpoints = [])
-          new(endpoints).export_as_document
-        end
-
-        #
-        # The processed endpoints organized by path and HTTP method
-        #
-        # Contains all endpoint data after grouping, sanitizing, merging,
-        # and flattening operations for document generation.
-        #
-        # @return [Hash] Processed endpoints ready for document creation
-        #
-        attr_reader :endpoints
-
-        #
-        # Initializes a new builder with endpoint data
-        #
-        # @param endpoints [Array<Hash>] Array of endpoint data extracted from tests
-        #
-        # @return [Builder] A new builder instance
-        #
+        # TODO: Docs
         def initialize(endpoints)
-          @endpoints = prepare_endpoints(endpoints)
+          @endpoints = endpoints
         end
 
-        #
-        # Prepares endpoint data for document creation
-        #
-        # Groups endpoints by path and HTTP method, sanitizes error responses,
-        # merges similar operations, and flattens the result.
-        #
-        # @param endpoints [Array<Hash>] Raw endpoint data from tests
-        #
-        # @return [Hash] Processed endpoints organized by path and method
-        #
-        def prepare_endpoints(endpoints)
+        # TODO: Docs
+        def compile
           # Step one, group the endpoints by their paths and verb
           # { path: {get: [], post: []}, path_2: {get: []}, ... }
-          grouped = group_endpoints(endpoints)
+          grouped = group_endpoints(@endpoints)
 
           grouped.each_value do |endpoint|
             # Operations are those arrays
@@ -87,15 +52,6 @@ module SpecForge
               flatten_operations(operations)
             end
           end
-        end
-
-        #
-        # Exports the processed endpoints as a document
-        #
-        # @return [Document] A document containing the processed endpoints
-        #
-        def export_as_document
-          Document.new(endpoints:)
         end
 
         private
@@ -213,13 +169,8 @@ module SpecForge
         # @private
         #
         def flatten_operations(operations)
-          id = operations.key_map(:spec_name).reject(&:blank?).first
-
-          description = operations.key_map(:expectation_name)
-            .reject(&:blank?)
-            .first
-            &.split(" - ")
-            &.second || ""
+          id = "id_#{SecureRandom.uuid}"
+          description = "description_#{SecureRandom.uuid}"
 
           parameters = normalize_parameters(operations)
           requests = normalize_requests(operations)
@@ -287,7 +238,7 @@ module SpecForge
             content = operation[:request_body]
             next if content.blank?
 
-            name = operation[:expectation_name].split(" - ").second
+            name = "name_#{SecureRandom.uuid}"
 
             {
               name: name || "Example #{index}",

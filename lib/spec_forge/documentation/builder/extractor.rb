@@ -3,46 +3,37 @@
 module SpecForge
   module Documentation
     class Builder
+      # TODO: Docs
       class Extractor
+        # TODO: Docs
         def initialize(context)
-          @spec = context.spec
+          @context = context
+          @step = context.step
           @variables = context.variables
         end
 
-        def extract_endpoints
-          request = context.variables[:request]
-          response = context.variables[:response]
+        # TODO: Docs
 
-          binding.pry
-          # # Only pull the headers that the user explicitly checked for.
-          # # This keeps the extra unrelated headers from being included
-          # response_headers = context.expectation
-          #   .constraints
-          #   .headers
-          #   .keys
-          #   .map { |h| h.to_s.downcase }
+        def extract_endpoint
+          request = @variables[:request]
+          response = @variables[:response]
+          headers = request[:headers]
 
-          # response_headers = response_hash[:response_headers].slice(*response_headers)
+          {
+            # Request data
+            base_url: request[:base_url],
+            url: request[:url],
+            http_verb: request[:http_verb],
+            content_type: headers["content-type"],
+            request_body: request[:body],
+            request_headers: headers.except("content-type"),
+            request_query: request[:query],
 
-          # {
-          #   # Metadata
-          #   spec_name: context.spec.name,
-          #   expectation_name: context.expectation.name,
-
-          #   # Request data
-          #   base_url: request[:base_url],
-          #   url: request[:url],
-          #   http_verb: request[:http_verb],
-          #   content_type: request[:content_type],
-          #   request_body: request[:body],
-          #   request_headers: request[:headers],
-          #   request_query: request[:query],
-
-          #   # Response data
-          #   response_status: response[:status],
-          #   response_body: response[:body],
-          #   response_headers:
-          # }
+            # Response data
+            response_status: response[:status],
+            response_body: response[:body],
+            response_headers: response[:headers]
+          }
         end
       end
     end
