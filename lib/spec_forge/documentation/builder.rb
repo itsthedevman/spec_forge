@@ -55,10 +55,9 @@ module SpecForge
 
             step = context.step
             next if step.nil? || step.documentation == false
-
             next unless step.request?
 
-            contexts << context
+            contexts << context.with(variables: context.variables.dup)
           end
 
           config.after(:step, :documentation_builder)
