@@ -144,7 +144,7 @@ module SpecForge
         # @private
         #
         def group_endpoints(endpoints)
-          grouped = Hash.new_nested_hash(depth: 1)
+          grouped = Hash.new { |hash, key| hash[key] = {} }
 
           # Convert the endpoints from a flat array of objects into a hash
           endpoints.each do |input|
