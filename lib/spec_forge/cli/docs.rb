@@ -86,6 +86,8 @@ module SpecForge
           Your OpenAPI specification is valid and ready to use.
           Output written to: #{file_path.relative_path_from(SpecForge.forge_path)}
         STRING
+      rescue NoBlueprintsError => e
+        puts e.message
       end
     end
   end
