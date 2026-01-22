@@ -436,5 +436,17 @@ module SpecForge
         end
       end
     end
+
+    #
+    # Raised when no blueprints are found during loading
+    #
+    # This typically occurs when attempting to generate documentation
+    # but the blueprints directory is empty or doesn't contain valid files.
+    #
+    class NoBlueprintsError < Error
+      def initialize
+        super("No blueprints found. Please ensure your blueprints directory contains valid blueprint files.")
+      end
+    end
   end
 end
