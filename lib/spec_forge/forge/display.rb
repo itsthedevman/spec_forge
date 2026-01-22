@@ -27,7 +27,7 @@ module SpecForge
       # @return [Display] A new display instance
       #
       def initialize(verbosity_level: 0)
-        @verbosity_level = verbosity_level
+        @verbosity_level = verbosity_level || 0
         @color = Pastel.new
       end
 
@@ -155,16 +155,17 @@ module SpecForge
 
       # TODO: Documentation
       def forge_start(forge)
+        return if default_mode?
+
         line = "#{@color.magenta("[forge]")} Ignited"
         filler = @color.magenta("━" * (LINE_LENGTH - 15)) # [forge] ignited
 
-        puts ""
         puts "#{line} #{filler}"
       end
 
       # TODO: Documentation
       def blueprint_start(blueprint)
-        puts ""
+        return if default_mode?
 
         visual_length = "[#{blueprint.name}] Setup".size
         line = "#{@color.bright_blue("[#{blueprint.name}]")} Setup"
@@ -271,10 +272,11 @@ module SpecForge
       # @return [void]
       #
       def forge_end(forge)
+        return if default_mode?
+
         line = "#{@color.magenta("[forge]")} Quenched"
         filler = @color.magenta("━" * (LINE_LENGTH - 16))
 
-        puts ""
         puts "#{line} #{filler}"
       end
 
