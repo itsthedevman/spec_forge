@@ -11,20 +11,13 @@ module SpecForge
       # and Serve commands to avoid duplication.
       #
       module Generate
-        #
-        # Generates OpenAPI documentation and writes it to disk
-        #
-        # Runs the documentation generation pipeline: executes tests, extracts
-        # endpoint data, generates OpenAPI spec, validates it, and writes the
-        # output file in the specified format.
-        #
-        # @return [Pathname] The path to the generated documentation file
-        #
-        def generate_documentation
-          generator = Documentation::Generators::OpenAPI["3.0"]
-          output = generator.generate(use_cache: !options.fresh)
+        # TODO: Documentation
+        def generate_documentation(base_path: nil)
+          document = Documentation::Builder.create_document!(base_path:, use_cache: !options.fresh)
+          generator_class = Documentation::Generators::OpenAPI["3.0"]
+          output = generator_class.new(document).generate
 
-          generator.validate!(output) unless options.skip_validation
+          generator_class.validate!(output) unless options.skip_validation
 
           # Determine output format and path
           file_format = determine_file_format
