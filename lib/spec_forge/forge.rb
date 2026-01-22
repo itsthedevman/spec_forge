@@ -23,16 +23,9 @@ module SpecForge
         self
       end
 
-      #
-      # Creates a new Forge instance and runs the given blueprints
-      #
-      # @param blueprints [Array<Blueprint>] The blueprints to execute
-      # @param verbosity_level [Integer] Output verbosity (0-3)
-      #
-      # @return [void]
-      #
-      def run(blueprints, verbosity_level: 0)
-        new(blueprints, verbosity_level:).run
+      # TODO: Documentation
+      def run(blueprints, **)
+        new(blueprints, **).run
       end
 
       #
