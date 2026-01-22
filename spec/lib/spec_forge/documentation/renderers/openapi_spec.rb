@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe SpecForge::Documentation::Generators::OpenAPI do
+RSpec.describe SpecForge::Documentation::OpenAPI do
   describe ".[]" do
     let(:version) { "" }
 

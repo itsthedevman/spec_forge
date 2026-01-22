@@ -2,8 +2,8 @@
 
 module SpecForge
   module Documentation
-    module Generators
-      module OpenAPI
+    module OpenAPI
+      class V30
         #
         # Formats OpenAPI validation errors into human-readable messages
         #

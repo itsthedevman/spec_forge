@@ -14,7 +14,7 @@ module SpecForge
         # TODO: Documentation
         def generate_documentation(base_path: nil)
           document = Documentation::Builder.create_document!(base_path:, use_cache: !options.fresh)
-          generator_class = Documentation::Generators::OpenAPI["3.0"]
+          generator_class = Documentation::OpenAPI["3.0"]
           output = generator_class.new(document).generate
 
           generator_class.validate!(output) unless options.skip_validation

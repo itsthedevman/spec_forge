@@ -3,7 +3,7 @@
 module SpecForge
   module Documentation
     module OpenAPI
-      module V30 # standard:disable Naming/ClassAndModuleCamelCase
+      class V30
         #
         # Represents an OpenAPI 3.0 Example object
         #

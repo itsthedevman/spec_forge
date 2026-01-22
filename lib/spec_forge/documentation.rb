@@ -14,7 +14,7 @@ module SpecForge
   #
   #   # Programmatically
   #   document = Documentation::Loader.load_document
-  #   spec = Documentation::Generators::OpenAPI["3.0"].new(document).generate
+  #   spec = Documentation::OpenAPI["3.0"].new(document).generate
   #
   module Documentation
   end

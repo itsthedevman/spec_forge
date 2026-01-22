@@ -3,7 +3,7 @@
 module SpecForge
   module Documentation
     module OpenAPI
-      module V30 # standard:disable Naming/ClassAndModuleCamelCase
+      class V30
         #
         # Represents an OpenAPI 3.0 Response object
         #
@@ -12,7 +12,19 @@ module SpecForge
         #
         # @see https://spec.openapis.org/oas/v3.0.4.html#response-object
         #
-        class Response < OpenAPI::Base
+        class Response
+          #
+          # The document object containing structured API data
+          #
+          # @return [Object] The document with endpoint information
+          #
+          attr_reader :document
+
+          # TODO: Docs
+          def initialize(document)
+            @document = document
+          end
+
           #
           # Converts the response to an OpenAPI-compliant hash
           #
