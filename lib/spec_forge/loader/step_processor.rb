@@ -19,23 +19,39 @@ module SpecForge
       #
       def initialize(blueprints)
         @blueprints = blueprints
-        @forge_hooks = {before: Set.new, after: Set.new}
+
+        @global_hooks = SpecForge.configuration.hooks.transform_values do |callbacks|
+          Normalizer::Transformers.call(:normalize_callback, callbacks)
+        end
+
+        @forge_hooks = {
+          before: Set.new(@global_hooks[:before_forge]),
+          after: Set.new(@global_hooks[:after_forge])
+        }
       end
 
       # TODO: Documentation
       def run
         # Do a preprocessing pass to ensure all steps are normalized and ready to be referenced
         @blueprints.each do |name, blueprint|
-          blueprint[:hooks] = {before: Set.new, after: Set.new}
+          blueprint[:hooks] = {
+            before: Set.new(@global_hooks[:before_blueprint]),
+            after: Set.new(@global_hooks[:after_blueprint])
+          }
 
           blueprint[:steps] = assign_source(blueprint[:steps], file_name: blueprint[:name])
             .then { |s| normalize_steps(s) }
         end
 
         @blueprints.each do |name, blueprint|
+          hooks = {
+            before: Set.new(@global_hooks[:before_step]),
+            after: Set.new(@global_hooks[:after_step])
+          }
+
           blueprint[:steps] = expand_steps(blueprint[:steps])
             .then { |s| inherit_shared(s) }
-            .then { |s| extract_and_assign_hooks(s, blueprint, all: {before: Set.new, after: Set.new}) }
+            .then { |s| extract_and_assign_hooks(s, blueprint, all: hooks) }
             .then { |s| tag_steps(s) }
             .then { |s| flatten_steps(s) }
             .then { |s| remove_empty_steps(s) }

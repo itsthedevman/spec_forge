@@ -42,6 +42,9 @@ module SpecForge
     # @return [Hash{Symbol => Proc}] Registered callbacks
     attr_reader :callbacks
 
+    # TODO: Docs
+    attr_reader :hooks
+
     #
     # Creates a new Configuration with default values
     #
@@ -56,7 +59,7 @@ module SpecForge
       # Internal
       @on_debug_proc = nil
       @callbacks = {}
-      @events = {
+      @hooks = {
         before_forge: [],
         before_blueprint: [],
         before_step: [],
@@ -135,7 +138,7 @@ module SpecForge
     end
 
     #
-    # Removes a registered callback and detaches it from all lifecycle events
+    # Removes a registered callback and detaches it from all lifecycle hooks
     #
     # @param name [String, Symbol] The callback name to remove
     #
@@ -144,13 +147,13 @@ module SpecForge
     # @example Remove a callback
     #   config.register_callback(:my_hook) { |context| puts "hook" }
     #   config.before(:step, :my_hook)
-    #   config.deregister_callback(:my_hook)  # Removes from callbacks and events
+    #   config.deregister_callback(:my_hook)  # Removes from callbacks and hooks
     #
     def deregister_callback(name)
       name = name.to_sym
       callback = @callbacks.delete(name)
 
-      @events.each_value { |a| a.delete(callback) }
+      @hooks.each_value { |a| a.delete(callback) }
 
       callback
     end
@@ -192,7 +195,7 @@ module SpecForge
         register_callback(callback_name, &block)
       end
 
-      add_event("before", event, callback_name)
+      register_hook("before", event, callback_name)
 
       callback_name
     end
@@ -234,28 +237,28 @@ module SpecForge
         register_callback(callback_name, &block)
       end
 
-      add_event("after", event, callback_name)
+      register_hook("after", event, callback_name)
 
       callback_name
     end
 
     private
 
-    def add_event(timing, event, callback_name)
-      event = :"#{timing}_#{event}"
+    def register_hook(timing, event, callback_name)
+      hook = :"#{timing}_#{event}"
       callback_name = callback_name.to_sym
 
-      if !@events.key?(event)
-        keys = @events.keys.select { |k| k.to_s.start_with?(timing) }.map(&:in_quotes)
-        raise ArgumentError, "Invalid event #{event.in_quotes}. Expected one of #{keys.to_or_sentence}"
+      if !@hooks.key?(hook)
+        keys = @hooks.keys.select { |k| k.to_s.start_with?(timing) }.map(&:in_quotes)
+        raise ArgumentError, "Invalid event #{hook.in_quotes}. Expected one of #{keys.to_or_sentence}"
       end
 
-      if !@callbacks[callback_name]
+      if !@callbacks.key?(callback_name)
         keys = @callbacks.keys.map(&:in_quotes)
         raise ArgumentError, "Invalid callback #{callback_name.in_quotes}. Expected one of #{keys.to_or_sentence}"
       end
 
-      @events[event] << @callbacks[callback_name]
+      @hooks[hook] << callback_name
     end
   end
 end
