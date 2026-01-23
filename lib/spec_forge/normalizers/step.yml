@@ -398,18 +398,18 @@ hook: &hook_structure
   examples:
     - |-
       hook:
-        before_file: seed_database
-        after_file: cleanup_database
+        before_blueprint: seed_database
+        after_blueprint: cleanup_database
     - |-
       hook:
-        before_each:
+        before_step:
           name: create_user
           arguments:
             role: admin
-        after_each: delete_user
+        after_step: delete_user
     - |-
       hook:
-        before_file:
+        before_blueprint:
           - seed_users
           - seed_posts
   structure:

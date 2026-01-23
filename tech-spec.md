@@ -68,8 +68,8 @@ Each YAML file in `blueprints/` represents a complete workflow consisting of seq
 ```yaml
 # users_workflow.yml
 - hook:
-    before_file: prepare_database
-    after_file: cleanup_database
+    before_blueprint: prepare_database
+    after_blueprint: cleanup_database
 
 - store:
     admin_email: "admin@test.com"
@@ -1780,8 +1780,8 @@ end
 
 ```yaml
 - hook:
-    before_file: clean_database
-    after_file: clean_database
+    before_blueprint: clean_database
+    after_blueprint: clean_database
 
 - store:
     user_email: "test@example.com"
