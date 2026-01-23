@@ -50,10 +50,12 @@ module SpecForge
           # Creates media type objects with schemas and merges with any
           # documentation-provided content definitions.
           #
-          # @return [Hash] Content definitions by media type
+          # @return [Hash, nil] Content definitions by media type
           #
           def content
-            schema = Schema.new(type: document.body.type).to_h
+            return nil if document.content_type.blank?
+
+            schema = Schema.new(type: document.body.type, content: document.body.content).to_h
 
             {
               document.content_type => MediaType.new(schema:).to_h
@@ -63,12 +65,16 @@ module SpecForge
           #
           # Returns header definitions for the response
           #
-          # Merges document headers with documentation-provided headers.
+          # Transforms document headers into OpenAPI format with schema wrappers.
           #
           # @return [Hash, nil] Header definitions
           #
           def headers
-            document.headers.presence
+            return nil if document.headers.blank?
+
+            document.headers.transform_values do |header|
+              { schema: header }
+            end
           end
         end
       end

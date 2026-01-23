@@ -28,15 +28,24 @@ module SpecForge
           attr_reader :format
 
           #
+          # The schema content (for arrays/objects)
+          #
+          # @return [Object, nil] The schema content
+          #
+          attr_reader :content
+
+          #
           # Creates a new OpenAPI schema object
           #
           # @param options [Hash] Schema configuration options
           # @option options [String] :type The data type to convert to OpenAPI format
+          # @option options [Object] :content The content/items for arrays or properties for objects
           #
           # @return [Schema] A new schema instance
           #
           def initialize(options = {})
             @type, @format = transform_type(options[:type])
+            @content = options[:content]
           end
 
           #
@@ -45,10 +54,19 @@ module SpecForge
           # @return [Hash] OpenAPI-formatted schema object
           #
           def to_h
-            {
+            base = {
               type:,
               format:
             }.compact_blank!
+
+            # Add items for arrays
+            if type == "array" && content.present?
+              # Content is an array like [{type: "string"}], take first element as items schema
+              items_type = content.first&.dig(:type) || "object"
+              base[:items] = { type: items_type }
+            end
+
+            base
           end
 
           private

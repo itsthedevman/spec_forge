@@ -56,7 +56,7 @@ module SpecForge
           #
           def id
             # The object ID is added to make every ID unique
-            document.id.to_camelcase(:lower) + object_id.to_s
+            document.id + object_id.to_s
           end
 
           alias_method :operationId, :id
@@ -67,7 +67,7 @@ module SpecForge
           # @return [String, nil] Brief operation summary
           #
           def summary
-            document.id.humanize
+            document.summary
           end
 
           #
@@ -76,7 +76,7 @@ module SpecForge
           # @return [String] Detailed operation description
           #
           def description
-            document.description
+            ""
           end
 
           #

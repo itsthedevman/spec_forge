@@ -207,8 +207,16 @@ module SpecForge
         # @private
         #
         def flatten_operations(operations)
-          id = "id_#{SecureRandom.uuid}"
-          description = "description_#{SecureRandom.uuid}"
+          # Get HTTP method and path from first operation (all operations in this array have same path/method)
+          first_op = operations.first
+          http_method = first_op[:http_verb]
+          path = first_op[:url]
+
+          # Create a sanitized ID for operationId (e.g., "getApiV10GuildsId")
+          id = "#{http_method}_#{path}".gsub(/[^a-zA-Z0-9]/, "_").to_camelcase(:lower)
+
+          # Use "METHOD /path" format for summary (e.g., "GET /api/v10/guilds/{id}")
+          summary = "#{http_method} #{path}"
 
           parameters = normalize_parameters(operations)
           requests = normalize_requests(operations)
@@ -216,7 +224,7 @@ module SpecForge
 
           {
             id:,
-            description:,
+            summary:,
             parameters:,
             requests:,
             responses:
