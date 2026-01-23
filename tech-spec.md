@@ -321,7 +321,6 @@ generate.array:
 ```
 
 **Note:** `index` is a reserved keyword during array generation and will override any stored variable with the same name.
-```
 
 ---
 
