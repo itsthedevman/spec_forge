@@ -11,6 +11,11 @@ module SpecForge
     #
     class StepProcessor
       #
+      # Action attributes that execute behavior and cannot be combined with steps
+      #
+      ACTION_ATTRIBUTES = %i[request expects calls debug store].freeze
+
+      #
       # Creates a new step processor for the given blueprints
       #
       # @param blueprints [Hash<String, Hash>] Blueprints indexed by name
@@ -60,6 +65,7 @@ module SpecForge
 
           blueprint[:steps] = expand_steps(blueprint[:steps])
             .then { |s| inherit_shared(s) }
+            .then { |s| validate_steps(s) }
             .then { |s| extract_and_assign_hooks(s, blueprint, all: hooks) }
             .then { |s| tag_steps(s) }
             .then { |s| flatten_steps(s) }
@@ -238,6 +244,38 @@ module SpecForge
 
           step.except(:hooks).present?
         end
+      end
+
+      def validate_steps(steps)
+        steps.each do |step|
+          validate_no_action_with_steps(step)
+          validate_expects_requires_request(step)
+
+          validate_steps(step[:steps]) if step[:steps].present?
+        end
+      end
+
+      def validate_no_action_with_steps(step)
+        return if step[:steps].blank?
+
+        action_attrs = ACTION_ATTRIBUTES.select { |attr| step[attr].present? }
+        return if action_attrs.empty?
+
+        raise Error::InvalidStepError.new(
+          "cannot combine action attributes (#{action_attrs.join(", ")}) with steps. " \
+          "Use 'shared:' to pass configuration to substeps, or separate into distinct steps.",
+          step
+        )
+      end
+
+      def validate_expects_requires_request(step)
+        return if step[:expects].blank?
+        return if step[:request].present?
+
+        raise Error::InvalidStepError.new(
+          "cannot use \"expects\" without \"request\" - nothing to validate against",
+          step
+        )
       end
     end
   end

@@ -739,6 +739,409 @@ RSpec.describe SpecForge::Loader::StepProcessor do
     end
   end
 
+  describe ".validate_steps" do
+    describe "action + steps restriction" do
+      context "when a step combines request with steps" do
+        let(:blueprints) do
+          {
+            "invalid" => {
+              file_path: base_path.join("invalid.yml"),
+              file_name: "invalid.yml",
+              name: "invalid",
+              steps: [
+                {
+                  name: "Invalid combo",
+                  line_number: 1,
+                  request: {url: "/test"},
+                  steps: [
+                    {name: "Child", line_number: 2, request: {url: "/child"}}
+                  ]
+                }
+              ]
+            }
+          }
+        end
+
+        it "raises InvalidStepError" do
+          expect { processor.run }
+            .to raise_error(SpecForge::Error::InvalidStepError, /cannot combine action attributes.*request.*with steps/i)
+        end
+
+        it "includes the step name in the error" do
+          expect { processor.run }
+            .to raise_error(SpecForge::Error::InvalidStepError, /Invalid combo/)
+        end
+
+        it "includes the file location in the error" do
+          expect { processor.run }
+            .to raise_error(SpecForge::Error::InvalidStepError, /invalid:1/)
+        end
+      end
+
+      context "when a step combines expects with steps" do
+        let(:blueprints) do
+          {
+            "invalid" => {
+              file_path: base_path.join("invalid.yml"),
+              file_name: "invalid.yml",
+              name: "invalid",
+              steps: [
+                {
+                  name: "Expects with steps",
+                  line_number: 1,
+                  expects: [{status: 200}],
+                  steps: [
+                    {name: "Child", line_number: 2, request: {url: "/child"}}
+                  ]
+                }
+              ]
+            }
+          }
+        end
+
+        it "raises InvalidStepError mentioning expects" do
+          expect { processor.run }
+            .to raise_error(SpecForge::Error::InvalidStepError, /cannot combine action attributes.*expects.*with steps/i)
+        end
+      end
+
+      context "when a step combines calls with steps" do
+        let(:blueprints) do
+          {
+            "invalid" => {
+              file_path: base_path.join("invalid.yml"),
+              file_name: "invalid.yml",
+              name: "invalid",
+              steps: [
+                {
+                  name: "Calls with steps",
+                  line_number: 1,
+                  calls: [{name: "some_callback"}],
+                  steps: [
+                    {name: "Child", line_number: 2, request: {url: "/child"}}
+                  ]
+                }
+              ]
+            }
+          }
+        end
+
+        it "raises InvalidStepError mentioning calls" do
+          expect { processor.run }
+            .to raise_error(SpecForge::Error::InvalidStepError, /cannot combine action attributes.*calls.*with steps/i)
+        end
+      end
+
+      context "when a step combines debug with steps" do
+        let(:blueprints) do
+          {
+            "invalid" => {
+              file_path: base_path.join("invalid.yml"),
+              file_name: "invalid.yml",
+              name: "invalid",
+              steps: [
+                {
+                  name: "Debug with steps",
+                  line_number: 1,
+                  debug: true,
+                  steps: [
+                    {name: "Child", line_number: 2, request: {url: "/child"}}
+                  ]
+                }
+              ]
+            }
+          }
+        end
+
+        it "raises InvalidStepError mentioning debug" do
+          expect { processor.run }
+            .to raise_error(SpecForge::Error::InvalidStepError, /cannot combine action attributes.*debug.*with steps/i)
+        end
+      end
+
+      context "when a step combines store with steps" do
+        let(:blueprints) do
+          {
+            "invalid" => {
+              file_path: base_path.join("invalid.yml"),
+              file_name: "invalid.yml",
+              name: "invalid",
+              steps: [
+                {
+                  name: "Store with steps",
+                  line_number: 1,
+                  store: {token: "abc"},
+                  steps: [
+                    {name: "Child", line_number: 2, request: {url: "/child"}}
+                  ]
+                }
+              ]
+            }
+          }
+        end
+
+        it "raises InvalidStepError mentioning store" do
+          expect { processor.run }
+            .to raise_error(SpecForge::Error::InvalidStepError, /cannot combine action attributes.*store.*with steps/i)
+        end
+      end
+
+      context "when a step combines multiple action attributes with steps" do
+        let(:blueprints) do
+          {
+            "invalid" => {
+              file_path: base_path.join("invalid.yml"),
+              file_name: "invalid.yml",
+              name: "invalid",
+              steps: [
+                {
+                  name: "Multiple actions with steps",
+                  line_number: 1,
+                  request: {url: "/test"},
+                  expects: [{status: 200}],
+                  store: {token: "abc"},
+                  steps: [
+                    {name: "Child", line_number: 2, request: {url: "/child"}}
+                  ]
+                }
+              ]
+            }
+          }
+        end
+
+        it "raises InvalidStepError listing all conflicting attributes" do
+          expect { processor.run }
+            .to raise_error(SpecForge::Error::InvalidStepError, /request.*expects.*store/i)
+        end
+      end
+
+      context "when a step uses shared with steps (valid)" do
+        let(:blueprints) do
+          {
+            "valid" => {
+              file_path: base_path.join("valid.yml"),
+              file_name: "valid.yml",
+              name: "valid",
+              steps: [
+                {
+                  name: "Shared with steps",
+                  line_number: 1,
+                  shared: {request: {headers: {"Authorization" => "Bearer token"}}},
+                  steps: [
+                    {name: "Child", line_number: 2, request: {url: "/child"}}
+                  ]
+                }
+              ]
+            }
+          }
+        end
+
+        it "does not raise an error" do
+          expect { processor.run }.not_to raise_error
+        end
+      end
+
+      context "when action + steps violation is in a nested step" do
+        let(:blueprints) do
+          {
+            "nested_invalid" => {
+              file_path: base_path.join("nested.yml"),
+              file_name: "nested.yml",
+              name: "nested_invalid",
+              steps: [
+                {
+                  name: "Parent",
+                  line_number: 1,
+                  steps: [
+                    {
+                      name: "Nested invalid",
+                      line_number: 5,
+                      request: {url: "/test"},
+                      steps: [
+                        {name: "Grandchild", line_number: 6, request: {url: "/child"}}
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        end
+
+        it "raises an error for the nested step" do
+          expect { processor.run }
+            .to raise_error(SpecForge::Error::InvalidStepError, /Nested invalid/)
+        end
+      end
+    end
+
+    describe "expects requires request" do
+      context "when a step has expects without request" do
+        let(:blueprints) do
+          {
+            "invalid" => {
+              file_path: base_path.join("invalid.yml"),
+              file_name: "invalid.yml",
+              name: "invalid",
+              steps: [
+                {
+                  name: "Missing request",
+                  line_number: 1,
+                  expects: [{status: 200}]
+                }
+              ]
+            }
+          }
+        end
+
+        it "raises InvalidStepError" do
+          expect { processor.run }
+            .to raise_error(SpecForge::Error::InvalidStepError, /cannot use "expects" without "request"/i)
+        end
+
+        it "includes the step name in the error" do
+          expect { processor.run }
+            .to raise_error(SpecForge::Error::InvalidStepError, /Missing request/)
+        end
+
+        it "includes the file location in the error" do
+          expect { processor.run }
+            .to raise_error(SpecForge::Error::InvalidStepError, /invalid:1/)
+        end
+      end
+
+      context "when a step has expects with request" do
+        let(:blueprints) do
+          {
+            "valid" => {
+              file_path: base_path.join("valid.yml"),
+              file_name: "valid.yml",
+              name: "valid",
+              steps: [
+                {
+                  name: "Valid step",
+                  line_number: 1,
+                  request: {url: "/users"},
+                  expects: [{status: 200}]
+                }
+              ]
+            }
+          }
+        end
+
+        it "does not raise an error" do
+          expect { processor.run }.not_to raise_error
+        end
+      end
+
+      context "when a step has request without expects" do
+        let(:blueprints) do
+          {
+            "valid" => {
+              file_path: base_path.join("valid.yml"),
+              file_name: "valid.yml",
+              name: "valid",
+              steps: [
+                {
+                  name: "Request only",
+                  line_number: 1,
+                  request: {url: "/users"}
+                }
+              ]
+            }
+          }
+        end
+
+        it "does not raise an error" do
+          expect { processor.run }.not_to raise_error
+        end
+      end
+
+      context "when expects without request is in a nested step" do
+        let(:blueprints) do
+          {
+            "nested_invalid" => {
+              file_path: base_path.join("nested.yml"),
+              file_name: "nested.yml",
+              name: "nested_invalid",
+              steps: [
+                {
+                  name: "Parent",
+                  line_number: 1,
+                  steps: [
+                    {
+                      name: "Child with invalid expects",
+                      line_number: 5,
+                      expects: [{status: 200}]
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        end
+
+        it "raises an error for the nested step" do
+          expect { processor.run }
+            .to raise_error(SpecForge::Error::InvalidStepError, /Child with invalid expects/)
+        end
+      end
+
+      context "when expects is present but empty" do
+        let(:blueprints) do
+          {
+            "empty_expects" => {
+              file_path: base_path.join("empty.yml"),
+              file_name: "empty.yml",
+              name: "empty_expects",
+              steps: [
+                {
+                  name: "Empty expects",
+                  line_number: 1,
+                  expects: []
+                }
+              ]
+            }
+          }
+        end
+
+        it "does not raise an error for empty expects" do
+          expect { processor.run }.not_to raise_error
+        end
+      end
+
+      context "when step inherits request from shared config" do
+        let(:blueprints) do
+          {
+            "inherited" => {
+              file_path: base_path.join("inherited.yml"),
+              file_name: "inherited.yml",
+              name: "inherited",
+              steps: [
+                {
+                  name: "Parent",
+                  line_number: 1,
+                  shared: {request: {url: "/api"}},
+                  steps: [
+                    {
+                      name: "Child inherits request",
+                      line_number: 5,
+                      expects: [{status: 200}]
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        end
+
+        it "does not raise an error when request is inherited" do
+          expect { processor.run }.not_to raise_error
+        end
+      end
+    end
+  end
+
   describe ".run" do
     context "with full pipeline integration" do
       let(:blueprints) do

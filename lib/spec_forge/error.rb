@@ -239,6 +239,29 @@ module SpecForge
     end
 
     #
+    # Raised when a step has an invalid configuration
+    #
+    # Common cases:
+    # - Action attributes (request, expect, call, debug, store) combined with steps
+    # - Expects defined without a corresponding request
+    #
+    class InvalidStepError < Error
+      def initialize(message, step = nil)
+        if step
+          step_name = step[:name].presence || "(unnamed)"
+
+          line_info = if (source = step[:source])
+            "#{source[:file_name]}:#{source[:line_number]}"
+          end
+
+          message = "Step #{step_name.in_quotes} [#{line_info}]: #{message}"
+        end
+
+        super(message)
+      end
+    end
+
+    #
     # Raised when an error occurs while loading a step during blueprint processing
     #
     # Wraps the original error with step context information to help identify
