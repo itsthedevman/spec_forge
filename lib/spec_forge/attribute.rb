@@ -62,6 +62,8 @@ module SpecForge
         case string
         when Template::REGEX
           Template
+        when Environment::KEYWORD_REGEX
+          Environment
         when Factory::KEYWORD_REGEX
           Factory
         when Faker::KEYWORD_REGEX
