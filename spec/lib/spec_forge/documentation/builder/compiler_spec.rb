@@ -74,20 +74,19 @@ RSpec.describe SpecForge::Documentation::Builder::Compiler do
     it "includes required keys in each operation" do
       operation = compiled["/api/v10/users/@me"]["GET"]
 
-      expect(operation).to include(:id, :description, :parameters, :requests, :responses)
+      expect(operation).to include(:id, :summary, :parameters, :requests, :responses)
     end
 
-    it "generates unique IDs for operations" do
+    it "generates camelCase IDs from method and path" do
       operation = compiled["/api/v10/users/@me"]["GET"]
 
-      expect(operation[:id]).to start_with("id_")
-      expect(operation[:id]).to match(/^id_[0-9a-f-]{36}$/)
+      expect(operation[:id]).to eq("getApiV10UsersMe")
     end
 
-    it "generates placeholder descriptions" do
+    it "generates summary from method and path" do
       operation = compiled["/api/v10/users/@me"]["GET"]
 
-      expect(operation[:description]).to start_with("description_")
+      expect(operation[:summary]).to eq("GET /api/v10/users/@me")
     end
 
     describe "parameters" do
