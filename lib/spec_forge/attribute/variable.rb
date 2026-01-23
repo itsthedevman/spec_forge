@@ -47,15 +47,13 @@ module SpecForge
       # @raise [Error::MissingVariableError] If the variable is not defined
       #
       def base_object
-        @base_object ||= begin
-          variables = Forge.context&.variables || {}
+        variables = Forge.context&.variables || {}
 
-          if !variables.key?(variable_name)
-            raise Error::MissingVariableError.new(variable_name, available_variables: variables.keys)
-          end
-
-          variables[variable_name]
+        if !variables.key?(variable_name)
+          raise Error::MissingVariableError.new(variable_name, available_variables: variables.keys)
         end
+
+        variables[variable_name]
       end
     end
   end
