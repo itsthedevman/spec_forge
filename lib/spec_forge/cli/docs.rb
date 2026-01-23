@@ -58,8 +58,9 @@ module SpecForge
       option "--format=FORMAT", "Output format: yml/yaml or json (default: yml)"
       option "--output=PATH", "Full file path for generated documentation"
       option "--skip-validation", "Skip OpenAPI specification validation during generation"
-
-      # TODO: Add verbosity flags for Forge
+      option "--verbose", "Show detailed step execution (verbosity level 1)"
+      option "--debug", "Show full request/response for failures (verbosity level 2)"
+      option "--trace", "Show everything for all steps (verbosity level 3)"
 
       #
       # Generates OpenAPI documentation from tests

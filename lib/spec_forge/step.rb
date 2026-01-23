@@ -30,7 +30,15 @@ module SpecForge
     # @return [Boolean] Whether this step has store operations
     attr_predicate :calls, :debug, :expects, :hooks, :request, :store
 
-    # TODO: Documentation
+    #
+    # Creates a new Step from normalized YAML data
+    #
+    # Transforms raw step data into structured objects for execution.
+    # Converts requests, expectations, hooks, and other attributes
+    # into their runtime representations.
+    #
+    # @param step [Hash] Normalized step data from YAML
+    #
     def initialize(**step)
       step[:calls] = transform_calls(step[:calls])
       step[:debug] = step[:debug] == true

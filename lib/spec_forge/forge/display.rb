@@ -67,11 +67,26 @@ module SpecForge
         verbosity_level >= 3
       end
 
+      #
+      # Outputs a blank line for visual separation
+      #
+      # @return [void]
+      #
       def empty_line
         puts ""
       end
 
-      # TODO: Documentation (see #format)
+      #
+      # Displays an action message with optional symbol indicator
+      #
+      # Only shown when verbosity is above default (0). Used to indicate
+      # step actions like callbacks, requests, and store operations.
+      #
+      # @param message [String] The action message to display
+      # @param options [Hash] Formatting options passed to #format
+      #
+      # @return [void]
+      #
       def action(message, **options)
         return if default_mode?
 
@@ -153,7 +168,16 @@ module SpecForge
         end
       end
 
-      # TODO: Documentation
+      #
+      # Called when the forge run begins
+      #
+      # Displays a header line indicating the forge has started.
+      # Only shown in verbose modes.
+      #
+      # @param forge [Forge] The forge instance starting
+      #
+      # @return [void]
+      #
       def forge_start(forge)
         return if default_mode?
 
@@ -163,7 +187,16 @@ module SpecForge
         puts "#{line} #{filler}"
       end
 
-      # TODO: Documentation
+      #
+      # Called when a blueprint begins execution
+      #
+      # Displays a header line with the blueprint name.
+      # Only shown in verbose modes.
+      #
+      # @param blueprint [Blueprint] The blueprint starting
+      #
+      # @return [void]
+      #
       def blueprint_start(blueprint)
         return if default_mode?
 
@@ -280,7 +313,16 @@ module SpecForge
         puts "#{line} #{filler}"
       end
 
-      # TODO: Documentation
+      #
+      # Displays final statistics and any failures from the forge run
+      #
+      # Shows failure details (if any), summary counts for blueprints,
+      # steps, expectations, and failures, plus total execution time.
+      #
+      # @param forge [Forge] The completed forge instance
+      #
+      # @return [void]
+      #
       def stats(forge)
         puts ""
 

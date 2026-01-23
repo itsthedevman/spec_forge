@@ -27,10 +27,10 @@ module SpecForge
       # It instantiates a Builder, extracts endpoints, compiles them,
       # and returns a structured Document object.
       #
-      # @param base_path [String, Pathname, nil] Base directory for blueprint files
-      # @param paths [String, Pathname, nil] Specific blueprint file paths
-      # @param verbosity_level [Integer] Output verbosity (0 = silent)
-      # @param use_cache [Boolean] Whether to use cached endpoint data if available
+      # @option base_path [String, Pathname, nil] Base directory for blueprint files
+      # @option paths [String, Pathname, nil] Specific blueprint file paths
+      # @option verbosity_level [Integer] Output verbosity (0 = silent)
+      # @option use_cache [Boolean] Whether to use cached endpoint data if available
       #
       # @return [Document] A structured document containing all API endpoints
       #

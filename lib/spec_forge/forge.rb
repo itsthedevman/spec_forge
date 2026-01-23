@@ -23,7 +23,15 @@ module SpecForge
         self
       end
 
-      # TODO: Documentation
+      #
+      # Creates and runs a new Forge instance with the given blueprints
+      #
+      # @param blueprints [Array<Blueprint>] The blueprints to execute
+      # @option verbosity_level [Integer] Output verbosity (0-3)
+      # @option hooks [Hash] Forge-level event hooks
+      #
+      # @return [void]
+      #
       def run(blueprints, **)
         new(blueprints, **).run
       end
@@ -79,7 +87,7 @@ module SpecForge
     # @return [Array<Hash>] List of failed expectations
     attr_reader :failures
 
-    # TODO: documentation
+    # @return [Hash{Symbol => Array<Step::Call>}] Forge-level before and after hooks
     attr_reader :hooks
 
     # @return [HTTP::Client] HTTP client for making requests

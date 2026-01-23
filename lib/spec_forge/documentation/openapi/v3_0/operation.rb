@@ -20,7 +20,11 @@ module SpecForge
           #
           attr_reader :document
 
-          # TODO: Docs
+          #
+          # Creates a new Operation from a document
+          #
+          # @param document [Object] The document containing operation data
+          #
           def initialize(document)
             @document = document
           end

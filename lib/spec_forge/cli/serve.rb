@@ -62,7 +62,10 @@ module SpecForge
       option "--ui=UI", "Documentation interface: swagger or redoc (default: swagger)"
       option "--port=PORT", "Port to serve documentation on (default: 8080)"
 
-      # TODO: Add verbosity flags for Forge
+      # Verbosity options
+      option "--verbose", "Show detailed step execution (verbosity level 1)"
+      option "--debug", "Show full request/response for failures (verbosity level 2)"
+      option "--trace", "Show everything for all steps (verbosity level 3)"
 
       aliases :s
 

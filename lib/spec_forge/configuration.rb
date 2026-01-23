@@ -42,7 +42,7 @@ module SpecForge
     # @return [Hash{Symbol => Proc}] Registered callbacks
     attr_reader :callbacks
 
-    # TODO: Docs
+    # @return [Hash{Symbol => Array}] Global lifecycle hooks for forge, blueprint, and step events
     attr_reader :hooks
 
     #

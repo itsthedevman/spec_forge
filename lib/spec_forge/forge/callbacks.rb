@@ -48,7 +48,17 @@ module SpecForge
         @callbacks.key?(name.to_sym)
       end
 
-      # TODO: documentation
+      #
+      # Executes a registered callback by name
+      #
+      # @param name [String, Symbol] The callback name to execute
+      # @param context [Forge::Context, nil] The current execution context
+      # @param arguments [Array, Hash] Arguments to pass to the callback
+      #
+      # @return [Object] The return value of the callback
+      #
+      # @raise [Error::UndefinedCallbackError] If the callback is not registered
+      #
       def run(name, context = nil, arguments = [])
         raise Error::UndefinedCallbackError.new(name, @callbacks.keys) unless registered?(name)
 

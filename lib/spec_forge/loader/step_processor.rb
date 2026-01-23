@@ -30,7 +30,16 @@ module SpecForge
         }
       end
 
-      # TODO: Documentation
+      #
+      # Processes all blueprints and returns the flattened, normalized steps
+      #
+      # Performs two passes over the blueprints:
+      # 1. Preprocessing: normalizes steps and assigns source information
+      # 2. Main processing: expands includes, inherits shared config, extracts
+      #    hooks, applies tags, and flattens nested step hierarchies
+      #
+      # @return [Array<Array<Hash>, Hash>] Tuple of processed blueprints and forge hooks
+      #
       def run
         # Do a preprocessing pass to ensure all steps are normalized and ready to be referenced
         @blueprints.each do |name, blueprint|

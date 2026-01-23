@@ -9,7 +9,13 @@ module SpecForge
     # Callbacks can receive the current context and optional arguments.
     #
     class Call < Action
-      # TODO: Documentation
+      #
+      # Executes all callbacks defined in the step's call: attribute
+      #
+      # @param forge [Forge] The forge instance for accessing callbacks and display
+      #
+      # @return [void]
+      #
       def run(forge)
         context = SpecForge::Forge.context
 

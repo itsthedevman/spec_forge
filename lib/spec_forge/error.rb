@@ -64,7 +64,6 @@ module SpecForge
     #
     class InvalidTransformFunctionError < Error
       def initialize(input)
-        # TODO: Update link to docs
         super(<<~STRING.chomp
           Undefined transform function "#{input}".
 

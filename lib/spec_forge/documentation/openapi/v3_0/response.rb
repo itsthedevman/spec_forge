@@ -20,7 +20,11 @@ module SpecForge
           #
           attr_reader :document
 
-          # TODO: Docs
+          #
+          # Creates a new Response from a document
+          #
+          # @param document [Object] The document containing response data
+          #
           def initialize(document)
             @document = document
           end
@@ -73,7 +77,7 @@ module SpecForge
             return nil if document.headers.blank?
 
             document.headers.transform_values do |header|
-              { schema: header }
+              {schema: header}
             end
           end
         end

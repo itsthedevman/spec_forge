@@ -2,7 +2,12 @@
 
 module SpecForge
   module Documentation
-    # TODO: Docs
+    #
+    # OpenAPI specification generation and version management
+    #
+    # Provides version-aware access to OpenAPI generators and validators.
+    # Supports multiple OpenAPI versions through semantic versioning matching.
+    #
     module OpenAPI
       #
       # Current OpenAPI version used as default
@@ -13,12 +18,24 @@ module SpecForge
       #
       CURRENT_VERSION = V30::CURRENT_VERSION
 
-      # TODO: Docs
+      #
+      # Mapping of semantic versions to their generator classes
+      #
+      # @return [Hash{SemVersion => Class}]
+      #
       VERSIONS = {
         V30.to_sem_version => V30
       }.freeze
 
-      # TODO: Docs
+      #
+      # Returns the generator class for the specified OpenAPI version
+      #
+      # @param version [String, SemVersion] The OpenAPI version (e.g., "3.0")
+      #
+      # @return [Class] The generator class for the requested version
+      #
+      # @raise [ArgumentError] If the version is not supported
+      #
       def self.[](version)
         version = SemVersion.from_loose_version(version)
         generator = VERSIONS.value_where { |k, _v| k.satisfies?("~> #{version}") }

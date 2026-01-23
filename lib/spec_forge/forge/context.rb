@@ -2,7 +2,12 @@
 
 module SpecForge
   class Forge
-    # TODO: documentation
+    #
+    # Immutable execution context passed to callbacks and hooks
+    #
+    # Contains the current state during forge execution including
+    # variables, the current blueprint and step, and any error that occurred.
+    #
     class Context < Data.define(:variables, :blueprint, :step, :error)
       def initialize(**context)
         context[:variables] ||= nil
@@ -13,12 +18,20 @@ module SpecForge
         super(context)
       end
 
-      # TODO: Documentation
+      #
+      # Returns whether the context represents a successful state
+      #
+      # @return [Boolean] True if no error is present
+      #
       def success?
         error.nil?
       end
 
-      # TODO: Documentation
+      #
+      # Returns whether the context represents a failed state
+      #
+      # @return [Boolean] True if an error is present
+      #
       def failure?
         !success?
       end
