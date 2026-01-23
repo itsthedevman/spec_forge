@@ -302,12 +302,25 @@ json:
       value: "{{ faker.string.alphanumeric }}"
 ```
 
-**With template:**
+**With sequential values:**
+
+The special variable `index` (0-based) is available within `value` expressions:
 
 ```yaml
 generate.array:
   size: 50
-  template: "user_{{ index }}"  # index available in template
+  value: "user_{{ index }}"  # Generates: user_0, user_1, ..., user_49
+```
+
+**Combined patterns:**
+
+```yaml
+generate.array:
+  size: 10
+  value: "{{ faker.internet.username }}_{{ index }}"  # random_user_0, random_user_1, ...
+```
+
+**Note:** `index` is a reserved keyword during array generation and will override any stored variable with the same name.
 ```
 
 ---
