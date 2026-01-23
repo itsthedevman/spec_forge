@@ -90,6 +90,12 @@ RSpec.describe SpecForge::Attribute do
         it { is_expected.to be_kind_of(described_class::Factory) }
       end
 
+      context "and it is the generate macro" do
+        let(:input) { {"generate.array": {size: 3, value: "test"}} }
+
+        it { is_expected.to be_kind_of(described_class::Generate) }
+      end
+
       context "and it is not an expanded macro" do
         let(:input) { {foo: "foo", bar: "bar"} }
 

@@ -94,6 +94,8 @@ module SpecForge
 
       if has_macro.call(hash, Transform::KEYWORD_REGEX)
         Transform.from_hash(hash)
+      elsif has_macro.call(hash, Generate::KEYWORD_REGEX)
+        Generate.from_hash(hash)
       elsif has_macro.call(hash, Faker::KEYWORD_REGEX)
         Faker.from_hash(hash)
       elsif has_macro.call(hash, Matcher::KEYWORD_REGEX)
