@@ -50,7 +50,7 @@ module SpecForge
         # Remove prefix
         @function = @input.sub("transform.", "")
 
-        raise Error::InvalidTransformFunctionError, input unless TRANSFORM_METHODS.include?(function)
+        raise Error::InvalidTransformFunctionError.new(input, TRANSFORM_METHODS) unless TRANSFORM_METHODS.include?(function)
 
         prepare_arguments
       end

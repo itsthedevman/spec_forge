@@ -63,11 +63,30 @@ module SpecForge
     # Indicates when a transform name isn't supported
     #
     class InvalidTransformFunctionError < Error
-      def initialize(input)
+      def initialize(input, valid_functions)
+        formatted_functions = valid_functions.join_map(", ") { |f| "transform.#{f}".in_quotes }
+
         super(<<~STRING.chomp
           Undefined transform function "#{input}".
 
-          For available functions, please check https://github.com/itsthedevman/spec_forge.
+          Valid functions: #{formatted_functions}
+        STRING
+        )
+      end
+    end
+
+    #
+    # Raised when an unknown generation function is referenced
+    # Indicates when a generation name isn't supported
+    #
+    class InvalidGenerateFunctionError < Error
+      def initialize(input, valid_functions)
+        formatted_functions = valid_functions.join_map(", ") { |f| "generate.#{f}".in_quotes }
+
+        super(<<~STRING.chomp
+          Undefined generate function "#{input}".
+
+          Valid functions: #{formatted_functions}
         STRING
         )
       end
