@@ -4,13 +4,13 @@
 # Framework Integration
 ##########################################
 
-# Rails Integration
+## Rails Integration
 # require_relative "../config/environment"
 
-# RSpec Integration (includes your existing configurations)
+## RSpec Integration (includes your existing configurations)
 # require_relative "../spec/spec_helper"
 
-# Custom requires (models, libraries, etc)
+## Custom requires (models, libraries, etc)
 # Dir[File.join(__dir__, "..", "lib", "**", "*.rb")].sort.each { |f| require f }
 
 ##########################################
@@ -21,29 +21,49 @@ SpecForge.configure do |config|
   # Base URL for all requests
   config.base_url = "http://localhost:3000"
 
-  # Global variables (available in all blueprints via {{ variable_name }})
-  # Use for shared values like auth tokens, API versions, etc.
+  ## Global variables (available in all blueprints via {{ variable_name }})
+  ## Use for shared values like auth tokens, API versions, etc.
   # config.global_variables = {
   #   api_version: "v1",
   #   auth_header: "Bearer #{ENV['API_TOKEN']}"
   # }
 
-  # Factory configuration
+  ## Factory configuration
   # config.factories.auto_discover = false        # Default: true
   # config.factories.paths += ["lib/factories"]   # Adds to default paths
 
-  # Debug configuration
+  ## Debug configuration
   # Triggers when debug: true is set on a step
   # config.on_debug { binding.pry }
 
-  # Callbacks
-  # Register reusable callbacks for use with `call:` in blueprints
-  # config.register_callback("seed_database") do |context, count: 10|
-  #   # context.variables - access stored values
+  ## Callbacks and Hooks
+  # Register reusable callbacks for use with `call:` in blueprints or lifecycle hooks
+
+  ## Basic callback registration
+  # config.register_callback(:seed_database) do |context|
+  #   User.create!(email: "test@test.com")
   # end
 
-  # Test Framework Configuration
-  # config.specs.before(:suite) { }
-  # config.specs.around { |example| example.run }
-  # config.specs.formatter = :documentation
+  ## With arguments
+  # config.register_callback(:create_records) do |context, count:, type:|
+  #   count.times { type.constantize.create! }
+  # end
+
+  ## Complete example: Database cleanup
+  # config.register_callback(:cleanup_db) do |context|
+  #   DatabaseCleaner.clean
+  # end
+  # 
+  # config.after(:forge, :cleanup_db)  # Runs once after all tests
+
+  ## Hooks can also be defined directly (useful for simple one-off hooks)
+  # config.after(:step) do |context|
+  #   next unless context.step.request?
+  #
+  #   request = context.variables[:request]
+  #   puts "→ #{request[:http_verb]} #{request[:url]}"
+  # end
+
+  ## Test Framework Configuration
+  # config.rspec.formatter = :documentation
 end
