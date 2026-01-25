@@ -59,16 +59,15 @@ tags:
     - '["integration", "slow"]'
 
 documentation:
-  type: hash
-  default: {}
+  type: boolean
+  default: true
   description: |-
-    Metadata for OpenAPI documentation generation. Contains information
-    about the API endpoint being tested, used when generating API docs.
+    Controls whether this step is included in OpenAPI documentation generation.
+    Set to false to exclude a step from the generated API docs while still
+    executing the step during test runs.
   examples:
-    - |-
-      summary: "Creates a new user"
-      description: "Registers a user account with email and password"
-      tags: ["users", "authentication"]
+    - true
+    - false
 
 # -----------------------------------------------------------------------------
 # Request Configuration
