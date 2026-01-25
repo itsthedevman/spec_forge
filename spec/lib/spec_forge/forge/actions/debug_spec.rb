@@ -47,5 +47,31 @@ RSpec.describe SpecForge::Forge::Debug do
 
       expect(tracker[:called]).to be(true)
     end
+
+    context "when callback accepts an argument" do
+      let(:tracker) { {called: false, context: nil} }
+
+      before do
+        t = tracker
+        SpecForge.configure do |config|
+          config.on_debug { |ctx|
+            t[:called] = true
+            t[:context] = ctx
+          }
+        end
+
+        allow(SpecForge::Forge).to receive(:context).and_return(
+          SpecForge::Forge::Context.new(variables: {})
+        )
+      end
+
+      it "passes the context with step to the callback" do
+        run
+
+        expect(tracker[:called]).to be(true)
+        expect(tracker[:context]).to be_a(SpecForge::Forge::Context)
+        expect(tracker[:context].step).to eq(step)
+      end
+    end
   end
 end

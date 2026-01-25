@@ -35,7 +35,12 @@ module SpecForge
           STRING
         end
 
-        callback.call(SpecForge::Forge.context)
+        if callback.arity == 1
+          context = SpecForge::Forge.context.with(step:)
+          callback.call(context)
+        else
+          callback.call
+        end
       end
     end
   end
