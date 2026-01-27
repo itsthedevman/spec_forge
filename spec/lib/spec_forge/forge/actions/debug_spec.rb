@@ -11,6 +11,7 @@ RSpec.describe SpecForge::Forge::Debug do
 
   let(:display) { instance_double(SpecForge::Forge::Display, action: nil) }
   let(:forge) { instance_double(SpecForge::Forge, display: display) }
+  let(:blueprint) { instance_double(SpecForge::Blueprint) }
 
   subject(:action) { described_class.new(step) }
 
@@ -21,7 +22,7 @@ RSpec.describe SpecForge::Forge::Debug do
   end
 
   describe "#run" do
-    subject(:run) { action.run(forge) }
+    subject(:run) { action.run(forge, blueprint) }
 
     let(:tracker) { {called: false} }
 

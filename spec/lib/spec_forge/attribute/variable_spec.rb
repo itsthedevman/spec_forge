@@ -234,6 +234,40 @@ RSpec.describe SpecForge::Attribute::Variable do
     end
   end
 
+  context "when accessing deeply nested response body data" do
+    let(:input) { "response.body.users.0.profile.settings.notifications.email" }
+
+    let(:variables) do
+      {
+        response: {
+          status: 200,
+          headers: {"content-type" => "application/json"},
+          body: {
+            "users" => [
+              {
+                "id" => 1,
+                "profile" => {
+                  "settings" => {
+                    "notifications" => {
+                      "email" => true,
+                      "sms" => false
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
+    end
+
+    it "is expected to resolve the deeply nested value" do
+      with_variables(variables) do
+        expect(variable.value).to be(true)
+      end
+    end
+  end
+
   #
   # Scenario:
   #
