@@ -1212,7 +1212,7 @@ SpecForge.configure do |config|
     DatabaseCleaner.start
   end
   
-  config.register_callback(:log_step) do |context, step:|
+  config.register_callback(:log_step) do |context|
     logger.info("Completed: #{step.name}")
   end
   
@@ -1334,7 +1334,7 @@ User callback
 All callbacks receive a `context` parameter providing access to runtime state:
 
 ```ruby
-config.register_callback(:log_vars) do |context, step:|
+config.register_callback(:log_vars) do |context|
   context.variables  # Current variable state
 end
 
@@ -1351,8 +1351,8 @@ config.after(:step, :log_vars)
 Callbacks can use guards to execute only for specific step types. The `step` parameter provides predicates for checking step attributes:
 
 ```ruby
-config.register_callback(:log_requests) do |context, step:|
-  next unless step.request?
+config.register_callback(:log_requests) do |context|
+  next unless context.step.request?
   
   request = context.variables[:request]
   puts "→ #{request[:http_verb]} #{request[:url]}"
@@ -1375,22 +1375,23 @@ step.store?     # Has store: attribute
 
 ```ruby
 # Only validate state after requests
-config.register_callback(:validate_db_state) do |context, step:|
-  next unless step.request?
+config.register_callback(:validate_db_state) do |context|
+  next unless context.step.request?
   # Check database consistency
 end
 
 # Log response details only when expectations exist
-config.register_callback(:log_validation) do |context, step:|
-  next unless step.expect?
+config.register_callback(:log_validation) do |context|
+  next unless context.step.expect?
   
   response = context.variables[:response]
   puts "Validated: #{response[:status]}"
 end
 
 # Skip hooks for specific steps
-config.register_callback(:cleanup_cache) do |context, step:|
-  next if step.name.include?("Setup")
+config.register_callback(:cleanup_cache) do |context|
+  next if context.step.name.include?("Setup")
+
   Cache.clear
 end
 ```
@@ -1771,6 +1772,118 @@ end
 - You need to change the value in one place
 
 **Never try to add global headers to config** - the patterns above handle all real-world cases more explicitly and maintainably.
+
+---
+
+## Factory File Structure Simplification
+
+### Change Summary
+Moving from nested factory definitions to a flat, file-based structure where the filename determines the factory name.
+
+### Current Structure (0.7)
+```yaml
+# factories/user.yml
+user:
+  variables:
+    team_size:
+      faker.number.between:
+        from: 5
+        to: 20
+  attributes:
+    team_count: "{{ team_size }}"
+```
+
+### New Structure (1.0)
+```yaml
+# factories/user.yml
+variables:
+  team_size:
+    faker.number.between:
+      from: 5
+      to: 20
+
+traits:
+  admin:
+    attributes:
+      role: "admin"
+
+attributes:
+  name: "{{ faker.name }}"
+  team_count: "{{ team_size }}"
+```
+
+### Rationale
+- **No duplication**: The filename already declares the factory name - no need to repeat it in the YAML
+- **Cleaner structure**: Root-level sections are more readable and less nested
+- **Consistent with test files**: Aligns with SpecForge's general pattern of file-based organization
+- **One factory per file**: Optimizes for the common case rather than edge cases
+
+### Root-Level Sections
+
+**`variables:`** (optional)  
+Template-time computation helpers for calculating attribute values. These are evaluated when the factory is built, not during test execution.
+
+**`traits:`** (optional)  
+Named variations that modify or extend the base factory definition.
+
+**`attributes:`** (required)  
+The core attributes to set on the created record.
+
+**`model_class:`** (optional, scalar)  
+Override the model class when the factory name differs from the model name.
+
+### Examples
+
+**Basic factory:**
+```yaml
+# factories/user.yml
+attributes:
+  email: "{{ faker.internet.email }}"
+  name: "{{ faker.name }}"
+```
+
+**With variables:**
+```yaml
+# factories/order.yml
+variables:
+  random_total:
+    faker.number.decimal:
+      l_digits: 3
+      r_digits: 2
+
+attributes:
+  total: "{{ random_total }}"
+  status: "pending"
+```
+
+**With model class override:**
+```yaml
+# factories/admin_user.yml
+model_class: User
+
+attributes:
+  email: "{{ faker.internet.email }}"
+  role: "admin"
+```
+
+**With traits:**
+```yaml
+# factories/post.yml
+attributes:
+  title: "{{ faker.lorem.sentence }}"
+  status: "draft"
+
+traits:
+  published:
+    attributes:
+      status: "published"
+      published_at: "{{ Time.now }}"
+```
+
+### Migration Notes
+- Existing factories need to be unwrapped - remove the top-level factory name key
+- `variables:` replaces the nested `variables:` section but maintains the same functionality
+- No changes to how factories are called from tests (`generate`, `build`, etc.)
 
 ---
 
