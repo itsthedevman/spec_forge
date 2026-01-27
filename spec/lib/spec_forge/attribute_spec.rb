@@ -72,10 +72,10 @@ RSpec.describe SpecForge::Attribute do
         it { is_expected.to be_kind_of(described_class::Faker) }
       end
 
-      context "and it is the transform macro" do
-        let(:input) { {"transform.join": ["foo", "bar"]} }
+      context "and it is the be macro" do
+        let(:input) { {"be.nil": nil} }
 
-        it { is_expected.to be_kind_of(described_class::Transform) }
+        it { is_expected.to be_kind_of(described_class::Matcher) }
       end
 
       context "and it is the matcher macro" do
@@ -138,9 +138,10 @@ RSpec.describe SpecForge::Attribute do
               "faker.number.positive",
               {
                 key_1: {
-                  "transform.join" => [
-                    "foo", " ", "bar"
-                  ]
+                  "faker.number.between" => {
+                    from: 1,
+                    to: 10
+                  }
                 }
               }
             ]
@@ -156,7 +157,7 @@ RSpec.describe SpecForge::Attribute do
           expect(array.first).to be_kind_of(described_class::Faker)
 
           hash_value = array.second.value[:key_1]
-          expect(hash_value).to be_kind_of(described_class::Transform)
+          expect(hash_value).to be_kind_of(described_class::Faker)
         end
       end
     end
@@ -238,9 +239,10 @@ RSpec.describe SpecForge::Attribute do
           Faker::Number.positive, # Literal
           {
             key_1: {
-              "transform.join" => [
-                "foo", " ", "bar"
-              ]
+              "faker.number.between" => {
+                from: 1,
+                to: 10
+              }
             }
           }
         ]
@@ -257,7 +259,7 @@ RSpec.describe SpecForge::Attribute do
           be_kind_of(String),
           be_kind_of(Numeric),
           {
-            key_1: "foo bar"
+            key_1: be_between(1, 10)
           }
         ]
       ])
