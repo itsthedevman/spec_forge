@@ -21,7 +21,7 @@ module SpecForge
           hooks = forge.hooks[:before]
           return if hooks.blank?
 
-          context = SpecForge::Forge.context
+          context = SpecForge::Forge.context.with(forge:)
           run(forge, context, hooks)
         end
 
@@ -37,7 +37,7 @@ module SpecForge
           hooks = blueprint.hooks[:before]
           return if hooks.blank?
 
-          context = SpecForge::Forge.context.with(blueprint:)
+          context = SpecForge::Forge.context.with(forge:, blueprint:)
           run(forge, context, hooks, trailing_newline: true)
         end
 
@@ -49,11 +49,11 @@ module SpecForge
         #
         # @return [void]
         #
-        def before_step(forge, step)
+        def before_step(forge, blueprint, step)
           hooks = step.hooks[:before]
           return if hooks.blank?
 
-          context = SpecForge::Forge.context.with(step:)
+          context = SpecForge::Forge.context.with(forge:, blueprint:, step:)
           run(forge, context, hooks, trailing_newline: true)
         end
 
@@ -66,11 +66,11 @@ module SpecForge
         #
         # @return [void]
         #
-        def after_step(forge, step, error: nil)
+        def after_step(forge, blueprint, step, error: nil)
           hooks = step.hooks[:after]
           return if hooks.blank?
 
-          context = SpecForge::Forge.context.with(step:, error:)
+          context = SpecForge::Forge.context.with(forge:, blueprint:, step:, error:)
           run(forge, context, hooks, leading_newline: true)
         end
 
@@ -86,7 +86,7 @@ module SpecForge
           hooks = blueprint.hooks[:after]
           return if hooks.blank?
 
-          context = SpecForge::Forge.context.with(blueprint:)
+          context = SpecForge::Forge.context.with(forge:, blueprint:)
           run(forge, context, hooks)
         end
 
@@ -101,7 +101,7 @@ module SpecForge
           hooks = forge.hooks[:after]
           return if hooks.blank?
 
-          context = SpecForge::Forge.context
+          context = SpecForge::Forge.context.with(forge:)
           run(forge, context, hooks)
         end
 

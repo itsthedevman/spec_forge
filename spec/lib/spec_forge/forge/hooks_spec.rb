@@ -2,6 +2,8 @@
 
 RSpec.describe "Forge: Hooks", :integration do
   let(:hook_tracker) { [] }
+  let(:context_tracker) { {} }
+  let(:capture_context) { false }
   let(:forge_hooks) { {} }
 
   let(:load_results) do
@@ -19,41 +21,74 @@ RSpec.describe "Forge: Hooks", :integration do
   subject(:forge) { SpecForge::Forge.new(blueprints, verbosity_level: 0, hooks: forge_hooks) }
 
   before do
+    # Capture references for use in callbacks
+    tracker = hook_tracker
+    ctx_tracker = context_tracker
+    should_capture = capture_context
+
     # Forge-level hooks
-    forge.callbacks.register(:setup_test_environment) { hook_tracker << :setup_test_environment }
-    forge.callbacks.register(:teardown_test_environment) { hook_tracker << :teardown_test_environment }
+    forge.callbacks.register(:setup_test_environment) do |context|
+      tracker << :setup_test_environment
+      ctx_tracker[:before_forge] = context if should_capture
+    end
+
+    forge.callbacks.register(:teardown_test_environment) do |context|
+      tracker << :teardown_test_environment
+      ctx_tracker[:after_forge] = context if should_capture
+    end
 
     # Blueprint-level hooks
-    forge.callbacks.register(:seed_database) { hook_tracker << :seed_database }
-    forge.callbacks.register(:cleanup_database) { hook_tracker << :cleanup_database }
-    forge.callbacks.register(:duplicate_blueprint_hook) { hook_tracker << :duplicate_blueprint_hook }
+    forge.callbacks.register(:seed_database) do |context|
+      tracker << :seed_database
+      ctx_tracker[:before_blueprint] = context if should_capture
+    end
+
+    forge.callbacks.register(:cleanup_database) do |context|
+      tracker << :cleanup_database
+      ctx_tracker[:after_blueprint] = context if should_capture
+    end
+
+    forge.callbacks.register(:duplicate_blueprint_hook) { tracker << :duplicate_blueprint_hook }
 
     # Global step hooks
-    forge.callbacks.register(:global_step_logger) { hook_tracker << :global_step_logger }
-    forge.callbacks.register(:global_step_cleanup) { hook_tracker << :global_step_cleanup }
+    forge.callbacks.register(:global_step_logger) do |context|
+      tracker << :global_step_logger
+      if should_capture
+        ctx_tracker[:before_step] ||= []
+        ctx_tracker[:before_step] << context
+      end
+    end
+
+    forge.callbacks.register(:global_step_cleanup) do |context|
+      tracker << :global_step_cleanup
+      if should_capture
+        ctx_tracker[:after_step] ||= []
+        ctx_tracker[:after_step] << context
+      end
+    end
 
     # Auth section hooks
-    forge.callbacks.register(:auth_logger) { hook_tracker << :auth_logger }
-    forge.callbacks.register(:auth_validator) { hook_tracker << :auth_validator }
+    forge.callbacks.register(:auth_logger) { tracker << :auth_logger }
+    forge.callbacks.register(:auth_validator) { tracker << :auth_validator }
 
     # User operations hooks
-    forge.callbacks.register(:user_operation_logger) { hook_tracker << :user_operation_logger }
+    forge.callbacks.register(:user_operation_logger) { tracker << :user_operation_logger }
 
     # Nested workflow hooks
-    forge.callbacks.register(:outer_logger) { hook_tracker << :outer_logger }
-    forge.callbacks.register(:middle_logger) { hook_tracker << :middle_logger }
-    forge.callbacks.register(:inner_logger) { hook_tracker << :inner_logger }
+    forge.callbacks.register(:outer_logger) { tracker << :outer_logger }
+    forge.callbacks.register(:middle_logger) { tracker << :middle_logger }
+    forge.callbacks.register(:inner_logger) { tracker << :inner_logger }
 
     # Deduplication hooks
-    forge.callbacks.register(:duplicate_logger) { hook_tracker << :duplicate_logger }
-    forge.callbacks.register(:duplicate_cleanup) { hook_tracker << :duplicate_cleanup }
+    forge.callbacks.register(:duplicate_logger) { tracker << :duplicate_logger }
+    forge.callbacks.register(:duplicate_cleanup) { tracker << :duplicate_cleanup }
 
     # Include context hooks
-    forge.callbacks.register(:include_context_logger) { hook_tracker << :include_context_logger }
-    forge.callbacks.register(:shared_file_logger) { hook_tracker << :shared_file_logger }
+    forge.callbacks.register(:include_context_logger) { tracker << :include_context_logger }
+    forge.callbacks.register(:shared_file_logger) { tracker << :shared_file_logger }
 
     # Valid section callback
-    forge.callbacks.register(:some_callback) { hook_tracker << :some_callback }
+    forge.callbacks.register(:some_callback) { tracker << :some_callback }
 
     # Silence display output
     allow_any_instance_of(SpecForge::Forge::Display).to receive(:puts)
@@ -246,6 +281,72 @@ RSpec.describe "Forge: Hooks", :integration do
       # "VALID - separate action from organization" has call: some_callback
       expect(hook_tracker).to include(:some_callback)
       expect(hook_tracker.count(:some_callback)).to eq(1)
+    end
+  end
+
+  describe "context data" do
+    let(:capture_context) { true }
+
+    it "passes forge to before_forge hook context" do
+      forge.run
+
+      context = context_tracker[:before_forge]
+      expect(context.forge).to eq(forge)
+      expect(context.blueprint).to be_nil
+      expect(context.step).to be_nil
+      expect(context.error).to be_nil
+    end
+
+    it "passes forge to after_forge hook context" do
+      forge.run
+
+      context = context_tracker[:after_forge]
+      expect(context.forge).to eq(forge)
+      expect(context.blueprint).to be_nil
+      expect(context.step).to be_nil
+      expect(context.error).to be_nil
+    end
+
+    it "passes forge and blueprint to before_blueprint hook context" do
+      forge.run
+
+      context = context_tracker[:before_blueprint]
+      expect(context.forge).to eq(forge)
+      expect(context.blueprint).to be_a(SpecForge::Blueprint)
+      expect(context.step).to be_nil
+      expect(context.error).to be_nil
+    end
+
+    it "passes forge and blueprint to after_blueprint hook context" do
+      forge.run
+
+      context = context_tracker[:after_blueprint]
+      expect(context.forge).to eq(forge)
+      expect(context.blueprint).to be_a(SpecForge::Blueprint)
+      expect(context.step).to be_nil
+      expect(context.error).to be_nil
+    end
+
+    it "passes forge, blueprint, and step to before_step hook context" do
+      forge.run
+
+      # Check the first captured context
+      context = context_tracker[:before_step].first
+      expect(context.forge).to eq(forge)
+      expect(context.blueprint).to be_a(SpecForge::Blueprint)
+      expect(context.step).to be_a(SpecForge::Step)
+      expect(context.error).to be_nil
+    end
+
+    it "passes forge, blueprint, and step to after_step hook context" do
+      forge.run
+
+      # Check the first captured context
+      context = context_tracker[:after_step].first
+      expect(context.forge).to eq(forge)
+      expect(context.blueprint).to be_a(SpecForge::Blueprint)
+      expect(context.step).to be_a(SpecForge::Step)
+      expect(context.error).to be_nil
     end
   end
 end

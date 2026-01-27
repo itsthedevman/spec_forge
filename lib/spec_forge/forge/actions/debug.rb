@@ -18,7 +18,7 @@ module SpecForge
       #
       # @raise [Error] If no debug handler is configured
       #
-      def run(forge)
+      def run(forge, blueprint)
         forge.display.action("Debug breakpoint triggered", symbol: :flag, symbol_styles: :yellow)
 
         callback = SpecForge.configuration.on_debug_proc
@@ -36,7 +36,7 @@ module SpecForge
         end
 
         if callback.arity == 1
-          context = SpecForge::Forge.context.with(step:)
+          context = SpecForge::Forge.context.with(forge:, blueprint:, step:)
           callback.call(context)
         else
           callback.call

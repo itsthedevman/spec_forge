@@ -8,9 +8,10 @@ module SpecForge
     # Contains the current state during forge execution including
     # variables, the current blueprint and step, and any error that occurred.
     #
-    class Context < Data.define(:variables, :blueprint, :step, :error)
+    class Context < Data.define(:variables, :forge, :blueprint, :step, :error)
       def initialize(**context)
         context[:variables] ||= nil
+        context[:forge] ||= nil
         context[:blueprint] ||= nil
         context[:step] ||= nil
         context[:error] ||= nil

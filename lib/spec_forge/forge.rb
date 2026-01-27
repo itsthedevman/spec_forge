@@ -144,11 +144,11 @@ module SpecForge
           blueprint_start(blueprint)
 
           blueprint.steps.each do |step|
-            step_start(step)
-            step_action(step)
-            step_end(step)
+            step_start(blueprint, step)
+            step_action(blueprint, step)
+            step_end(blueprint, step)
           rescue => e
-            step_end(step, error: e)
+            step_end(blueprint, step, error: e)
             break
           end
 
@@ -191,29 +191,29 @@ module SpecForge
       Hooks.before_blueprint(self, blueprint)
     end
 
-    def step_start(step)
+    def step_start(blueprint, step)
       @display.step_start(step)
 
-      Hooks.before_step(self, step)
+      Hooks.before_step(self, blueprint, step)
     end
 
-    def step_action(step)
+    def step_action(blueprint, step)
       # HEY! LISTEN: These read and write to the forge's state
       Call.new(step).run(self) if step.calls?
       Request.new(step).run(self) if step.request?
-      Debug.new(step).run(self) if step.debug?
+      Debug.new(step).run(self, blueprint) if step.debug?
       Expect.new(step).run(self) if step.expects?
       Store.new(step).run(self) if step.store?
     end
 
-    def step_end(step, error: nil)
+    def step_end(blueprint, step, error: nil)
       @stats[:steps] += 1
 
       if error.is_a?(Error::ExpectationFailure)
         @failures += error.failed_examples.map { |example| {step:, example:} }
       end
 
-      Hooks.after_step(self, step, error:)
+      Hooks.after_step(self, blueprint, step, error:)
 
       @display.step_end(self, step, error:)
 
