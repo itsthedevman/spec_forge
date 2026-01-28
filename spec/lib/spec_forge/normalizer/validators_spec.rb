@@ -122,6 +122,15 @@ RSpec.describe SpecForge::Normalizer::Validators do
 
       expect { validator.json_schema(schema) }.not_to raise_error
     end
+
+    it "accepts 'types' as an alias for 'type'" do
+      schema = {
+        types: "array",
+        pattern: {types: "string"}
+      }
+
+      expect { validator.json_schema(schema) }.not_to raise_error
+    end
   end
 
   describe "#callback" do

@@ -22,6 +22,7 @@ type:
   type:
     - array
     - string
+  aliases: ["types"]
   description: |-
     The expected type of the JSON value. Can be a single type or an
     array of allowed types for union types. Prefix with ? to allow null.
