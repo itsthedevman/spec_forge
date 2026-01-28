@@ -34,6 +34,21 @@ variables:
       company_name: "Test Corp"
       department: "Engineering"
 
+traits:
+  type: hash
+  default: {}
+  description: |-
+    Named variations that modify or extend the base factory definition.
+    Each trait defines attribute overrides that are applied when the trait is used.
+    Traits are applied when building using FactoryBot.
+  examples:
+    - |-
+      traits:
+        admin:
+          role: "admin"
+        verified:
+          verified_at: "{{ Time.now }}"
+
 attributes:
   type: hash
   default: {}

@@ -12,6 +12,19 @@
 #     strategy: build
 # =============================================================================
 
+traits:
+  type: array
+  default: []
+  aliases:
+    - trait
+  description: |-
+    FactoryBot traits to apply to this factory invocation.
+    Traits are defined in the factory file and modify the built object.
+    Multiple traits can be combined and are applied in order.
+  examples:
+    - "[admin]"
+    - "[admin, verified]"
+
 attributes:
   type: hash
   default: {}
