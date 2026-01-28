@@ -4,123 +4,231 @@ RSpec.describe SpecForge::Type do
   describe ".from_string" do
     context "with basic types" do
       it "converts string types" do
-        expect(described_class.from_string("string")).to eq([String])
+        result = described_class.from_string("string")
+        expect(result[:types]).to eq([String])
+        expect(result[:optional]).to be false
       end
 
       it "converts integer types" do
-        expect(described_class.from_string("integer")).to eq([Integer])
+        result = described_class.from_string("integer")
+        expect(result[:types]).to eq([Integer])
+        expect(result[:optional]).to be false
       end
 
       it "converts float types" do
-        expect(described_class.from_string("float")).to eq([Float])
+        result = described_class.from_string("float")
+        expect(result[:types]).to eq([Float])
+        expect(result[:optional]).to be false
       end
 
       it "converts array types" do
-        expect(described_class.from_string("array")).to eq([Array])
+        result = described_class.from_string("array")
+        expect(result[:types]).to eq([Array])
+        expect(result[:optional]).to be false
       end
 
       it "converts hash types" do
-        expect(described_class.from_string("hash")).to eq([Hash])
+        result = described_class.from_string("hash")
+        expect(result[:types]).to eq([Hash])
+        expect(result[:optional]).to be false
       end
 
       it "converts null types" do
-        expect(described_class.from_string("null")).to eq([NilClass])
+        result = described_class.from_string("null")
+        expect(result[:types]).to eq([NilClass])
+        expect(result[:optional]).to be false
       end
     end
 
     context "with composite types" do
       it "expands number to Integer and Float" do
-        expect(described_class.from_string("number"))
-          .to contain_exactly(Integer, Float)
+        result = described_class.from_string("number")
+        expect(result[:types]).to contain_exactly(Integer, Float)
+        expect(result[:optional]).to be false
       end
 
       it "expands boolean to TrueClass and FalseClass" do
-        expect(described_class.from_string("boolean"))
-          .to contain_exactly(TrueClass, FalseClass)
+        result = described_class.from_string("boolean")
+        expect(result[:types]).to contain_exactly(TrueClass, FalseClass)
+        expect(result[:optional]).to be false
       end
     end
 
     context "with type aliases" do
       it "treats numeric as an alias for number" do
-        expect(described_class.from_string("numeric"))
-          .to contain_exactly(Integer, Float)
+        result = described_class.from_string("numeric")
+        expect(result[:types]).to contain_exactly(Integer, Float)
+        expect(result[:optional]).to be false
       end
 
       it "treats bool as an alias for boolean" do
-        expect(described_class.from_string("bool"))
-          .to contain_exactly(TrueClass, FalseClass)
+        result = described_class.from_string("bool")
+        expect(result[:types]).to contain_exactly(TrueClass, FalseClass)
+        expect(result[:optional]).to be false
       end
 
       it "treats object as an alias for hash" do
-        expect(described_class.from_string("object")).to eq([Hash])
+        result = described_class.from_string("object")
+        expect(result[:types]).to eq([Hash])
+        expect(result[:optional]).to be false
       end
 
       it "treats nil as an alias for null" do
-        expect(described_class.from_string("nil")).to eq([NilClass])
+        result = described_class.from_string("nil")
+        expect(result[:types]).to eq([NilClass])
+        expect(result[:optional]).to be false
       end
     end
 
     context "with nullable types" do
       it "adds NilClass to nullable strings" do
-        expect(described_class.from_string("?string"))
-          .to contain_exactly(String, NilClass)
+        result = described_class.from_string("?string")
+        expect(result[:types]).to contain_exactly(String, NilClass)
+        expect(result[:optional]).to be false
       end
 
       it "adds NilClass to nullable integers" do
-        expect(described_class.from_string("?integer"))
-          .to contain_exactly(Integer, NilClass)
+        result = described_class.from_string("?integer")
+        expect(result[:types]).to contain_exactly(Integer, NilClass)
+        expect(result[:optional]).to be false
       end
 
       it "adds NilClass to nullable floats" do
-        expect(described_class.from_string("?float"))
-          .to contain_exactly(Float, NilClass)
+        result = described_class.from_string("?float")
+        expect(result[:types]).to contain_exactly(Float, NilClass)
+        expect(result[:optional]).to be false
       end
 
       it "adds NilClass to nullable numbers" do
-        expect(described_class.from_string("?number"))
-          .to contain_exactly(Integer, Float, NilClass)
+        result = described_class.from_string("?number")
+        expect(result[:types]).to contain_exactly(Integer, Float, NilClass)
+        expect(result[:optional]).to be false
       end
 
       it "adds NilClass to nullable booleans" do
-        expect(described_class.from_string("?boolean"))
-          .to contain_exactly(TrueClass, FalseClass, NilClass)
+        result = described_class.from_string("?boolean")
+        expect(result[:types]).to contain_exactly(TrueClass, FalseClass, NilClass)
+        expect(result[:optional]).to be false
       end
 
       it "adds NilClass to nullable arrays" do
-        expect(described_class.from_string("?array"))
-          .to contain_exactly(Array, NilClass)
+        result = described_class.from_string("?array")
+        expect(result[:types]).to contain_exactly(Array, NilClass)
+        expect(result[:optional]).to be false
       end
 
       it "adds NilClass to nullable hashes" do
-        expect(described_class.from_string("?hash"))
-          .to contain_exactly(Hash, NilClass)
+        result = described_class.from_string("?hash")
+        expect(result[:types]).to contain_exactly(Hash, NilClass)
+        expect(result[:optional]).to be false
       end
 
       it "handles nullable null without duplicating NilClass" do
         result = described_class.from_string("?null")
-        expect(result).to contain_exactly(NilClass)
+        expect(result[:types]).to contain_exactly(NilClass)
+        expect(result[:optional]).to be false
       end
 
       it "handles nullable nil without duplicating NilClass" do
         result = described_class.from_string("?nil")
-        expect(result).to contain_exactly(NilClass)
+        expect(result[:types]).to contain_exactly(NilClass)
+        expect(result[:optional]).to be false
       end
     end
 
     context "with nullable aliases" do
       it "handles nullable numeric" do
-        expect(described_class.from_string("?numeric"))
-          .to contain_exactly(Integer, Float, NilClass)
+        result = described_class.from_string("?numeric")
+        expect(result[:types]).to contain_exactly(Integer, Float, NilClass)
+        expect(result[:optional]).to be false
       end
 
       it "handles nullable bool" do
-        expect(described_class.from_string("?bool"))
-          .to contain_exactly(TrueClass, FalseClass, NilClass)
+        result = described_class.from_string("?bool")
+        expect(result[:types]).to contain_exactly(TrueClass, FalseClass, NilClass)
+        expect(result[:optional]).to be false
       end
 
       it "handles nullable object" do
-        expect(described_class.from_string("?object"))
-          .to contain_exactly(Hash, NilClass)
+        result = described_class.from_string("?object")
+        expect(result[:types]).to contain_exactly(Hash, NilClass)
+        expect(result[:optional]).to be false
+      end
+    end
+
+    context "with optional types" do
+      it "marks optional strings" do
+        result = described_class.from_string("*string")
+        expect(result[:types]).to eq([String])
+        expect(result[:optional]).to be true
+      end
+
+      it "marks optional integers" do
+        result = described_class.from_string("*integer")
+        expect(result[:types]).to eq([Integer])
+        expect(result[:optional]).to be true
+      end
+
+      it "marks optional booleans" do
+        result = described_class.from_string("*boolean")
+        expect(result[:types]).to contain_exactly(TrueClass, FalseClass)
+        expect(result[:optional]).to be true
+      end
+
+      it "marks optional arrays" do
+        result = described_class.from_string("*array")
+        expect(result[:types]).to eq([Array])
+        expect(result[:optional]).to be true
+      end
+
+      it "marks optional hashes" do
+        result = described_class.from_string("*hash")
+        expect(result[:types]).to eq([Hash])
+        expect(result[:optional]).to be true
+      end
+    end
+
+    context "with combined optional and nullable flags" do
+      it "handles *? order (optional nullable string)" do
+        result = described_class.from_string("*?string")
+        expect(result[:types]).to contain_exactly(String, NilClass)
+        expect(result[:optional]).to be true
+      end
+
+      it "handles ?* order (nullable optional string)" do
+        result = described_class.from_string("?*string")
+        expect(result[:types]).to contain_exactly(String, NilClass)
+        expect(result[:optional]).to be true
+      end
+
+      it "handles *?integer" do
+        result = described_class.from_string("*?integer")
+        expect(result[:types]).to contain_exactly(Integer, NilClass)
+        expect(result[:optional]).to be true
+      end
+
+      it "handles ?*boolean" do
+        result = described_class.from_string("?*boolean")
+        expect(result[:types]).to contain_exactly(TrueClass, FalseClass, NilClass)
+        expect(result[:optional]).to be true
+      end
+
+      it "handles *?array" do
+        result = described_class.from_string("*?array")
+        expect(result[:types]).to contain_exactly(Array, NilClass)
+        expect(result[:optional]).to be true
+      end
+
+      it "handles *?hash" do
+        result = described_class.from_string("*?hash")
+        expect(result[:types]).to contain_exactly(Hash, NilClass)
+        expect(result[:optional]).to be true
+      end
+
+      it "handles *?null without duplicating NilClass" do
+        result = described_class.from_string("*?null")
+        expect(result[:types]).to contain_exactly(NilClass)
+        expect(result[:optional]).to be true
       end
     end
 
@@ -135,6 +243,16 @@ RSpec.describe SpecForge::Type do
 
       it "raises ArgumentError for nullable invalid types" do
         expect { described_class.from_string("?invalid") }
+          .to raise_error(ArgumentError, /Unknown type: "invalid"/)
+      end
+
+      it "raises ArgumentError for optional invalid types" do
+        expect { described_class.from_string("*invalid") }
+          .to raise_error(ArgumentError, /Unknown type: "invalid"/)
+      end
+
+      it "raises ArgumentError for optional nullable invalid types" do
+        expect { described_class.from_string("*?invalid") }
           .to raise_error(ArgumentError, /Unknown type: "invalid"/)
       end
 

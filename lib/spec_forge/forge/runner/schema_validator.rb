@@ -96,6 +96,9 @@ module SpecForge
             return
           end
 
+          # Key is missing - only fail if not optional
+          return if expected[:optional]
+
           failure!(path, expected[:type], nil)
         end
 

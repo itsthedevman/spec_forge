@@ -6,7 +6,8 @@ module SpecForge
   #
   # Type provides bidirectional conversion between Ruby types (Integer, String, etc.)
   # and their string representations ("integer", "string", etc.) used in YAML
-  # schema definitions. Supports nullable types with the "?" prefix.
+  # schema definitions. Supports nullable types with the "?" prefix and optional
+  # fields with the "*" prefix.
   #
   module Type
     class << self
@@ -43,39 +44,49 @@ module SpecForge
       }.freeze
 
       #
-      # Converts a type string to an array of Ruby classes
+      # Converts a type string to a hash containing Ruby classes and optional flag
       #
-      # Supports nullable types with the "?" prefix (e.g., "?string" returns [String, NilClass]).
+      # Supports nullable types with the "?" prefix (e.g., "?string") and optional
+      # fields with the "*" prefix (e.g., "*string"). Flags can be combined in any
+      # order (e.g., "*?string" or "?*string").
       #
-      # @param input [String] The type string (e.g., "integer", "?string", "boolean")
+      # @param input [String] The type string (e.g., "integer", "?string", "*?boolean")
       #
-      # @return [Array<Class>] Array of Ruby classes matching the type
+      # @return [Hash] Hash with :types (Array<Class>) and :optional (Boolean)
       #
       # @raise [ArgumentError] If input is nil or unknown type
       #
       # @example
-      #   Type.from_string("integer")   # => [Integer]
-      #   Type.from_string("?string")   # => [String, NilClass]
-      #   Type.from_string("boolean")   # => [TrueClass, FalseClass]
+      #   Type.from_string("integer")   # => { types: [Integer], optional: false }
+      #   Type.from_string("?string")   # => { types: [String, NilClass], optional: false }
+      #   Type.from_string("*string")   # => { types: [String], optional: true }
+      #   Type.from_string("*?string")  # => { types: [String, NilClass], optional: true }
       #
       def from_string(input)
         raise ArgumentError, "Input is nil" if input.nil?
 
-        # Handle nullable prefix
-        nullable = input.start_with?("?")
-        base_type = nullable ? input[1..] : input
+        # Extract flags from start of string
+        potential_flags = input[..2]
+        optional = potential_flags.include?("*")
+        nullable = potential_flags.include?("?")
 
-        types = STRING_TO_CLASS[base_type.downcase].dup
+        if optional || nullable
+          offset = [optional, nullable].count(true)
+          input = input[offset..]
+        end
+
+        types = STRING_TO_CLASS[input.downcase]&.dup
 
         if types.nil?
           raise ArgumentError,
-            "Unknown type: #{base_type.in_quotes}. Valid types: string, number/numeric, integer, float, boolean/bool, array, hash/object, null/nil"
+            "Unknown type: #{input.in_quotes}. Valid types: string, number/numeric, integer, float, boolean/bool, array, hash/object, null/nil"
         end
 
-        # Don't forget if it is nullable!
+        # Add NilClass if nullable
         types << NilClass if nullable
+        types.uniq!
 
-        types.uniq
+        {types:, optional:}
       end
 
       #

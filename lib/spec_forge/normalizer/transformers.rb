@@ -92,7 +92,8 @@ module SpecForge
             structure: value.transform_values { |v| normalize_shape(v) }
           }
         when String
-          {type: Type.from_string(value)}
+          result = Type.from_string(value)
+          {type: result[:types], optional: result[:optional]}
         end
       end
 
@@ -116,8 +117,20 @@ module SpecForge
           value.each { |v| normalize_schema(v) }
         when Hash
           if (type = value[:type]) && type.is_a?(String)
-            value[:type] = Type.from_string(type)
+            result = Type.from_string(type)
+
+            value[:type] = result[:types]
+            value[:optional] = result[:optional] unless value.key?(:optional)
           end
+
+          # Handle explicit nullable: true (sugar for adding NilClass to type)
+          if value.delete(:nullable)
+            value[:type] ||= []
+            value[:type] << NilClass unless value[:type].include?(NilClass)
+          end
+
+          # Default optional to false if not set
+          value[:optional] ||= false
 
           if (structure = value[:structure])
             value[:structure] =
@@ -135,7 +148,8 @@ module SpecForge
 
           value
         when String
-          {type: Type.from_string(value)}
+          result = Type.from_string(value)
+          {type: result[:types], optional: result[:optional]}
         end
       end
 

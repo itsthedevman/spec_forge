@@ -1,30 +1,5 @@
 # SpecForge 1.0 Technical Specification
 
-## Table of Contents
-
-- [Philosophy](#philosophy)
-- [Load-time vs Run-time](#load-time-vs-run-time)
-- [File Structure](#file-structure)
-- [Reserved Namespaces](#reserved-namespaces)
-- [Variables](#variables)
-- [String Interpolation](#string-interpolation)
-- [Step Attributes](#step-attributes)
-- [Core Attributes](#core-attributes)
-- [Request Configuration](#request-configuration)
-- [Expectations](#expectations)
-- [Store](#store)
-- [Grouping Steps](#grouping-steps)
-- [Including Files](#including-files)
-- [Tags and Filtering](#tags-and-filtering)
-- [Callbacks and Hooks](#callbacks-and-hooks)
-- [Directory Structure](#directory-structure)
-- [Test Output and Verbosity](#test-output-and-verbosity)
-- [Error Messages](#error-messages)
-- [Global Headers (Why They Don't Exist)](#global-headers-why-they-dont-exist)
-- [Complete Examples](#complete-examples)
-
----
-
 ## Philosophy
 
 SpecForge 1.0 adopts a **step-based workflow architecture** where API tests are written as sequential actions rather than resource-centric test suites. This aligns with how developers naturally think about API testing: "First I do X, then Y happens, then I verify Z."
@@ -630,6 +605,190 @@ expect:
               id: integer
               name: string
 ```
+
+# Optional Fields in Type Validation
+
+### Flag Syntax
+
+Two character flags modify type behavior:
+
+| Flag | Meaning | Example |
+|------|---------|---------|
+| `?` | Nullable (value can be null) | `?string` |
+| `*` | Optional (key can be missing) | `*string` |
+
+Flags can be combined in any order:
+
+```yaml
+shape:
+  id: integer           # Required, non-null
+  name: string          # Required, non-null
+  nickname: ?string     # Required, nullable
+  avatar: *string       # Optional, non-null
+  bio: *?string         # Optional, nullable
+  metadata: ?*string    # Optional, nullable (same as *?string)
+```
+
+### Behavior Matrix
+
+| Syntax | Key Missing | Key Present, Value Null | Key Present, Value String |
+|--------|-------------|------------------------|---------------------------|
+| `string` | ❌ Fail | ❌ Fail | ✅ Pass |
+| `?string` | ❌ Fail | ✅ Pass | ✅ Pass |
+| `*string` | ✅ Pass | ❌ Fail | ✅ Pass |
+| `*?string` | ✅ Pass | ✅ Pass | ✅ Pass |
+
+### Schema Syntax
+
+In `schema:`, the same flags work on the `type:` value. Additionally, explicit `optional:` and `nullable:` keys are supported:
+
+```yaml
+# All equivalent
+schema:
+  type: hash
+  structure:
+    bio:
+      type: "*?string"
+
+schema:
+  type: hash
+  structure:
+    bio:
+      type: "?string"
+      optional: true
+
+schema:
+  type: hash
+  structure:
+    bio:
+      type: string
+      optional: true
+      nullable: true
+```
+
+### Internal Representation
+
+All syntax variants normalize to the same internal structure:
+
+```ruby
+{
+  type: [NilClass, String],
+  optional: true
+}
+```
+
+The `nullable:` key is sugar — it expands the `type:` array to include `NilClass`. The `optional:` flag is stored directly.
+
+### Normalization Pipeline
+
+```
+Input                          →  Internal
+─────────────────────────────────────────────────────────
+"string"                       →  { type: [String], optional: false }
+"?string"                      →  { type: [NilClass, String], optional: false }
+"*string"                      →  { type: [String], optional: true }
+"*?string"                     →  { type: [NilClass, String], optional: true }
+"?*string"                     →  { type: [NilClass, String], optional: true }
+
+{ type: "string" }             →  { type: [String], optional: false }
+{ type: "?string" }            →  { type: [NilClass, String], optional: false }
+{ type: "string",
+  nullable: true }             →  { type: [NilClass, String], optional: false }
+{ type: "string",
+  optional: true }             →  { type: [String], optional: true }
+{ type: "?string",
+  optional: true }             →  { type: [NilClass, String], optional: true }
+```
+
+### Interaction with Arrays
+
+Optional applies to hash keys only. For arrays, the existing behavior remains:
+
+- `shape:` single item = pattern (all elements match)
+- `shape:` multiple items = positional
+- `schema:` with `pattern:` = repeating
+- `schema:` with `structure:` = positional
+
+An optional field inside an array pattern means each element (if present) may or may not have that key:
+
+```yaml
+# Each user in the array may or may not have a nickname
+shape:
+  - id: integer
+    name: string
+    nickname: *?string
+```
+
+## Examples
+
+### Basic Usage
+
+```yaml
+# Response: {"id": 1, "name": "Alice"}
+# nickname is missing entirely — this passes
+json:
+  shape:
+    id: integer
+    name: string
+    nickname: *?string
+```
+
+### Nested Optional
+
+```yaml
+# Response: {"user": {"id": 1}}
+# profile key is missing entirely — this passes
+json:
+  shape:
+    user:
+      id: integer
+      profile: *hash
+```
+
+### Schema Form
+
+```yaml
+json:
+  schema:
+    type: hash
+    structure:
+      id:
+        type: integer
+      nickname:
+        type: string
+        optional: true
+        nullable: true
+```
+
+## Edge Cases
+
+### Optional + Type Validation
+
+If an optional field is present, it must still match the type:
+
+```yaml
+shape:
+  avatar: *string
+```
+
+- `{}` → ✅ Pass (key missing, that's fine)
+- `{"avatar": "http://..."}` → ✅ Pass
+- `{"avatar": null}` → ❌ Fail (not nullable)
+- `{"avatar": 123}` → ❌ Fail (wrong type)
+
+### Empty vs Null vs Missing
+
+These are three distinct states:
+
+```yaml
+shape:
+  tags: *?array
+```
+
+- `{}` → ✅ Pass (missing)
+- `{"tags": null}` → ✅ Pass (null)
+- `{"tags": []}` → ✅ Pass (empty array)
+- `{"tags": ["a"]}` → ✅ Pass (non-empty array)
 
 ---
 

@@ -15,9 +15,9 @@ RSpec.describe SpecForge::Normalizer::Transformers do
         is_expected.to eq(
           type: [Hash],
           structure: {
-            id: {type: [Integer]},
-            email: {type: [String]},
-            active: {type: [TrueClass, FalseClass]}
+            id: {type: [Integer], optional: false},
+            email: {type: [String], optional: false},
+            active: {type: [TrueClass, FalseClass], optional: false}
           }
         )
       end
@@ -32,12 +32,12 @@ RSpec.describe SpecForge::Normalizer::Transformers do
         is_expected.to eq(
           type: [Hash],
           structure: {
-            id: {type: [Integer]},
+            id: {type: [Integer], optional: false},
             user: {
               type: [Hash],
               structure: {
-                name: {type: [String]},
-                role: {type: [String, NilClass]}
+                name: {type: [String], optional: false},
+                role: {type: [String, NilClass], optional: false}
               }
             }
           }
@@ -56,8 +56,8 @@ RSpec.describe SpecForge::Normalizer::Transformers do
           pattern: {
             type: [Hash],
             structure: {
-              id: {type: [Integer]},
-              name: {type: [String]}
+              id: {type: [Integer], optional: false},
+              name: {type: [String], optional: false}
             }
           }
         )
@@ -75,7 +75,7 @@ RSpec.describe SpecForge::Normalizer::Transformers do
           structure: {
             tags: {
               type: [Array],
-              pattern: {type: [String]}
+              pattern: {type: [String], optional: false}
             }
           }
         )
@@ -102,12 +102,12 @@ RSpec.describe SpecForge::Normalizer::Transformers do
           pattern: {
             type: [Hash],
             structure: {
-              id: {type: [Integer]},
-              title: {type: [String]},
+              id: {type: [Integer], optional: false},
+              title: {type: [String], optional: false},
               user: {
                 type: [Hash],
                 structure: {
-                  login: {type: [String]}
+                  login: {type: [String], optional: false}
                 }
               },
               labels: {
@@ -115,8 +115,8 @@ RSpec.describe SpecForge::Normalizer::Transformers do
                 pattern: {
                   type: [Hash],
                   structure: {
-                    name: {type: [String]},
-                    color: {type: [String]}
+                    name: {type: [String], optional: false},
+                    color: {type: [String], optional: false}
                   }
                 }
               }
@@ -130,7 +130,7 @@ RSpec.describe SpecForge::Normalizer::Transformers do
       let(:shape) { "string" }
 
       it "is expected to transform into a type" do
-        is_expected.to eq(type: [String])
+        is_expected.to eq(type: [String], optional: false)
       end
     end
 
@@ -167,8 +167,8 @@ RSpec.describe SpecForge::Normalizer::Transformers do
         is_expected.to eq(
           type: [Array],
           structure: [
-            {type: [Hash], structure: {id: {type: [Integer]}}},
-            {type: [Hash], structure: {name: {type: [String]}}}
+            {type: [Hash], structure: {id: {type: [Integer], optional: false}}},
+            {type: [Hash], structure: {name: {type: [String], optional: false}}}
           ]
         )
       end
@@ -187,9 +187,26 @@ RSpec.describe SpecForge::Normalizer::Transformers do
               type: [Array],
               pattern: {
                 type: [Array],
-                pattern: {type: [Integer]}
+                pattern: {type: [Integer], optional: false}
               }
             }
+          }
+        )
+      end
+    end
+
+    context "when it has optional fields" do
+      let(:shape) do
+        {id: "integer", nickname: "*string", bio: "*?string"}
+      end
+
+      it "is expected to preserve optional flag" do
+        is_expected.to eq(
+          type: [Hash],
+          structure: {
+            id: {type: [Integer], optional: false},
+            nickname: {type: [String], optional: true},
+            bio: {type: [String, NilClass], optional: true}
           }
         )
       end
@@ -213,7 +230,7 @@ RSpec.describe SpecForge::Normalizer::Transformers do
       let(:schema) { "integer" }
 
       it "is expected to wrap in a type hash" do
-        is_expected.to eq(type: [Integer])
+        is_expected.to eq(type: [Integer], optional: false)
       end
     end
 
@@ -223,7 +240,7 @@ RSpec.describe SpecForge::Normalizer::Transformers do
       end
 
       it "is expected to convert the type to an array of classes" do
-        is_expected.to eq(type: [String])
+        is_expected.to eq(type: [String], optional: false)
       end
     end
 
@@ -235,9 +252,10 @@ RSpec.describe SpecForge::Normalizer::Transformers do
       it "is expected to recursively normalize structure values" do
         is_expected.to eq(
           type: [Hash],
+          optional: false,
           structure: {
-            id: {type: [Integer]},
-            email: {type: [String]}
+            id: {type: [Integer], optional: false},
+            email: {type: [String], optional: false}
           }
         )
       end
@@ -251,9 +269,10 @@ RSpec.describe SpecForge::Normalizer::Transformers do
       it "is expected to recursively normalize structure values" do
         is_expected.to eq(
           type: [Hash],
+          optional: false,
           structure: {
-            id: {type: [Integer]},
-            name: {type: [String]}
+            id: {type: [Integer], optional: false},
+            name: {type: [String], optional: false}
           }
         )
       end
@@ -267,7 +286,8 @@ RSpec.describe SpecForge::Normalizer::Transformers do
       it "is expected to recursively normalize array elements" do
         is_expected.to eq(
           type: [Array],
-          structure: [{type: [String]}, {type: [Integer]}]
+          optional: false,
+          structure: [{type: [String], optional: false}, {type: [Integer], optional: false}]
         )
       end
     end
@@ -280,7 +300,8 @@ RSpec.describe SpecForge::Normalizer::Transformers do
       it "is expected to recursively normalize the pattern" do
         is_expected.to eq(
           type: [Array],
-          pattern: {type: [String]}
+          optional: false,
+          pattern: {type: [String], optional: false}
         )
       end
     end
@@ -291,7 +312,7 @@ RSpec.describe SpecForge::Normalizer::Transformers do
       end
 
       it "is expected to recursively normalize each element in-place" do
-        is_expected.to eq([{type: [String]}, {type: [Integer]}])
+        is_expected.to eq([{type: [String], optional: false}, {type: [Integer], optional: false}])
       end
     end
 
@@ -311,10 +332,12 @@ RSpec.describe SpecForge::Normalizer::Transformers do
       it "is expected to recursively normalize all levels" do
         is_expected.to eq(
           type: [Hash],
+          optional: false,
           structure: {
             items: {
               type: [Array],
-              pattern: {type: [String]}
+              optional: false,
+              pattern: {type: [String], optional: false}
             }
           }
         )
@@ -327,7 +350,7 @@ RSpec.describe SpecForge::Normalizer::Transformers do
       end
 
       it "is expected to pass through and only normalize nested types" do
-        is_expected.to eq(structure: {id: {type: [Integer]}})
+        is_expected.to eq(optional: false, structure: {id: {type: [Integer], optional: false}})
       end
     end
 
@@ -339,8 +362,59 @@ RSpec.describe SpecForge::Normalizer::Transformers do
       it "is expected to leave the type unchanged and normalize nested types" do
         is_expected.to eq(
           type: [String],
-          structure: {id: {type: [Integer]}}
+          optional: false,
+          structure: {id: {type: [Integer], optional: false}}
         )
+      end
+    end
+
+    context "when using explicit optional: true" do
+      let(:schema) do
+        {type: "string", optional: true}
+      end
+
+      it "is expected to preserve the explicit optional flag" do
+        is_expected.to eq(type: [String], optional: true)
+      end
+    end
+
+    context "when using explicit nullable: true" do
+      let(:schema) do
+        {type: "string", nullable: true}
+      end
+
+      it "is expected to add NilClass to the type array" do
+        is_expected.to eq(type: [String, NilClass], optional: false)
+      end
+    end
+
+    context "when using both optional: true and nullable: true" do
+      let(:schema) do
+        {type: "string", optional: true, nullable: true}
+      end
+
+      it "is expected to set both flags correctly" do
+        is_expected.to eq(type: [String, NilClass], optional: true)
+      end
+    end
+
+    context "when using *? prefix in type string" do
+      let(:schema) do
+        {type: "*?string"}
+      end
+
+      it "is expected to set optional and nullable from the prefix" do
+        is_expected.to eq(type: [String, NilClass], optional: true)
+      end
+    end
+
+    context "when explicit optional: false overrides * prefix" do
+      let(:schema) do
+        {type: "*string", optional: false}
+      end
+
+      it "is expected to use the explicit optional value" do
+        is_expected.to eq(type: [String], optional: false)
       end
     end
   end

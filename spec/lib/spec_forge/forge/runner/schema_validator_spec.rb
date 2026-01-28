@@ -459,4 +459,305 @@ RSpec.describe SpecForge::Forge::Runner::SchemaValidator do
       end
     end
   end
+
+  describe "optional fields" do
+    context "when an optional field is missing" do
+      let(:schema) do
+        {
+          type: [Hash],
+          structure: {
+            id: {type: [Integer], optional: false},
+            nickname: {type: [String], optional: true}
+          }
+        }
+      end
+
+      let(:data) { {id: 123} }
+
+      it "passes validation" do
+        expect { validate }.not_to raise_error
+      end
+    end
+
+    context "when an optional field is present and valid" do
+      let(:schema) do
+        {
+          type: [Hash],
+          structure: {
+            id: {type: [Integer], optional: false},
+            nickname: {type: [String], optional: true}
+          }
+        }
+      end
+
+      let(:data) { {id: 123, nickname: "Johnny"} }
+
+      it "passes validation" do
+        expect { validate }.not_to raise_error
+      end
+    end
+
+    context "when an optional field is present with wrong type" do
+      let(:schema) do
+        {
+          type: [Hash],
+          structure: {
+            nickname: {type: [String], optional: true}
+          }
+        }
+      end
+
+      let(:data) { {nickname: 123} }
+
+      it "fails validation" do
+        expect { validate }.to raise_error(SpecForge::Error::SchemaValidationFailure)
+      end
+    end
+
+    context "when an optional non-nullable field is null" do
+      let(:schema) do
+        {
+          type: [Hash],
+          structure: {
+            avatar: {type: [String], optional: true}
+          }
+        }
+      end
+
+      let(:data) { {avatar: nil} }
+
+      it "fails validation" do
+        expect { validate }.to raise_error(SpecForge::Error::SchemaValidationFailure)
+      end
+    end
+
+    context "when an optional nullable field is missing" do
+      let(:schema) do
+        {
+          type: [Hash],
+          structure: {
+            id: {type: [Integer], optional: false},
+            bio: {type: [String, NilClass], optional: true}
+          }
+        }
+      end
+
+      let(:data) { {id: 123} }
+
+      it "passes validation" do
+        expect { validate }.not_to raise_error
+      end
+    end
+
+    context "when an optional nullable field is null" do
+      let(:schema) do
+        {
+          type: [Hash],
+          structure: {
+            bio: {type: [String, NilClass], optional: true}
+          }
+        }
+      end
+
+      let(:data) { {bio: nil} }
+
+      it "passes validation" do
+        expect { validate }.not_to raise_error
+      end
+    end
+
+    context "when an optional nullable field has a value" do
+      let(:schema) do
+        {
+          type: [Hash],
+          structure: {
+            bio: {type: [String, NilClass], optional: true}
+          }
+        }
+      end
+
+      let(:data) { {bio: "Hello world"} }
+
+      it "passes validation" do
+        expect { validate }.not_to raise_error
+      end
+    end
+
+    context "when a required nullable field is missing" do
+      let(:schema) do
+        {
+          type: [Hash],
+          structure: {
+            nickname: {type: [String, NilClass], optional: false}
+          }
+        }
+      end
+
+      let(:data) { {} }
+
+      it "fails validation" do
+        expect { validate }.to raise_error(SpecForge::Error::SchemaValidationFailure)
+      end
+    end
+
+    context "when nested optional fields are missing" do
+      let(:schema) do
+        {
+          type: [Hash],
+          structure: {
+            user: {
+              type: [Hash],
+              structure: {
+                id: {type: [Integer], optional: false},
+                profile: {type: [Hash], optional: true}
+              }
+            }
+          }
+        }
+      end
+
+      let(:data) { {user: {id: 1}} }
+
+      it "passes validation" do
+        expect { validate }.not_to raise_error
+      end
+    end
+
+    context "when optional fields in array pattern are missing" do
+      let(:schema) do
+        {
+          type: [Array],
+          pattern: {
+            type: [Hash],
+            structure: {
+              id: {type: [Integer], optional: false},
+              nickname: {type: [String, NilClass], optional: true}
+            }
+          }
+        }
+      end
+
+      let(:data) do
+        [
+          {id: 1, nickname: "First"},
+          {id: 2},
+          {id: 3, nickname: nil}
+        ]
+      end
+
+      it "passes validation" do
+        expect { validate }.not_to raise_error
+      end
+    end
+
+    context "with behavior matrix verification" do
+      # string: required, non-nullable
+      context "with 'string' (required, non-null)" do
+        let(:schema) do
+          {
+            type: [Hash],
+            structure: {
+              field: {type: [String], optional: false}
+            }
+          }
+        end
+
+        it "fails when key is missing" do
+          expect { described_class.new({}, schema).validate! }
+            .to raise_error(SpecForge::Error::SchemaValidationFailure)
+        end
+
+        it "fails when value is null" do
+          expect { described_class.new({field: nil}, schema).validate! }
+            .to raise_error(SpecForge::Error::SchemaValidationFailure)
+        end
+
+        it "passes when value is present" do
+          expect { described_class.new({field: "hello"}, schema).validate! }
+            .not_to raise_error
+        end
+      end
+
+      # ?string: required, nullable
+      context "with '?string' (required, nullable)" do
+        let(:schema) do
+          {
+            type: [Hash],
+            structure: {
+              field: {type: [String, NilClass], optional: false}
+            }
+          }
+        end
+
+        it "fails when key is missing" do
+          expect { described_class.new({}, schema).validate! }
+            .to raise_error(SpecForge::Error::SchemaValidationFailure)
+        end
+
+        it "passes when value is null" do
+          expect { described_class.new({field: nil}, schema).validate! }
+            .not_to raise_error
+        end
+
+        it "passes when value is present" do
+          expect { described_class.new({field: "hello"}, schema).validate! }
+            .not_to raise_error
+        end
+      end
+
+      # *string: optional, non-nullable
+      context "with '*string' (optional, non-null)" do
+        let(:schema) do
+          {
+            type: [Hash],
+            structure: {
+              field: {type: [String], optional: true}
+            }
+          }
+        end
+
+        it "passes when key is missing" do
+          expect { described_class.new({}, schema).validate! }
+            .not_to raise_error
+        end
+
+        it "fails when value is null" do
+          expect { described_class.new({field: nil}, schema).validate! }
+            .to raise_error(SpecForge::Error::SchemaValidationFailure)
+        end
+
+        it "passes when value is present" do
+          expect { described_class.new({field: "hello"}, schema).validate! }
+            .not_to raise_error
+        end
+      end
+
+      # *?string: optional, nullable
+      context "with '*?string' (optional, nullable)" do
+        let(:schema) do
+          {
+            type: [Hash],
+            structure: {
+              field: {type: [String, NilClass], optional: true}
+            }
+          }
+        end
+
+        it "passes when key is missing" do
+          expect { described_class.new({}, schema).validate! }
+            .not_to raise_error
+        end
+
+        it "passes when value is null" do
+          expect { described_class.new({field: nil}, schema).validate! }
+            .not_to raise_error
+        end
+
+        it "passes when value is present" do
+          expect { described_class.new({field: "hello"}, schema).validate! }
+            .not_to raise_error
+        end
+      end
+    end
+  end
 end
