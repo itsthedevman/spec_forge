@@ -252,6 +252,8 @@ module SpecForge
 
           line_info = if (source = step[:source])
             "#{source[:file_name]}:#{source[:line_number]}"
+          else
+            "unknown location"
           end
 
           message = "Step #{step_name.in_quotes} [#{line_info}]: #{message}"
