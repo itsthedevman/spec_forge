@@ -63,7 +63,7 @@ module SpecForge
             if type == "array" && content.present?
               # Content is an array like [{type: "string"}], take first element as items schema
               items_type = content.first&.dig(:type) || "object"
-              base[:items] = { type: items_type }
+              base[:items] = {type: items_type}
             end
 
             base

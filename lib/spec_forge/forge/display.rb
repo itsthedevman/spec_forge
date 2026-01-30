@@ -474,10 +474,9 @@ module SpecForge
               expect[:json][:schema] = format_schema_for_display(schema)
             end
 
-            expect
-              .compact_blank
-              .deep_stringify_keys
-              .deep_transform_values do |value|
+            expect = expect.compact_blank.deep_stringify_keys
+
+            expect.deep_transform_values do |value|
               value = Attribute.resolve_as_matcher_proc.call(value)
 
               if value.respond_to?(:description)
@@ -490,7 +489,10 @@ module SpecForge
 
           if expectations.size > 0
             output << format_with_indent("Expectations:", indent:)
-            output << format_with_indent(expectations.to_yaml(stringify_names: true).sub("---\n", ""), indent: indent + 1)
+            output << format_with_indent(
+              expectations.to_yaml(stringify_names: true).sub("---\n", ""),
+              indent: indent + 1
+            )
           end
         end
 
