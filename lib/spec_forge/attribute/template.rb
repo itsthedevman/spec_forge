@@ -79,11 +79,11 @@ module SpecForge
             next placeholder
           end
 
-          attribute = Attribute.from(content)
+          attribute = Attribute.from(content, **@options)
 
           # There is no such thing as a Literal inside a Template.
           # This makes it significantly easier to detect variables
-          attribute = Attribute::Variable.new(content) if attribute.is_a?(Attribute::Literal)
+          attribute = Attribute::Variable.new(content, **@options) if attribute.is_a?(Attribute::Literal)
 
           placeholder = "⬣→SF#{index}"
           templates[placeholder] = attribute

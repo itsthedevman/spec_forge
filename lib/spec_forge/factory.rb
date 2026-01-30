@@ -83,8 +83,8 @@ module SpecForge
       @model_class = input[:model_class]
 
       @variables = Attribute.from(input[:variables])
-      @attributes = Attribute.from(input[:attributes])
-      @traits = extract_traits(input[:traits])
+      @attributes = Attribute.from(input[:attributes], context: @variables)
+      @traits = extract_traits(input[:traits], context: @variables)
     end
 
     #
@@ -127,13 +127,14 @@ module SpecForge
     # Trait definitions are flat hashes of attributes (no nested "attributes:" key)
     #
     # @param traits_hash [Hash] Raw trait definitions from YAML
+    # @param context [Hash] Variable context for attribute resolution
     # @return [Hash<Symbol, Hash<Symbol, Attribute>>] Processed traits with Attribute values
     #
-    def extract_traits(traits_hash)
+    def extract_traits(traits_hash, context: nil)
       return {} if traits_hash.blank?
 
       traits_hash.transform_values do |trait_attributes|
-        Attribute.from(trait_attributes || {})
+        Attribute.from(trait_attributes || {}, context:)
       end
     end
   end

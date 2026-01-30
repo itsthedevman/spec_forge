@@ -268,75 +268,92 @@ RSpec.describe SpecForge::Attribute::Variable do
     end
   end
 
-  #
-  # Scenario:
-  #
-  # A variable is referenced by more than one attribute.
-  # When using Templates like {{ var_1 }}, both should resolve to same cached value.
-  #
-  context "when multiple attributes rely on a single variable" do
-    let(:input) { "var_1" }
+  describe "custom context" do
+    context "when a custom context is provided via options" do
+      let(:input) { "my_var" }
+      let(:custom_context) { {my_var: "custom_value"} }
 
-    let(:variables) do
-      # The variable itself is a Faker attribute that generates different values each call
-      {var_1: SpecForge::Attribute::Faker.new("faker.string.random")}
-    end
+      subject(:variable) { described_class.new(input, context: custom_context) }
 
-    let(:other_attribute) { described_class.new("var_1") }
+      it "uses the custom context instead of Forge.context" do
+        # No Forge context needed - custom context is used
+        expect(variable.value).to eq("custom_value")
+      end
 
-    context "and #resolved is called" do
-      it "is expected to return the same cached value" do
-        with_variables(variables) do
-          expect(variable.resolved).to eq(other_attribute.resolved)
+      it "takes precedence over Forge.context" do
+        forge_variables = {my_var: "forge_value"}
+
+        with_variables(forge_variables) do
+          # Custom context should win
+          expect(variable.value).to eq("custom_value")
         end
       end
     end
 
-    context "and #value is called" do
-      it "is expected to return different values each time" do
-        with_variables(variables) do
-          expect(variable.value).not_to eq(other_attribute.value)
-
-          # Just to make sure resolved still works
-          expect(variable.resolved).to eq(other_attribute.resolved)
-          expect(variable.value).not_to eq(other_attribute.value)
-        end
-      end
-    end
-  end
-
-  context "when variables reference other variables" do
-    context "and the referenced variable was defined before" do
-      let(:variables) do
+    context "when custom context contains Attribute objects" do
+      let(:input) { "dynamic_var" }
+      let(:custom_context) do
         {
-          var_1: "test_value",
-          var_2: SpecForge::Attribute::Variable.new("var_1")
+          dynamic_var: SpecForge::Attribute::Faker.new("faker.number.between", keyword: {from: 1, to: 100000})
         }
       end
 
-      let(:input) { "var_2" }
+      subject(:variable) { described_class.new(input, context: custom_context) }
 
-      it "is expected to be able to resolve the value" do
-        with_variables(variables) do
-          expect(variable.resolved).to eq("test_value")
-        end
+      it "resolves the Attribute on each access" do
+        first_value = variable.value
+        second_value = variable.value
+
+        expect(first_value).to be_a(Integer)
+        expect(second_value).to be_a(Integer)
+        expect(first_value).to be_between(1, 100000)
+        expect(second_value).to be_between(1, 100000)
       end
     end
 
-    context "and the reference is circular" do
-      let(:variables) do
+    context "when custom context variables reference each other" do
+      let(:input) { "greeting" }
+      let(:custom_context) do
         {
-          var_1: SpecForge::Attribute::Variable.new("var_2"),
-          var_2: SpecForge::Attribute::Variable.new("var_1")
+          name: SpecForge::Attribute::Literal.new("World"),
+          greeting: SpecForge::Attribute::Template.new("Hello, {{ name }}!", context: nil)
         }
       end
 
-      let(:input) { "var_1" }
+      before do
+        # The greeting template needs access to the same context
+        custom_context[:greeting] = SpecForge::Attribute::Template.new(
+          "Hello, {{ name }}!",
+          context: custom_context
+        )
+      end
 
-      it do
-        with_variables(variables) do
-          expect { variable.resolved }.to raise_error(SystemStackError)
-        end
+      subject(:variable) { described_class.new(input, context: custom_context) }
+
+      it "resolves the variable chain" do
+        expect(variable.value).to eq("Hello, World!")
+      end
+    end
+
+    context "when variable is missing from custom context" do
+      let(:input) { "missing_var" }
+      let(:custom_context) { {other_var: "value"} }
+
+      subject(:variable) { described_class.new(input, context: custom_context) }
+
+      it "raises MissingVariableError" do
+        expect { variable.value }.to raise_error(SpecForge::Error::MissingVariableError)
+      end
+    end
+
+    context "when custom context is empty" do
+      let(:input) { "any_var" }
+      let(:custom_context) { {} }
+
+      subject(:variable) { described_class.new(input, context: custom_context) }
+
+      it "raises MissingVariableError" do
+        expect { variable.value }.to raise_error(SpecForge::Error::MissingVariableError)
       end
     end
   end

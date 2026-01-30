@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 RSpec.describe SpecForge::Attribute::Generate do
-  subject(:attribute) { described_class.new(input, [], keyword) }
+  subject(:attribute) { described_class.new(input, keyword:) }
 
   let(:input) { "generate.array" }
   let(:keyword) { {} }

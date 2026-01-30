@@ -162,7 +162,7 @@ module SpecForge
       def retrieve_value(object, resolve:)
         return object unless object.is_a?(Attribute)
 
-        resolve ? object.resolved : object.value
+        resolve ? object.resolve : object.value
       end
 
       #

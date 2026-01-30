@@ -5,7 +5,7 @@ RSpec.describe SpecForge::Attribute::Transform do
   let(:positional) { [] }
   let(:keyword) { {} }
 
-  subject(:attribute) { described_class.new(input, positional, keyword) }
+  subject(:attribute) { described_class.new(input, positional:, keyword:) }
 
   # Note: String concatenation use cases are now handled via string interpolation
   # syntax ({{ }}) rather than transform functions. See tech-spec.md for details.

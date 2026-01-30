@@ -6,7 +6,7 @@ RSpec.describe SpecForge::Attribute::Factory do
   let(:positional) { [] }
   let(:keyword) { {} }
 
-  subject(:factory) { described_class.new(input, positional, keyword) }
+  subject(:factory) { described_class.new(input, positional:, keyword:) }
 
   before do
     stub_const(

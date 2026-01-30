@@ -25,13 +25,13 @@ module SpecForge
       #
       # @param input [String] The variable path (e.g., "user_id", "response.body.id")
       #
-      def initialize(input)
+      def initialize(...)
         super
 
         # Unset the keyword to keep chainable from displaying it in error messages
         @keyword = nil
 
-        sections = input.split(".")
+        sections = @input.split(".")
         @header = sections.first&.to_sym
         @invocation_chain = sections[1..] || []
       end
@@ -47,7 +47,7 @@ module SpecForge
       # @raise [Error::MissingVariableError] If the variable is not defined
       #
       def base_object
-        variables = Forge.context&.variables || {}
+        variables = @options[:context] || Forge.context&.variables || {}
 
         if !variables.key?(variable_name)
           raise Error::MissingVariableError.new(variable_name, available_variables: variables.keys)

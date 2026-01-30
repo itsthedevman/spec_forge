@@ -27,24 +27,26 @@ module SpecForge
     # Recursively converts Array and Hash
     #
     # @param value [Object] The input value to convert into an Attribute
+    # @param options [Hash] Additional options passed to attribute constructors
+    # @option options [Hash] :context Custom variable context for resolution
     #
     # @return [Attribute] A new Attribute instance of the appropriate subclass
     #
-    def self.from(value)
+    def self.from(value, **options)
       case value
       when String
-        from_string(value)
+        from_string(value, **options)
       when Hash
-        from_hash(value)
+        from_hash(value, **options)
       when Attribute, ResolvableArray, ResolvableHash, ResolvableStruct
         value
       when Array
-        array = value.map { |v| Attribute.from(v) }
+        array = value.map { |v| Attribute.from(v, **options) }
         ResolvableArray.new(array)
       when Struct, Data, OpenStruct
         ResolvableStruct.new(value)
       else
-        Literal.new(value)
+        Literal.new(value, **options)
       end
     end
 
@@ -52,12 +54,14 @@ module SpecForge
     # Creates an Attribute instance from a string
     #
     # @param string [String] The input string
+    # @param options [Hash] Additional options passed to attribute constructors
+    # @option options [Hash] :context Custom variable context for resolution
     #
     # @return [Attribute]
     #
     # @private
     #
-    def self.from_string(string)
+    def self.from_string(string, **options)
       klass =
         case string
         when Template::REGEX
@@ -76,34 +80,36 @@ module SpecForge
           Literal
         end
 
-      klass.new(string)
+      klass.new(string, **options)
     end
 
     #
     # Creates an Attribute instance from a hash
     #
     # @param hash [Hash] The input hash
+    # @param options [Hash] Additional options passed to attribute constructors
+    # @option options [Hash] :context Custom variable context for resolution
     #
     # @return [Attribute]
     #
     # @private
     #
-    def self.from_hash(hash)
+    def self.from_hash(hash, **options)
       # Determine if the hash is an expanded macro call
       has_macro = ->(h, regex) { h.any? { |k, _| k.match?(regex) } }
 
       if has_macro.call(hash, Transform::KEYWORD_REGEX)
-        Transform.from_hash(hash)
+        Transform.from_hash(hash, **options)
       elsif has_macro.call(hash, Generate::KEYWORD_REGEX)
-        Generate.from_hash(hash)
+        Generate.from_hash(hash, **options)
       elsif has_macro.call(hash, Faker::KEYWORD_REGEX)
-        Faker.from_hash(hash)
+        Faker.from_hash(hash, **options)
       elsif has_macro.call(hash, Matcher::KEYWORD_REGEX)
-        Matcher.from_hash(hash)
+        Matcher.from_hash(hash, **options)
       elsif has_macro.call(hash, Factory::KEYWORD_REGEX)
-        Factory.from_hash(hash)
+        Factory.from_hash(hash, **options)
       else
-        hash = hash.transform_values { |v| Attribute.from(v) }
+        hash = hash.transform_values { |v| Attribute.from(v, **options) }
         ResolvableHash.new(hash)
       end
     end
@@ -119,9 +125,13 @@ module SpecForge
     # Creates a new attribute
     #
     # @param input [Object] The original input value
+    # @param options [Hash] Additional options for attribute behavior
+    # @option options [Hash] :context Custom variable context for resolution,
+    #   bypassing Forge.context lookup
     #
-    def initialize(input)
+    def initialize(input, **options)
       @input = input
+      @options = options
     end
 
     #

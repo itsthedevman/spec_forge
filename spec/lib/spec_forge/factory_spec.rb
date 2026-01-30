@@ -112,6 +112,95 @@ RSpec.describe SpecForge::Factory do
 
       it "creates Template attributes that can reference variables" do
         expect(factory.attributes[:attr_1]).to be_a(SpecForge::Attribute::Template)
+        expect(factory.attributes[:attr_1].resolved).to eq("template_value")
+      end
+    end
+
+    context "when variables use faker values" do
+      let(:input) do
+        {
+          name: "test",
+          variables: {
+            random_name: "{{ faker.string.random }}"
+          },
+          attributes: {
+            name: "{{ random_name }}"
+          }
+        }
+      end
+
+      it "resolves to different values on each call" do
+        # Using resolve (not resolved) to get fresh values each time
+        first_value = factory.attributes[:name].resolve
+        second_value = factory.attributes[:name].resolve
+
+        expect(first_value).to be_a(String)
+        expect(second_value).to be_a(String)
+        expect(first_value).not_to eq(second_value)
+      end
+    end
+
+    context "when multiple attributes reference the same variable" do
+      let(:input) do
+        {
+          name: "test",
+          variables: {
+            shared_prefix: "USER"
+          },
+          attributes: {
+            external_id: "{{ shared_prefix }}-001",
+            reference_id: "REF-{{ shared_prefix }}-001"
+          }
+        }
+      end
+
+      it "resolves each attribute using the shared variable" do
+        external_id = factory.attributes[:external_id].resolve
+        reference_id = factory.attributes[:reference_id].resolve
+
+        expect(external_id).to eq("USER-001")
+        expect(reference_id).to eq("REF-USER-001")
+      end
+    end
+
+    context "when variables use faker with arguments" do
+      let(:input) do
+        {
+          name: "test",
+          variables: {
+            age: {
+              "faker.number.between": {from: 18, to: 65}
+            }
+          },
+          attributes: {
+            user_age: "{{ age }}"
+          }
+        }
+      end
+
+      it "resolves faker with arguments correctly" do
+        age = factory.attributes[:user_age].resolve
+
+        expect(age).to be_a(Integer)
+        expect(age).to be_between(18, 65)
+      end
+    end
+
+    context "when variable is a hash with nested access" do
+      let(:input) do
+        {
+          name: "test",
+          variables: {
+            config: {host: "localhost", port: 3000}
+          },
+          attributes: {
+            url: "http://{{ config.host }}:{{ config.port }}"
+          }
+        }
+      end
+
+      it "resolves nested hash access" do
+        expect(factory.attributes[:url].resolve).to eq("http://localhost:3000")
       end
     end
 
@@ -144,6 +233,33 @@ RSpec.describe SpecForge::Factory do
         expect(factory.traits[:admin][:role].resolved).to eq("admin")
         expect(factory.traits[:verified][:verified]).to be_a(SpecForge::Attribute)
         expect(factory.traits[:verified][:verified].resolved).to eq(true)
+      end
+    end
+
+    context "when traits reference factory variables" do
+      let(:input) do
+        {
+          name: "test",
+          variables: {
+            admin_role: "super_admin",
+            admin_level: 10
+          },
+          attributes: {
+            role: "user",
+            level: 1
+          },
+          traits: {
+            admin: {
+              role: "{{ admin_role }}",
+              level: "{{ admin_level }}"
+            }
+          }
+        }
+      end
+
+      it "resolves variables in trait attributes" do
+        expect(factory.traits[:admin][:role].resolve).to eq("super_admin")
+        expect(factory.traits[:admin][:level].resolve).to eq(10)
       end
     end
   end
