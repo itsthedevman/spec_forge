@@ -266,18 +266,26 @@ expect:
               - hash
             transformer: normalize_shape
             description: |-
-              Simple mode for JSON structure validation. Handles most
-              API responses with minimal syntax. Use array syntax for array responses,
-              hash syntax for object responses. Prefix types with ? for nullable fields.
+              Type validation for JSON responses. Use for most API testing.
 
-              This is the recommended approach. Use schema only when you need
-              positional/tuple arrays or very explicit control.
+              Type flags:
+                ? = nullable (value can be null)
+                * = optional (key can be missing)
+                *? or ?* = both (missing or null allowed)
+
+              Array behavior:
+                Single item = pattern (all elements must match)
+                Multiple items = positional (element N matches item N)
+
+              Available types: string, integer, float, number (numeric), boolean (bool), hash (object), array, nil (null)
             examples:
               - |-
                 shape:
                   id: integer
                   name: string
-                  email: ?string
+                  deleted_at: ?string
+                  nickname: *string
+                  bio: *?string
               - |-
                 shape:
                   - id: integer
@@ -286,7 +294,8 @@ expect:
                 shape:
                   users:
                     - id: integer
-                      posts: [string]
+                      profile:
+                        name: string
 
           schema:
             type:
@@ -294,13 +303,17 @@ expect:
             transformer: normalize_schema
             validator: json_schema
             description: |-
-              Advanced mode for explicit JSON structure control. Use when:
-              - Testing positional/tuple arrays where order matters
-              - You need very explicit structure definitions
-              - Simple mode (shape) can't handle your use case
+              Explicit structure control for JSON validation. Use when shape
+              can't express what you need:
+                - Union types (field can be string OR integer)
+                - Explicit pattern vs structure control on arrays
+                - Verbose, self-documenting style preference
 
-              Requires explicit type and structure/pattern keys. Start with shape
-              and only use schema when needed.
+              Key concepts:
+                structure = positional (element N matches item N)
+                pattern = repeating (all elements match same schema)
+
+              Supports optional: and nullable: keys, or type flags (?*).
             examples:
               - |-
                 schema:
@@ -313,31 +326,36 @@ expect:
                 schema:
                   type: hash
                   structure:
-                    users:
-                      type: array
-                      pattern:
-                        type: hash
-                        structure:
-                          id: integer
+                    id: integer
+                    value:
+                      type: [string, integer]
+              - |-
+                schema:
+                  type: hash
+                  structure:
+                    bio:
+                      type: string
+                      optional: true
+                      nullable: true
 
           content:
             type:
               - array
               - hash
             description: |-
-              Validates specific values in the response alongside structure.
-              Use to check exact field values while shape/schema validates types.
+              Validates specific values in the response. Unlike shape/schema,
+              supports expressions, matchers, and variables. Only checks fields
+              you specify, extra fields are ignored.
             examples:
               - |-
                 content:
-                  id: 42
                   status: "active"
+                  id: "{{ created_user_id }}"
               - |-
                 content:
-                  - id: 1
-                    name: "Alice"
-                  - id: 2
-                    name: "Bob"
+                  email: /@example\.com$/
+                  count:
+                    be.greater_than: 0
 
 # -----------------------------------------------------------------------------
 # Variable Storage
@@ -347,17 +365,21 @@ store:
   type: hash
   default: {}
   description: |-
-    Context-driven keyword with two behaviors:
-    - Without request: Sets variables (like local variables)
-    - With request: Captures values from the response
+    Saves values as local variables available to subsequent steps.
+    - Without request: Sets variables directly
+    - With request: Can capture values from response (response and request
+      variables are temporarily available during store: evaluation)
     Values are available to all subsequent steps via {{ variable }} syntax.
+    Note: request, response, and index are reserved variable names.
   examples:
     - |-
-      email: "test@example.com"
-      password: "secret123"
+      store:
+        base_email: "test@example.com"
+        default_role: "user"
     - |-
-      auth_token: "{{ response.body.token }}"
-      user_id: "{{ response.body.user.id }}"
+      store:
+        user_id: "{{ response.body.id }}"
+        location: "{{ response.headers.location }}"
 
 # -----------------------------------------------------------------------------
 # Callbacks
@@ -394,11 +416,14 @@ hook: &hook_structure
     Lifecycle hooks that execute callbacks at specific points during test
     execution. Hooks allow setup and teardown logic to run before/after
     files or individual steps.
+
+    Execution order: before hooks run outside-in, after hooks run inside-out.
+    Hooks are deduplicated by callback name at each scope.
   examples:
     - |-
       hook:
         before_blueprint: seed_database
-        after_blueprint: cleanup_database
+        after_blueprint: cleanup
     - |-
       hook:
         before_step:
@@ -461,10 +486,14 @@ include:
   description: |-
     Injects steps from other blueprint files at load-time. Included steps
     become indistinguishable from locally defined ones after loading.
-    Cannot be combined with config attributes like request or store.
+    Cannot be combined with other step configuration (like request, store, hook).
+    Use shared: with steps: when you need included steps to inherit configuration.
   examples:
-    - "auth_setup"
-    - '["auth_setup", "database_seed"]'
+    - "include: auth_setup"
+    - |-
+      include:
+        - auth_setup
+        - seed_data
 
 # -----------------------------------------------------------------------------
 # Inheritance

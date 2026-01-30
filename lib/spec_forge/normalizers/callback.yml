@@ -7,10 +7,12 @@
 #
 # Callbacks are registered in forge_helper.rb:
 #   SpecForge.configure do |config|
-#     config.register_callback(:seed_users) do |count:|
+#     config.register_callback(:seed_users) do |context, count:|
 #       count.times { User.create!(name: Faker::Name.name) }
 #     end
 #   end
+#
+# The context parameter provides access to variables, step, blueprint, etc.
 # =============================================================================
 
 name:
@@ -19,8 +21,8 @@ name:
   description: The name of the registered callback to execute.
   examples:
     - "seed_database"
-    - "cleanup_records"
-    - "create_admin_user"
+    - "cleanup"
+    - "create_users"
 
 arguments:
   type: [array, hash]
@@ -31,6 +33,6 @@ arguments:
     - |-
       arguments:
         count: 10
-        type: "User"
+        role: "admin"
     - |-
       arguments: [1, 2, 3]

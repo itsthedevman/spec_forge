@@ -1,8 +1,8 @@
 # =============================================================================
 # Factory Structure Definition
 # =============================================================================
-# Defines the structure for FactoryBot factory definitions within SpecForge.
-# Factories allow creating test data using FactoryBot's build strategies.
+# Defines the structure for YAML factory definitions in spec_forge/factories/.
+# The filename determines the factory name (e.g., user.yml creates a user factory).
 #
 # Factories are referenced in blueprints using the factories. namespace:
 #   {{ factories.user.id }}
@@ -15,24 +15,22 @@ model_class:
   aliases:
     - class
   description: |-
-    The model class name for the factory. Used when the factory name
-    doesn't match the model class (e.g., factory :admin_user for User model).
+    Override the inferred model class when the factory name differs from the model.
     Usually inferred automatically from the factory name.
   examples:
     - "User"
     - "Admin::Account"
-    - "API::V1::Resource"
 
 variables:
   type: hash
   default: {}
   description: |-
-    Variables scoped to this factory definition. Can be used within
-    the factory's attributes using {{ variable }} syntax.
+    Computed values for use in attributes. Use when you need the same
+    generated value in multiple attributes.
   examples:
     - |-
-      company_name: "Test Corp"
-      department: "Engineering"
+      variables:
+        hire_date: "{{ faker.date.backward(days: 365) }}"
 
 traits:
   type: hash
@@ -40,28 +38,26 @@ traits:
   description: |-
     Named variations that modify or extend the base factory definition.
     Each trait defines attribute overrides that are applied when the trait is used.
-    Traits are applied when building using FactoryBot.
   examples:
     - |-
       traits:
         admin:
           role: "admin"
-        verified:
-          verified_at: "{{ Time.now }}"
+        inactive:
+          active: false
+        with_department:
+          department: "{{ faker.company.department }}"
 
 attributes:
   type: hash
   default: {}
   description: |-
-    Attribute overrides passed to FactoryBot when building the record.
-    These override the factory's default values. Supports variable
-    interpolation and faker data generation.
+    Core record data for the factory. Supports variable interpolation
+    and faker data generation.
   examples:
     - |-
       attributes:
-        name: "{{ faker.name.first_name }}"
+        name: "{{ faker.name.name }}"
         email: "{{ faker.internet.email }}"
-    - |-
-      attributes:
-        role: "admin"
+        role: "user"
         active: true

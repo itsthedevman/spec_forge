@@ -3,9 +3,13 @@
 # =============================================================================
 # Defines the structure for advanced JSON validation using explicit schemas.
 # Used when the simpler "shape" syntax isn't sufficient, particularly for:
-#   - Positional/tuple arrays where element order matters
-#   - Very explicit structure definitions
-#   - Complex nested validation scenarios
+#   - Union types (field can be string OR integer)
+#   - Explicit pattern vs structure control on arrays
+#   - Verbose, self-documenting style preference
+#
+# Key concepts:
+#   - structure = positional (element N matches item N)
+#   - pattern = repeating (all elements match same schema)
 #
 # Example usage in blueprints:
 #   expect:
@@ -25,11 +29,13 @@ type:
   aliases: ["types"]
   description: |-
     The expected type of the JSON value. Can be a single type or an
-    array of allowed types for union types. Prefix with ? to allow null.
+    array of allowed types for union types. Prefix with ? for nullable,
+    * for optional, or combine (*?).
   examples:
     - "array"
     - "hash"
     - "?string"
+    - "*?string"
     - '["string", "integer"]'
 
 structure:
@@ -39,7 +45,7 @@ structure:
   default: null
   description: |-
     Defines the internal structure of the value. Behavior depends on type:
-    - For arrays: Can be an array (positional/tuple) or use pattern
+    - For arrays: Positional/tuple (element N matches item N)
     - For hashes: A hash mapping keys to their type definitions
     Each element can be a type string or a nested schema definition.
   examples:
@@ -52,7 +58,10 @@ structure:
       structure:
         id: integer
         name: string
-        email: "?string"
+        bio:
+          type: string
+          optional: true
+          nullable: true
 
 pattern:
   type: hash

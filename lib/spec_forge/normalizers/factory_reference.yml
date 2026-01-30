@@ -6,10 +6,12 @@
 # and build strategies.
 #
 # Example usage in blueprints:
-#   factories.user:
-#     attributes:
-#       role: "admin"
-#     strategy: build
+#   store:
+#     user:
+#       factories.user:
+#         strategy: build
+#         attributes:
+#           role: "admin"
 # =============================================================================
 
 traits:
@@ -22,8 +24,8 @@ traits:
     Traits are defined in the factory file and modify the built object.
     Multiple traits can be combined and are applied in order.
   examples:
-    - "[admin]"
-    - "[admin, verified]"
+    - "traits: [admin]"
+    - "traits: [admin, inactive]"
 
 attributes:
   type: hash
@@ -39,8 +41,7 @@ attributes:
         email: "custom@test.com"
     - |-
       attributes:
-        role: "{{ user_role }}"
-        active: true
+        department: "Engineering"
 
 build_strategy:
   type: string
@@ -50,10 +51,10 @@ build_strategy:
   description: |-
     The FactoryBot build strategy to use. Determines whether records
     are persisted to the database or just built in memory.
-    - create: Persists to database (default) - use for integration tests
-    - build: Builds without saving - use when testing logic, not persistence
-    - build_stubbed: Builds with stubbed ID - fastest, use for unit tests
-      that don't need DB interaction
+    - create: Persists to database (default)
+    - build: Instantiates without saving
+    - build_stubbed / stubbed: Creates a stubbed instance
+    - attributes_for: Returns a hash of attributes
   examples:
     - "create"
     - "build"
