@@ -34,12 +34,6 @@ RSpec.describe SpecForge::Attribute do
         it { is_expected.to be_kind_of(described_class::Literal) }
       end
 
-      context "and it is a valid variable macro" do
-        let(:input) { "variables.var_1" }
-
-        it { is_expected.to be_kind_of(described_class::Variable) }
-      end
-
       context "and it is a valid matcher macro" do
         let(:input) { "matcher.include" }
 
@@ -78,10 +72,10 @@ RSpec.describe SpecForge::Attribute do
         it { is_expected.to be_kind_of(described_class::Faker) }
       end
 
-      context "and it is the transform macro" do
-        let(:input) { {"transform.join": ["foo", "bar"]} }
+      context "and it is the be macro" do
+        let(:input) { {"be.nil": nil} }
 
-        it { is_expected.to be_kind_of(described_class::Transform) }
+        it { is_expected.to be_kind_of(described_class::Matcher) }
       end
 
       context "and it is the matcher macro" do
@@ -94,6 +88,12 @@ RSpec.describe SpecForge::Attribute do
         let(:input) { {"factories.user": {attributes: {}}} }
 
         it { is_expected.to be_kind_of(described_class::Factory) }
+      end
+
+      context "and it is the generate macro" do
+        let(:input) { {"generate.array": {size: 3, value: "test"}} }
+
+        it { is_expected.to be_kind_of(described_class::Generate) }
       end
 
       context "and it is not an expanded macro" do
@@ -138,9 +138,10 @@ RSpec.describe SpecForge::Attribute do
               "faker.number.positive",
               {
                 key_1: {
-                  "transform.join" => [
-                    "foo", " ", "bar"
-                  ]
+                  "faker.number.between" => {
+                    from: 1,
+                    to: 10
+                  }
                 }
               }
             ]
@@ -156,8 +157,64 @@ RSpec.describe SpecForge::Attribute do
           expect(array.first).to be_kind_of(described_class::Faker)
 
           hash_value = array.second.value[:key_1]
-          expect(hash_value).to be_kind_of(described_class::Transform)
+          expect(hash_value).to be_kind_of(described_class::Faker)
         end
+      end
+    end
+
+    context "when the input is a Struct" do
+      let(:input) do
+        Struct.new(:name, :email).new(
+          name: "faker.name.name",
+          email: "faker.internet.email"
+        )
+      end
+
+      it { is_expected.to be_kind_of(described_class::ResolvableStruct) }
+
+      it "is expected to wrap the struct for resolution" do
+        expect(attribute.value).to eq(input)
+      end
+    end
+
+    context "when the input is a Data object" do
+      let(:input) do
+        Data.define(:user_id, :token).new(
+          user_id: 42,
+          token: "faker.string.random"
+        )
+      end
+
+      it { is_expected.to be_kind_of(described_class::ResolvableStruct) }
+
+      it "is expected to wrap the data object for resolution" do
+        expect(attribute.value).to eq(input)
+      end
+    end
+
+    context "when the input is an OpenStruct" do
+      let(:input) do
+        OpenStruct.new(
+          id: "faker.number.positive",
+          active: true
+        )
+      end
+
+      it { is_expected.to be_kind_of(described_class::ResolvableStruct) }
+
+      it "is expected to wrap the OpenStruct for resolution" do
+        expect(attribute.value).to eq(input)
+      end
+    end
+
+    context "when the input is a ResolvableStruct" do
+      let(:struct) { Struct.new(:foo).new(foo: "bar") }
+      let(:input) { described_class::ResolvableStruct.new(struct) }
+
+      it { is_expected.to be_kind_of(described_class::ResolvableStruct) }
+
+      it "is expected to return the input unchanged" do
+        expect(attribute).to eq(input)
       end
     end
   end
@@ -182,9 +239,10 @@ RSpec.describe SpecForge::Attribute do
           Faker::Number.positive, # Literal
           {
             key_1: {
-              "transform.join" => [
-                "foo", " ", "bar"
-              ]
+              "faker.number.between" => {
+                from: 1,
+                to: 10
+              }
             }
           }
         ]
@@ -201,10 +259,36 @@ RSpec.describe SpecForge::Attribute do
           be_kind_of(String),
           be_kind_of(Numeric),
           {
-            key_1: "foo bar"
+            key_1: be_between(1, 10)
           }
         ]
       ])
+    end
+
+    context "when called multiple times" do
+      let(:input) { {name: "faker.name.name"} }
+      let(:attribute) { described_class.from(input) }
+
+      it "returns fresh values each time" do
+        results = 10.times.map { attribute.resolve[:name] }
+
+        # With faker, we should get at least some different values in 10 tries
+        expect(results.uniq.size).to be > 1
+      end
+    end
+  end
+
+  describe "#resolved" do
+    context "when called multiple times" do
+      let(:input) { {name: "faker.name.name"} }
+      let(:attribute) { described_class.from(input) }
+
+      it "returns the same cached value each time" do
+        first_result = attribute.resolved[:name]
+        results = 10.times.map { attribute.resolved[:name] }
+
+        expect(results.uniq).to eq([first_result])
+      end
     end
   end
 
@@ -241,35 +325,35 @@ RSpec.describe SpecForge::Attribute do
 
     subject(:resolved_matcher) { attribute.resolve_as_matcher }
 
-    context "when the resolved value is ArrayLike" do
+    context "when the resolved value is an Array" do
       let(:input) do
         [1, "faker.string.random"]
       end
 
-      it "is expected to resolve them into RSpec matchers" do
-        expect(resolved_matcher).to be_kind_of(matchers::ContainExactly)
-        expect(resolved_matcher.expected).to contain_exactly(
+      it "is expected to resolve them into an array of RSpec matchers" do
+        expect(resolved_matcher).to be_kind_of(Array)
+        expect(resolved_matcher).to contain_exactly(
           be_kind_of(matchers::Eq),
           be_kind_of(matchers::Eq)
         )
       end
     end
 
-    context "when the resolved value is HashLike" do
+    context "when the resolved value is a Hash" do
       let(:input) do
         {var_1: 1, var_2: true}
       end
 
-      it "is expected to resolve them into RSpec matchers" do
-        expect(resolved_matcher).to be_kind_of(matchers::Include)
-        expect(resolved_matcher.expected).to match(
+      it "is expected to resolve them into a hash of RSpec matchers" do
+        expect(resolved_matcher).to be_kind_of(Hash)
+        expect(resolved_matcher).to match(
           "var_1" => be_kind_of(matchers::Eq),
           "var_2" => be_kind_of(matchers::Eq)
         )
       end
     end
 
-    context "when the resolved value is an empty ArrayLike" do
+    context "when the resolved value is an empty Array" do
       let(:input) { [] }
 
       it "is expected to resolve into an 'eq' matcher" do
@@ -278,7 +362,7 @@ RSpec.describe SpecForge::Attribute do
       end
     end
 
-    context "when the resolved value is an empty HashLike" do
+    context "when the resolved value is an empty Hash" do
       let(:input) { {} }
 
       it "is expected to resolve into an 'eq' matcher" do
@@ -300,14 +384,6 @@ RSpec.describe SpecForge::Attribute do
 
       it "is expected to return itself" do
         expect(resolved_matcher).to be_kind_of(matchers::Eq)
-      end
-    end
-
-    context "when the resolved value is a custom matcher" do
-      let(:input) { forge_and(eq(1)) }
-
-      it "is expected to return itself" do
-        expect(resolved_matcher).to be_kind_of(RSpec::Matchers::DSL::Matcher)
       end
     end
 

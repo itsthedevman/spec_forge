@@ -12,19 +12,26 @@ module SpecForge
       #
       module Generate
         #
-        # Generates OpenAPI documentation and writes it to disk
+        # Generates OpenAPI documentation from blueprint test results
         #
-        # Runs the documentation generation pipeline: executes tests, extracts
-        # endpoint data, generates OpenAPI spec, validates it, and writes the
+        # Runs blueprints with the configured verbosity level, extracts endpoint
+        # data, validates the specification (unless skipped), and writes the
         # output file in the specified format.
         #
-        # @return [Pathname] The path to the generated documentation file
+        # @param base_path [String, Pathname, nil] Optional base path for blueprints
         #
-        def generate_documentation
-          generator = Documentation::Generators::OpenAPI["3.0"]
-          output = generator.generate(use_cache: !options.fresh)
+        # @return [Pathname] Path to the generated documentation file
+        #
+        def generate_documentation(base_path: nil)
+          document = Documentation::Builder.create_document!(
+            base_path:,
+            use_cache: !options.fresh,
+            verbosity_level: determine_verbosity_level
+          )
+          generator_class = Documentation::OpenAPI["3.0"]
+          output = generator_class.new(document).generate
 
-          generator.validate!(output) unless options.skip_validation
+          generator_class.validate!(output) unless options.skip_validation
 
           # Determine output format and path
           file_format = determine_file_format
@@ -65,6 +72,19 @@ module SpecForge
             extension = (format == "json") ? "json" : "yml"
             SpecForge.openapi_path.join("generated", "openapi.#{extension}")
           end
+        end
+
+        #
+        # Determines verbosity level from command options
+        #
+        # @return [Integer] Verbosity level (0-3)
+        #
+        def determine_verbosity_level
+          return 3 if options.trace
+          return 2 if options.debug
+          return 1 if options.verbose
+
+          0
         end
       end
     end

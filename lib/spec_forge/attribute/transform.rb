@@ -5,16 +5,12 @@ module SpecForge
     #
     # Represents an attribute that transforms other attributes
     #
-    # This class provides transformation functions like join that can be applied
-    # to other attributes or values. It allows complex data manipulation without
-    # writing Ruby code.
+    # This class provides transformation functions that can be applied to other
+    # attributes or values. It allows complex data manipulation without writing
+    # Ruby code.
     #
-    # @example Join transformation in YAML
-    #   full_name:
-    #     transform.join:
-    #     - variables.first_name
-    #     - " "
-    #     - variables.last_name
+    # Note: String concatenation is handled via string interpolation ({{ }}) syntax
+    # rather than transformation functions.
     #
     class Transform < Parameterized
       #
@@ -30,14 +26,17 @@ module SpecForge
       #
       # @return [Array<String>]
       #
-      TRANSFORM_METHODS = %w[
-        join
-      ].freeze
+      TRANSFORM_METHODS = %w[].freeze
 
+      # @return [String] The transformation function name
       attr_reader :function
 
       #
       # Creates a new transform attribute with the specified function and arguments
+      #
+      # @raise [Error::InvalidTransformFunctionError] If the function is not supported
+      #
+      # @see Parameterized#initialize
       #
       def initialize(...)
         super
@@ -45,9 +44,9 @@ module SpecForge
         # Remove prefix
         @function = @input.sub("transform.", "")
 
-        raise Error::InvalidTransformFunctionError, input unless TRANSFORM_METHODS.include?(function)
+        raise Error::InvalidTransformFunctionError.new(input, TRANSFORM_METHODS) unless TRANSFORM_METHODS.include?(function)
 
-        prepare_arguments!
+        prepare_arguments
       end
 
       #
@@ -56,11 +55,7 @@ module SpecForge
       # @return [Object] The transformed value
       #
       def value
-        case function
-        when "join"
-          # Technically supports any attribute, but I ain't gonna test all them edge cases
-          arguments[:positional].resolve.join
-        end
+        # Noop
       end
     end
   end

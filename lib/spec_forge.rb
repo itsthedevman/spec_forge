@@ -13,58 +13,50 @@ require "faraday"
 require "mime/types"
 require "openapi3_parser"
 require "pathname"
+require "pastel"
 require "rspec"
 require "sem_version"
 require "singleton"
 require "thor"
 require "webrick"
 require "yaml"
+require "zeitwerk"
 
-#
-# SpecForge: Write expressive API tests in YAML with the power of RSpec matchers
-#
-# SpecForge is a testing framework that allows writing API tests in a YAML format
-# that reads like documentation. It combines the readability of YAML with the
-# power of RSpec matchers, Faker data generation, and FactoryBot test objects.
-#
-# @example Basic spec in YAML
-#   get_user:
-#     path: /users/1
-#     expectations:
-#     - expect:
-#         status: 200
-#         json:
-#           name: kind_of.string
-#           email: /@/
-#
-# @example Running specs
-#   # Run all specs
-#   SpecForge.run
-#
-#   # Run specific file
-#   SpecForge.run(file_name: "users")
-#
-#   # Run specific spec
-#   SpecForge.run(file_name: "users", spec_name: "create_user")
-#
+require_path = ->(path) { Dir.glob(path).sort.each { |p| require p } }
+
+# Require the overwrites
+root_path = Pathname.new(__dir__)
+
+core_ext_path = root_path.join("spec_forge", "core_ext")
+require_path.call(core_ext_path.join("**/*.rb"))
+
+types_path = root_path.join("spec_forge", "types")
+require_path.call(types_path.join("**/*.rb"))
+
+# Load the files
+loader = Zeitwerk::Loader.for_gem
+loader.inflector.inflect(
+  "cli" => "CLI",
+  "http" => "HTTP",
+  "openapi" => "OpenAPI",
+  "array_io" => "ArrayIO"
+)
+
+# spec_forge/forge/actions/*.rb -> SpecForge::Forge::*
+loader.collapse(root_path.join("spec_forge", "forge", "actions"))
+
+# spec_forge/types/*.rb -> SpecForge::*
+loader.collapse(types_path)
+
+# Loaded manually above
+loader.ignore(core_ext_path)
+loader.ignore(types_path)
+
+loader.setup
+# loader.eager_load(force: true)
+
 module SpecForge
   class << self
-    #
-    # Loads all factories and specs and runs the tests with optional filtering
-    #
-    # This is the main entry point for running SpecForge tests. It loads the
-    # forge_helper.rb file if it exists, configures the environment, loads
-    # factories and specs, and runs the tests through RSpec.
-    #
-    # @param file_name [String, nil] Optional name of spec file to run
-    # @param spec_name [String, nil] Optional name of spec to run
-    # @param expectation_name [String, nil] Optional name of expectation to run
-    #
-    def run(file_name: nil, spec_name: nil, expectation_name: nil)
-      forges = Runner.prepare(file_name:, spec_name:, expectation_name:)
-      Runner.run(forges, exit_on_finish: true)
-    end
-
     #
     # Returns the directory root for the working directory
     #
@@ -81,6 +73,15 @@ module SpecForge
     #
     def forge_path
       @forge_path ||= root.join("spec_forge")
+    end
+
+    #
+    # Returns SpecForge's blueprints directory
+    #
+    # @return [Pathname] The spec_forge blueprints directory path
+    #
+    def blueprints_path
+      @blueprints_path ||= forge_path.join("blueprints")
     end
 
     #
@@ -132,68 +133,5 @@ module SpecForge
         cleaner
       end
     end
-
-    #
-    # Returns the current execution context
-    #
-    # @return [Context] The current context object
-    #
-    def context
-      @context ||= Context.new
-    end
-
-    #
-    # Registers a callback for a specific test lifecycle event
-    # Allows custom code execution at specific points during test execution
-    #
-    # @param name [Symbol, String] A unique identifier for this callback
-    # @yield A block to execute when the callback is triggered
-    # @yieldparam context [Object] An object containing context-specific state data, depending
-    #   on which hook the callback is triggered from.
-    #
-    # @return [Proc] The registered callback
-    #
-    # @example Registering a custom debug handler
-    #   SpecForge.register_callback(:clean_database) do |context|
-    #     DatabaseCleaner.clean
-    #   end
-    #
-    def register_callback(name, &)
-      Callbacks.register(name, &)
-    end
-
-    #
-    # Generates a unique ID for an object based on hash and object_id
-    #
-    # @param object [Object] The object to generate an ID for
-    #
-    # @return [String] A unique ID string
-    #
-    # @private
-    #
-    def generate_id(object)
-      "#{object.hash.abs.to_s(36)}_#{object.object_id.to_s(36)}"
-    end
   end
 end
-
-require_relative "spec_forge/attribute"
-require_relative "spec_forge/backtrace_formatter"
-require_relative "spec_forge/callbacks"
-require_relative "spec_forge/cli"
-require_relative "spec_forge/configuration"
-require_relative "spec_forge/context"
-require_relative "spec_forge/core_ext"
-require_relative "spec_forge/documentation"
-require_relative "spec_forge/error"
-require_relative "spec_forge/factory"
-require_relative "spec_forge/filter"
-require_relative "spec_forge/forge"
-require_relative "spec_forge/http"
-require_relative "spec_forge/loader"
-require_relative "spec_forge/matchers"
-require_relative "spec_forge/normalizer"
-require_relative "spec_forge/runner"
-require_relative "spec_forge/spec"
-require_relative "spec_forge/type"
-require_relative "spec_forge/version"

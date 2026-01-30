@@ -2,76 +2,125 @@
 
 module SpecForge
   #
-  # Provides helper methods for checking types
-  # Useful for working with both regular objects and Attribute delegators
+  # Utilities for converting between Ruby classes and type strings
+  #
+  # Type provides bidirectional conversion between Ruby types (Integer, String, etc.)
+  # and their string representations ("integer", "string", etc.) used in YAML
+  # schema definitions. Supports nullable types with the "?" prefix and optional
+  # fields with the "*" prefix.
   #
   module Type
-    #
-    # Checks if the object is a Hash or a ResolvableHash delegator
-    #
-    # @param object [Object] The object to check
-    #
-    # @return [Boolean] True if the object is a hash-like structure
-    #
-    def self.hash?(object)
-      object.is_a?(Hash) || object.is_a?(Attribute::ResolvableHash)
+    class << self
+      # Mapping from Ruby classes to type string names
+      #
+      # @return [Hash{Class => String}]
+      CLASS_TO_STRING = {
+        Integer => "integer",
+        Float => "float",
+        String => "string",
+        Hash => "hash",
+        Array => "array",
+        TrueClass => "boolean",
+        FalseClass => "boolean",
+        NilClass => "null"
+      }.freeze
+
+      # Mapping from type string names to Ruby classes
+      #
+      # @return [Hash{String => Array<Class>}]
+      STRING_TO_CLASS = {
+        "string" => [String],
+        "number" => [Integer, Float],
+        "numeric" => [Integer, Float],
+        "integer" => [Integer],
+        "float" => [Float],
+        "bool" => [TrueClass, FalseClass],
+        "boolean" => [TrueClass, FalseClass],
+        "array" => [Array],
+        "hash" => [Hash],
+        "object" => [Hash],
+        "null" => [NilClass],
+        "nil" => [NilClass]
+      }.freeze
+
+      #
+      # Converts a type string to a hash containing Ruby classes and optional flag
+      #
+      # Supports nullable types with the "?" prefix (e.g., "?string") and optional
+      # fields with the "*" prefix (e.g., "*string"). Flags can be combined in any
+      # order (e.g., "*?string" or "?*string").
+      #
+      # @param input [String] The type string (e.g., "integer", "?string", "*?boolean")
+      #
+      # @return [Hash] Hash with :types (Array<Class>) and :optional (Boolean)
+      #
+      # @raise [ArgumentError] If input is nil or unknown type
+      #
+      # @example
+      #   Type.from_string("integer")   # => { types: [Integer], optional: false }
+      #   Type.from_string("?string")   # => { types: [String, NilClass], optional: false }
+      #   Type.from_string("*string")   # => { types: [String], optional: true }
+      #   Type.from_string("*?string")  # => { types: [String, NilClass], optional: true }
+      #
+      def from_string(input)
+        raise ArgumentError, "Input is nil" if input.nil?
+
+        # Extract flags from start of string
+        potential_flags = input[..2]
+        optional = potential_flags.include?("*")
+        nullable = potential_flags.include?("?")
+
+        if optional || nullable
+          offset = [optional, nullable].count(true)
+          input = input[offset..]
+        end
+
+        types = STRING_TO_CLASS[input.downcase]&.dup
+
+        if types.nil?
+          raise ArgumentError,
+            "Unknown type: #{input.in_quotes}. Valid types: string, number/numeric, integer, float, boolean/bool, array, hash/object, null/nil"
+        end
+
+        # Add NilClass if nullable
+        types << NilClass if nullable
+        types.uniq!
+
+        {types:, optional:}
+      end
+
+      #
+      # Converts Ruby classes to their type string representation
+      #
+      # Handles nullable types (includes NilClass) by adding "?" prefix.
+      # Normalizes boolean types (TrueClass/FalseClass) to single "boolean".
+      #
+      # @param types [Array<Class>] One or more Ruby classes
+      #
+      # @return [String, Array<String>] Type string or array if multiple distinct types
+      #
+      # @example
+      #   Type.to_string(Integer)                    # => "integer"
+      #   Type.to_string(String, NilClass)           # => "?string"
+      #   Type.to_string(TrueClass, FalseClass)      # => "boolean"
+      #   Type.to_string(Integer, String)            # => ["integer", "string"]
+      #
+      def to_string(*types)
+        types = types.map { |k| CLASS_TO_STRING[k] }
+
+        null = CLASS_TO_STRING[NilClass] # Just in case the name changes
+        if types.delete(null)
+          # We removed the nil above, no other types means this is just nil. No need to continue processing
+          return null if types.empty?
+
+          types.map! { |t| "?#{t}" }
+        end
+
+        # Remove "boolean", "boolean" that happens with TrueClass/FalseClass
+        types.uniq!
+
+        (types.size == 1) ? types.first : types
+      end
     end
-
-    #
-    # Checks if the object is an Array or a ResolvableArray delegator
-    #
-    # @param object [Object] The object to check
-    #
-    # @return [Boolean] True if the object is an array-like structure
-    #
-    def self.array?(object)
-      object.is_a?(Array) || object.is_a?(Attribute::ResolvableArray)
-    end
-  end
-end
-
-#
-# Represents Hash/ResolvableHash in a form that can be used in a case statement
-# Allows for type switching on hash-like objects
-#
-# @example
-#   case value
-#   when HashLike
-#     # Handle hash-like objects
-#   end
-#
-class HashLike
-  #
-  # Provides custom type matching for use in case statements
-  #
-  # @param object [Object] The object to check against the type
-  #
-  # @return [Boolean] Whether the object matches the type
-  #
-  def self.===(object)
-    SpecForge::Type.hash?(object)
-  end
-end
-
-#
-# Represents Array/ResolvableArray in a form that can be used in a case statement
-# Allows for type switching on array-like objects
-#
-# @example
-#   case value
-#   when ArrayLike
-#     # Handle array-like objects
-#   end
-#
-class ArrayLike
-  #
-  # Provides custom type matching for use in case statements
-  #
-  # @param object [Object] The object to check against the type
-  #
-  # @return [Boolean] Whether the object matches the type
-  #
-  def self.===(object)
-    SpecForge::Type.array?(object)
   end
 end

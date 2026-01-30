@@ -2,133 +2,263 @@
 
 module SpecForge
   #
-  # Configuration container for SpecForge settings
-  # Defines default values and validation for all configuration options
+  # Holds configuration options for SpecForge
   #
-  class Configuration < Struct.new(:base_url, :headers, :query, :factories, :on_debug_proc)
+  # Configuration is typically set in forge_helper.rb using the configure block.
+  # It controls base URL, global variables, factory settings, callbacks, and more.
+  #
+  # @example Basic configuration
+  #   SpecForge.configure do |config|
+  #     config.base_url = "http://localhost:3000"
+  #     config.global_variables = {api_version: "v1"}
+  #   end
+  #
+  class Configuration
     #
-    # Manages factory configuration settings
-    # Controls auto-discovery behavior and custom factory paths
-    #
-    # @example
-    #   config.factories.auto_discover = false
-    #   config.factories.paths += ["lib/factories"]
+    # Configuration for FactoryBot factory loading
     #
     class Factories < Struct.new(:auto_discover, :paths)
-      #
-      # Creates reader methods that return boolean values
-      # Allows for checking configuration with predicate methods
-      #
-      attr_predicate :auto_discover, :paths
+      # @return [Boolean] Whether auto-discovery is enabled
+      attr_predicate :auto_discover
 
-      #
-      # Initializes a new Factories configuration
-      # Sets default values for auto-discovery and paths
-      #
-      # @param auto_discover [Boolean] Whether to auto-discover factories (default: true)
-      # @param paths [Array<String>] Additional paths to look for factories (default: [])
-      #
-      # @return [Factories] A new factories configuration instance
-      #
+      # @return [Array<String>] Factory file paths
+      attr_predicate :paths
+
       def initialize(auto_discover: true, paths: []) = super
     end
 
+    # @return [String] Base URL for HTTP requests
+    attr_accessor :base_url
+
+    # @return [Hash] Global variables available to all blueprints
+    attr_accessor :global_variables
+
+    # @return [Factories] Factory configuration
+    attr_reader :factories
+
+    # @return [Proc, nil] Debug handler proc
+    attr_reader :on_debug_proc
+
+    # @return [Hash{Symbol => Proc}] Registered callbacks
+    attr_reader :callbacks
+
+    # @return [Hash{Symbol => Array}] Global lifecycle hooks for forge, blueprint, and step events
+    attr_reader :hooks
+
     #
-    # Initializes a new Configuration with default values
-    # Sets up the configuration structure including factory settings and debug proxy
+    # Creates a new Configuration with default values
     #
-    # @return [Configuration] A new configuration instance with defaults
+    # @return [Configuration] A new configuration instance
     #
     def initialize
-      config = Normalizer.default(:configuration)
+      # Validated
+      @base_url = "http://localhost:3000"
+      @factories = Factories.new
+      @global_variables = {}
 
-      config[:base_url] = "http://localhost:3000"
-      config[:factories] = Factories.new
-      config[:on_debug_proc] = Runner::DebugProxy.default
-
-      super(**config)
+      # Internal
+      @on_debug_proc = nil
+      @callbacks = {}
+      @hooks = {
+        before_forge: [],
+        before_blueprint: [],
+        before_step: [],
+        after_step: [],
+        after_blueprint: [],
+        after_forge: []
+      }
     end
 
     #
-    # Validates the configuration and applies normalization
-    # Ensures all required fields have values and applies defaults when needed
+    # Validates the configuration and normalizes values
     #
-    # @return [self] Returns self for method chaining
+    # @return [Configuration] self
     #
-    # @api private
+    # @raise [Error::InvalidStructureError] If configuration is invalid
     #
     def validate
-      output = Normalizer.normalize!(to_h, using: :configuration)
+      output = Normalizer.normalize!(
+        {
+          base_url: @base_url,
+          factories: @factories.to_h,
+          global_variables: @global_variables
+        },
+        using: :configuration
+      )
 
       # In case any value was set to `nil`
-      self.base_url = output[:base_url] if base_url.blank?
-      self.query = output[:query] if query.blank?
-      self.headers = output[:headers] if headers.blank?
+      @global_variables = output[:global_variables] if @global_variables.blank?
+      @global_variables.symbolize_keys!
 
       self
     end
 
+    #
+    # Sets a debug handler block to be called when a step has debug: true
+    #
+    # @yield [context] Block called when debug is triggered
+    # @yieldparam context [Forge::Context] The current execution context
+    #
+    # @example
+    #   config.on_debug { binding.pry }
+    #
     def on_debug(&block)
-      self.on_debug_proc = block
-    end
-
-    def on_debug=(block)
-      warn("SpecForge::Configuration#on_debug= is deprecated. Use #on_debug instead")
-      self.on_debug_proc = block
+      @on_debug_proc = block
     end
 
     #
-    # Recursively converts the configuration to a hash representation
+    # Returns RSpec's configuration for customization
     #
-    # @return [Hash] Hash representation of the configuration
+    # @return [RSpec::Core::Configuration] RSpec configuration
     #
-    def to_h
-      hash = super
-      hash[:factories] = hash[:factories].to_h
-      hash
-    end
-
-    #
-    # Returns the RSpec configuration object
-    # Provides access to RSpec's internal configuration for test customization
-    #
-    # @return [RSpec::Core::Configuration] RSpec's configuration object
-    #
-    # @example Setting formatter options
-    #   SpecForge.configure do |config|
-    #     config.specs.formatter = :documentation
-    #   end
-    #
-    def specs
+    def rspec
       RSpec.configuration
     end
 
-    alias_method :rspec, :specs
-
     #
-    # Registers a callback for a specific test lifecycle event
-    # Allows custom code execution at specific points during test execution
+    # Registers a callback that can be invoked from blueprints using call:
     #
-    # @param name [Symbol, String] The callback point to register for
-    #   (:before_file, :after_expectation, etc.)
-    # @yield A block to execute when the callback is triggered
-    # @yieldparam context [Object] An object containing context-specific state data, depending
-    #   on which hook the callback is triggered from.
+    # @param name [String, Symbol] The callback name to register
     #
-    # @return [Proc] The registered callback
+    # @yield [context, *args] Block to execute when callback is called
+    # @yieldparam context [Forge::Context] The current execution context
     #
-    # @example Cleaning database after each test
-    #   SpecForge.configure do |config|
-    #     config.register_callback(:after_expectation) do
-    #       DatabaseCleaner.clean
-    #     end
+    # @example Simple callback
+    #   config.register_callback("seed_data") do |context|
+    #     User.create!(name: "Test")
     #   end
     #
-    def register_callback(name, &)
-      Callbacks.register(name, &)
+    # @example Callback with arguments
+    #   config.register_callback("create_users") do |context, count:|
+    #     count.times { User.create! }
+    #   end
+    #
+    def register_callback(name, &block)
+      @callbacks[name.to_sym] = block
     end
 
-    alias_method :define_callback, :register_callback
-    alias_method :callback, :register_callback
+    #
+    # Removes a registered callback and detaches it from all lifecycle hooks
+    #
+    # @param name [String, Symbol] The callback name to remove
+    #
+    # @return [Proc, nil] The removed callback proc, or nil if not found
+    #
+    # @example Remove a callback
+    #   config.register_callback(:my_hook) { |context| puts "hook" }
+    #   config.before(:step, :my_hook)
+    #   config.deregister_callback(:my_hook)  # Removes from callbacks and hooks
+    #
+    def deregister_callback(name)
+      name = name.to_sym
+
+      callback = @callbacks.delete(name)
+      @hooks.each_value { |a| a.delete(name) }
+
+      callback
+    end
+
+    #
+    # Attaches a callback to a before lifecycle event
+    #
+    # Global hooks run for all blueprints and execute in registration order.
+    # Can either reference a pre-registered callback by name, or accept a block
+    # to register and attach a callback in one step (like RSpec's before hooks).
+    #
+    # @param event [Symbol] The lifecycle event (:forge, :blueprint, or :step)
+    # @param callback_name [String, Symbol, nil] The name of a registered callback
+    #   (optional if block is provided)
+    #
+    # @yield [context] Block to execute (registers callback automatically)
+    # @yieldparam context [Forge::Context] The current execution context
+    #
+    # @return [String, Symbol] The callback name (auto-generated if block provided)
+    #
+    # @raise [ArgumentError] If the event is invalid
+    # @raise [ArgumentError] If the callback is not registered (when using name)
+    #
+    # @example Attach a pre-registered callback
+    #   config.register_callback(:setup) { |context| Database.seed }
+    #   config.before(:forge, :setup)
+    #
+    # @example Register and attach with a block (like RSpec)
+    #   config.before(:step) { |context| Logger.info("Starting step") }
+    #   config.before(:blueprint) { |context| Database.clean }
+    #
+    # @example Store the callback name for later deregistration
+    #   callback_name = config.before(:step) { |context| puts "hook" }
+    #   config.deregister_callback(callback_name)
+    #
+    def before(event, callback_name = nil, &block)
+      if block
+        callback_name = "__sf_cb_#{SecureRandom.uuid.tr("-", "")}"
+        register_callback(callback_name, &block)
+      end
+
+      register_hook("before", event, callback_name)
+
+      callback_name
+    end
+
+    #
+    # Attaches a callback to an after lifecycle event
+    #
+    # Global hooks run for all blueprints and execute in registration order.
+    # Can either reference a pre-registered callback by name, or accept a block
+    # to register and attach a callback in one step (like RSpec's after hooks).
+    #
+    # @param event [Symbol] The lifecycle event (:forge, :blueprint, or :step)
+    # @param callback_name [String, Symbol, nil] The name of a registered callback
+    #   (optional if block is provided)
+    #
+    # @yield [context] Block to execute (registers callback automatically)
+    # @yieldparam context [Forge::Context] The current execution context
+    #
+    # @return [String, Symbol] The callback name (auto-generated if block provided)
+    #
+    # @raise [ArgumentError] If the event is invalid
+    # @raise [ArgumentError] If the callback is not registered (when using name)
+    #
+    # @example Attach a pre-registered callback
+    #   config.register_callback(:cleanup) { |context| Database.clean }
+    #   config.after(:forge, :cleanup)
+    #
+    # @example Register and attach with a block (like RSpec)
+    #   config.after(:step) { |context| Logger.info("Step complete") }
+    #   config.after(:blueprint) { |context| Database.rollback }
+    #
+    # @example Store the callback name for later deregistration
+    #   callback_name = config.after(:step) { |context| puts "done" }
+    #   config.deregister_callback(callback_name)
+    #
+    def after(event, callback_name = nil, &block)
+      if block
+        callback_name = "__sf_cb_#{SecureRandom.uuid.tr("-", "")}"
+        register_callback(callback_name, &block)
+      end
+
+      register_hook("after", event, callback_name)
+
+      callback_name
+    end
+
+    private
+
+    def register_hook(timing, event, callback_name)
+      hook = :"#{timing}_#{event}"
+      callback_name = callback_name.to_sym
+
+      if !@hooks.key?(hook)
+        keys = @hooks.keys.select { |k| k.to_s.start_with?(timing) }.map(&:in_quotes)
+        raise ArgumentError, "Invalid event #{hook.in_quotes}. Expected one of #{keys.to_or_sentence}"
+      end
+
+      if !@callbacks.key?(callback_name)
+        keys = @callbacks.keys.map(&:in_quotes)
+        raise ArgumentError, "Invalid callback #{callback_name.in_quotes}. Expected one of #{keys.to_or_sentence}"
+      end
+
+      @hooks[hook] << callback_name
+    end
   end
 end

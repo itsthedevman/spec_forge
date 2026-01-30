@@ -3,9 +3,8 @@ name: Tests
 on:
   push:
     branches:
-    - main
+      - main
   pull_request:
-
 
 jobs:
   # Main unit tests
@@ -15,78 +14,24 @@ jobs:
     strategy:
       matrix:
         ruby:
-        - 3.2
-        - 3.3
-        - 3.4
+          - 3.2
+          - 3.3
+          - 3.4
       fail-fast: false
 
     ##############################################
     steps:
-    - uses: actions/checkout@v5
-    ######
-    - name: Set up Ruby
-      uses: ruby/setup-ruby@v1
-      with:
-        ruby-version: ${{ matrix.ruby }}
-        bundler-cache: true
-    ######
-    - name: Run RSpec
-      run: bin/rspec
-    ######
-    - name: Run Standard
-      run: bin/rake standard
-    ##############################################
-
-  integration:
-    # Integration tests
-    runs-on: ubuntu-latest
-    name: Integration Tests (Ruby ${{ matrix.ruby }})
-    strategy:
-      matrix:
-        ruby:
-        - "3.2.8"
-        - "3.3.8"
-        - "3.4.4"
-      fail-fast: false
-
-    # Add PostgreSQL service for the tests
-    services:
-      postgres:
-        image: postgres:14
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: spec_forge
-        ports:
-        - 5432:5432
-        # Set health checks to wait until postgres has started
-        options: >-
-          --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
-
-    defaults:
-      run:
-        working-directory: spec/integration
-
-    ##############################################
-    steps:
-    - uses: actions/checkout@v5
-    ######
-    - name: Set up Ruby
-      uses: ruby/setup-ruby@v1
-      with:
-        ruby-version: ${{ matrix.ruby }}
-        bundler-cache: true
-        working-directory: spec/integration
-    ######
-    - name: Setup database
-      run: bin/rails db:setup
-      env:
-        RAILS_ENV: development
-        DATABASE_URL: postgres://postgres:postgres@localhost:5432/spec_forge
-    ######
-    - name: Run integration tests
-      run: bin/test
-      env:
-        RAILS_ENV: development
-        DATABASE_URL: postgres://postgres:postgres@localhost:5432/spec_forge
+      - uses: actions/checkout@v6
+      ######
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby }}
+          bundler-cache: true
+      ######
+      - name: Run RSpec
+        run: bin/rspec
+      ######
+      - name: Run Standard
+        run: bin/rake standard
     ##############################################

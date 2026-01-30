@@ -1,6 +1,39 @@
 # frozen_string_literal: true
 
 RSpec.describe SpecForge::Factory do
+  describe ".load_from_files" do
+    around do |example|
+      original_path = SpecForge.forge_path
+      SpecForge.instance_variable_set(:@forge_path, fixtures_path)
+      example.run
+      SpecForge.instance_variable_set(:@forge_path, original_path)
+    end
+
+    it "loads factories from YAML files with filename-based naming" do
+      factories = described_class.load_from_files
+
+      expect(factories).to be_an(Array)
+      expect(factories.size).to eq(1)
+
+      factory = factories.first
+      # Factory name comes from filename (test_product.yml -> :test_product)
+      expect(factory.name).to eq(:test_product)
+      expect(factory.model_class).to eq("Product")
+      expect(factory.attributes[:name].resolved).to eq("Test Product")
+      expect(factory.attributes[:price].resolved).to eq(9.99)
+    end
+
+    it "loads traits from the factory file" do
+      factories = described_class.load_from_files
+
+      factory = factories.first
+      expect(factory.traits).to be_a(Hash)
+      expect(factory.traits).to have_key(:premium)
+      expect(factory.traits[:premium][:price].resolved).to eq(99.99)
+      expect(factory.traits[:premium][:premium].resolved).to eq(true)
+    end
+  end
+
   describe ".load_and_register" do
     let(:path) { SpecForge.forge_path }
 
@@ -40,38 +73,193 @@ RSpec.describe SpecForge::Factory do
 
     subject(:factory) { described_class.new(**input) }
 
-    context "when variables are referenced" do
+    context "when variables are defined" do
       let(:input) do
         {
           name: "test",
           variables: {
-            var_1: "test"
+            var_1: "test_value"
           },
           attributes: {
-            attr_1: "variables.var_1"
+            attr_1: "static_value"
           }
         }
       end
 
-      it "is expected that they are properly linked" do
-        expect(factory.attributes[:attr_1].value).to eq(input[:variables][:var_1])
+      it "stores variables as Attributes" do
+        expect(factory.variables[:var_1]).to be_a(SpecForge::Attribute)
+        expect(factory.variables[:var_1].resolved).to eq("test_value")
+      end
+
+      it "stores attributes as Attributes" do
+        expect(factory.attributes[:attr_1]).to be_a(SpecForge::Attribute)
+        expect(factory.attributes[:attr_1].resolved).to eq("static_value")
       end
     end
 
-    context "when 'variables' reference themselves" do
+    context "when attributes use template syntax" do
       let(:input) do
         {
           name: "test",
           variables: {
-            var_1: "test",
-            var_2: "variables.var_1"
+            var_1: "template_value"
           },
-          attributes: {}
+          attributes: {
+            attr_1: "{{ var_1 }}"
+          }
         }
       end
 
-      it "is expected to be able to be resolved" do
-        expect(factory.variables[:var_2].resolved).to eq(input[:variables][:var_1])
+      it "creates Template attributes that can reference variables" do
+        expect(factory.attributes[:attr_1]).to be_a(SpecForge::Attribute::Template)
+        expect(factory.attributes[:attr_1].resolved).to eq("template_value")
+      end
+    end
+
+    context "when variables use faker values" do
+      let(:input) do
+        {
+          name: "test",
+          variables: {
+            random_name: "{{ faker.string.random }}"
+          },
+          attributes: {
+            name: "{{ random_name }}"
+          }
+        }
+      end
+
+      it "resolves to different values on each call" do
+        # Using resolve (not resolved) to get fresh values each time
+        first_value = factory.attributes[:name].resolve
+        second_value = factory.attributes[:name].resolve
+
+        expect(first_value).to be_a(String)
+        expect(second_value).to be_a(String)
+        expect(first_value).not_to eq(second_value)
+      end
+    end
+
+    context "when multiple attributes reference the same variable" do
+      let(:input) do
+        {
+          name: "test",
+          variables: {
+            shared_prefix: "USER"
+          },
+          attributes: {
+            external_id: "{{ shared_prefix }}-001",
+            reference_id: "REF-{{ shared_prefix }}-001"
+          }
+        }
+      end
+
+      it "resolves each attribute using the shared variable" do
+        external_id = factory.attributes[:external_id].resolve
+        reference_id = factory.attributes[:reference_id].resolve
+
+        expect(external_id).to eq("USER-001")
+        expect(reference_id).to eq("REF-USER-001")
+      end
+    end
+
+    context "when variables use faker with arguments" do
+      let(:input) do
+        {
+          name: "test",
+          variables: {
+            age: {
+              "faker.number.between": {from: 18, to: 65}
+            }
+          },
+          attributes: {
+            user_age: "{{ age }}"
+          }
+        }
+      end
+
+      it "resolves faker with arguments correctly" do
+        age = factory.attributes[:user_age].resolve
+
+        expect(age).to be_a(Integer)
+        expect(age).to be_between(18, 65)
+      end
+    end
+
+    context "when variable is a hash with nested access" do
+      let(:input) do
+        {
+          name: "test",
+          variables: {
+            config: {host: "localhost", port: 3000}
+          },
+          attributes: {
+            url: "http://{{ config.host }}:{{ config.port }}"
+          }
+        }
+      end
+
+      it "resolves nested hash access" do
+        expect(factory.attributes[:url].resolve).to eq("http://localhost:3000")
+      end
+    end
+
+    context "when traits are defined" do
+      let(:input) do
+        {
+          name: "test",
+          attributes: {
+            role: "user"
+          },
+          traits: {
+            admin: {
+              role: "admin"
+            },
+            verified: {
+              verified: true
+            }
+          }
+        }
+      end
+
+      it "stores traits as a hash of Attribute hashes" do
+        expect(factory.traits).to be_a(Hash)
+        expect(factory.traits).to have_key(:admin)
+        expect(factory.traits).to have_key(:verified)
+      end
+
+      it "converts trait attributes to Attribute objects" do
+        expect(factory.traits[:admin][:role]).to be_a(SpecForge::Attribute)
+        expect(factory.traits[:admin][:role].resolved).to eq("admin")
+        expect(factory.traits[:verified][:verified]).to be_a(SpecForge::Attribute)
+        expect(factory.traits[:verified][:verified].resolved).to eq(true)
+      end
+    end
+
+    context "when traits reference factory variables" do
+      let(:input) do
+        {
+          name: "test",
+          variables: {
+            admin_role: "super_admin",
+            admin_level: 10
+          },
+          attributes: {
+            role: "user",
+            level: 1
+          },
+          traits: {
+            admin: {
+              role: "{{ admin_role }}",
+              level: "{{ admin_level }}"
+            }
+          }
+        }
+      end
+
+      it "resolves variables in trait attributes" do
+        expect(factory.traits[:admin][:role].resolve).to eq("super_admin")
+        expect(factory.traits[:admin][:level].resolve).to eq(10)
       end
     end
   end
@@ -119,6 +307,43 @@ RSpec.describe SpecForge::Factory do
         user = FactoryBot.build(:user)
         expect(user).not_to be(nil)
         expect(user.name).to eq(attributes[:name])
+      end
+    end
+
+    context "when the factory has traits" do
+      let(:name) { "employee" }
+      let(:attributes) { {role: "employee", admin: false} }
+      let(:traits) do
+        {
+          admin: {
+            role: "admin",
+            admin: true
+          }
+        }
+      end
+
+      subject(:factory) { SpecForge::Factory.new(name:, model_class: "Employee", attributes:, traits:) }
+
+      before do
+        stub_const(
+          "Employee", Class.new do
+            attr_accessor :role, :admin
+          end
+        )
+      end
+
+      it "registers traits with FactoryBot" do
+        factory.register
+
+        # Build without trait
+        employee = FactoryBot.build(:employee)
+        expect(employee.role).to eq("employee")
+        expect(employee.admin).to eq(false)
+
+        # Build with trait
+        admin = FactoryBot.build(:employee, :admin)
+        expect(admin.role).to eq("admin")
+        expect(admin.admin).to eq(true)
       end
     end
   end

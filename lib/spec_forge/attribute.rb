@@ -1,10 +1,5 @@
 # frozen_string_literal: true
 
-# Need to be first
-require_relative "attribute/parameterized"
-require_relative "attribute/chainable"
-require_relative "attribute/resolvable"
-
 module SpecForge
   #
   # Base class for all attribute types in SpecForge.
@@ -21,50 +16,37 @@ module SpecForge
   #   user_id: variables.user.id           # A variable reference
   #
   class Attribute
-    include Resolvable
-
-    #
-    # Binds variables to Attribute objects
-    #
-    # @param input [Array, Hash, Attribute] The input to loop through or bind to
-    # @param variables [Hash] Any variables to available to assign
-    #
-    # @return [Array, Hash, Attribute] The input with bounded variables
-    #
-    def self.bind_variables(input, variables = {})
-      case input
-      when ArrayLike
-        input.each { |v| v.bind_variables(variables) }
-      when HashLike
-        input.each_value { |v| v.bind_variables(variables) }
-      when Attribute
-        input.bind_variables(variables)
-      end
-
-      input
+    class << self
+      include Resolvable
     end
+
+    include Resolvable
 
     #
     # Creates an Attribute instance based on the input value's type and content.
     # Recursively converts Array and Hash
     #
     # @param value [Object] The input value to convert into an Attribute
+    # @param options [Hash] Additional options passed to attribute constructors
+    # @option options [Hash] :context Custom variable context for resolution
     #
     # @return [Attribute] A new Attribute instance of the appropriate subclass
     #
-    def self.from(value)
+    def self.from(value, **options)
       case value
       when String
-        from_string(value)
-      when HashLike
-        from_hash(value)
-      when Attribute
+        from_string(value, **options)
+      when Hash
+        from_hash(value, **options)
+      when Attribute, ResolvableArray, ResolvableHash, ResolvableStruct
         value
-      when ArrayLike
-        array = value.map { |v| Attribute.from(v) }
-        Attribute::ResolvableArray.new(array)
+      when Array
+        array = value.map { |v| Attribute.from(v, **options) }
+        ResolvableArray.new(array)
+      when Struct, Data, OpenStruct
+        ResolvableStruct.new(value)
       else
-        Literal.new(value)
+        Literal.new(value, **options)
       end
     end
 
@@ -72,59 +54,63 @@ module SpecForge
     # Creates an Attribute instance from a string
     #
     # @param string [String] The input string
+    # @param options [Hash] Additional options passed to attribute constructors
+    # @option options [Hash] :context Custom variable context for resolution
     #
     # @return [Attribute]
     #
     # @private
     #
-    def self.from_string(string)
+    def self.from_string(string, **options)
       klass =
         case string
+        when Template::REGEX
+          Template
+        when Environment::KEYWORD_REGEX
+          Environment
         when Factory::KEYWORD_REGEX
           Factory
         when Faker::KEYWORD_REGEX
           Faker
-        when Global::KEYWORD_REGEX
-          Global
         when Matcher::KEYWORD_REGEX
           Matcher
         when Regex::KEYWORD_REGEX
           Regex
-        when Store::KEYWORD_REGEX
-          Store
-        when Variable::KEYWORD_REGEX
-          Variable
         else
           Literal
         end
 
-      klass.new(string)
+      klass.new(string, **options)
     end
 
     #
     # Creates an Attribute instance from a hash
     #
     # @param hash [Hash] The input hash
+    # @param options [Hash] Additional options passed to attribute constructors
+    # @option options [Hash] :context Custom variable context for resolution
     #
     # @return [Attribute]
     #
     # @private
     #
-    def self.from_hash(hash)
+    def self.from_hash(hash, **options)
       # Determine if the hash is an expanded macro call
       has_macro = ->(h, regex) { h.any? { |k, _| k.match?(regex) } }
 
       if has_macro.call(hash, Transform::KEYWORD_REGEX)
-        Transform.from_hash(hash)
+        Transform.from_hash(hash, **options)
+      elsif has_macro.call(hash, Generate::KEYWORD_REGEX)
+        Generate.from_hash(hash, **options)
       elsif has_macro.call(hash, Faker::KEYWORD_REGEX)
-        Faker.from_hash(hash)
+        Faker.from_hash(hash, **options)
       elsif has_macro.call(hash, Matcher::KEYWORD_REGEX)
-        Matcher.from_hash(hash)
+        Matcher.from_hash(hash, **options)
       elsif has_macro.call(hash, Factory::KEYWORD_REGEX)
-        Factory.from_hash(hash)
+        Factory.from_hash(hash, **options)
       else
-        hash = hash.transform_values { |v| Attribute.from(v) }
-        Attribute::ResolvableHash.new(hash)
+        hash = hash.transform_values { |v| Attribute.from(v, **options) }
+        ResolvableHash.new(hash)
       end
     end
 
@@ -139,9 +125,13 @@ module SpecForge
     # Creates a new attribute
     #
     # @param input [Object] The original input value
+    # @param options [Hash] Additional options for attribute behavior
+    # @option options [Hash] :context Custom variable context for resolution,
+    #   bypassing Forge.context lookup
     #
-    def initialize(input)
+    def initialize(input, **options)
       @input = input
+      @options = options
     end
 
     #
@@ -216,56 +206,41 @@ module SpecForge
     #
     def resolve
       case value
-      when ArrayLike
-        value.map(&resolved_proc)
-      when HashLike
-        value.transform_values(&resolved_proc)
+      when Array
+        value.map(&resolve_proc)
+      when Hash
+        value.transform_values(&resolve_proc)
       else
         value
       end
     end
 
     #
-    # Converts this attribute to an appropriate RSpec matcher.
-    # Handles different types of values by creating the right matcher type:
-    # - Arrays become contain_exactly matchers
-    # - Hashes become include matchers
-    # - Regexp become match matchers
-    # - Existing matchers are passed through
-    # - Other values become eq matchers
+    # Converts the resolved value into an RSpec matcher
     #
-    # This method is crucial for nested matcher structures and compound matchers
-    # like matcher.and that require all values to be proper matchers.
+    # Transforms the attribute's resolved value into an appropriate RSpec matcher
+    # for use in expectations. Handles arrays, hashes, matchers, regexes, and
+    # literal values differently to produce the correct matcher type.
     #
-    # @return [RSpec::Matchers::BuiltIn::BaseMatcher] A matcher representing this attribute
-    #
-    # @example Converting different values to matchers
-    #   literal_attr = Attribute::Literal.new("hello")
-    #   literal_attr.resolve_as_matcher # => eq("hello")
-    #
-    #   array_attr = Attribute::ResolvableArray.new([1, 2, 3])
-    #   array_attr.resolve_as_matcher # => contain_exactly(eq(1), eq(2), eq(3))
-    #
-    #   hash_attr = Attribute::ResolvableHash.new({name: "Test"})
-    #   hash_attr.resolve_as_matcher # => include("name" => eq("Test"))
+    # @return [RSpec::Matchers::BuiltIn::BaseMatcher] An RSpec matcher for the value
     #
     def resolve_as_matcher
       methods = Attribute::Matcher::MATCHER_METHODS
 
       case resolved
-      when Array, ArrayLike
+      when Array
         resolved_array = resolved.map(&resolve_as_matcher_proc)
 
         if resolved_array.size > 0
-          methods.contain_exactly(*resolved_array)
+          resolved_array
         else
           methods.eq([])
         end
-      when Hash, HashLike
+      when Hash
         resolved_hash = resolved.transform_values(&resolve_as_matcher_proc).stringify_keys
 
         if resolved_hash.size > 0
-          methods.include(**resolved_hash)
+          resolved_hash
         else
           methods.eq({})
         end
@@ -279,26 +254,5 @@ module SpecForge
         methods.eq(resolved)
       end
     end
-
-    #
-    # Used to bind variables to self or any sub attributes
-    #
-    # @param variables [Hash] A hash of variable attributes
-    #
-    def bind_variables(variables)
-    end
   end
 end
-
-# Order doesn't matter
-require_relative "attribute/factory"
-require_relative "attribute/faker"
-require_relative "attribute/global"
-require_relative "attribute/literal"
-require_relative "attribute/matcher"
-require_relative "attribute/regex"
-require_relative "attribute/resolvable_array"
-require_relative "attribute/resolvable_hash"
-require_relative "attribute/store"
-require_relative "attribute/transform"
-require_relative "attribute/variable"

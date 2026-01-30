@@ -3,181 +3,478 @@
 RSpec.describe SpecForge::Configuration do
   subject(:configuration) { described_class.new }
 
+  describe "#initialize" do
+    it "is expected to set default values" do
+      expect(configuration.base_url).to eq("http://localhost:3000")
+      expect(configuration.global_variables).to eq({})
+      expect(configuration.factories).to be_a(described_class::Factories)
+      expect(configuration.factories.auto_discover).to be true
+      expect(configuration.factories.paths).to eq([])
+    end
+  end
+
   describe "#validate" do
     let(:base_url) { "http://localhost:3001" }
 
-    let(:headers) do
+    let(:global_variables) do
       {
-        "Authorization" => "Bearer Bear",
-        :header_1 => "value_1"
+        api_version: "v1",
+        admin_email: "admin@test.com"
       }
-    end
-
-    let(:query) do
-      {
-        query_1: "value_1"
-      }
-    end
-
-    let(:factories) do
-      {
-        auto_discover: false,
-        paths: ["some/path"]
-      }
-    end
-
-    let(:on_debug) do
-      -> {}
     end
 
     let(:config) do
       SpecForge.configure do |config|
         config.base_url = base_url
-        config.headers = headers
-        config.query = query
-        config.factories = factories
-        config.on_debug_proc = on_debug
+        config.global_variables = global_variables
       end
     end
 
     subject(:validated) { config.validate }
 
-    it "validates successfully" do
+    it "is expected to validate successfully" do
       expect { validated }.not_to raise_error
 
       expect(config.base_url).to eq(base_url)
-      expect(config.headers).to eq(headers)
-      expect(config.query).to eq(query)
-      expect(config.on_debug_proc).to eq(on_debug)
+      expect(config.global_variables).to eq(global_variables)
+    end
+
+    it "is expected to return self for chaining" do
+      expect(validated).to be(config)
     end
 
     context "when 'base_url' is nil" do
       let(:base_url) { nil }
 
-      it do
+      it "is expected to raise error" do
         expect { validated }.to raise_error(
           SpecForge::Error::InvalidStructureError,
-          "Expected String, got NilClass for \"base_url\" in configuration"
+          /Expected String, got NilClass for "base_url" in configuration/
         )
       end
     end
 
     context "when 'base_url' is not a String" do
-      let(:base_url) { 1 }
+      let(:base_url) { 123 }
 
-      it do
+      it "is expected to raise error" do
         expect { validated }.to raise_error(
           SpecForge::Error::InvalidStructureError,
-          "Expected String, got Integer for \"base_url\" in configuration"
+          /Expected String, got Integer for "base_url" in configuration/
         )
       end
     end
 
-    context "when 'headers' is nil" do
-      let(:headers) { nil }
+    context "when 'global_variables' is nil" do
+      let(:global_variables) { nil }
 
-      it do
+      it "is expected to not raise error and default to empty hash" do
         expect { validated }.not_to raise_error
-        expect(config.headers).to eq({})
+        expect(config.global_variables).to eq({})
       end
     end
 
-    context "when 'headers' is not a Hash" do
-      let(:headers) { 1 }
+    context "when 'global_variables' is not a Hash" do
+      let(:global_variables) { "not a hash" }
 
-      it do
+      it "is expected to raise error" do
         expect { validated }.to raise_error(
           SpecForge::Error::InvalidStructureError,
-          "Expected Hash, got Integer for \"headers\" in configuration"
+          /Expected Hash, got String for "global_variables" in configuration/
         )
       end
     end
 
-    context "when 'query' is nil" do
-      let(:query) { nil }
+    context "when 'global_variables' is blank after being set" do
+      let(:global_variables) { {key: "value"} }
 
-      it do
-        expect { validated }.not_to raise_error
-        expect(config.query).to eq({})
-      end
-    end
+      it "is expected to restore default" do
+        config.global_variables = nil
+        validated
 
-    context "when 'query' is not a hash" do
-      let(:query) { 1 }
-
-      it do
-        expect { validated }.to raise_error(
-          SpecForge::Error::InvalidStructureError,
-          "Expected Hash or String, got Integer for \"query\" (aliases \"params\") in configuration"
-        )
-      end
-    end
-
-    context "when 'on_debug_proc' is nil" do
-      let(:on_debug) { nil }
-
-      it do
-        expect { validated }.to raise_error(
-          SpecForge::Error::InvalidStructureError,
-          "Expected Proc, got NilClass for \"on_debug_proc\" in configuration"
-        )
-      end
-    end
-
-    context "when 'on_debug_proc' is not a proc" do
-      let(:on_debug) { 1 }
-
-      it do
-        expect { validated }.to raise_error(
-          SpecForge::Error::InvalidStructureError,
-          "Expected Proc, got Integer for \"on_debug_proc\" in configuration"
-        )
+        expect(config.global_variables).to eq({})
       end
     end
   end
 
-  describe "#register_callback/#define_callback/#callback" do
-    it "is expected to responds to all three" do
-      is_expected.to respond_to(:register_callback)
-      is_expected.to respond_to(:define_callback)
-      is_expected.to respond_to(:callback)
+  describe "#factories" do
+    it "is expected to return Factories instance" do
+      expect(configuration.factories).to be_a(described_class::Factories)
     end
 
-    it "is expected to register a callback" do
-      configuration.callback(:callback_one) {}
-      configuration.define_callback(:callback_two) {}
-      configuration.register_callback(:callback_three) {}
+    it "is expected to not have a writer method" do
+      expect(configuration).not_to respond_to(:factories=)
+    end
 
-      names = SpecForge::Callbacks.registered_names
-      expect(names).to contain_exactly("callback_one", "callback_two", "callback_three")
+    it "is expected to allow modification of factories attributes" do
+      configuration.factories.auto_discover = false
+      configuration.factories.paths << "custom/path"
+
+      expect(configuration.factories.auto_discover).to be false
+      expect(configuration.factories.paths).to eq(["custom/path"])
     end
   end
 
-  describe "#specs" do
-    it { is_expected.to respond_to(:specs) }
-    it { expect(configuration.specs).to be_kind_of(RSpec::Core::Configuration) }
+  describe "#register_callback" do
+    it "is expected to register a callback with a block" do
+      block = proc { puts "test" }
+      configuration.register_callback(:test_callback, &block)
+
+      callbacks = configuration.instance_variable_get(:@callbacks)
+      expect(callbacks[:test_callback]).to eq(block)
+    end
+
+    it "is expected to convert string names to symbols" do
+      block = proc { puts "test" }
+      configuration.register_callback("string_callback", &block)
+
+      callbacks = configuration.instance_variable_get(:@callbacks)
+      expect(callbacks).to have_key(:string_callback)
+    end
+  end
+
+  describe "#deregister_callback" do
+    let(:callback_block) { proc { |context| "my callback" } }
+
+    before do
+      configuration.register_callback(:my_callback, &callback_block)
+    end
+
+    it "is expected to remove the callback from the callbacks hash" do
+      configuration.deregister_callback(:my_callback)
+
+      callbacks = configuration.instance_variable_get(:@callbacks)
+      expect(callbacks).not_to have_key(:my_callback)
+    end
+
+    it "is expected to return the removed callback" do
+      result = configuration.deregister_callback(:my_callback)
+
+      expect(result).to eq(callback_block)
+    end
+
+    it "is expected to convert string names to symbols" do
+      configuration.deregister_callback("my_callback")
+
+      callbacks = configuration.instance_variable_get(:@callbacks)
+      expect(callbacks).not_to have_key(:my_callback)
+    end
+
+    it "is expected to return nil when callback does not exist" do
+      result = configuration.deregister_callback(:nonexistent)
+
+      expect(result).to be_nil
+    end
+
+    context "when callback is attached to hooks" do
+      before do
+        configuration.before(:step, :my_callback)
+        configuration.after(:blueprint, :my_callback)
+      end
+
+      it "is expected to remove the callback from all hooks" do
+        configuration.deregister_callback(:my_callback)
+
+        expect(configuration.hooks[:before_step]).not_to include(:my_callback)
+        expect(configuration.hooks[:after_blueprint]).not_to include(:my_callback)
+      end
+    end
+  end
+
+  describe "#rspec" do
+    it "is expected to respond to rspec" do
+      expect(configuration).to respond_to(:rspec)
+    end
+
+    it "is expected to return RSpec configuration" do
+      expect(configuration.rspec).to be_kind_of(RSpec::Core::Configuration)
+    end
   end
 
   describe "#on_debug" do
-    it { is_expected.to respond_to(:on_debug) }
+    it "is expected to respond to on_debug" do
+      expect(configuration).to respond_to(:on_debug)
+    end
 
-    it "is expected to allow assignment" do
-      debug_proc = proc {}
-
+    it "is expected to set debug proc" do
+      debug_proc = proc { puts "debugging" }
       configuration.on_debug(&debug_proc)
-      expect(configuration.on_debug_proc).to eql(debug_proc)
+
+      stored_proc = configuration.instance_variable_get(:@on_debug_proc)
+      expect(stored_proc).to eq(debug_proc)
     end
   end
 
-  # Deprecated
-  describe "#on_debug=" do
-    it { is_expected.to respond_to(:on_debug=) }
+  describe "#before" do
+    let(:callback_block) { proc { |context| "before hook" } }
 
-    # it "is expected to allow deprecated assignment" do
-    #   debug_proc = proc {}
+    before do
+      configuration.register_callback(:my_callback, &callback_block)
+    end
 
-    #   expect { configuration.on_debug = debug_proc }.not_to raise_error
-    #   expect(configuration.on_debug_proc).to eql(debug_proc)
-    # end
+    it "is expected to attach a callback to a before hook" do
+      configuration.before(:step, :my_callback)
+
+      expect(configuration.hooks[:before_step]).to include(:my_callback)
+    end
+
+    it "is expected to accept string callback names and convert to symbols" do
+      configuration.before(:step, "my_callback")
+
+      expect(configuration.hooks[:before_step]).to include(:my_callback)
+    end
+
+    it "is expected to return the callback name" do
+      result = configuration.before(:step, :my_callback)
+
+      expect(result).to eq(:my_callback)
+    end
+
+    context "when given a block" do
+      it "is expected to register and attach the callback in one call" do
+        callback_name = configuration.before(:step) { |context| "inline callback" }
+
+        expect(configuration.hooks[:before_step].size).to eq(1)
+        expect(configuration.hooks[:before_step].first).to eq(callback_name.to_sym)
+      end
+
+      it "is expected to return an auto-generated callback name" do
+        result = configuration.before(:step) { |context| "inline callback" }
+
+        expect(result).to be_a(String)
+        expect(result).to start_with("__sf_cb_")
+      end
+
+      it "is expected to register the callback with the auto-generated name" do
+        result = configuration.before(:step) { |context| "inline callback" }
+
+        expect(configuration.callbacks).to have_key(result.to_sym)
+      end
+
+      it "is expected to allow deregistration using the returned name" do
+        callback_name = configuration.before(:step) { |context| "inline callback" }
+        configuration.deregister_callback(callback_name)
+
+        expect(configuration.callbacks).not_to have_key(callback_name.to_sym)
+        expect(configuration.hooks[:before_step]).to be_empty
+      end
+    end
+
+    context "when using valid events" do
+      it "is expected to accept :forge event" do
+        configuration.before(:forge, :my_callback)
+
+        expect(configuration.hooks[:before_forge]).to include(:my_callback)
+      end
+
+      it "is expected to accept :blueprint event" do
+        configuration.before(:blueprint, :my_callback)
+
+        expect(configuration.hooks[:before_blueprint]).to include(:my_callback)
+      end
+
+      it "is expected to accept :step event" do
+        configuration.before(:step, :my_callback)
+
+        expect(configuration.hooks[:before_step]).to include(:my_callback)
+      end
+    end
+
+    context "when the event is invalid" do
+      it "is expected to raise an ArgumentError" do
+        expect { configuration.before(:invalid, :my_callback) }.to raise_error(
+          ArgumentError,
+          /Invalid event.*Expected one of/
+        )
+      end
+    end
+
+    context "when the callback is not registered" do
+      it "is expected to raise an ArgumentError" do
+        expect { configuration.before(:step, :unregistered_callback) }.to raise_error(
+          ArgumentError,
+          /Invalid callback/
+        )
+      end
+    end
+
+    context "when attaching the same callback to multiple hooks" do
+      it "is expected to allow the callback to be reused" do
+        configuration.before(:forge, :my_callback)
+        configuration.before(:blueprint, :my_callback)
+        configuration.before(:step, :my_callback)
+
+        expect(configuration.hooks[:before_forge]).to include(:my_callback)
+        expect(configuration.hooks[:before_blueprint]).to include(:my_callback)
+        expect(configuration.hooks[:before_step]).to include(:my_callback)
+      end
+    end
+
+    context "when attaching multiple callbacks to the same hook" do
+      let(:second_callback) { proc { |context| "second callback" } }
+
+      before do
+        configuration.register_callback(:second_callback, &second_callback)
+      end
+
+      it "is expected to maintain registration order" do
+        configuration.before(:step, :my_callback)
+        configuration.before(:step, :second_callback)
+
+        expect(configuration.hooks[:before_step]).to eq([:my_callback, :second_callback])
+      end
+    end
+  end
+
+  describe "#after" do
+    let(:callback_block) { proc { |context| "after hook" } }
+
+    before do
+      configuration.register_callback(:my_callback, &callback_block)
+    end
+
+    it "is expected to attach a callback to an after hook" do
+      configuration.after(:step, :my_callback)
+
+      expect(configuration.hooks[:after_step]).to include(:my_callback)
+    end
+
+    it "is expected to accept string callback names and convert to symbols" do
+      configuration.after(:step, "my_callback")
+
+      expect(configuration.hooks[:after_step]).to include(:my_callback)
+    end
+
+    it "is expected to return the callback name" do
+      result = configuration.after(:step, :my_callback)
+
+      expect(result).to eq(:my_callback)
+    end
+
+    context "when given a block" do
+      it "is expected to register and attach the callback in one call" do
+        callback_name = configuration.after(:step) { |context| "inline callback" }
+
+        expect(configuration.hooks[:after_step].size).to eq(1)
+        expect(configuration.hooks[:after_step].first).to eq(callback_name.to_sym)
+      end
+
+      it "is expected to return an auto-generated callback name" do
+        result = configuration.after(:step) { |context| "inline callback" }
+
+        expect(result).to be_a(String)
+        expect(result).to start_with("__sf_cb_")
+      end
+
+      it "is expected to register the callback with the auto-generated name" do
+        result = configuration.after(:step) { |context| "inline callback" }
+
+        expect(configuration.callbacks).to have_key(result.to_sym)
+      end
+
+      it "is expected to allow deregistration using the returned name" do
+        callback_name = configuration.after(:step) { |context| "inline callback" }
+        configuration.deregister_callback(callback_name)
+
+        expect(configuration.callbacks).not_to have_key(callback_name.to_sym)
+        expect(configuration.hooks[:after_step]).to be_empty
+      end
+    end
+
+    context "when using valid events" do
+      it "is expected to accept :forge event" do
+        configuration.after(:forge, :my_callback)
+
+        expect(configuration.hooks[:after_forge]).to include(:my_callback)
+      end
+
+      it "is expected to accept :blueprint event" do
+        configuration.after(:blueprint, :my_callback)
+
+        expect(configuration.hooks[:after_blueprint]).to include(:my_callback)
+      end
+
+      it "is expected to accept :step event" do
+        configuration.after(:step, :my_callback)
+
+        expect(configuration.hooks[:after_step]).to include(:my_callback)
+      end
+    end
+
+    context "when the event is invalid" do
+      it "is expected to raise an ArgumentError" do
+        expect { configuration.after(:invalid, :my_callback) }.to raise_error(
+          ArgumentError,
+          /Invalid event.*Expected one of/
+        )
+      end
+    end
+
+    context "when the callback is not registered" do
+      it "is expected to raise an ArgumentError" do
+        expect { configuration.after(:step, :unregistered_callback) }.to raise_error(
+          ArgumentError,
+          /Invalid callback/
+        )
+      end
+    end
+
+    context "when attaching the same callback to multiple hooks" do
+      it "is expected to allow the callback to be reused" do
+        configuration.after(:forge, :my_callback)
+        configuration.after(:blueprint, :my_callback)
+        configuration.after(:step, :my_callback)
+
+        expect(configuration.hooks[:after_forge]).to include(:my_callback)
+        expect(configuration.hooks[:after_blueprint]).to include(:my_callback)
+        expect(configuration.hooks[:after_step]).to include(:my_callback)
+      end
+    end
+
+    context "when attaching multiple callbacks to the same hook" do
+      let(:second_callback) { proc { |context| "second callback" } }
+
+      before do
+        configuration.register_callback(:second_callback, &second_callback)
+      end
+
+      it "is expected to maintain registration order" do
+        configuration.after(:step, :my_callback)
+        configuration.after(:step, :second_callback)
+
+        expect(configuration.hooks[:after_step]).to eq([:my_callback, :second_callback])
+      end
+    end
+  end
+
+  describe "Factories" do
+    subject(:factories) { described_class::Factories.new }
+
+    it "is expected to have default values" do
+      expect(factories.auto_discover).to be true
+      expect(factories.paths).to eq([])
+    end
+
+    it "is expected to accept custom values" do
+      custom_factories = described_class::Factories.new(
+        auto_discover: false,
+        paths: ["lib/factories"]
+      )
+
+      expect(custom_factories.auto_discover).to be false
+      expect(custom_factories.paths).to eq(["lib/factories"])
+    end
+
+    it "is expected to have predicate methods" do
+      expect(factories).to respond_to(:auto_discover?)
+      expect(factories).to respond_to(:paths?)
+    end
+
+    it "is expected to convert to hash" do
+      expect(factories.to_h).to eq(
+        auto_discover: true,
+        paths: []
+      )
+    end
   end
 end

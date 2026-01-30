@@ -1,0 +1,11 @@
+- name: "Login as admin"
+  tags: [ auth, login ]
+  request:
+    method: POST
+    url: "/api/login"
+
+- name: "Get auth token"
+  tags: [ auth, token ]
+  request:
+    method: GET
+    url: "/api/token"

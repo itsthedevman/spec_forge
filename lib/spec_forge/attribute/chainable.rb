@@ -58,6 +58,8 @@ module SpecForge
       #
       # Initializes a new chainable attribute by parsing the input into components
       #
+      # Parses the input string into keyword, header, and invocation chain parts.
+      #
       def initialize(...)
         super
 
@@ -125,7 +127,7 @@ module SpecForge
       def traverse_chain(resolve:)
         resolution_path = {}
 
-        current_path = "#{keyword}.#{header}"
+        current_path = keyword.present? ? "#{keyword}.#{header}" : header.to_s
         current_object = base_object
 
         invocation_chain.each do |step|
@@ -160,7 +162,7 @@ module SpecForge
       def retrieve_value(object, resolve:)
         return object unless object.is_a?(Attribute)
 
-        resolve ? object.resolved : object.value
+        resolve ? object.resolve : object.value
       end
 
       #
@@ -174,19 +176,17 @@ module SpecForge
       #
       def describe_value(value)
         case value
-        when Context::Store::Entry
-          "Store with attributes: #{value.available_methods.join_map(", ", &:in_quotes)}"
         when OpenStruct
           "Object with attributes: #{value.table.keys.join_map(", ", &:in_quotes)}"
         when Struct, Data
           "Object with attributes: #{value.members.join_map(", ", &:in_quotes)}"
-        when ArrayLike
+        when Array
           # Preview the first 5 value's classes
           preview = value.take(5).map(&:class)
           preview << "..." if value.size > 5
 
           "Array with #{value.size} #{"element".pluralize(value.size)}: #{preview}"
-        when HashLike
+        when Hash
           # Preview the first 5 keys
           keys = value.keys.take(5)
 

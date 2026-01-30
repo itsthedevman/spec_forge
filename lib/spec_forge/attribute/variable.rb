@@ -3,57 +3,57 @@
 module SpecForge
   class Attribute
     #
-    # Represents an attribute that references a variable
+    # Represents a variable reference in a template
     #
-    # This class allows referencing variables defined in the test context.
-    # It supports chained access to methods and properties of variable values.
+    # Variables are resolved at runtime by looking up values stored in the
+    # current execution context. Supports dot notation for accessing nested
+    # properties (e.g., "response.body.id").
     #
-    # @example Basic usage in YAML
-    #   user_id: variables.user.id
-    #   company_name: variables.company.name
+    # @example Simple variable
+    #   Variable.new("user_id")  # Looks up :user_id in context
     #
-    # @example Nested access in YAML
-    #   post_author: variables.post.comments.first.author.name
+    # @example Nested access
+    #   Variable.new("response.body.token")  # response[:body][:token]
     #
     class Variable < Attribute
       include Chainable
 
-      #
-      # Regular expression pattern that matches attribute keywords with this prefix
-      # Used for identifying this attribute type during parsing
-      #
-      # @return [Regexp]
-      #
-      KEYWORD_REGEX = /^variables\./i
-
       alias_method :variable_name, :header
 
       #
-      # Binds the referenced variable to this attribute
+      # Creates a new variable attribute
       #
-      # @param variables [Hash] A hash of variables to look up in
+      # @param input [String] The variable path (e.g., "user_id", "response.body.id")
       #
-      # @raise [Error::MissingVariableError] If the variable is not found
-      # @raise [Error::InvalidTypeError] If variables is not a hash
-      #
-      def bind_variables(variables)
-        if !Type.hash?(variables)
-          raise Error::InvalidTypeError.new(variables, Hash, for: "'variables'")
-        end
+      def initialize(...)
+        super
 
-        # Don't nil check here.
-        raise Error::MissingVariableError, variable_name unless variables.key?(variable_name)
+        # Unset the keyword to keep chainable from displaying it in error messages
+        @keyword = nil
 
-        @variable = variables[variable_name]
+        sections = @input.split(".")
+        @header = sections.first&.to_sym
+        @invocation_chain = sections[1..] || []
       end
 
       #
-      # Returns the base object for the variable chain
+      # Returns the base object for this variable from the current context
       #
-      # @return [Object] The variable value
+      # Looks up the variable name in the current Forge context's variables.
+      # Raises an error if the variable is not defined.
+      #
+      # @return [Object] The value stored under this variable name
+      #
+      # @raise [Error::MissingVariableError] If the variable is not defined
       #
       def base_object
-        @variable || bind_variables(SpecForge.context.variables)
+        variables = @options[:context] || Forge.context&.variables || {}
+
+        if !variables.key?(variable_name)
+          raise Error::MissingVariableError.new(variable_name, available_variables: variables.keys)
+        end
+
+        variables[variable_name]
       end
     end
   end

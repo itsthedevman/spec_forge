@@ -15,7 +15,7 @@ module SpecForge
         structure.each_with_object({}) do |(attribute_name, attribute), hash|
           type = attribute[:type]
           has_default = attribute.key?(:default)
-          required = attribute[:required] != false
+          required = attribute[:required] == true
 
           next if !(include_optional || required || has_default)
 

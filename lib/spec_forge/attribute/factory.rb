@@ -76,13 +76,15 @@ module SpecForge
       #
       # Creates a new factory attribute with the specified name and arguments
       #
+      # @see Parameterized#initialize
+      #
       def initialize(...)
         super
 
         # Check the arguments before preparing them
         arguments[:keyword] = Normalizer.normalize!(arguments[:keyword], using: :factory_reference)
 
-        prepare_arguments!
+        prepare_arguments
       end
 
       #
@@ -116,10 +118,10 @@ module SpecForge
       #
       def resolve
         case value
-        when ArrayLike
-          value.map(&resolved_proc)
-        when HashLike
-          value.transform_values(&resolved_proc)
+        when Array
+          value.map(&resolve_proc)
+        when Hash
+          value.transform_values(&resolve_proc)
         else
           value
         end
@@ -133,21 +135,28 @@ module SpecForge
       def construct_factory_parameters(attributes)
         build_strategy, list_size = determine_build_strategy(attributes)
 
-        # This is set up for the base strategies + _pair
-        # FactoryBot.<build_strategy>(factory_name, **attributes)
-        build_arguments = [
-          build_strategy,
-          factory_name,
-          **attributes[:attributes].resolve
-        ]
+        # Extract and resolve traits
+        traits = (attributes[:traits].resolve || []).map(&:to_sym)
 
-        # Insert the list size after the strategy
-        # FactoryBot.<build_strategy>_list(factory_name, list_size, **attributes)
+        # Build arguments depend on whether it's a list strategy
+        # For list strategies: FactoryBot.build_list(factory_name, count, *traits, **attributes)
+        # For other strategies: FactoryBot.build(factory_name, *traits, **attributes)
         if build_strategy.end_with?("_list")
-          build_arguments.insert(2, list_size)
+          [
+            build_strategy,
+            factory_name,
+            list_size,
+            *traits,
+            **attributes[:attributes].resolve
+          ]
+        else
+          [
+            build_strategy,
+            factory_name,
+            *traits,
+            **attributes[:attributes].resolve
+          ]
         end
-
-        build_arguments
       end
 
       #

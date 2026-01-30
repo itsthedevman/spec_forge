@@ -2,170 +2,244 @@
 
 module SpecForge
   #
-  # Represents a collection of related specs loaded from a single YAML file
+  # The main execution engine for running blueprints
   #
-  # A Forge contains multiple specs with their expectations, global variables,
-  # and request configuration. It acts as the container for all tests defined
-  # in a single file and manages their shared context.
-  #
-  # @example Creating a forge
-  #   global = {variables: {api_key: "123"}}
-  #   metadata = {file_name: "users", file_path: "/path/to/users.yml"}
-  #   specs = [{name: "list_users", url: "/users", expectations: [...]}]
-  #   forge = Forge.new(global, metadata, specs)
+  # Forge orchestrates the execution of blueprints by managing the execution
+  # context, HTTP client, variable storage, and display output. It processes
+  # each step sequentially and tracks statistics across the run.
   #
   class Forge
-    #
-    # The name of this forge from the relative path
-    #
-    # @return [String] The name derived from the file path
-    #
-    attr_reader :name
+    class << self
+      #
+      # Initializes SpecForge by loading the forge_helper and factories
+      #
+      # @return [Class] self for chaining
+      #
+      def ignite
+        load_forge_helper
+        Factory.load_and_register
 
-    #
-    # Global variables and configuration shared across all specs
-    #
-    # @return [Hash] The global variables and configuration
-    #
-    attr_reader :global
+        # Return for chaining
+        self
+      end
 
-    #
-    # Metadata about the spec file
-    #
-    # @return [Hash] File information such as path and name
-    #
-    attr_reader :metadata
+      #
+      # Creates and runs a new Forge instance with the given blueprints
+      #
+      # @param blueprints [Array<Blueprint>] The blueprints to execute
+      # @option verbosity_level [Integer] Output verbosity (0-3)
+      # @option hooks [Hash] Forge-level event hooks
+      #
+      # @return [void]
+      #
+      def run(blueprints, **)
+        new(blueprints, **).run
+      end
 
-    #
-    # Variables defined at the spec and expectation levels
-    #
-    # @return [Hash] Variable definitions organized by spec
-    #
+      #
+      # Returns the current execution context for the current thread
+      #
+      # @return [Context, nil] The current context or nil if not executing
+      #
+      def context
+        Thread.current[:spec_forge_context]
+      end
+
+      #
+      # Executes a block with a given context
+      #
+      # @param context [Context] The context to use during execution
+      #
+      # @yield Block to execute with the context
+      #
+      # @return [Object] The result of the block
+      #
+      def with_context(context)
+        old_context = Thread.current[:spec_forge_context]
+        Thread.current[:spec_forge_context] = context
+        yield
+      ensure
+        Thread.current[:spec_forge_context] = old_context
+      end
+
+      private
+
+      def load_forge_helper
+        forge_helper = SpecForge.forge_path.join("forge_helper.rb")
+        return unless File.exist?(forge_helper)
+
+        require_relative forge_helper
+
+        # Revalidate in case anything was changed
+        SpecForge.configuration.validate
+      end
+    end
+
+    # @return [Array<Blueprint>] The blueprints being executed
+    attr_reader :blueprints
+
+    # @return [Callbacks] Callback registry for this forge run
+    attr_reader :callbacks
+
+    # @return [Display] Display handler for output formatting
+    attr_reader :display
+
+    # @return [Array<Hash>] List of failed expectations
+    attr_reader :failures
+
+    # @return [Hash{Symbol => Array<Step::Call>}] Forge-level before and after hooks
+    attr_reader :hooks
+
+    # @return [HTTP::Client] HTTP client for making requests
+    attr_reader :http_client
+
+    # @return [Runner] RSpec runner for executing expectations
+    attr_reader :runner
+
+    # @return [Hash] Statistics about the current run
+    attr_reader :stats
+
+    # @return [Timer] Timer for tracking execution duration
+    attr_reader :timer
+
+    # @return [Variables] Variable storage for the current run
     attr_reader :variables
 
     #
-    # Request configuration for the specs
+    # Creates a new Forge instance with the specified blueprints
     #
-    # @return [Hash] HTTP request configuration by spec
+    # @param blueprints [Array<Blueprint>] The blueprints to execute
+    # @param verbosity_level [Integer] Output verbosity (0-3)
+    # @param hooks [Hash] Forge-level event hooks
     #
-    attr_reader :request
+    # @return [Forge] A new forge instance
+    #
+    def initialize(blueprints, verbosity_level: 0, hooks: {})
+      @blueprints = blueprints
+      @callbacks = Callbacks.new
+      @display = Display.new(verbosity_level:)
+      @failures = []
+      @hooks = Step::Call.wrap_hooks(hooks)
+      @http_client = HTTP::Client.new
+      @runner = Runner.new
+      @stats = {}
+      @timer = Timer.new
+      @variables = Variables.new(static: SpecForge.configuration.global_variables)
 
-    #
-    # Collection of specs contained in this forge
-    #
-    # @return [Array<Spec>] The specs defined in this file
-    #
-    attr_accessor :specs
-
-    #
-    # Creates a new Forge instance containing specs from a YAML file
-    #
-    # @param global [Hash] Global variables shared across all specs in the file
-    # @param metadata [Hash] Information about the spec file
-    # @param specs [Array<Hash>] Array of spec definitions from the file
-    #
-    # @return [Forge] A new forge instance with the processed specs
-    #
-    def initialize(global, metadata, specs)
-      @name = metadata[:relative_path]
-
-      @global = global
-      @metadata = metadata
-
-      @variables = extract_variables!(specs)
-      @request = extract_request!(specs)
-      @specs = specs.map { |spec| Spec.new(**spec) }
+      reset_stats
     end
 
     #
-    # Retrieves variables for a specific spec
+    # Executes all blueprints and their steps
     #
-    # Returns the variables defined for a specific spec, including
-    # both base variables and any overlay variables for its expectations.
+    # @return [void]
     #
-    # @param spec [Spec] The spec to get variables for
-    #
-    # @return [Hash] The variables for the spec
-    #
-    def variables_for_spec(spec)
-      @variables[spec.id]
+    def run
+      context = Context.new(variables:)
+
+      Forge.with_context(context) do
+        forge_start
+
+        @blueprints.each do |blueprint|
+          blueprint_start(blueprint)
+
+          blueprint.steps.each do |step|
+            step_start(blueprint, step)
+            step_action(blueprint, step)
+            step_end(blueprint, step)
+          rescue => e
+            step_end(blueprint, step, error: e)
+            break
+          end
+
+          blueprint_end(blueprint)
+        end
+      ensure
+        forge_end
+      end
     end
 
     private
 
-    #
-    # Extracts variables from specs and organizes them into base and overlay variables
-    #
-    # @param specs [Array<Hash>] Array of spec definitions
-    #
-    # @return [Hash] A hash mapping spec IDs to their variables
-    #
-    # @private
-    #
-    def extract_variables!(specs)
-      #
-      # Creates a hash that looks like this:
-      #
-      # {
-      #   spec_1: {
-      #     base: {var_1: true, var_2: false},
-      #     overlay: {
-      #       expectation: {var_1: false}
-      #     }
-      #   },
-      #   spec_2: ...
-      # }
-      #
-      specs.each_with_object({}) do |spec, hash|
-        overlay = spec[:expectations].to_h { |e| [e[:id], e.delete(:variables)] }.compact_blank
-
-        hash[spec[:id]] = {base: spec.delete(:variables), overlay:}
-      end
+    def reset_stats
+      @stats = {
+        blueprints: 0,
+        steps: 0,
+        passed: 0,
+        failed: 0
+      }
     end
 
-    #
-    # Extracts request configuration from specs and organizes them into base and overlay configs
-    #
-    # @param specs [Array<Hash>] Array of spec definitions
-    #
-    # @return [Hash] A hash mapping spec IDs to their request configurations
-    #
-    # @private
-    #
-    def extract_request!(specs)
-      #
-      # Creates a hash that looks like this:
-      #
-      # {
-      #   spec_1: {
-      #     base: {base_url: "https://foo.bar", url: "", ...},
-      #     overlay: {
-      #       expectation: {base_url: "https://bar.baz", ...}
-      #     }
-      #   },
-      #   spec_2: ...
-      # }
-      #
-      config = SpecForge.configuration.to_h.slice(:base_url, :headers, :query)
+    def forge_start
+      reset_stats
 
-      specs.each_with_object({}) do |spec, hash|
-        overlay = spec[:expectations].to_h do |expectation|
-          [
-            expectation[:id],
-            expectation.extract!(*HTTP::REQUEST_ATTRIBUTES).compact_blank
-          ]
-        end
+      # Load the callbacks from the configuration
+      SpecForge.configuration.callbacks.each { |name, block| @callbacks.register(name, &block) }
 
-        overlay.compact_blank!
+      @display.forge_start(self)
+      @timer.start
 
-        base = spec.extract!(*HTTP::REQUEST_ATTRIBUTES)
-        base.compact_blank!
+      Hooks.before_forge(self)
+    end
 
-        base = config.deep_merge(base)
-        base[:http_verb] ||= "GET"
+    def blueprint_start(blueprint)
+      @variables.clear
+      @failures.clear
 
-        hash[spec[:id]] = {base:, overlay:}
+      @display.blueprint_start(blueprint)
+
+      Hooks.before_blueprint(self, blueprint)
+    end
+
+    def step_start(blueprint, step)
+      @display.step_start(step)
+
+      Hooks.before_step(self, blueprint, step)
+    end
+
+    def step_action(blueprint, step)
+      # HEY! LISTEN: These read and write to the forge's state
+      Call.new(step).run(self) if step.calls?
+      Request.new(step).run(self) if step.request?
+      Debug.new(step).run(self, blueprint) if step.debug?
+      Expect.new(step).run(self) if step.expects?
+      Store.new(step).run(self) if step.store?
+    end
+
+    def step_end(blueprint, step, error: nil)
+      @stats[:steps] += 1
+
+      if error.is_a?(Error::ExpectationFailure)
+        @failures += error.failed_examples.map { |example| {step:, example:} }
       end
+
+      Hooks.after_step(self, blueprint, step, error:)
+
+      @display.step_end(self, step, error:)
+
+      # Bubble up only AFTER display has been updated
+      raise error if error && !error.is_a?(Error::ExpectationFailure)
+    ensure
+      # Drop the request/response data from scope
+      # Do this after everything is done so variables can be printed out if needed
+      @variables.except!(:request, :response)
+    end
+
+    def blueprint_end(blueprint)
+      @stats[:blueprints] += 1
+
+      @display.blueprint_end(blueprint, success: @failures.empty?)
+
+      Hooks.after_blueprint(self, blueprint)
+    end
+
+    def forge_end
+      @timer.stop
+
+      @display.forge_end(self)
+      Hooks.after_forge(self)
+
+      @display.stats(self)
     end
   end
 end

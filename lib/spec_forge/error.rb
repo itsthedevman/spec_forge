@@ -5,17 +5,6 @@ module SpecForge
   # Base error class for all SpecForge-specific exceptions
   #
   class Error < StandardError
-    # Pass into to_sentence
-    OR_CONNECTOR = {
-      last_word_connector: ", or ",
-      two_words_connector: " or ",
-      # This is a minor performance improvement to avoid locales being loaded
-      # This will need to be removed if locales are added
-      locale: false
-    }.freeze
-
-    private_constant :OR_CONNECTOR
-
     #
     # Raised when a provided Faker class name doesn't exist
     # Provides helpful suggestions for similar class names
@@ -40,7 +29,7 @@ module SpecForge
         super(<<~STRING.chomp
           Undefined Faker class "#{input}". #{DidYouMean::Formatter.message_for(corrections)}
 
-          For available classes, please check https://github.com/faker-ruby/faker#generators.
+          For available classes, please check https://github.com/faker-ruby/faker/blob/main/GENERATORS.md.
         STRING
         )
       end
@@ -74,12 +63,30 @@ module SpecForge
     # Indicates when a transform name isn't supported
     #
     class InvalidTransformFunctionError < Error
-      def initialize(input)
-        # TODO: Update link to docs
+      def initialize(input, valid_functions)
+        formatted_functions = valid_functions.join_map(", ") { |f| "transform.#{f}".in_quotes }
+
         super(<<~STRING.chomp
           Undefined transform function "#{input}".
 
-          For available functions, please check https://github.com/itsthedevman/spec_forge.
+          Valid functions: #{formatted_functions}
+        STRING
+        )
+      end
+    end
+
+    #
+    # Raised when an unknown generation function is referenced
+    # Indicates when a generation name isn't supported
+    #
+    class InvalidGenerateFunctionError < Error
+      def initialize(input, valid_functions)
+        formatted_functions = valid_functions.join_map(", ") { |f| "generate.#{f}".in_quotes }
+
+        super(<<~STRING.chomp
+          Undefined generate function "#{input}".
+
+          Valid functions: #{formatted_functions}
         STRING
         )
       end
@@ -151,23 +158,48 @@ module SpecForge
     class InvalidTypeError < Error
       def initialize(object, expected_type, **opts)
         if expected_type.instance_of?(Array)
-          expected_type = expected_type.to_sentence(**OR_CONNECTOR)
+          expected_type = expected_type.to_or_sentence
         end
 
         message = "Expected #{expected_type}, got #{object.class}"
         message += " for #{opts[:for]}" if opts[:for].present?
+
+        if opts[:description] || opts[:examples]
+          message += "\n"
+
+          if opts[:description]
+            message += "\nAbout #{opts[:attribute_name].in_quotes}:"
+            message += "\n  #{opts[:description].gsub("\n", "\n  ")}"
+          end
+
+          if opts[:examples].present?
+            message += "\n\nExamples:\n  #{opts[:examples].join("\n\n").gsub("\n", "\n  ")}"
+          end
+        end
 
         super(message)
       end
     end
 
     #
-    # Raised when a variable reference cannot be resolved
-    # Indicates when a spec or expectation references an undefined variable
+    # Raised when a referenced variable is not defined in the current context
+    #
+    # Provides helpful suggestions for similar variable names using spell checking.
     #
     class MissingVariableError < Error
-      def initialize(variable_name)
-        super("Undefined variable \"#{variable_name}\" referenced in expectation")
+      def initialize(variable_name, available_variables: [])
+        message = "Undefined variable \"#{variable_name}\""
+
+        checker = DidYouMean::SpellChecker.new(dictionary: available_variables)
+        suggestions = checker.correct(variable_name.to_s)
+
+        message += ". #{DidYouMean::Formatter.message_for(suggestions)}" if suggestions.size > 0
+
+        if available_variables.size > 0 && available_variables.size <= 5
+          message += ".\nAvailable: #{available_variables.join_map(", ", &:in_quotes)}"
+        end
+
+        super(message)
       end
     end
 
@@ -195,7 +227,7 @@ module SpecForge
     #
     class InvalidBuildStrategy < Error
       def initialize(build_strategy)
-        valid_strategies = Attribute::Factory::BUILD_STRATEGIES.to_sentence(**OR_CONNECTOR)
+        valid_strategies = Attribute::Factory::BUILD_STRATEGIES.to_or_sentence
 
         super(<<~STRING.chomp
           Unknown build strategy "#{build_strategy}" referenced in spec.
@@ -207,37 +239,53 @@ module SpecForge
     end
 
     #
-    # Raised when a spec file cannot be loaded
-    # Provides detailed information about the cause of the loading error
+    # Raised when a step has an invalid configuration
     #
-    class SpecLoadError < Error
-      def initialize(error, file_path, spec: nil)
-        message =
-          if spec
-            "Error loading spec #{spec[:name].in_quotes} in file #{file_path.in_quotes} (line #{spec[:line_number]})"
+    # Common cases:
+    # - Action attributes (request, expect, call, debug, store) combined with steps
+    # - Expects defined without a corresponding request
+    #
+    class InvalidStepError < Error
+      def initialize(message, step = nil)
+        if step
+          step_name = step[:name].presence || "(unnamed)"
+
+          line_info = if (source = step[:source])
+            "#{source[:file_name]}:#{source[:line_number]}"
           else
-            "Error loading spec file #{file_path.in_quotes}"
+            "unknown location"
           end
 
-        causes = error.message.split("\n").map(&:strip).reject(&:empty?)
-
-        message +=
-          if causes.size > 1
-            "\nCauses:\n  - #{causes.join_map("\n  - ")}"
-          else
-            "\nCause: #{error}"
-          end
+          message = "Step #{step_name.in_quotes} [#{line_info}]: #{message}"
+        end
 
         super(message)
       end
     end
 
     #
-    # Raised when the provided namespace is not defined on the global context
+    # Raised when an error occurs while loading a step during blueprint processing
     #
-    class InvalidGlobalNamespaceError < Error
-      def initialize(provided_namespace)
-        super("Invalid global namespace #{provided_namespace.in_quotes}. Currently supported namespaces are: \"variables\"")
+    # Wraps the original error with step context information to help identify
+    # which step caused the problem.
+    #
+    class LoadStepError < Error
+      def initialize(error, step, depth = 0)
+        step_name = step[:name].presence || "(unnamed)"
+
+        line_info = if (source = step[:source])
+          "#{source[:file_name]}:#{source[:line_number]}"
+        end
+
+        message = "Step: #{step_name.in_quotes} [#{line_info}]"
+
+        cause_message = if error.is_a?(LoadStepError)
+          "\n#{error.message}"
+        else
+          "\n\nCaused by: \n  #{error.message.gsub("\n", "\n  ")}"
+        end
+
+        super(message + cause_message)
       end
     end
 
@@ -316,6 +364,132 @@ module SpecForge
     #   end
     #
     class InvalidOASDocument < Error
+    end
+
+    #
+    # Raised when one or more expectations fail during step execution
+    #
+    # Contains the list of failed RSpec examples for reporting purposes.
+    #
+    class ExpectationFailure < Error
+      attr_reader :failed_examples
+
+      def initialize(failed_examples)
+        @failed_examples = failed_examples
+
+        super("Failed expectations (#{@failed_examples.size})")
+      end
+    end
+
+    #
+    # Raised when JSON shape validation fails
+    #
+    # Contains structured failure information for all validation errors
+    # discovered during shape checking.
+    #
+    # @example Single failure
+    #   failures = [{path: ".id", expected_type: String, actual_type: Integer, actual_value: 42}]
+    #   raise SchemaValidationFailure.new(failures)
+    #
+    # @example Multiple failures
+    #   failures = [
+    #     {path: ".id", expected_type: String, actual_type: Integer, actual_value: 42},
+    #     {path: ".email", expected_type: String, actual_type: NilClass, actual_value: nil}
+    #   ]
+    #   raise SchemaValidationFailure.new(failures)
+    #
+    class SchemaValidationFailure < Error
+      attr_reader :failures
+
+      def initialize(failures)
+        @failures = failures
+
+        message =
+          if failures.size == 1
+            format_failure(failures.first)
+          else
+            failures.join_map("\n") do |failure|
+              format_failure(failure)
+            end
+          end
+
+        super(message)
+      end
+
+      private
+
+      def format_failure(failure)
+        expected_types =
+          if failure[:expected_type].size == 1
+            failure[:expected_type].first
+          else
+            failure[:expected_type].to_or_sentence
+          end
+
+        "#{failure[:path]}: expected #{expected_types}, got #{failure[:actual_type]} (#{failure[:actual_value].inspect})"
+      end
+    end
+
+    #
+    # Raised when JSON content validation fails
+    #
+    # Contains structured failure information for content mismatches.
+    #
+    class ContentValidationFailure < Error
+      attr_reader :failures
+
+      def initialize(failures)
+        @failures = failures
+        super(format_failures(failures))
+      end
+
+      private
+
+      def format_failures(failures)
+        if failures.size == 1
+          failure = failures.first
+          "#{failure[:path]}: #{failure[:message]}"
+        else
+          failures.join_map("\n") { |f| "#{f[:path]}: #{f[:message]}" }
+        end
+      end
+    end
+
+    #
+    # Raised when HTTP header validation fails
+    #
+    # Contains structured failure information for header mismatches.
+    #
+    class HeaderValidationFailure < Error
+      attr_reader :failures
+
+      def initialize(failures)
+        @failures = failures
+        super(format_failures(failures))
+      end
+
+      private
+
+      def format_failures(failures)
+        if failures.size == 1
+          failure = failures.first
+          "#{failure[:header].in_quotes}: #{failure[:message]}"
+        else
+          failures.join_map("\n") { |f| "#{f[:header].in_quotes}: #{f[:message]}" }
+        end
+      end
+    end
+
+    #
+    # Raised when no blueprints are found during loading
+    #
+    # This typically occurs when attempting to generate documentation
+    # but the blueprints directory is empty or doesn't contain valid files.
+    #
+    class NoBlueprintsError < Error
+      def initialize
+        super("No blueprints found. Please ensure your blueprints directory contains valid blueprint files.")
+      end
     end
   end
 end

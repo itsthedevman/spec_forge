@@ -1,120 +1,117 @@
 # frozen_string_literal: true
 
 RSpec.describe SpecForge::HTTP::Backend do
-  describe "#normalize_url" do
-    let(:request) do
-      SpecForge::HTTP::Request.new(**Generator.empty_request_hash)
+  subject(:backend) { described_class.new }
+
+  describe "#initialize" do
+    it "creates a Faraday connection" do
+      expect(backend.connection).to be_a(Faraday::Connection)
     end
+  end
 
-    let(:backend) { described_class.new(request) }
-    let(:query) { {} }
+  describe "HTTP methods" do
+    let(:base_url) { "http://example.com" }
+    let(:url) { "/api/test" }
+    let(:headers) { {"X-Custom-Header" => "value"} }
+    let(:query) { {page: 1, limit: 10} }
+    let(:body) { {name: "test"} }
 
-    subject(:result) { backend.send(:normalize_url, url, query) }
-
-    context "when the url has a leading slash" do
-      let(:url) { "/users" }
-
-      it "strips the leading slash" do
-        expect(result).to eq("users")
-      end
-
-      context "with nested paths" do
-        let(:url) { "/api/v1/users" }
-
-        it "only strips the first slash" do
-          expect(result).to eq("api/v1/users")
-        end
-      end
-
-      context "with placeholders" do
-        let(:url) { "/users/{id}" }
-        let(:query) { {id: 123} }
-
-        it "strips the slash and replaces placeholders" do
-          expect(result).to eq("users/123")
-        end
+    let(:stubs) { Faraday::Adapter::Test::Stubs.new }
+    let(:test_connection) do
+      Faraday.new do |builder|
+        builder.adapter :test, stubs
       end
     end
 
-    context "when the url doesn't have a leading slash" do
-      let(:url) { "users" }
+    before do
+      allow(Faraday).to receive(:new).and_return(test_connection)
+    end
 
-      it "leaves the url unchanged" do
-        expect(result).to eq("users")
+    after do
+      stubs.verify_stubbed_calls
+    end
+
+    describe "#get" do
+      it "sends a GET request with the correct parameters" do
+        stubs.get("/api/test") do |env|
+          expect(env.params).to eq({"page" => "1", "limit" => "10"})
+          expect(env.request_headers["X-Custom-Header"]).to eq("value")
+          [200, {}, "success"]
+        end
+
+        response = backend.get(url: url, base_url:, headers:, query:)
+        expect(response.status).to eq(200)
+        expect(response.body).to eq("success")
       end
 
-      context "with placeholders" do
-        let(:url) { "users/{id}/posts" }
-        let(:query) { {id: 456} }
-
-        it "replaces placeholders without adding slashes" do
-          expect(result).to eq("users/456/posts")
+      it "works with minimal parameters" do
+        stubs.get("/simple") do |env|
+          expect(env.url.to_s).to eq("http://example.com/simple")
+          [200, {}, "ok"]
         end
+
+        response = backend.get(url: "/simple", base_url:)
+        expect(response.status).to eq(200)
       end
     end
 
-    context "when the url is an absolute URL" do
-      let(:url) { "https://api.example.com/users" }
-
-      it "leaves the absolute URL unchanged" do
-        expect(result).to eq("https://api.example.com/users")
-      end
-
-      context "with placeholders" do
-        let(:url) { "https://api.example.com/users/{id}" }
-        let(:query) { {id: 789} }
-
-        it "replaces placeholders in the absolute URL" do
-          expect(result).to eq("https://api.example.com/users/789")
+    describe "#post" do
+      it "sends a POST request with body" do
+        stubs.post("/api/test") do |env|
+          expect(env.url.to_s).to eq("http://example.com/api/test")
+          expect(env.body).to eq(body)
+          [201, {}, "created"]
         end
+
+        response = backend.post(url: url, base_url:, body:)
+        expect(response.status).to eq(201)
       end
     end
 
-    context "when the url is just a slash" do
-      let(:url) { "/" }
+    describe "#put" do
+      it "sends a PUT request with body" do
+        stubs.put("/api/test") do |env|
+          expect(env.body).to eq(body)
+          [200, {}, "updated"]
+        end
 
-      it "returns an empty string" do
-        expect(result).to eq("")
+        response = backend.put(url: url, base_url:, body:)
+        expect(response.status).to eq(200)
       end
     end
 
-    context "when the 'url' has placeholders" do
-      context "and they are curly style" do
-        let(:url) { "/user/{query_1}" }
-        let(:query) { {query_1: "hello"} }
-
-        it "is expected to replace the placeholder" do
-          expect(result).to eq("user/hello")
+    describe "#patch" do
+      it "sends a PATCH request with body" do
+        stubs.patch("/api/test") do |env|
+          expect(env.body).to eq(body)
+          [200, {}, "patched"]
         end
+
+        response = backend.patch(url: url, base_url:, body:)
+        expect(response.status).to eq(200)
       end
+    end
 
-      context "and they are colon style" do
-        let(:url) { "/user/:query_1" }
-        let(:query) { {query_1: "hello"} }
-
-        it "is expected to replace the placeholder" do
-          expect(result).to eq("user/hello")
+    describe "#delete" do
+      it "sends a DELETE request" do
+        stubs.delete("/api/test") do |env|
+          expect(env.url.to_s).to eq("http://example.com/api/test")
+          [204, {}, ""]
         end
+
+        response = backend.delete(url:, base_url:)
+        expect(response.status).to eq(204)
       end
+    end
 
-      context "and the query attribute isn't defined" do
-        let(:url) { "/user/{query_1}" }
-
-        it do
-          expect { result }.to raise_error(
-            URI::InvalidURIError,
-            "\"user/{query_1}\" is not a valid URI. If you're using path parameters (like ':id' or '{id}'), ensure they are defined in the 'query' section."
-          )
+    describe "header transformation" do
+      it "converts header values to strings" do
+        stubs.get("/api/test") do |env|
+          expect(env.request_headers["X-Numeric"]).to eq("123")
+          [200, {}, "ok"]
         end
-      end
 
-      context "and the query contains invalid URI content" do
-        let(:url) { "/user/:query_1" }
-        let(:query) { {query_1: "hello world"} }
-
-        it "is expected to replace the placeholder with URI encoded value" do
-          expect(result).to eq("user/hello%20world")
-        end
+        backend.get(url:, base_url:, headers: {"X-Numeric" => 123})
       end
     end
   end

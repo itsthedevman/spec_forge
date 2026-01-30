@@ -1,0 +1,10 @@
+- name: "Parent Step"
+  tags: [ parent, shared ]
+  steps:
+  - name: "Child Step 1"
+    tags: [ child1 ]
+  - name: "Child Step 2"
+    tags: [ child2, shared ]
+    steps:
+    - name: "Grandchild Step"
+      tags: [ grandchild ]

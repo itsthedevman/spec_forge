@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require_relative "docs/generate"
-
 module SpecForge
   class CLI
     #
@@ -60,6 +58,9 @@ module SpecForge
       option "--format=FORMAT", "Output format: yml/yaml or json (default: yml)"
       option "--output=PATH", "Full file path for generated documentation"
       option "--skip-validation", "Skip OpenAPI specification validation during generation"
+      option "--verbose", "Show detailed step execution (verbosity level 1)"
+      option "--debug", "Show full request/response for failures (verbosity level 2)"
+      option "--trace", "Show everything for all steps (verbosity level 3)"
 
       #
       # Generates OpenAPI documentation from tests
@@ -86,6 +87,8 @@ module SpecForge
           Your OpenAPI specification is valid and ready to use.
           Output written to: #{file_path.relative_path_from(SpecForge.forge_path)}
         STRING
+      rescue NoBlueprintsError => e
+        puts e.message
       end
     end
   end

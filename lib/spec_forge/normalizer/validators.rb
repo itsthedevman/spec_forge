@@ -76,23 +76,65 @@ module SpecForge
       end
 
       #
-      # Validates that a callback is registered in the system
+      # Validates that shape and schema are not both defined
       #
-      # Ensures the referenced callback name has been registered with SpecForge
-      # before it's used in a test configuration.
+      # Ensures only one of shape or schema is used for JSON validation,
+      # as they represent different validation approaches that cannot be combined.
       #
-      # @param value [String, Symbol, nil] The callback name to validate, or nil
+      # @param value [Hash] The expectation hash containing shape and/or schema keys
       #
-      # @raise [Error::UndefinedCallbackError] If the callback is not registered
+      # @raise [Error] If both shape and schema are defined
       #
       # @example Using the validator in a structure
-      #   before_file: {type: String, validator: :callback}
+      #   json: {type: Hash, validator: :json_expectation}
+      #
+      def json_expectation(value)
+        # Both shape and schema cannot be defined at the same time
+        return if value[:shape].blank? || value[:schema].blank?
+
+        raise Error, "Cannot define both \"shape\" and \"schema\". Use \"shape\" for simple validation or \"schema\" for explicit control."
+      end
+
+      #
+      # Validates a JSON schema structure recursively
+      #
+      # Ensures the schema definition follows the expected format,
+      # validating nested structures and patterns.
+      #
+      # @param value [Hash] The schema definition to validate
+      #
+      # @raise [Error::InvalidStructureError] If the schema is invalid
+      #
+      def json_schema(value)
+        Normalizer.validate!(value, using: :json_schema)
+        json_schema(value[:pattern]) if value[:pattern]
+
+        case value[:structure]
+        when Array
+          value[:structure].each { |v| json_schema(v) }
+        when Hash
+          value[:structure].each_value { |v| json_schema(v) }
+        end
+      end
+
+      #
+      # Validates a callback definition
+      #
+      # Ensures the callback has a valid structure with a required name
+      # and optional arguments. Handles both single callbacks and arrays
+      # of callbacks.
+      #
+      # @param value [Array<Hash>] The callback definition(s) to validate
+      #
+      # @raise [Error::InvalidStructureError] If the callback structure is invalid
+      #
+      # @example Using the validator in a structure
+      #   call: {type: Hash, validator: :callback}
       #
       def callback(value)
         return if value.blank?
-        return if SpecForge::Callbacks.registered?(value)
 
-        raise Error::UndefinedCallbackError.new(value, SpecForge::Callbacks.registered_names)
+        value.each { |v| Normalizer.validate!(v, using: :callback) }
       end
     end
   end

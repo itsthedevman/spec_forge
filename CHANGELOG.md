@@ -15,6 +15,79 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 -->
 
+## [1.0.0] - 12026-01-29
+
+### ⚠️ Breaking Changes
+
+This release is a complete architectural redesign. See the [Migration Guide](https://github.com/itsthedevman/spec_forge/wiki/Migration-Guide) for detailed upgrade instructions.
+
+**Core changes:**
+- Directory renamed: `spec_forge/specs/` → `spec_forge/blueprints/`
+- CLI renamed: `spec_forge new spec` → `spec_forge new blueprint`
+- YAML structure rewritten from spec-based to sequential step-based workflows
+- Variable syntax changed: `variables.name` → `{{ name }}` template syntax
+- Execution architecture changed: Forge now orchestrates workflows and delegates validation to RSpec, replacing the previous fully RSpec-driven approach
+
+**Configuration:**
+- Removed: `config.headers`, `config.query` (use explicit inheritance instead)
+- Changed: `config.specs` → `config.rspec`
+- Changed: `config.on_debug = proc` → `config.on_debug { block }`
+
+### Added
+
+- **Step-based workflows**: Tests execute as sequential steps with explicit data flow between them. See [Writing Tests](https://github.com/itsthedevman/spec_forge/wiki/Writing-Tests).
+
+  ```yaml
+  - name: "Create user"
+    request:
+      url: /users
+      http_verb: POST
+      json:
+        email: "{{ faker.internet.email }}"
+    expect:
+    - status: 201
+    store:
+      user_id: "{{ response.body.id }}"
+
+  - name: "Fetch created user"
+    request:
+      url: "/users/{{ user_id }}"
+    expect:
+    - status: 200
+  ```
+
+- **Template variable system**: New `{{ }}` syntax for dynamic values—supports variables, Faker, factories, and environment variables. See [Dynamic Features](https://github.com/itsthedevman/spec_forge/wiki/Dynamic-Features).
+
+- **JSON validation modes**: Three modes for response validation—`shape:` for type checking with nullable/optional flags, `content:` for value matching, and `schema:` for explicit structure control. See [Validating Responses](https://github.com/itsthedevman/spec_forge/wiki/Validating-Responses).
+
+- **Configuration inheritance**: The `shared:` wrapper applies request configuration and hooks to nested steps, making auth flows and grouped operations cleaner.
+
+- **Lifecycle hooks**: Register callbacks for `before`/`after` events at forge, blueprint, and step levels. See [Callbacks](https://github.com/itsthedevman/spec_forge/wiki/Callbacks).
+
+- **Tag-based filtering**: Organize steps with tags and run subsets via `--tags` and `--skip-tags` CLI options. See [Running Tests](https://github.com/itsthedevman/spec_forge/wiki/Running-Tests).
+
+- **Improved output display**: Verbosity levels (`--verbose`, `--debug`, `--trace`) with colorized terminal output, detailed failure context, and YAML line number tracking in error messages.
+
+- **File includes**: Extract common workflows into separate files and inject them with `include:`.
+
+### Changed
+
+- Request options now nested under `request:` key
+- Expectations simplified from `expectations: [{ expect: ... }]` to `expect: [...]`
+- Error messages now include YAML line numbers and source file context
+- Factory references now support traits and attribute overrides via expanded syntax
+- Global variables defined in `forge_helper.rb` via `config.global_variables` instead of YAML
+
+### Removed
+
+- Global context system (`Context::Global`, `Context::Store`, `Context::Variables`)
+- Spec and Expectation classes (replaced with Step-based architecture)
+- Global headers/query configuration (use `shared:` inheritance instead)
+
+**[Full documentation](https://github.com/itsthedevman/spec_forge/wiki)** ｜ **[Migration Guide](https://github.com/itsthedevman/spec_forge/wiki/Migration-Guide)**
+
+---
+
 ## [0.7.1] - 12025-10-08
 
 ### Added
@@ -394,7 +467,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial commit
 
-[unreleased]: https://github.com/itsthedevman/spec_forge/compare/v0.7.1...HEAD
+[unreleased]: https://github.com/itsthedevman/spec_forge/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/itsthedevman/spec_forge/compare/v0.7.1...v1.0.0
 [0.7.1]: https://github.com/itsthedevman/spec_forge/compare/v0.7.0...v0.7.1
 [0.7.0]: https://github.com/itsthedevman/spec_forge/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/itsthedevman/spec_forge/compare/v0.5.0...v0.6.0

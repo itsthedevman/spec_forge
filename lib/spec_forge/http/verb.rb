@@ -124,6 +124,8 @@ module SpecForge
       # @return [Verb, nil] The corresponding Verb instance, or nil if not found
       #
       def self.from(name)
+        return name if name.is_a?(Verb)
+
         VERBS[name.downcase.to_sym]
       end
 
@@ -147,6 +149,8 @@ module SpecForge
       end
 
       alias_method :to_s, :name
+
+      delegate :downcase, to: :to_s
 
       #
       # Returns if this Verb is a DELETE

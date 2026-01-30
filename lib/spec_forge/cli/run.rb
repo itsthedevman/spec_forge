@@ -3,92 +3,124 @@
 module SpecForge
   class CLI
     #
-    # Command for running SpecForge tests with filtering options
+    # Command for running SpecForge blueprints with filtering and output options
     #
-    # @example Running all specs
+    # Executes workflow blueprints with support for file filtering, tag-based
+    # selection, and configurable verbosity levels for output detail.
+    #
+    # @example Running all blueprints
     #   spec_forge run
     #
-    # @example Running specific file
-    #   spec_forge run users
+    # @example Running specific blueprint
+    #   spec_forge run users_workflow
     #
-    # @example Running specific spec
-    #   spec_forge run users:create_user
-    #
-    # @example Running specific expectation
-    #   spec_forge run users:create_user:"POST /users"
+    # @example Running with tags
+    #   spec_forge run --tags smoke
     #
     class Run < Command
       command_name "run"
-      syntax "run [target]"
-
-      summary "Execute your API tests with smart filtering options"
+      syntax "run [path] [options]"
+      summary "Execute workflow blueprints with optional filtering"
 
       description <<~DESC
-        Execute API tests with filtering options.
+        Execute SpecForge workflow blueprints with flexible filtering options.
 
-        Target formats:
-          • file_name - Run all specs in a file
-          • file:spec - Run specific spec
-          • file:spec:"expectation" - Run individual expectation
+        Supports:
+          • File/directory targeting for selective execution
+          • Tag-based filtering to run specific test categories
+          • Multiple verbosity levels for output detail
+          • Tag exclusion to skip certain tests
 
-        Uses RSpec for execution with detailed error reporting.
+        Verbosity Levels:
+          (default)  - Minimal output, dots for progress
+          --verbose  - Show all steps with detailed results
+          --debug    - Add full request/response for failures
+          --trace    - Show everything for all steps
       DESC
 
-      example "spec_forge run",
-        "Run all specs in spec_forge/specs/"
+      example "run",
+        "Runs all blueprints in spec_forge/blueprints/"
 
-      example "spec_forge run users",
-        "Run all specs in users.yml"
+      example "run users_workflow",
+        "Runs only the users_workflow.yml blueprint"
 
-      example "spec_forge run users:create_user",
-        "Run all expectations in the create_user spec"
+      example "run blueprints/integration/",
+        "Runs all blueprints in the integration directory"
 
-      example "spec_forge run users:create_user:\"POST /users\"",
-        "Run expectations matching POST /users"
+      example "run --tags smoke",
+        "Runs all blueprints tagged with 'smoke'"
 
-      example "spec_forge run users:create_user:\"POST /users - Create Admin\"",
-        "Run the specific expectation named \"Create Admin\""
+      example "run --tags smoke,auth --skip-tags slow",
+        "Runs smoke and auth tests, excluding slow ones"
+
+      example "run users_workflow --tags smoke --debug",
+        "Runs users_workflow smoke tests with debug output"
+
+      option "--tags=TAGS", "Run only steps with these tags (comma-separated)"
+      option "--skip-tags=TAGS", "Skip steps with these tags (comma-separated)"
+      option "--verbose", "Show detailed step execution (verbosity level 1)"
+      option "--debug", "Show full request/response for failures (verbosity level 2)"
+      option "--trace", "Show everything for all steps (verbosity level 3)"
+
+      aliases :r
 
       #
-      # Loads and runs all specs, or a subset of specs based on the provided arguments
+      # Executes the workflow blueprints with specified filters and options
+      #
+      # @return [void]
       #
       def call
-        return SpecForge.run if arguments.blank?
+        base_path = determine_path
+        tags = parse_tags(options.tags)
+        skip_tags = parse_tags(options.skip_tags)
+        verbosity_level = determine_verbosity_level
 
-        # spec_forge users:show_user
-        filter = extract_filter(arguments.first)
+        blueprints, forge_hooks = Loader.load_blueprints(base_path:, tags:, skip_tags:)
 
-        # Filter and run the specs
-        SpecForge.run(**filter)
+        if blueprints.empty?
+          puts "No blueprints found matching the criteria."
+          exit(0)
+        end
+
+        Forge.ignite.run(blueprints, verbosity_level:, hooks: forge_hooks)
       end
 
       private
 
       #
-      # The input can be
+      # Determines the path to run from command arguments
       #
-      #   "<file_name>" for a file
-      #     Example: "users"
+      # @return [Pathname, nil] The path to execute, or nil for all blueprints
       #
-      #   "<file_name>:<spec_name>" for a single spec
-      #     Example: "users:show_user"
-      #
-      #   "<file_name:<spec_name>:'<verb> <path> - <?name>'" for a single expectation
-      #     Example:
-      #       "users:show_user:'GET /users/:id'"
-      #     Example with name:
-      #       "users:show_user:'GET /users/:id - Returns 404 due to missing user'"
-      #
-      # @private
-      #
-      def extract_filter(input)
-        # Note: Only split 3 because the expectation name can have colons in them.
-        file_name, spec_name, expectation_name = input.split(":", 3).map(&:strip)
+      def determine_path
+        return nil if arguments.empty?
 
-        # Remove the quotes
-        expectation_name.gsub!(/^['"]|['"]$/, "") if expectation_name.present?
+        Pathname.new(arguments.first)
+      end
 
-        {file_name:, spec_name:, expectation_name:}
+      #
+      # Parses comma-separated tags from a string
+      #
+      # @param tag_string [String, nil] Comma-separated tag string
+      #
+      # @return [Array<String>] Array of tag strings
+      #
+      def parse_tags(tag_string)
+        return [] if tag_string.blank?
+
+        tag_string.split(",").map(&:strip).reject(&:blank?)
+      end
+
+      #
+      # Determines verbosity level from command options
+      #
+      # @return [Integer] Verbosity level (0-3)
+      #
+      def determine_verbosity_level
+        return 3 if options.trace
+        return 2 if options.debug
+        return 1 if options.verbose
+        0
       end
     end
   end

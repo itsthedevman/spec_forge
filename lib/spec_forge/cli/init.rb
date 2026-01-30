@@ -17,7 +17,7 @@ module SpecForge
         Creates the SpecForge project structure.
 
         Sets up:
-          • spec_forge/specs/ for test files
+          • spec_forge/blueprints/ for test files
           • spec_forge/factories/ for test data (optional)
           • spec_forge/openapi/ for documentation config (optional)
           • forge_helper.rb for configuration
@@ -27,8 +27,8 @@ module SpecForge
       option "--skip-factories", "Skip generating the \"factories\" directory"
 
       #
-      # Creates the "spec_forge", "spec_forge/factories", and "spec_forge/specs" directories
-      # Also creates the "spec_forge.rb" initialization file
+      # Creates the "spec_forge", "spec_forge/factories", and "spec_forge/blueprints" directories
+      # Also creates the "forge_helper.rb" initialization file
       #
       def call
         initialize_forge
@@ -39,7 +39,7 @@ module SpecForge
 
       def initialize_forge
         base_path = SpecForge.forge_path
-        actions.empty_directory(base_path.join("specs"))
+        actions.empty_directory(base_path.join("blueprints"))
         actions.empty_directory(base_path.join("factories")) unless options.skip_factories
         actions.template("forge_helper.rb.tt", base_path.join("forge_helper.rb"))
       end

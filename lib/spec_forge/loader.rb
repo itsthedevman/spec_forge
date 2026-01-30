@@ -2,243 +2,128 @@
 
 module SpecForge
   #
-  # Responsible for loading specs from YAML files and converting them to testable objects
+  # Loads and processes blueprint YAML files into executable Blueprint objects
   #
-  # The Loader reads spec files, parses them as YAML, and transforms them into
-  # a structure that can be used to create Forge objects. It also extracts
-  # metadata like line numbers for error reporting.
-  #
-  # @example Loading all specs
-  #   specs = Loader.load_from_files
+  # The Loader handles the load-time phase of SpecForge, reading YAML files,
+  # parsing steps with line numbers, expanding includes, flattening hierarchies,
+  # and applying filters.
   #
   class Loader
-    class << self
-      #
-      # Loads all spec YAML files and transforms them into normalized structures
-      #
-      # @return [Array<Array>] Array of [global, metadata, specs] for each loaded file
-      #
-      def load_from_files
-        # metadata is not normalized because its not user managed
-        load_specs_from_files.map do |global, metadata, specs|
-          global =
-            begin
-              Normalizer.normalize!(global, using: :global_context)
-            rescue => e
-              raise Error::SpecLoadError.new(e, metadata[:relative_path])
-            end
+    #
+    # Loads blueprints from disk with optional filtering
+    #
+    # @param base_path [Pathname, String, nil] Base directory for glob loading (defaults to blueprints/)
+    # @param paths [Array<Pathname, String>] Specific file paths to load (no globbing)
+    # @param tags [Array<String>] Tags to include
+    # @param skip_tags [Array<String>] Tags to exclude
+    #
+    # @return [Array<Blueprint>, Hash] Loaded blueprint objects and any forge hooks
+    #
+    def self.load_blueprints(base_path: nil, paths: [], tags: [], skip_tags: [])
+      new(base_path:, paths:, filter: {tags:, skip_tags:}).load
+    end
 
-          specs =
-            specs.map do |spec|
-              Normalizer.normalize!(spec, using: :spec, label: "spec \"#{spec[:name]}\"")
-            rescue => e
-              raise Error::SpecLoadError.new(e, metadata[:relative_path], spec:)
-            end
+    #
+    # Creates a new Loader with the specified base path and filter options
+    #
+    # @param base_path [Pathname, String, nil] Base directory for glob loading (defaults to blueprints/)
+    # @param paths [Array<Pathname, String>] Specific file paths to load (no globbing)
+    # @param filter [Hash] Filter options for tags and skip_tags
+    #
+    # @return [Loader] A new loader instance
+    #
+    def initialize(base_path: nil, paths: [], filter: {})
+      @base_path = base_path.present? ? Pathname.new(base_path) : SpecForge.forge_path.join("blueprints")
+      @paths = Array.wrap(paths).map { |p| Pathname.new(p) }
+      @filter = filter
+    end
 
-          [global, metadata, specs]
+    #
+    # Loads and processes all blueprints, extracting any hook data at the same time
+    #
+    # @return [Array<Blueprint>, Hash] Loaded blueprint objects and any forge hooks
+    #
+    def load
+      blueprints, forge_hooks = read_blueprints
+        .index_by { |b| b[:name] }
+        .then { |blueprints| StepProcessor.new(blueprints).run }
+
+      blueprints = Filter.new(blueprints).run(**@filter).map { |b| Blueprint.new(**b) }
+
+      [blueprints, forge_hooks]
+    end
+
+    private
+
+    def read_blueprints
+      # Use specific paths if provided, otherwise glob from base_path
+      file_paths =
+        if @paths.present?
+          @paths
+        else
+          Dir.glob(@base_path.join("**", "*.{yml,yaml}")).map { |p| Pathname.new(p) }
         end
-      end
 
-      #
-      # Internal method that handles loading specs from files
-      #
-      # This method coordinates the entire spec loading process by:
-      # 1. Reading files from the specs directory
-      # 2. Parsing them as YAML
-      # 3. Transforming them into the proper structure
-      #
-      # @return [Array<Array>] Array of [global, metadata, specs] for each loaded file
-      #
-      # @private
-      #
-      def load_specs_from_files
-        files = read_from_files
-        parse_and_transform_specs(files)
-      end
+      file_paths.map do |file_path|
+        content = File.read(file_path)
 
-      #
-      # Reads spec files from the spec_forge/specs directory
-      #
-      # @return [Array<Array<String, String>>] Array of [file_path, file_content] pairs
-      #
-      # @private
-      #
-      def read_from_files
-        path = SpecForge.forge_path.join("specs")
-
-        Dir[path.join("**/*.yml")].map do |file_path|
-          [file_path, File.read(file_path)]
-        end
-      end
-
-      #
-      # Parses YAML content and extracts line numbers for error reporting
-      #
-      # @param files [Array<Array<String, String>>] Array of [file_path, file_content] pairs
-      #
-      # @return [Array<Array>] Array of [global, metadata, specs] for each file
-      #
-      # @private
-      #
-      def parse_and_transform_specs(files)
-        base_path = SpecForge.forge_path.join("specs")
-
-        files.map do |file_path, content|
-          relative_path = Pathname.new(file_path).relative_path_from(base_path)
-
-          hash = YAML.safe_load(content, symbolize_names: true)
-
-          file_line_numbers = extract_line_numbers(content, hash)
-
-          # Currently, only holds onto global variables
-          global = hash.delete(:global) || {}
-
-          metadata = {
-            file_name: relative_path.basename(".yml").to_s,
-            relative_path: relative_path.to_s,
-            file_path:
-          }
-
-          specs =
-            hash.map do |spec_name, spec_hash|
-              line_number, *expectation_line_numbers = file_line_numbers[spec_name]
-
-              spec_hash[:id] = "spec_#{SpecForge.generate_id(spec_hash)}"
-              spec_hash[:name] = spec_name.to_s
-              spec_hash[:file_path] = metadata[:file_path]
-              spec_hash[:file_name] = metadata[:file_name]
-              spec_hash[:line_number] = line_number
-
-              # Check for expectations instead of defaulting. I want it to error
-              if (expectations = spec_hash[:expectations])
-                expectations.zip(expectation_line_numbers) do |expectation_hash, line_number|
-                  expectation_hash[:id] = "expect_#{SpecForge.generate_id(expectation_hash)}"
-                  expectation_hash[:name] = build_expectation_name(spec_hash, expectation_hash)
-                  expectation_hash[:line_number] = line_number
-                end
-              end
-
-              spec_hash
-            end
-
-          [global, metadata, specs]
-        end
-      end
-
-      #
-      # Extracts line numbers from each YAML section for error reporting
-      #
-      # @param content [String] The raw file content
-      # @param input_hash [Hash] The parsed YAML structure
-      #
-      # @return [Hash] A mapping of spec names to line numbers
-      #
-      # @private
-      #
-      def extract_line_numbers(content, input_hash)
-        # I hate this code, lol, and it hates me.
-        # I've tried to make it better, I've tried to clean it up, but every time I break it.
-        # If you know how to make this better, please submit a PR and save me.
-        spec_names = input_hash.keys
-        keys = {}
-
-        current_spec_name = nil
-        expectations_line = nil
-        expectations_indent = nil
-
-        content.lines.each_with_index do |line, index|
-          line_number = index + 1
-          clean_line = line.rstrip
-          indentation = line[/^\s*/].size
-
-          # Skip blank lines
-          next if clean_line.empty?
-
-          # Reset on top-level elements
-          if indentation == 0
-            current_spec_name = nil
-            expectations_line = nil
-            expectations_indent = nil
-
-            # Check if this line starts a spec we're interested in
-            spec_names.each do |spec_name|
-              next unless clean_line.start_with?("#{spec_name}:")
-
-              current_spec_name = spec_name
-              keys[current_spec_name] = [line_number]
-              break
-            end
-
-            next
+        # Determine the relative path for naming
+        relative_path =
+          if @paths.present?
+            # For specific paths, use the filename as the base
+            file_path.basename
+          else
+            # For glob loading, use path relative to base_path
+            file_path.relative_path_from(@base_path)
           end
 
-          # Skip if we're not in a relevant spec
-          next unless current_spec_name
+        name = relative_path.to_s.delete_suffix(".yml").delete_suffix(".yaml")
+        steps = parse_steps(content)
 
-          # Found expectations section
-          if clean_line.match?(/^[^#]\s*expectations:/i)
-            expectations_line = line_number
-            expectations_indent = indentation
-            next
-          end
+        {file_path: relative_path, name:, steps:}
+      end
+    end
 
-          # Found an expectation item
-          if expectations_line && clean_line.start_with?("#{" " * expectations_indent}- ")
-            keys[current_spec_name] << line_number
-          end
-        end
+    def parse_steps(content)
+      # Parse with Psych to make it easier to extract line numbers
+      yaml = Psych.parse(content)
 
-        keys
+      steps = yaml.to_ruby(symbolize_names: true)
+      inject_line_numbers(yaml.root, steps)
+    end
+
+    def inject_line_numbers(yaml_node, ruby_object)
+      case ruby_object
+      when Array
+        inject_line_numbers_into_array(yaml_node, ruby_object)
+      when Hash
+        inject_line_numbers_into_hash(yaml_node, ruby_object)
+      else
+        ruby_object
+      end
+    end
+
+    def inject_line_numbers_into_array(yaml_node, array)
+      yaml_node.children
+        .map
+        .with_index { |node, index| inject_line_numbers(node, array[index]) }
+    end
+
+    def inject_line_numbers_into_hash(yaml_node, hash)
+      # Psych uses 0-indexed line numbers
+      hash[:line_number] = yaml_node.start_line + 1
+
+      # Walk through key-value pairs in the YAML tree
+      yaml_node.children.each_slice(2) do |key_node, value_node|
+        key = key_node.value.to_sym
+
+        # Only recursively add line numbers to substeps.
+        next unless key == :steps
+
+        hash[key] = inject_line_numbers(value_node, hash[key])
       end
 
-      #
-      # Builds a name for an expectation based on HTTP verb, URL, and optional name
-      #
-      # @param spec_hash [Hash] The spec configuration
-      # @param expectation_hash [Hash] The expectation configuration
-      #
-      # @return [String] A formatted expectation name (e.g., "GET /users - Find User")
-      #
-      # @private
-      #
-      def build_expectation_name(spec_hash, expectation_hash)
-        # Create a structure for http_verb and url
-        # Removing the defaults and validators to avoid triggering extra logic
-        structure = Normalizer.structures[:spec][:structure].slice(:http_verb, :url)
-          .transform_values { |v| v.except(:default, :validator) }
-
-        # Ignore any errors. These will be validated later
-        normalized_spec, _ = Normalizer.normalize(spec_hash, using: structure, label: "n/a")
-        normalized_expectation, _ = Normalizer.normalize(
-          expectation_hash,
-          using: structure, label: "n/a"
-        )
-
-        request_data = normalized_spec.deep_merge(normalized_expectation)
-
-        url = request_data[:url]
-        http_verb = request_data[:http_verb].presence || "GET"
-
-        # Finally generate the name
-        generate_expectation_name(http_verb:, url:, name: expectation_hash[:name])
-      end
-
-      #
-      # Generates an expectation name from its components
-      #
-      # @param http_verb [String] The HTTP verb (GET, POST, etc.)
-      # @param url [String] The URL path
-      # @param name [String, nil] Optional descriptive name
-      #
-      # @return [String] A formatted expectation name
-      #
-      # @private
-      #
-      def generate_expectation_name(http_verb:, url:, name: nil)
-        base = "#{http_verb.upcase} #{url}"   # GET /users
-        base += " - #{name}" if name.present? # GET /users - Returns 404 because y not?
-        base
-      end
+      hash
     end
   end
 end

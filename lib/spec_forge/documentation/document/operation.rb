@@ -13,25 +13,25 @@ module SpecForge
       # @example Operation for creating a user
       #   operation = Operation.new(
       #     id: "create_user",
-      #     description: "Creates a new user",
+      #     summary: "Creates a new user",
       #     parameters: {id: {name: "id", location: "path", type: "integer"}},
       #     requests: [{name: "example", content_type: "application/json", type: "object", content: {}}],
       #     responses: [{status: 201, content_type: "application/json", headers: {}, body: {}}]
       #   )
       #
-      class Operation < Data.define(:id, :description, :parameters, :requests, :responses)
+      class Operation < Data.define(:id, :summary, :parameters, :requests, :responses)
         #
         # Creates a new operation with normalized sub-components
         #
         # @param id [String] Unique identifier for the operation
-        # @param description [String] Human-readable description
+        # @param summary [String] Human-readable summary
         # @param parameters [Hash] Parameters by name with their details
         # @param requests [Array<Hash>] Request body examples
         # @param responses [Array<Hash>] Possible responses
         #
         # @return [Operation] A new operation instance
         #
-        def initialize(id:, description:, parameters:, requests:, responses:)
+        def initialize(id:, summary:, parameters:, requests:, responses:)
           parameters = parameters.each_pair.map do |name, value|
             [name, Parameter.new(name: name.to_s, **value)]
           end.to_h
