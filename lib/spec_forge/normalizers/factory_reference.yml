@@ -1,15 +1,76 @@
+# =============================================================================
+# Factory Reference Structure Definition
+# =============================================================================
+# Defines the structure for referencing factories within blueprints.
+# Factory references allow inline factory usage with custom attributes
+# and build strategies.
+#
+# Example usage in blueprints:
+#   store:
+#     user:
+#       factories.user:
+#         strategy: build
+#         attributes:
+#           role: "admin"
+# =============================================================================
+
+traits:
+  type: array
+  default: []
+  aliases:
+    - trait
+  description: |-
+    FactoryBot traits to apply to this factory invocation.
+    Traits are defined in the factory file and modify the built object.
+    Multiple traits can be combined and are applied in order.
+  examples:
+    - "traits: [admin]"
+    - "traits: [admin, inactive]"
+
 attributes:
   type: hash
   default: {}
+  description: |-
+    Attribute overrides for this specific factory invocation.
+    Merged with the factory's default attributes. Supports variable
+    interpolation and faker data generation.
+  examples:
+    - |-
+      attributes:
+        name: "Custom Name"
+        email: "custom@test.com"
+    - |-
+      attributes:
+        department: "Engineering"
 
 build_strategy:
   type: string
   default: create
   aliases:
-  - strategy
+    - strategy
+  description: |-
+    The FactoryBot build strategy to use. Determines whether records
+    are persisted to the database or just built in memory.
+    - create: Persists to database (default)
+    - build: Instantiates without saving
+    - build_stubbed / stubbed: Creates a stubbed instance
+    - attributes_for: Returns a hash of attributes
+  examples:
+    - "create"
+    - "build"
+    - "build_stubbed"
 
 size:
   type: integer
   default: 0
   aliases:
-  - count
+    - count
+  transformer: abs
+  description: |-
+    Number of records to create. When 0 (default), creates a single
+    record. When > 0, creates that many records and returns an array.
+    Useful for testing list endpoints or batch operations.
+  examples:
+    - 0
+    - 5
+    - 100

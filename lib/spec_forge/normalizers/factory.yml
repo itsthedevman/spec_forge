@@ -1,12 +1,63 @@
+# =============================================================================
+# Factory Structure Definition
+# =============================================================================
+# Defines the structure for YAML factory definitions in spec_forge/factories/.
+# The filename determines the factory name (e.g., user.yml creates a user factory).
+#
+# Factories are referenced in blueprints using the factories. namespace:
+#   {{ factories.user.id }}
+#   {{ factories.post.title }}
+# =============================================================================
+
 model_class:
   type: string
   default: ""
   aliases:
-  - class
+    - class
+  description: |-
+    Override the inferred model class when the factory name differs from the model.
+    Usually inferred automatically from the factory name.
+  examples:
+    - "User"
+    - "Admin::Account"
 
 variables:
-  reference: variables
+  type: hash
+  default: {}
+  description: |-
+    Computed values for use in attributes. Use when you need the same
+    generated value in multiple attributes.
+  examples:
+    - |-
+      variables:
+        hire_date: "{{ faker.date.backward(days: 365) }}"
+
+traits:
+  type: hash
+  default: {}
+  description: |-
+    Named variations that modify or extend the base factory definition.
+    Each trait defines attribute overrides that are applied when the trait is used.
+  examples:
+    - |-
+      traits:
+        admin:
+          role: "admin"
+        inactive:
+          active: false
+        with_department:
+          department: "{{ faker.company.department }}"
 
 attributes:
   type: hash
   default: {}
+  description: |-
+    Core record data for the factory. Supports variable interpolation
+    and faker data generation.
+  examples:
+    - |-
+      attributes:
+        name: "{{ faker.name.name }}"
+        email: "{{ faker.internet.email }}"
+        role: "user"
+        active: true

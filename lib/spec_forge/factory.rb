@@ -25,6 +25,8 @@ module SpecForge
     # Loads factory definitions from YAML files
     # Creates Factory instances but doesn't register them with FactoryBot
     #
+    # Factory names are derived from the filename (e.g., user.yml -> :user)
+    #
     # @return [Array<Factory>] Array of loaded factory instances
     #
     def self.load_from_files
@@ -35,11 +37,11 @@ module SpecForge
       Dir[path].each do |file_path|
         hash = YAML.load_file(file_path, symbolize_names: true)
 
-        hash.each do |factory_name, factory_hash|
-          factory_hash[:name] = factory_name
+        # Extract factory name from filename (e.g., "user.yml" -> :user)
+        factory_name = File.basename(file_path, ".yml").to_sym
+        hash[:name] = factory_name
 
-          factories << new(**factory_hash)
-        end
+        factories << new(**hash)
       end
 
       factories
@@ -62,6 +64,9 @@ module SpecForge
     # @return [Hash<Symbol, Attribute>] The attributes that define this factory
     attr_reader :attributes
 
+    # @return [Hash<Symbol, Hash<Symbol, Attribute>>] Traits defined for this factory
+    attr_reader :traits
+
     #
     # Creates a new Factory instance
     #
@@ -77,8 +82,9 @@ module SpecForge
       @input = input
       @model_class = input[:model_class]
 
-      @variables = extract_variables(input)
-      @attributes = extract_attributes(input)
+      @variables = Attribute.from(input[:variables])
+      @attributes = Attribute.from(input[:attributes], context: @variables)
+      @traits = extract_traits(input[:traits], context: @variables)
     end
 
     #
@@ -91,13 +97,23 @@ module SpecForge
       dsl = FactoryBot::Syntax::Default::DSL.new
 
       options = {}
-      options[:class] = model_class if model_class
+      options[:class] = model_class if model_class.present?
 
       # This creates the factory in FactoryBot
       factory_forge = self
       dsl.factory(name, options) do
-        factory_forge.attributes.each do |name, attribute|
-          add_attribute(name) { attribute.resolve }
+        # Register base attributes
+        factory_forge.attributes.each do |attr_name, attribute|
+          add_attribute(attr_name) { attribute.resolve }
+        end
+
+        # Register traits
+        factory_forge.traits.each do |trait_name, trait_attributes|
+          trait(trait_name) do
+            trait_attributes.each do |attr_name, attribute|
+              add_attribute(attr_name) { attribute.resolve }
+            end
+          end
         end
       end
 
@@ -106,16 +122,20 @@ module SpecForge
 
     private
 
-    def extract_variables(input)
-      variables = Attribute.from(input[:variables])
+    #
+    # Extracts and processes trait definitions from the input hash
+    # Trait definitions are flat hashes of attributes (no nested "attributes:" key)
+    #
+    # @param traits_hash [Hash] Raw trait definitions from YAML
+    # @param context [Hash] Variable context for attribute resolution
+    # @return [Hash<Symbol, Hash<Symbol, Attribute>>] Processed traits with Attribute values
+    #
+    def extract_traits(traits_hash, context: nil)
+      return {} if traits_hash.blank?
 
-      # Update the variables that reference other variables lol
-      Attribute.bind_variables(variables, variables)
-    end
-
-    def extract_attributes(input)
-      attributes = Attribute.from(input[:attributes])
-      Attribute.bind_variables(attributes, variables)
+      traits_hash.transform_values do |trait_attributes|
+        Attribute.from(trait_attributes || {}, context:)
+      end
     end
   end
 end

@@ -1,93 +1,24 @@
 # frozen_string_literal: true
 
-require_relative "normalizer/default"
-require_relative "normalizer/definition"
-require_relative "normalizer/validators"
-
 module SpecForge
   #
-  # This class provides a powerful system for validating and normalizing input data
-  # according to defined structures. It handles type checking, default values,
-  # references between structures, and custom validation logic.
+  # Validates and transforms input data against structure definitions
   #
-  # == Structure Definitions
-  #
-  # Structures define validation rules as YAML files in the lib/spec_forge/normalizers directory:
-  #
-  #   # Example structure (users.yml)
-  #   name:
-  #     type: String
-  #     required: true
-  #
-  #   age:
-  #     type: Integer
-  #     default: 0
-  #
-  #   settings:
-  #     type: Hash
-  #     structure:
-  #       notifications:
-  #         type: Boolean
-  #         default: true
-  #
-  # == Core Attribute Behaviors
-  #
-  # 1. With 'default:' - Always included in output, using default if nil
-  # 2. With 'required: false' - Omitted from output if nil
-  # 3. Default behavior - Required, errors if missing/nil
-  #
-  # == Available Options
-  #
-  # * type: - Required. Class name or array of class names (string, integer, hash, etc.)
-  # * default: - Optional. Default value if attribute is nil
-  # * required: - Optional. Set to false to make attribute optional
-  # * aliases: - Optional. Alternative keys to check for value
-  # * structure: - Optional. Sub-structure for nested objects
-  # * validator: - Optional. Custom validation method (see Validators)
-  # * reference: - Optional. Reference another structure definition (e.g., reference: headers)
-  #
-  # == Structure References
-  #
-  # References allow reusing common structures:
-  #
-  #   # In your YAML definition:
-  #   user_id:
-  #     reference: id    # Will inherit all properties from the 'id' structure
-  #     required: false  # Can override specific properties
-  #
-  #   # Nested structure references:
-  #   settings:
-  #     type: Hash
-  #     structure:
-  #       email_prefs:
-  #         reference: email_preferences  # References another complete structure
-  #
-  # == Common Usage Patterns
-  #
-  # Basic Normalization:
-  #   result = SpecForge::Normalizer.normalize!({name: "Test"}, using: :user)
-  #
-  # Using Custom Structure:
-  #   structure = {count: {type: Integer, default: 0}}
-  #   result = SpecForge::Normalizer.normalize!({}, using: structure, label: "counter")
-  #
-  # Getting Default Values:
-  #   defaults = SpecForge::Normalizer.default(:user)
-  #
-  # == Error Handling
-  #
-  # Validation errors are collected during normalization and can be:
-  # - Raised via normalize! method
-  # - Returned as a set via normalize method
-  #
-  # == Creating Custom Structures
-  #
-  # Add YAML files to lib/spec_forge/normalizers/ directory:
-  # - Use '_shared.yml' for common structures that can be referenced
-  # - Create custom validators in Normalizer::Validators class
-  # - Specify labels for error messages with default_label method
+  # The Normalizer system ensures that YAML input conforms to expected
+  # structures, applying defaults, type checking, and custom validations.
+  # Structure definitions are loaded from YAML files in the normalizers/ directory.
   #
   class Normalizer
+    #
+    # Mapping of structure names to their human-readable labels
+    #
+    # @return [Hash<Symbol, String>]
+    #
+    LABELS = {
+      factory_reference: "factory reference",
+      global_context: "global context"
+    }.freeze
+
     class << self
       #
       # Collection of structure definitions used for validation
@@ -128,6 +59,8 @@ module SpecForge
         raise_errors! { normalize(input, using:, label:) }
       end
 
+      alias_method :validate!, :normalize!
+
       #
       # Normalizes input data against a structure without raising errors
       #
@@ -154,11 +87,10 @@ module SpecForge
             raise ArgumentError, "A label must be provided when using a custom structure"
           end
         else
-          data = @structures[using.to_sym]
+          structure = @structures[using.to_sym]
 
           # We have a predefined structure and structures all have labels
-          label ||= data[:label]
-          structure = data[:structure]
+          label ||= structure.label
         end
 
         # Ensure we have a structure
@@ -171,7 +103,7 @@ module SpecForge
 
         # This is checked down here because it felt like it belonged...
         # and because of that pesky label
-        raise Error::InvalidTypeError.new(input, Hash, for: label) if !Type.hash?(input)
+        raise Error::InvalidTypeError.new(input, Hash, for: label) unless input.is_a?(Hash)
 
         new(label, input, structure:).normalize
       end
@@ -198,10 +130,17 @@ module SpecForge
       #   # => {name: "Unnamed"}
       #
       def default(name = nil, structure: nil, include_optional: false)
-        structure ||= @structures.dig(name.to_sym, :structure)
+        structure ||= @structures[name.to_sym]
 
         if !structure.is_a?(Hash)
-          raise ArgumentError, "Invalid structure. Provide either the name of the structure ('name') or a hash ('structure')"
+          message =
+            if name.present?
+              "No normalizer structure exists with name #{name.in_quotes}"
+            else
+              "The provided normalizer structure must be a Hash. Got #{structure.inspect}"
+            end
+
+          raise ArgumentError, message
         end
 
         default_from_structure(structure, include_optional:)
@@ -218,7 +157,21 @@ module SpecForge
       # @api private
       #
       def load_from_files
-        @structures = Definition.from_files
+        base_path = Pathname.new(File.expand_path("normalizers", __dir__))
+        paths = Dir[base_path.join("**/*.yml")].sort
+
+        @structures =
+          paths.each_with_object({}) do |path, hash|
+            path = Pathname.new(path)
+
+            # Include the directory name in the path to include normalizers in directories
+            name = path.relative_path_from(base_path).to_s.delete_suffix(".yml").to_sym
+
+            input = YAML.safe_load_file(path, symbolize_names: true, aliases: true)
+            raise Error, "Normalizer defined at #{path.to_s.in_quotes} is empty" if input.blank?
+
+            hash[name] = Structure.new(input, label: LABELS[name] || name.to_s.humanize.downcase)
+          end
       end
 
       #
@@ -252,15 +205,6 @@ module SpecForge
       include Default
     end
 
-    # @return [String] A label that describes the data itself
-    attr_reader :label
-
-    # @return [Hash] The data to normalize
-    attr_reader :input
-
-    # @return [Hash] The structure to normalize the data to
-    attr_reader :structure
-
     #
     # Creates a normalizer for normalizing Hash data based on a structure
     #
@@ -282,7 +226,7 @@ module SpecForge
     # @return [Array<Hash, Set>] The normalized data and any errors
     #
     def normalize
-      case input
+      case @input
       when Hash
         normalize_hash
       when Array
@@ -290,7 +234,7 @@ module SpecForge
       end
     end
 
-    protected
+    private
 
     #
     # Extracts a value from a hash checking multiple keys
@@ -348,7 +292,8 @@ module SpecForge
         error_label += " (aliases #{aliases})"
       end
 
-      error_label + " in #{label}"
+      error_label += " in #{@label}" if @label.present?
+      error_label
     end
 
     #
@@ -372,7 +317,7 @@ module SpecForge
     def normalize_hash
       output, errors = {}, Set.new
 
-      structure.each do |key, definition|
+      @structure.each do |key, definition|
         # Skip the wildcard key if it exists, handled below
         next if key == :* || key == "*"
 
@@ -385,17 +330,17 @@ module SpecForge
       end
 
       # A wildcard will normalize the rest of the keys in the input
-      wildcard_structure = structure[:*] || structure["*"]
+      wildcard_structure = @structure[:*] || @structure["*"]
 
       if wildcard_structure.present?
         # We need to determine which keys we need to check
-        structure_keys = (structure.keys + structure.values.key_map(:aliases))
+        structure_keys = (@structure.keys + @structure.values.key_map(:aliases))
           .compact
           .flatten
           .map(&:to_sym)
 
         # Once we have which keys the structure used, we can get the remaining keys
-        keys_to_normalize = (input.keys - structure_keys)
+        keys_to_normalize = (@input.keys - structure_keys)
 
         # They are checked against the wildcard's structure
         keys_to_normalize.each do |key|
@@ -439,10 +384,10 @@ module SpecForge
       type_class = definition[:type]
       aliases = definition[:aliases] || []
       default = definition[:default]
-      required = definition[:required] != false
+      required = definition[:required] == true
 
       # Get the value
-      value = value_from_keys(input, [key.to_s] + aliases)
+      value = value_from_keys(@input, [key.to_s] + aliases)
 
       # Drop the key if needed
       return [false] if value.nil? && !has_default && !required
@@ -452,13 +397,20 @@ module SpecForge
 
       error_label = generate_error_label(key, aliases)
 
-      # Type + existence check
       if !valid_class?(value, type_class, nilable: has_default)
-        if (line_number = input[:line_number])
-          error_label += " (line #{line_number})"
-        end
+        raise Error::InvalidTypeError.new(
+          value,
+          type_class,
+          for: error_label,
+          attribute_name: key.to_s,
+          description: definition[:description],
+          examples: definition[:examples]
+        )
+      end
 
-        raise Error::InvalidTypeError.new(value, type_class, for: error_label)
+      # Call the transformer if it has one
+      if (name = definition[:transformer]) && name.present?
+        value = Transformers.call(name, value)
       end
 
       # Call the validator if it has one
@@ -495,7 +447,7 @@ module SpecForge
     #
     def normalize_substructure(new_label, value, substructure, errors)
       if substructure.is_a?(Proc)
-        return substructure.call(value, errors:, label:)
+        return substructure.call(value, errors:, label: @label)
       end
 
       return value unless value.is_a?(Hash) || value.is_a?(Array)
@@ -526,20 +478,25 @@ module SpecForge
     def normalize_array
       output, errors = [], Set.new
 
-      input.each_with_index do |value, index|
-        type_class = structure[:type]
-        error_label = "index #{index} of #{label}"
+      @input.each_with_index do |value, index|
+        type_class = @structure[:type]
+        error_label = "index #{index} of #{@label}"
 
         if !valid_class?(value, type_class)
           raise Error::InvalidTypeError.new(value, type_class, for: error_label)
         end
 
+        # Call the transformer if it has one
+        if (name = @structure[:transformer]) && name.present?
+          value = Transformers.call(name, value)
+        end
+
         # Call the validator if it has one
-        if (name = structure[:validator]) && name.present?
+        if (name = @structure[:validator]) && name.present?
           Validators.call(name, value, label: error_label)
         end
 
-        if (substructure = structure[:structure])
+        if (substructure = @structure[:structure])
           value = normalize_substructure(error_label, value, substructure, errors)
         end
 

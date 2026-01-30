@@ -1,6 +1,0 @@
-comment:
-  class: Comment
-  attributes:
-    content: faker.lorem.paragraph
-    user: factories.user
-    post: factories.post

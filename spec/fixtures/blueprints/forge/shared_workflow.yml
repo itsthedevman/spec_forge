@@ -1,0 +1,19 @@
+- name: "Shared step 1"
+  store:
+    shared_var: "from_shared_file"
+  # Will inherit: [global_step_logger, include_context_logger] from parent
+
+- name: "Shared section"
+  shared:
+    hook:
+      before_step: shared_file_logger
+  steps:
+    - name: "Nested in shared file"
+      store:
+        nested_shared: "value"
+      # Will inherit: [global_step_logger, include_context_logger, shared_file_logger]
+
+- name: "Shared step 2"
+  store:
+    another_shared: "value"
+  # Back to: [global_step_logger, include_context_logger]

@@ -1,0 +1,17 @@
+- name: "Create post"
+  tags: [ posts, write ]
+  request:
+    method: POST
+    url: "/api/posts"
+
+- name: "List posts"
+  tags: [ posts, read ]
+  request:
+    method: GET
+    url: "/api/posts"
+
+- name: "Get post details"
+  tags: [ posts, read, detailed ]
+  request:
+    method: GET
+    url: "/api/posts/1"

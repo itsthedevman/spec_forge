@@ -6,13 +6,13 @@ RSpec.describe SpecForge::Attribute::Factory do
   let(:positional) { [] }
   let(:keyword) { {} }
 
-  subject(:factory) { described_class.new(input, positional, keyword) }
+  subject(:factory) { described_class.new(input, positional:, keyword:) }
 
   before do
     stub_const(
       "User",
       Class.new do
-        attr_accessor :name
+        attr_accessor :name, :role, :verified
 
         def chained
           Data.define(:variable).new(variable: 1)
@@ -24,7 +24,15 @@ RSpec.describe SpecForge::Attribute::Factory do
       end
     )
 
-    SpecForge::Factory.new(name: :user, model_class: "User", attributes: {name: "Bob"}).register
+    SpecForge::Factory.new(
+      name: :user,
+      model_class: "User",
+      attributes: {name: "Bob", role: "user", verified: false},
+      traits: {
+        admin: {role: "admin"},
+        verified: {verified: true}
+      }
+    ).register
   end
 
   include_examples "from_input_to_attribute" do
@@ -84,7 +92,7 @@ RSpec.describe SpecForge::Attribute::Factory do
       it "is expected to build attributes for it" do
         expect_any_instance_of(User).not_to receive(:save!)
 
-        expect(factory.value).to be_kind_of(Hash).and(match(name: "Bob"))
+        expect(factory.value).to be_kind_of(Hash).and(include(name: "Bob"))
       end
     end
 
@@ -96,6 +104,52 @@ RSpec.describe SpecForge::Attribute::Factory do
       it "is expected to receive a stubbed object" do
         expect(User.instance_methods).not_to include("persisted?")
         expect(factory.value).to respond_to(:persisted?)
+      end
+    end
+
+    context "and 'traits' is provided with a single trait" do
+      let(:keyword) do
+        {traits: ["admin"]}
+      end
+
+      it "is expected to apply the trait" do
+        expect(factory.value.role).to eq("admin")
+      end
+    end
+
+    context "and 'traits' is provided with multiple traits" do
+      let(:keyword) do
+        {traits: ["admin", "verified"]}
+      end
+
+      it "is expected to apply all traits" do
+        user = factory.value
+        expect(user.role).to eq("admin")
+        expect(user.verified).to eq(true)
+      end
+    end
+
+    context "and 'traits' and 'attributes' are both provided" do
+      let(:keyword) do
+        {traits: ["admin"], attributes: {name: "Custom Admin"}}
+      end
+
+      it "is expected to apply traits and override with attributes" do
+        user = factory.value
+        expect(user.role).to eq("admin")
+        expect(user.name).to eq("Custom Admin")
+      end
+    end
+
+    context "and 'traits' is used with a list strategy" do
+      let(:keyword) do
+        {traits: ["admin"], strategy: "build_list", size: 3}
+      end
+
+      it "is expected to apply traits to all items in the list" do
+        users = factory.resolved
+        expect(users.size).to eq(3)
+        expect(users).to all(have_attributes(role: "admin"))
       end
     end
 
@@ -200,6 +254,46 @@ RSpec.describe SpecForge::Attribute::Factory do
         expect(save_count).to eq(2)
         expect(users).to be_all(be_kind_of(User))
       end
+    end
+  end
+
+  describe "#resolve" do
+    context "when value is an array" do
+      let(:keyword) { {strategy: "build_list", size: 2} }
+
+      it "maps resolve over each element" do
+        result = factory.resolve
+        expect(result).to be_an(Array)
+        expect(result.size).to eq(2)
+        expect(result).to all(be_a(User))
+      end
+    end
+
+    context "when value is a hash" do
+      let(:keyword) { {strategy: "attributes_for"} }
+
+      it "transforms values with resolve" do
+        result = factory.resolve
+        expect(result).to be_a(Hash)
+        expect(result[:name]).to eq("Bob")
+      end
+    end
+
+    context "when value is a simple object" do
+      let(:keyword) { {strategy: "build"} }
+
+      it "returns the value directly" do
+        result = factory.resolve
+        expect(result).to be_a(User)
+      end
+    end
+  end
+
+  describe "invalid build strategy" do
+    let(:keyword) { {strategy: "invalid_strategy"} }
+
+    it "raises InvalidBuildStrategy error" do
+      expect { factory.resolved }.to raise_error(SpecForge::Error::InvalidBuildStrategy)
     end
   end
 
@@ -345,6 +439,48 @@ RSpec.describe SpecForge::Attribute::Factory do
 
       # Size is ignored
       it { is_expected.to eq(["create_pair", :user]) }
+    end
+
+    context "when traits are provided" do
+      let(:keyword) do
+        {strategy: "build", traits: ["admin"]}
+      end
+
+      it { is_expected.to eq(["build", :user, :admin]) }
+    end
+
+    context "when multiple traits are provided" do
+      let(:keyword) do
+        {strategy: "build", traits: ["admin", "verified"]}
+      end
+
+      it { is_expected.to eq(["build", :user, :admin, :verified]) }
+    end
+
+    context "when traits and attributes are provided" do
+      let(:keyword) do
+        {strategy: "build", traits: ["admin"], attributes: {name: "Test"}}
+      end
+
+      it { is_expected.to eq(["build", :user, :admin, {name: "Test"}]) }
+    end
+
+    context "when traits are used with list strategy" do
+      let(:keyword) do
+        {strategy: "build_list", traits: ["admin"], size: 5}
+      end
+
+      # For list strategies, count comes before traits
+      it { is_expected.to eq(["build_list", :user, 5, :admin]) }
+    end
+
+    context "when multiple traits are used with list strategy" do
+      let(:keyword) do
+        {strategy: "create_list", traits: ["admin", "verified"], size: 3}
+      end
+
+      # For list strategies, count comes before traits
+      it { is_expected.to eq(["create_list", :user, 3, :admin, :verified]) }
     end
   end
 end

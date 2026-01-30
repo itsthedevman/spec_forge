@@ -1,330 +1,360 @@
 # frozen_string_literal: true
 
 RSpec.describe SpecForge::Loader do
-  let(:file_path_1) { SpecForge.forge_path.join("specs", "spec_1.yml").to_s }
-  let(:file_path_2) { SpecForge.forge_path.join("specs", "spec_2.yml").to_s }
+  let(:base_path) { fixtures_path.join("loader", "blueprints") }
+  let(:paths) { [] }
+  let(:tags) { [] }
+  let(:skip_tags) { [] }
 
-  describe ".load_from_files" do
-    subject(:specs) { described_class.load_from_files }
+  subject(:result) { described_class.load_blueprints(base_path:, paths:, tags:, skip_tags:) }
 
-    before do
-      expect(described_class).to receive("read_from_files").and_return(files)
+  let(:blueprints) { result.first }
+  let(:forge_hooks) { result.last }
+
+  describe "loading blueprints" do
+    it "is expected to return blueprints and forge_hooks tuple" do
+      expect(result).to be_an(Array)
+      expect(result.size).to eq(2)
+      expect(blueprints).to be_an(Array)
+      expect(forge_hooks).to be_a(Hash)
     end
 
-    context "when everything is valid" do
-      let(:files) do
+    it "is expected to load all blueprints from the blueprints/ directory" do
+      expect(blueprints.size).to eq(5)
+      expect(blueprints.map(&:name)).to contain_exactly(
+        "auth",
+        "users/crud",
+        "users/search",
+        "setup",
+        "posts"
+      )
+    end
+
+    it "is expected to convert blueprints to Blueprint objects" do
+      expect(blueprints).to all(be_a(SpecForge::Blueprint))
+    end
+
+    it "is expected to set correct file metadata" do
+      auth = blueprints.find { |b| b.name == "auth" }
+      expect(auth.file_path).to eq(Pathname.new("auth.yml"))
+      expect(auth.file_name).to eq("auth.yml")
+
+      user_crud = blueprints.find { |b| b.name == "users/crud" }
+      expect(user_crud.file_path).to eq(Pathname.new("users/crud.yml"))
+      expect(user_crud.file_name).to eq("crud.yml")
+    end
+
+    it "is expected to process steps through StepProcessor" do
+      auth = blueprints.find { |b| b.name == "auth" }
+
+      expect(auth.steps.size).to eq(2)
+      expect(auth.steps.map(&:name)).to eq(["Login as admin", "Verify admin token"])
+
+      # Steps should have source metadata
+      expect(auth.steps[0].source.file_name).to eq("auth")
+      expect(auth.steps[0].source.line_number).to be_a(Integer)
+    end
+  end
+
+  describe "paths parameter" do
+    context "when paths targets specific files" do
+      let(:paths) { [fixtures_path.join("loader", "blueprints", "auth.yml")] }
+
+      it "is expected to load only the specified blueprints" do
+        expect(blueprints.size).to eq(1)
+        expect(blueprints[0].name).to eq("auth")
+      end
+    end
+
+    context "when paths targets multiple specific files" do
+      let(:paths) do
         [
-          [
-            file_path_1,
-            <<~YAML
-              spec_1:
-                path: ""
-                expectations:
-                - expect:
-                    status: 202
-            YAML
-          ]
+          fixtures_path.join("loader", "blueprints", "auth.yml"),
+          fixtures_path.join("loader", "blueprints", "posts.yml")
         ]
       end
 
-      it "is expected to return the normalized specs" do
-        global = specs.first.first
-        metadata = specs.first.second
-        spec = specs.first.third.first
-
-        expect(global).to have_key(:variables)
-        expect(metadata).to include(file_name: "spec_1", file_path: file_path_1)
-        expect(spec).to include(query: {}, body: {}, debug: false)
+      it "is expected to load all specified blueprints" do
+        expect(blueprints.size).to eq(2)
+        expect(blueprints.map(&:name)).to contain_exactly("auth", "posts")
       end
     end
 
-    context "when the global context is not valid" do
-      let(:files) do
+    context "when paths includes files that reference each other via include" do
+      let(:paths) do
         [
-          [
-            file_path_1,
-            <<~YAML
-              global:
-                variables: 1
-
-              spec_1:
-                path: ""
-                expectations:
-                - expect:
-                    status: 202
-            YAML
-          ]
+          fixtures_path.join("loader", "blueprints", "auth.yml"),
+          fixtures_path.join("loader", "blueprints", "setup.yml")
         ]
       end
 
-      it do
-        expect { specs }.to raise_error(SpecForge::Error::SpecLoadError) do |e|
-          expect(e.message).to include("Error loading spec file \"spec_1.yml\"")
-          expect(e.message).to include("Cause: Expected Hash or String, got Integer")
-        end
-      end
-    end
+      it "is expected to resolve includes between loaded files" do
+        setup = blueprints.find { |b| b.name == "setup" }
 
-    context "when a spec is not valid" do
-      let(:files) do
-        [
-          [
-            file_path_2,
-            <<~YAML
-              spec_1:
-                path: 1
-            YAML
-          ]
-        ]
-      end
-
-      it do
-        expect { specs }.to raise_error(SpecForge::Error::SpecLoadError) do |e|
-          expect(e.message).to include(
-            "Error loading spec \"spec_1\" in file \"spec_2.yml\" (line 1)"
-          )
-          expect(e.message).to include("Causes:")
-          expect(e.message).to include(
-            %{Expected String, got Integer for "url" (aliases "path") in spec "spec_1" (line 1)}
-          )
-          expect(e.message).to include(
-            %{Expected Array, got NilClass for "expectations" in spec "spec_1" (line 1)}
-          )
-        end
+        # setup includes auth, so should have auth steps expanded
+        expect(setup.steps.size).to eq(4)
+        expect(setup.steps[0].name).to eq("Login as admin")
       end
     end
   end
 
-  ##############################################################################
+  describe "base_path parameter" do
+    context "when base_path targets a subdirectory" do
+      let(:base_path) { fixtures_path.join("loader", "blueprints", "users") }
 
-  describe ".parse_and_transform_specs" do
-    let(:files) do
-      [
-        [
-          file_path_1,
-          <<~YAML
-            global:
-              variables:
-                var_1: true
-
-            spec_1:
-              path: ""
-              expectations:
-              - expect:
-                  status: 202
-          YAML
-        ],
-        [
-          file_path_2,
-          <<~YAML
-            spec_2:
-              path: ""
-              expectations:
-              - expect:
-                  status: 202
-          YAML
-        ]
-      ]
-    end
-
-    subject(:transformed) { described_class.parse_and_transform_specs(files) }
-
-    context "when a global context is defined" do
-      let(:file_1) { transformed.first }
-
-      it "is expected to extract out the global config and specs" do
-        global = file_1.first
-        expect(global).to eq(variables: {var_1: true})
-
-        metadata = file_1.second
-        expect(metadata).to include(file_name: "spec_1", file_path: file_path_1)
-
-        specs = file_1.third
-        expect(specs).to include(include({name: "spec_1", file_path: file_path_1}))
-      end
-    end
-
-    context "when a global context is not defined" do
-      let(:file_2) { transformed.second }
-
-      it "is expected to default to an empty hash" do
-        global = file_2.first
-        expect(global).to eq({})
-
-        metadata = file_2.second
-        expect(metadata).to include(file_name: "spec_2", file_path: file_path_2)
-
-        specs = file_2.third
-        expect(specs).to include(include({name: "spec_2", file_path: file_path_2}))
+      it "is expected to load only blueprints in that directory" do
+        expect(blueprints.size).to eq(2)
+        expect(blueprints.map(&:name)).to contain_exactly("crud", "search")
       end
     end
   end
 
-  ##############################################################################
+  describe "tag filtering" do
+    context "when filtering by tags" do
+      let(:tags) { ["read"] }
 
-  describe ".extract_line_numbers" do
-    let(:content) do
-      <<~YAML
-        spec_1:
-          path: ""
-          expectations:
-          - expect:
-              status: 202
+      it "is expected to filter steps by tag" do
+        user_crud = blueprints.find { |b| b.name == "users/crud" }
+        user_search = blueprints.find { |b| b.name == "users/search" }
+        posts = blueprints.find { |b| b.name == "posts" }
 
-        spec_2:
-          path: ""
-          variables:
-            var_1: ""
-          expectations:
-          - name: ""
-            expect:
-              status: 303
-              json:
-              - "foo"
-          - name: ""
-            expect:
-              status: 303
-              json:
-                nested:
-                  array:
-                  - "This is to make sure it doesn't match to these"
+        expect(user_crud.steps.size).to eq(1)
+        expect(user_crud.steps[0].name).to eq("Get user")
 
-        spec_3:
-          path: ""
-          body:
-            body_1: ""
-          query:
-            query_1: ""
-          expectations:
-          # Maybe there's a comment?
-          - variables:
-              var_1: ""
-            expect:
-              status: 404
-          # Oh yes, comments are nice
-          - expect:
-              status: 404
-      YAML
-    end
+        expect(user_search.steps.size).to eq(2)
 
-    let(:hash) { YAML.load(content, symbolize_names: true) }
+        expect(posts.steps.size).to eq(2)
+        expect(posts.steps.map(&:name)).to contain_exactly("List posts", "Get post details")
+      end
 
-    subject(:line_numbers) { described_class.extract_line_numbers(content, hash) }
-
-    context "when the file contains specs and expectations" do
-      it "is expected to parse the line numbers for specs and expectations" do
-        expect(line_numbers).to eq(
-          spec_1: [1, 4],
-          spec_2: [7, 12, 17],
-          spec_3: [25, 33, 38]
-        )
+      it "is expected to remove blueprints with no matching steps" do
+        expect(blueprints.none? { |b| b.name == "auth" }).to be true
       end
     end
 
-    context "when the file contains specs but one doesn't contain expectations" do
-      let(:content) do
+    context "when filtering by skip_tags" do
+      let(:skip_tags) { ["write"] }
+
+      it "is expected to exclude steps with skip tags" do
+        user_crud = blueprints.find { |b| b.name == "users/crud" }
+        posts = blueprints.find { |b| b.name == "posts" }
+
+        expect(user_crud.steps.size).to eq(1)
+        expect(user_crud.steps[0].name).to eq("Get user")
+
+        expect(posts.steps.size).to eq(2)
+        expect(posts.steps.map(&:name)).to contain_exactly("List posts", "Get post details")
+      end
+    end
+
+    context "when using both tags and skip_tags" do
+      let(:tags) { ["users"] }
+      let(:skip_tags) { ["write"] }
+
+      it "is expected to apply both filters" do
+        expect(blueprints.size).to eq(3)
+        expect(blueprints.map(&:name)).to contain_exactly("users/crud", "users/search", "setup")
+
+        user_crud = blueprints.find { |b| b.name == "users/crud" }
+        expect(user_crud.steps.size).to eq(1)
+        expect(user_crud.steps[0].name).to eq("Get user")
+
+        # setup has "Create test users" which matches "users" tag and doesn't have "write"
+        setup = blueprints.find { |b| b.name == "setup" }
+        expect(setup.steps.size).to eq(1)
+        expect(setup.steps[0].name).to eq("Create test users")
+      end
+    end
+  end
+
+  describe "combined filtering" do
+    context "with base_path and tag filters" do
+      let(:base_path) { fixtures_path.join("loader", "blueprints", "users") }
+      let(:tags) { ["crud"] }
+
+      it "is expected to apply both filters" do
+        expect(blueprints.size).to eq(1)
+        expect(blueprints[0].name).to eq("crud")
+        expect(blueprints[0].steps.size).to eq(4)
+      end
+    end
+
+    context "with all filters combined" do
+      let(:base_path) { fixtures_path.join("loader", "blueprints", "users") }
+      let(:tags) { ["crud"] }
+      let(:skip_tags) { ["write"] }
+
+      it "is expected to apply all filters in order" do
+        expect(blueprints.size).to eq(1)
+        expect(blueprints[0].name).to eq("crud")
+        expect(blueprints[0].steps.size).to eq(1)
+        expect(blueprints[0].steps[0].name).to eq("Get user")
+      end
+    end
+  end
+
+  describe "step processing integration" do
+    context "when blueprints use includes" do
+      it "is expected to expand includes" do
+        setup = blueprints.find { |b| b.name == "setup" }
+
+        # First step includes auth.yml (2 steps)
+        # Second step has nested steps (2 steps)
+        # Total: 4 steps after flattening (parent steps removed)
+        expect(setup.steps.size).to eq(4)
+
+        # Auth steps from include
+        expect(setup.steps[0].name).to eq("Login as admin")
+        expect(setup.steps[1].name).to eq("Verify admin token")
+
+        # Nested steps
+        expect(setup.steps[2].name).to eq("Create test users")
+        expect(setup.steps[3].name).to eq("Create test posts")
+      end
+
+      it "is expected to apply tags from parent to included steps" do
+        setup = blueprints.find { |b| b.name == "setup" }
+
+        # Auth steps should inherit setup tags
+        expect(setup.steps[0].tags).to include("setup", "auth")
+        expect(setup.steps[1].tags).to include("setup", "auth")
+      end
+    end
+
+    context "when blueprints use nested steps" do
+      it "is expected to flatten nested steps" do
+        setup = blueprints.find { |b| b.name == "setup" }
+
+        # All steps should be flattened (no hierarchy)
+        setup.steps.each do |step|
+          expect(step).to be_a(SpecForge::Step)
+          expect(step).not_to respond_to(:steps)
+        end
+      end
+
+      it "is expected to inherit tags from parent steps" do
+        setup = blueprints.find { |b| b.name == "setup" }
+
+        # Nested steps should inherit parent tags
+        create_users = setup.steps.find { |s| s.name == "Create test users" }
+        expect(create_users.tags).to include("setup", "data", "users")
+      end
+    end
+  end
+
+  describe "line number injection" do
+    subject(:loader) { described_class.new }
+
+    let(:parsed_steps) { loader.send(:parse_steps, yaml_content) }
+
+    context "with a simple step" do
+      let(:yaml_content) do
         <<~YAML
-          spec_1:
-            expectations:
-            - expect:
-
-          spec_2:
-
-          spec_3:
-            expectations:
-            - expect:
+          - name: "Test step"
+            request:
+              method: GET
+              url: "/api/test"
         YAML
       end
 
-      it "is expected to gracefully handle it" do
-        expect(line_numbers).to eq(
-          spec_1: [1, 3],
-          spec_2: [5],
-          spec_3: [7, 9]
-        )
+      it "injects line_number on the step itself" do
+        expect(parsed_steps[0][:line_number]).to eq(1)
+      end
+
+      it "does not inject line_number on the request hash" do
+        expect(parsed_steps[0][:request]).not_to have_key(:line_number)
       end
     end
 
-    context "when the file is just, wow. It's valid though!" do
-      let(:content) do
+    context "with expect hash" do
+      let(:yaml_content) do
         <<~YAML
-          spec_1:
-            expectations:
-            - expect:
-          spec_2:
-          spec_3:
-          spec_4:
-          - foo
-          - bar
+          - name: "Test with expect"
+            request:
+              method: GET
+              url: "/api/test"
+            expect:
+              status: 200
+              json:
+                content:
+                  id: 1
         YAML
       end
 
-      it "is expected to gracefully handle it" do
-        expect(line_numbers).to eq(
-          spec_1: [1, 3],
-          spec_2: [4],
-          spec_3: [5],
-          spec_4: [6]
-        )
-      end
-    end
-  end
-
-  describe ".build_expectation_name" do
-    let(:spec) do
-      {
-        url: "/some_url",
-        method: "PATCH"
-      }
-    end
-
-    let(:expectation) { {} }
-
-    subject(:name) { described_class.build_expectation_name(spec, expectation) }
-
-    context "when the expectation has a name defined" do
-      let(:expectation) do
-        {name: Faker::String.random}
+      it "injects line_number on the step" do
+        expect(parsed_steps[0][:line_number]).to eq(1)
       end
 
-      it "is expected to return a name from the spec's url, verb, and expectation's name" do
-        is_expected.to eq("PATCH /some_url - #{expectation[:name]}")
+      it "does not inject line_number on expect hash" do
+        expect(parsed_steps[0][:expect]).not_to have_key(:line_number)
+      end
+
+      it "does not inject line_number on nested expect hashes" do
+        expect(parsed_steps[0][:expect][:json]).not_to have_key(:line_number)
+        expect(parsed_steps[0][:expect][:json][:content]).not_to have_key(:line_number)
       end
     end
 
-    context "when the expectation has a verb defined" do
-      let(:expectation) do
-        {http_verb: "DELETE"}
+    context "with nested steps" do
+      let(:yaml_content) do
+        <<~YAML
+          - name: "Parent step"
+            request:
+              method: GET
+              url: "/api/parent"
+            steps:
+              - name: "Child step 1"
+                request:
+                  method: POST
+                  url: "/api/child1"
+              - name: "Child step 2"
+                request:
+                  method: PUT
+                  url: "/api/child2"
+        YAML
       end
 
-      it "is expected to return a name from the expectations's verb, and the spec's url" do
-        is_expected.to eq("DELETE /some_url")
+      it "injects line_number on the parent step" do
+        expect(parsed_steps[0][:line_number]).to eq(1)
+      end
+
+      it "injects line_number on each substep" do
+        expect(parsed_steps[0][:steps][0][:line_number]).to eq(6)
+        expect(parsed_steps[0][:steps][1][:line_number]).to eq(10)
+      end
+
+      it "does not inject line_number on request hashes within substeps" do
+        expect(parsed_steps[0][:steps][0][:request]).not_to have_key(:line_number)
+        expect(parsed_steps[0][:steps][1][:request]).not_to have_key(:line_number)
       end
     end
 
-    context "when the expectation has a url defined" do
-      let(:expectation) do
-        {path: "/url_some"}
+    context "with deeply nested steps" do
+      let(:yaml_content) do
+        <<~YAML
+          - name: "Grandparent"
+            steps:
+              - name: "Parent"
+                steps:
+                  - name: "Child"
+                    request:
+                      method: GET
+                      url: "/api/nested"
+                    expect:
+                      status: 200
+        YAML
       end
 
-      it "is expected to return a name from the expectations's url, and the spec's verb" do
-        is_expected.to eq("PATCH /url_some")
-      end
-    end
-
-    context "when the expectation has a url and verb defined" do
-      let(:expectation) do
-        {path: "/url_some", http_verb: "GET"}
+      it "injects line_number at all step levels" do
+        expect(parsed_steps[0][:line_number]).to eq(1)
+        expect(parsed_steps[0][:steps][0][:line_number]).to eq(3)
+        expect(parsed_steps[0][:steps][0][:steps][0][:line_number]).to eq(5)
       end
 
-      it "is expected to return a name from the expectations's url, and verb" do
-        is_expected.to eq("GET /url_some")
-      end
-    end
-
-    context "when the expectation does not have a name, url, or verb" do
-      it "is expected to return a name from the spec's data" do
-        is_expected.to eq("PATCH /some_url")
+      it "does not inject line_number on non-step hashes at any level" do
+        child = parsed_steps[0][:steps][0][:steps][0]
+        expect(child[:request]).not_to have_key(:line_number)
+        expect(child[:expect]).not_to have_key(:line_number)
       end
     end
   end

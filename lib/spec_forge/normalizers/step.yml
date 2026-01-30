@@ -1,0 +1,506 @@
+# =============================================================================
+# Step Structure Definition
+# =============================================================================
+# Defines the structure for individual steps in a SpecForge blueprint.
+# Steps are the fundamental building blocks of API test workflows.
+#
+# A step can perform various actions:
+#   - Send HTTP requests and validate responses
+#   - Store values for later use
+#   - Include other blueprint files
+#   - Execute callbacks
+#
+# Steps execute sequentially, with later steps able to reference values
+# from earlier steps via the {{ variable }} syntax.
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Core Attributes
+# -----------------------------------------------------------------------------
+
+name:
+  type: string
+  default: ""
+  description: |-
+    Human-readable identifier for the step, displayed in test output.
+    Helps identify which step failed and documents the test's purpose.
+  examples:
+    - "Create new user"
+    - "Login as admin"
+    - "Verify user was deleted"
+
+debug:
+  type: boolean
+  aliases:
+    - pry
+    - breakpoint
+  default: false
+  description: |-
+    When true, triggers a breakpoint before executing this step.
+    Useful for interactive debugging. Configure the debug handler
+    in forge_helper.rb with config.on_debug { binding.pry }.
+    Note: Does NOT inherit to child steps.
+  examples:
+    - true
+    - false
+
+tags:
+  type: array
+  default: []
+  structure:
+    type: string
+  description: |-
+    Labels for organizing and filtering steps. Tags cascade down through
+    nesting and are applied to included files. Use CLI flags like
+    --tags smoke or --skip-tags slow to filter execution.
+  examples:
+    - '["smoke", "auth"]'
+    - '["crud", "users", "fast"]'
+    - '["integration", "slow"]'
+
+documentation:
+  type: boolean
+  default: true
+  description: |-
+    Controls whether this step is included in OpenAPI documentation generation.
+    Set to false to exclude a step from the generated API docs while still
+    executing the step during test runs.
+  examples:
+    - true
+    - false
+
+# -----------------------------------------------------------------------------
+# Request Configuration
+# -----------------------------------------------------------------------------
+
+request: &request_structure
+  type: hash
+  default: {}
+  description: |-
+    Defines the HTTP request to send. When present, the step becomes a
+    request step that sends an HTTP request and optionally validates
+    the response. Child steps inherit and can override parent request config.
+  structure:
+    base_url:
+      type: string
+      default: null
+      aliases:
+        - base_path
+      description: |-
+        The base URL for the request (e.g., "https://api.example.com").
+        Overrides the global base_url from configuration.
+      examples:
+        - "https://api.example.com"
+        - "http://localhost:3000"
+
+    url:
+      type: string
+      default: null
+      aliases:
+        - path
+      description: |-
+        The URL path for the request. Combined with base_url to form
+        the full request URL. Supports variable interpolation.
+      examples:
+        - "/users"
+        - "/posts/{{ post_id }}"
+        - "/api/v1/users/{{ user_id }}/comments"
+
+    http_verb:
+      type: string
+      default: null
+      aliases:
+        - method
+        - http_method
+      validator: http_verb
+      description: |-
+        The HTTP method for the request. If not specified, defaults to GET.
+      examples:
+        - "GET"
+        - "POST"
+        - "PUT"
+        - "PATCH"
+        - "DELETE"
+
+    headers:
+      type: hash
+      default: null
+      description: |-
+        HTTP headers to include with the request. Child steps merge with
+        parent headers (child wins on conflicts). Supports variable interpolation.
+      examples:
+        - |-
+          headers:
+            Authorization: "Bearer {{ auth_token }}"
+            Content-Type: "application/json"
+        - |-
+          headers:
+            X-API-Key: "{{ env.API_KEY }}"
+
+    query:
+      type:
+        - hash
+        - string
+      default: null
+      aliases:
+        - params
+      description: |-
+        Query parameters appended to the URL. Can be a hash or a raw
+        query string. Supports variable interpolation.
+      examples:
+        - |-
+          query:
+            page: 1
+            per_page: 25
+        - |-
+          params:
+            filter: active
+            sort: name
+
+    raw:
+      type: string
+      default: null
+      aliases:
+        - body
+        - data
+      description: |-
+        Raw request body as a string. Use for non-JSON payloads or when
+        you need exact control over the request body format.
+      examples:
+        - "<xml><user><name>Test</name></user></xml>"
+        - "plain text body"
+
+    json:
+      type: hash
+      default: null
+      aliases:
+        - hash
+        - array
+      description: |-
+        JSON request body. Automatically serialized and sets Content-Type
+        to application/json. Supports variable interpolation and data generation.
+      examples:
+        - |-
+          json:
+            name: "{{ faker.name.first_name }}"
+            email: "{{ faker.internet.email }}"
+        - |-
+          json:
+            ids: ["id1", "id2", "id3"]
+
+# -----------------------------------------------------------------------------
+# Expectations (Response Validation)
+# -----------------------------------------------------------------------------
+
+expect:
+  type: array
+  default: []
+  aliases: [expects]
+  description: |-
+    Array of expectations to validate against the response. Each expectation
+    is a separate test that runs independently. Validates status codes,
+    headers, and response body content/structure.
+  structure:
+    type: hash
+    default: {}
+    structure:
+      status:
+        type:
+          - string
+          - integer
+        description: |-
+          Expected HTTP status code. Can be an exact value or a matcher.
+        examples:
+          - 200
+          - 201
+          - "{{ kind_of.integer }}"
+
+      headers:
+        type: hash
+        default: {}
+        description: |-
+          Expected response headers. Keys are header names, values are
+          expected values or matchers. Case insensitive.
+        examples:
+          - |-
+            headers:
+              Content-Type: "application/json"
+              Location: "/users/{{ user_id }}"
+
+      raw:
+        type: string
+        default: null
+        aliases:
+          - body
+          - data
+        description: |-
+          Expected raw response body as a string. Use for non-JSON
+          responses or exact string matching.
+
+      json:
+        type: hash
+        default: {}
+        aliases:
+          - array
+          - hash
+        validator: json_expectation
+        description: |-
+          JSON response validation. Supports structure validation (shape/schema),
+          size validation, and content matching. Use shape for simple cases,
+          schema for complex or positional array validation.
+        structure:
+          size:
+            type:
+              - string
+              - integer
+            description: |-
+              Validates the size of an array response. Can be an exact
+              number or a matcher for range validation.
+            examples:
+              - 5
+              - "be.greater_than: 3"
+
+          shape:
+            type:
+              - array
+              - hash
+            transformer: normalize_shape
+            description: |-
+              Type validation for JSON responses. Use for most API testing.
+
+              Type flags:
+                ? = nullable (value can be null)
+                * = optional (key can be missing)
+                *? or ?* = both (missing or null allowed)
+
+              Array behavior:
+                Single item = pattern (all elements must match)
+                Multiple items = positional (element N matches item N)
+
+              Available types: string, integer, float, number (numeric), boolean (bool), hash (object), array, nil (null)
+            examples:
+              - |-
+                shape:
+                  id: integer
+                  name: string
+                  deleted_at: ?string
+                  nickname: *string
+                  bio: *?string
+              - |-
+                shape:
+                  - id: integer
+                    name: string
+              - |-
+                shape:
+                  users:
+                    - id: integer
+                      profile:
+                        name: string
+
+          schema:
+            type:
+              - hash
+            transformer: normalize_schema
+            validator: json_schema
+            description: |-
+              Explicit structure control for JSON validation. Use when shape
+              can't express what you need:
+                - Union types (field can be string OR integer)
+                - Explicit pattern vs structure control on arrays
+                - Verbose, self-documenting style preference
+
+              Key concepts:
+                structure = positional (element N matches item N)
+                pattern = repeating (all elements match same schema)
+
+              Supports optional: and nullable: keys, or type flags (?*).
+            examples:
+              - |-
+                schema:
+                  type: array
+                  structure:
+                    - integer
+                    - string
+                    - hash
+              - |-
+                schema:
+                  type: hash
+                  structure:
+                    id: integer
+                    value:
+                      type: [string, integer]
+              - |-
+                schema:
+                  type: hash
+                  structure:
+                    bio:
+                      type: string
+                      optional: true
+                      nullable: true
+
+          content:
+            type:
+              - array
+              - hash
+            description: |-
+              Validates specific values in the response. Unlike shape/schema,
+              supports expressions, matchers, and variables. Only checks fields
+              you specify, extra fields are ignored.
+            examples:
+              - |-
+                content:
+                  status: "active"
+                  id: "{{ created_user_id }}"
+              - |-
+                content:
+                  email: /@example\.com$/
+                  count:
+                    be.greater_than: 0
+
+# -----------------------------------------------------------------------------
+# Variable Storage
+# -----------------------------------------------------------------------------
+
+store:
+  type: hash
+  default: {}
+  description: |-
+    Saves values as local variables available to subsequent steps.
+    - Without request: Sets variables directly
+    - With request: Can capture values from response (response and request
+      variables are temporarily available during store: evaluation)
+    Values are available to all subsequent steps via {{ variable }} syntax.
+    Note: request, response, and index are reserved variable names.
+  examples:
+    - |-
+      store:
+        base_email: "test@example.com"
+        default_role: "user"
+    - |-
+      store:
+        user_id: "{{ response.body.id }}"
+        location: "{{ response.headers.location }}"
+
+# -----------------------------------------------------------------------------
+# Callbacks
+# -----------------------------------------------------------------------------
+
+call:
+  type: [string, hash, array]
+  default: []
+  aliases: [calls]
+  transformer: normalize_callback
+  validator: callback
+  description: |-
+    Executes a named callback registered in forge_helper.rb. Use for
+    database seeding, cleanup, or other custom operations. Can pass
+    arguments as a hash (keyword args) or array (positional args).
+  examples:
+    - "call: seed_database"
+    - |-
+      call:
+        name: "create_records"
+        arguments:
+          count: 50
+          type: "User"
+    - |-
+      call:
+        name: "increment_counter"
+        arguments: [1]
+
+hook: &hook_structure
+  type: hash
+  default: {}
+  aliases: [hooks]
+  description: |-
+    Lifecycle hooks that execute callbacks at specific points during test
+    execution. Hooks allow setup and teardown logic to run before/after
+    files or individual steps.
+
+    Execution order: before hooks run outside-in, after hooks run inside-out.
+    Hooks are deduplicated by callback name at each scope.
+  examples:
+    - |-
+      hook:
+        before_blueprint: seed_database
+        after_blueprint: cleanup
+    - |-
+      hook:
+        before_step:
+          name: create_user
+          arguments:
+            role: admin
+        after_step: delete_user
+    - |-
+      hook:
+        before_blueprint:
+          - seed_users
+          - seed_posts
+  structure:
+    before_forge:
+      type: [string, hash, array]
+      transformer: normalize_callback
+      validator: callback
+      description: |-
+        Executes once before all blueprints.
+    after_forge:
+      type: [string, hash, array]
+      transformer: normalize_callback
+      validator: callback
+      description: |-
+        Executes once after all blueprints complete.
+    before_blueprint:
+      type: [string, hash, array]
+      transformer: normalize_callback
+      validator: callback
+      description: |-
+        Executes once before all steps in a blueprint.
+    after_blueprint:
+      type: [string, hash, array]
+      transformer: normalize_callback
+      validator: callback
+      description: |-
+        Executes once after all steps in a blueprint complete.
+    before_step:
+      type: [string, hash, array]
+      transformer: normalize_callback
+      validator: callback
+      description: |-
+        Executes before each step in a blueprint.
+    after_step:
+      type: [string, hash, array]
+      transformer: normalize_callback
+      validator: callback
+      description: |-
+        Executes after each step in a blueprint completes.
+
+# -----------------------------------------------------------------------------
+# File Inclusion
+# -----------------------------------------------------------------------------
+
+include:
+  type: [string, array]
+  default: []
+  aliases: [includes]
+  transformer: normalize_includes
+  description: |-
+    Injects steps from other blueprint files at load-time. Included steps
+    become indistinguishable from locally defined ones after loading.
+    Cannot be combined with other step configuration (like request, store, hook).
+    Use shared: with steps: when you need included steps to inherit configuration.
+  examples:
+    - "include: auth_setup"
+    - |-
+      include:
+        - auth_setup
+        - seed_data
+
+# -----------------------------------------------------------------------------
+# Inheritance
+# -----------------------------------------------------------------------------
+
+shared:
+  type: hash
+  structure:
+    request: *request_structure
+    hook: *hook_structure

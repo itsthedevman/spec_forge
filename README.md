@@ -4,251 +4,173 @@
 ![Ruby Version](https://img.shields.io/badge/ruby-3.2+-ruby)
 [![Tests](https://github.com/itsthedevman/spec_forge/actions/workflows/main.yml/badge.svg)](https://github.com/itsthedevman/spec_forge/actions/workflows/main.yml)
 
-> Note: The code in this repository represents the latest development version with new features and improvements that are being prepared for future releases. For the current stable version, check out [v0.7.1](https://github.com/itsthedevman/spec_forge/releases/tag/v0.7.1) on GitHub releases.
-
-Write API tests in YAML that read like documentation and generate OpenAPI specifications:
+Write API tests as sequential workflows in YAML. Generate OpenAPI documentation automatically.
 
 ```yaml
-show_user:
-  path: /users/{id}
-  variables:
-    expected_status: 200
-    user_id: 1
-  query:
-    id: variables.user_id
-  expectations:
-  - expect:
-      status: variables.expected_status
-      json:
-        name: kind_of.string
-        email:
-          matcher.and:
-          - kind_of.string
-          - /@/
-      headers:
-        Content-Type: "application/json"
-        X-Request-ID: /^[0-9a-f-]{36}$/
+# spec_forge/blueprints/users.yml
+- name: "Create and verify user"
+  request:
+    url: /users
+    http_verb: POST
+    json:
+      name: "Jane Smith"
+      email: "jane@example.com"
+  expect:
+  - status: 201
+    json:
+      shape:
+        id: integer
+        name: string
+        email: string
+  store:
+    user_id: "{{ response.body.id }}"
+
+- name: "Fetch created user"
+  request:
+    url: "/users/{{ user_id }}"
+  expect:
+  - status: 200
+    json:
+      content:
+        name: "Jane Smith"
 ```
 
-That's a complete test that validates your API and creates OpenAPI documentation. No Ruby code, no configuration files, no HTTP client setup - just clear, executable specifications.
+Two steps. One workflow. No Ruby code required.
 
 ## Why SpecForge?
 
-**For Testing:**
+**For Testing**
+- Write tests the way you think about APIs - as sequences of actions
+- Zero boilerplate: no HTTP client setup, no configuration objects
+- Full access to RSpec matchers, Faker, and FactoryBot without writing Ruby
 
-- **Reduce Boilerplate**: Write tests without repetitive setup code and HTTP configuration
-- **Quick Setup**: Start testing APIs in minutes instead of spending hours on test infrastructure
-- **Clear Syntax**: Tests that everyone can read and understand, regardless of Ruby expertise
+**For Documentation**
+- Auto-generate OpenAPI specs from your workflows
+- Tests ensure documentation always matches your actual API
+- View in Swagger UI or Redoc with one command
 
-**For Documentation:**
-
-- **OpenAPI Generation**: Generate OpenAPI specifications from your test structure, with full customization through configuration files
-- **Living Documentation**: Your tests ensure the documentation always matches your actual API behavior
-- **Professional Output**: View your API docs in Swagger UI or Redoc with minimal setup
-
-**For Teams:**
-
-- **Developer & QA Collaboration**: Create specifications that both developers and QA can maintain
-- **Gradual Adoption**: Use alongside your existing test suite, introducing it incrementally where it makes sense
-
-## Key Features
-
-- **Automatic Documentation Generation**: Transform tests into OpenAPI specifications with customizable configuration
-- **Live Documentation Server**: Local development server for viewing generated documentation
-- **YAML-Based Tests**: Write clear, declarative tests that read like documentation
-- **RSpec Integration**: Leverage all the power of RSpec matchers and expectations
-- **Header Testing**: Comprehensive HTTP header validation with compound matchers
-- **FactoryBot Integration**: Generate test data with FactoryBot integration
-- **Faker Integration**: Create realistic test data with Faker
-- **Variable System**: Define and reference variables for dynamic test data
-- **Context Storage**: Store API responses and reference them in subsequent tests
-- **Compound Matchers**: Combine multiple validations with `matcher.and` for precise expectations
-- **Global Variables**: Define shared configuration at the file level
-- **Callback System**: Hook into the test lifecycle using Ruby for setup, teardown, and much more!
+**For Teams**
+- YAML workflows are easier to review than Ruby test code
+- QA, developers, and product can all read and contribute
+- Version-controlled specifications that live with your code
 
 ## Quick Start
 
-Get started with SpecForge in 3 commands:
-
 ```bash
-# 1. Initialize SpecForge
+# Install
+gem install spec_forge
+
+# Initialize project structure
 spec_forge init
 
-# 2. Create your first test
-spec_forge new spec users
+# Create your first workflow
+spec_forge new blueprint users
 
-# 3. View your documentation
+# Run it
+spec_forge run
+
+# Generate and view documentation
 spec_forge serve
 ```
 
-Then visit `http://localhost:8080` to see your API documentation!
+Visit `http://localhost:8080` to see your API documentation!
+
+## Key Features
+
+- **Step-based workflows**: Tests execute sequentially with explicit variable flow
+- **Variable storage**: Capture response values with `store:`, reference them with `{{ variable }}`
+- **Validation modes**: Simple `shape:` matching for structure, `schema:` for precise control
+- **Tag filtering**: Run subsets with `--tags smoke` or `--skip-tags slow`
+- **Lifecycle hooks**: Execute Ruby code at forge, blueprint, or step boundaries
+- **Dynamic data**: Built-in Faker and FactoryBot integration
+- **Nesting**: Group steps and share configuration with the `shared:` wrapper
+
+## Example: Authentication Flow
+
+```yaml
+- name: "Login"
+  request:
+    url: /auth/login
+    http_verb: POST
+    json:
+      email: "{{ faker.internet.email }}"
+      password: "testpass123"
+  expect:
+  - status: 200
+    json:
+      shape:
+        token: string
+  store:
+    auth_token: "{{ response.body.token }}"
+
+- name: "Authenticated requests"
+  shared:
+    request:
+      headers:
+        Authorization: "Bearer {{ auth_token }}"
+  steps:
+  - name: "Get profile"
+    request:
+      url: /me
+    expect:
+    - status: 200
+
+  - name: "Update profile"
+    request:
+      url: /me
+      http_verb: PUT
+      json:
+        name: "Updated Name"
+    expect:
+    - status: 200
+```
 
 ## When Not to Use SpecForge
 
 Consider alternatives when you need:
 
-1. **Complex Ruby Logic**: If your tests require custom Ruby code for data transformations or validations.
-2. **Complex Test Setup**: When you need intricate database states or specific service mocks.
-3. **Custom Response Validation**: For validation logic beyond what matchers provide.
-4. **Complex Non-JSON Testing**: While SpecForge handles basic XML/HTML responses (coming soon), complex validation might need specialized tools.
+1. **Complex Ruby logic** in tests - custom transformations, calculations, or validation beyond matchers
+2. **Intricate test setup** - complex database states, multiple service mocks, elaborate fixtures
+3. **Non-REST APIs** - GraphQL, gRPC, or WebSocket testing may need specialized tools
+4. **Heavy computational testing** - load testing, performance benchmarks, parallel execution
 
-## Installation
-
-Add this line to your application's Gemfile:
-
-```ruby
-gem "spec_forge"
-```
-
-And then execute:
-
-```bash
-bundle install
-```
-
-Or install it yourself as:
-
-```bash
-gem install spec_forge
-```
-
-## Getting Started
-
-Initialize the required directory structure:
-
-```bash
-spec_forge init
-```
-
-Create your first test:
-
-```bash
-spec_forge new spec users
-```
-
-Generate documentation (default command):
-
-```bash
-spec_forge
-```
-
-Or start the live documentation server:
-
-```bash
-spec_forge serve
-```
-
-Run tests only (no documentation):
-
-```bash
-spec_forge run
-```
-
-## Documentation Workflow
-
-SpecForge provides multiple ways to work with your API documentation:
-
-```bash
-# Generate OpenAPI specifications
-spec_forge docs                    # Smart caching
-spec_forge docs --fresh            # Force regeneration
-spec_forge docs --format json      # Output as JSON instead of YAML
-
-# View documentation in browser
-spec_forge serve                   # Generate if needed + serve
-spec_forge serve --fresh           # Force regeneration + serve
-spec_forge serve --ui redoc        # Use Redoc instead
-spec_forge serve --port 3001       # Custom port
-
-# Traditional testing
-spec_forge run                     # Pure testing mode
-spec_forge run users:show_user     # Run specific tests
-```
-
-## Example: Complete User API
-
-```yaml
-# spec_forge/specs/users.yml
-global:
-  variables:
-    admin_role: "admin"
-
-list_users:
-  path: /users
-  expectations:
-  - expect:
-      status: 200
-      headers:
-        Content-Type: "application/json"
-      json:
-        users:
-          matcher.have_size:
-            be.greater_than: 0
-
-create_user:
-  path: /users
-  method: POST
-  variables:
-    username: faker.internet.username
-    email: faker.internet.email
-  body:
-    name: variables.username
-    email: variables.email
-    role: global.variables.admin_role
-  store_as: new_user
-  expectations:
-  - expect:
-      status: 201
-      headers:
-        Location: /\/users\/\d+/
-      json:
-        id: kind_of.integer
-        name: variables.username
-        email: variables.email
-        role: global.variables.admin_role
-
-show_user:
-  path: /users/{id}
-  query:
-    id: store.new_user.body.id
-  expectations:
-  - expect:
-      status: 200
-      json:
-        id: store.new_user.body.id
-        name: store.new_user.body.name
-        email: store.new_user.body.email
-        role: global.variables.admin_role
-```
-
-This automatically generates a complete OpenAPI specification with all endpoints, request/response schemas, and examples!
+You can use SpecForge alongside traditional RSpec tests. Use SpecForge for standard REST workflows and RSpec for complex scenarios.
 
 ## Documentation
 
-For comprehensive documentation, visit the [SpecForge Wiki](https://github.com/itsthedevman/spec_forge/wiki) which includes:
+For comprehensive guides and reference:
 
-- [Getting Started Guide](https://github.com/itsthedevman/spec_forge/wiki/Getting-Started)
-- [Configuration Options](https://github.com/itsthedevman/spec_forge/wiki/Configuration)
-- [Writing Tests](https://github.com/itsthedevman/spec_forge/wiki/Writing-Tests)
-- [Running Tests](https://github.com/itsthedevman/spec_forge/wiki/Running-Tests)
-- [Debugging Guide](https://github.com/itsthedevman/spec_forge/wiki/Debugging)
-- [Dynamic Features](https://github.com/itsthedevman/spec_forge/wiki/Dynamic-Features)
-- [Factory Support](https://github.com/itsthedevman/spec_forge/wiki/Factory-Support)
-- [RSpec Matchers](https://github.com/itsthedevman/spec_forge/wiki/RSpec-Matchers)
+- **[Getting Started](https://github.com/itsthedevman/spec_forge/wiki/Getting-Started)** - Installation and your first workflow
+- **[Writing Tests](https://github.com/itsthedevman/spec_forge/wiki/Writing-Tests)** - Complete syntax reference
+- **[Configuration](https://github.com/itsthedevman/spec_forge/wiki/Configuration)** - Setup and framework integration
+- **[Running Tests](https://github.com/itsthedevman/spec_forge/wiki/Running-Tests)** - CLI commands and filtering
+- **[Dynamic Features](https://github.com/itsthedevman/spec_forge/wiki/Dynamic-Features)** - Variables, Faker, FactoryBot
+- **[Documentation Generation](https://github.com/itsthedevman/spec_forge/wiki/Documentation-Generation)** - OpenAPI customization
 
-Also see the [API Documentation](https://itsthedevman.com/docs/spec_forge).
+**Upgrading from 0.7?** See the **[Migration Guide](https://github.com/itsthedevman/spec_forge/wiki/Migration-Guide)**.
 
-## Future Development
+**API Reference:** [itsthedevman.com/docs/spec_forge](https://itsthedevman.com/docs/spec_forge)
 
-For the latest development priorities and feature ideas, check out our [Github Project](https://github.com/itsthedevman/spec_forge/projects?query=is%3Aopen). Have a feature request? Open an issue on GitHub!
+## CLI Reference
+
+| Command | Description |
+|---------|-------------|
+| `spec_forge init` | Initialize project structure |
+| `spec_forge new blueprint <name>` | Create a workflow file |
+| `spec_forge new factory <name>` | Create a factory file |
+| `spec_forge run` | Execute workflows |
+| `spec_forge docs` | Generate OpenAPI specs |
+| `spec_forge serve` | Generate and serve documentation |
+
+Run `spec_forge help <command>` for detailed options.
 
 ## Contributing
 
-Contributions are welcome! See the [Contributing Guide](https://github.com/itsthedevman/spec_forge/wiki/Contributing) for details on how to get started.
+Contributions welcome! See the [Contributing Guide](https://github.com/itsthedevman/spec_forge/wiki/Contributing).
 
 ## License
 
-The gem is available as open source under the terms of the [MIT License](LICENSE.txt).
+Available as open source under the [MIT License](LICENSE.txt).
 
 ## Looking for a Software Engineer?
 

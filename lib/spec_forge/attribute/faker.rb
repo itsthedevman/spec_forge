@@ -41,12 +41,17 @@ module SpecForge
       #
       # Creates a new faker attribute with the specified name and arguments
       #
+      # @raise [Error::InvalidFakerClassError] If the faker class doesn't exist
+      # @raise [Error::InvalidFakerMethodError] If the faker method doesn't exist
+      #
+      # @see Parameterized#initialize
+      #
       def initialize(...)
         super
 
         @faker_class, @faker_method = extract_faker_call
 
-        prepare_arguments!
+        prepare_arguments
       end
 
       #

@@ -1,0 +1,373 @@
+# frozen_string_literal: true
+
+module SpecForge
+  module Documentation
+    class Builder
+      #
+      # Compiles raw endpoint data into structured documentation format
+      #
+      # The Compiler transforms flat endpoint data extracted from test runs
+      # into a hierarchical structure organized by URL path and HTTP method.
+      # It handles:
+      # - Grouping endpoints by path and HTTP verb
+      # - Sanitizing error responses to exclude invalid request data
+      # - Merging multiple operations with the same status code
+      # - Normalizing parameters, request bodies, and responses
+      # - Type detection for all values
+      #
+      # @example Compiling endpoints
+      #   compiler = Compiler.new(endpoints)
+      #   compiled = compiler.compile
+      #   # => { "/users" => { "GET" => { id: "...", responses: [...] } } }
+      #
+      class Compiler
+        #
+        # Regular expression for matching UUID v4 strings
+        #
+        # @see https://gist.github.com/johnelliott/cf77003f72f889abbc3f32785fa3df8d
+        #
+        # @api private
+        #
+        UUID_REGEX = /^[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$/i
+
+        #
+        # Regular expression for matching integer numbers in strings
+        #
+        # Matches whole numbers with optional negative sign, used for type detection
+        # when analyzing API response data.
+        #
+        # @api private
+        #
+        INTEGER_REGEX = /^-?\d+$/
+
+        #
+        # Regular expression for matching floating point numbers in strings
+        #
+        # Matches decimal numbers with optional negative sign, used for type detection
+        # when analyzing API response data.
+        #
+        # @api private
+        #
+        FLOAT_REGEX = /^-?\d+\.\d+$/
+
+        #
+        # Creates a new Compiler instance
+        #
+        # @param endpoints [Array<Hash>] Raw endpoint data from the Extractor
+        #
+        # @return [Compiler] A new compiler instance
+        #
+        def initialize(endpoints)
+          @endpoints = endpoints
+        end
+
+        #
+        # Compiles endpoints into a structured documentation format
+        #
+        # Processes all endpoints through grouping, sanitization, merging,
+        # and normalization steps to produce a hash structure suitable
+        # for documentation generation.
+        #
+        # @return [Hash] Compiled endpoints organized by path and HTTP method.
+        #   Each operation contains :id, :description, :parameters, :requests,
+        #   and :responses keys.
+        #
+        def compile
+          # Step one, group the endpoints by their paths and verb
+          # { path: {get: [], post: []}, path_2: {get: []}, ... }
+          grouped = group_endpoints(@endpoints)
+
+          grouped.each_value do |endpoint|
+            # Operations are those arrays
+            endpoint.transform_values! do |operations|
+              # Step two, clear data from any error (4xx, 5xx) operations
+              operations = sanitize_error_operations(operations)
+
+              # Step three, merge all of the operations into one single hash
+              operations = merge_operations(operations)
+
+              # Step four, flatten the operations into one
+              flatten_operations(operations)
+            end
+          end
+        end
+
+        private
+
+        def determine_type(value)
+          case value
+          when true, false
+            "boolean"
+          when Float
+            # According to the docs: A Float object represents a sometimes-inexact real number
+            # using the native architecture’s double-precision floating point representation.
+            # So a double it is!
+            "double"
+          when Integer
+            "integer"
+          when Array
+            "array"
+          when NilClass
+            "null"
+          when DateTime, Time
+            "datetime"
+          when Date
+            "date"
+          when String, Symbol
+            if value.match?(UUID_REGEX)
+              "uuid"
+            elsif value.match?(INTEGER_REGEX)
+              "integer"
+            elsif value.match?(FLOAT_REGEX)
+              "double"
+            elsif value == "true" || value == "false"
+              "boolean"
+            else
+              "string"
+            end
+          when URI
+            "uri"
+          when Numeric
+            "number"
+          else
+            "object"
+          end
+        end
+
+        #
+        # Groups endpoints by path and HTTP method
+        #
+        # @param endpoints [Array<Hash>] Array of endpoint data
+        #
+        # @return [Hash] Endpoints grouped by path and method
+        #
+        # @private
+        #
+        def group_endpoints(endpoints)
+          grouped = Hash.new { |hash, key| hash[key] = {} }
+
+          # Convert the endpoints from a flat array of objects into a hash
+          endpoints.each do |input|
+            # "/users" => {}
+            endpoint_hash = grouped[input[:url]]
+
+            # "GET" => []
+            (endpoint_hash[input[:http_verb]] ||= []) << input
+          end
+
+          grouped
+        end
+
+        #
+        # Sanitizes operations that represent error responses
+        #
+        # Removes request details from operations with 4xx/5xx responses
+        # to prevent invalid data from appearing in documentation.
+        #
+        # @param operations [Array<Hash>] Array of operations
+        #
+        # @return [Array<Hash>] Sanitized operations
+        #
+        # @private
+        #
+        def sanitize_error_operations(operations)
+          operations.each do |operation|
+            next unless operation[:response_status] >= 400
+
+            # This keeps tests that handle errors from including their invalid attributes
+            # and such in the output.
+            operation[:request_query] = {}
+            operation[:request_headers] = {}
+            operation[:request_body] = {}
+          end
+        end
+
+        #
+        # Merges similar operations into a single operation
+        #
+        # @param operations [Array<Hash>] Array of operations
+        #
+        # @return [Array<Hash>] Merged operations
+        #
+        # @private
+        #
+        def merge_operations(operations)
+          operations.group_by { |o| o[:response_status] }
+            .transform_values { |o| o.to_merged_h }
+            .values
+        end
+
+        #
+        # Flattens multiple operations into a single operation structure
+        #
+        # @param operations [Array<Hash>] Array of operations
+        #
+        # @return [Hash] Flattened operation
+        #
+        # @private
+        #
+        def flatten_operations(operations)
+          # Get HTTP method and path from first operation (all operations in this array have same path/method)
+          first_op = operations.first
+          http_method = first_op[:http_verb]
+          path = first_op[:url]
+
+          # Create a sanitized ID for operationId (e.g., "getApiV10GuildsId")
+          id = "#{http_method}_#{path}".gsub(/[^a-zA-Z0-9]/, "_").to_camelcase(:lower)
+
+          # Use "METHOD /path" format for summary (e.g., "GET /api/v10/guilds/{id}")
+          summary = "#{http_method} #{path}"
+
+          parameters = normalize_parameters(operations)
+          requests = normalize_requests(operations)
+          responses = normalize_responses(operations)
+
+          {
+            id:,
+            summary:,
+            parameters:,
+            requests:,
+            responses:
+          }
+        end
+
+        #
+        # Normalizes request parameters from operations
+        #
+        # Extracts and categorizes parameters as path or query parameters
+        # and determines their data types.
+        #
+        # @param operations [Array<Hash>] Array of operations
+        #
+        # @return [Hash] Normalized parameters
+        #
+        # @private
+        #
+        def normalize_parameters(operations)
+          parameters = {}
+
+          operations.each do |operation|
+            # Store the URL so it can be determined if the param is in the path or not
+            url = operation[:url]
+            params = operation[:request_query].transform_values { |value| {value:, url:} }
+
+            parameters.merge!(params)
+          end
+
+          parameters.transform_values!(with_key: true) do |data, key|
+            key_in_path = data[:url].include?("{#{key}}")
+
+            {
+              location: key_in_path ? "path" : "query",
+              type: determine_type(data[:value])
+            }
+          end
+        end
+
+        #
+        # Normalizes request bodies from operations
+        #
+        # Extracts request bodies from successful operations and
+        # determines their data types.
+        #
+        # @param operations [Array<Hash>] Array of operations
+        #
+        # @return [Array<Hash>] Normalized request bodies
+        #
+        # @private
+        #
+        def normalize_requests(operations)
+          successful_operations = operations.select { |o| o[:response_status] < 400 }
+          return [] if successful_operations.blank?
+
+          successful_operations.filter_map.with_index do |operation, index|
+            content = operation[:request_body]
+            next if content.blank?
+
+            name = "name_#{SecureRandom.uuid}"
+
+            {
+              name: name || "Example #{index}",
+              content_type: operation[:content_type],
+              type: determine_type(content),
+              content:
+            }
+          end
+        end
+
+        #
+        # Normalizes responses from operations
+        #
+        # Extracts response details including status, headers, and body
+        # and determines their data types.
+        #
+        # @param operations [Array<Hash>] Array of operations
+        #
+        # @return [Array<Hash>] Normalized responses
+        #
+        # @private
+        #
+        def normalize_responses(operations)
+          operations.map do |operation|
+            {
+              content_type: operation[:content_type],
+              status: operation[:response_status],
+              headers: normalize_headers(operation[:response_headers]),
+              body: normalize_response_body(operation[:response_body])
+            }
+          end
+        end
+
+        #
+        # Normalizes response headers
+        #
+        # @param headers [Hash] Response headers
+        #
+        # @return [Hash] Normalized headers with types
+        #
+        # @private
+        #
+        def normalize_headers(headers)
+          headers.transform_values do |value|
+            {type: determine_type(value)}
+          end
+        end
+
+        #
+        # Normalizes response body structure
+        #
+        # @param body [Hash, Array, String] Response body
+        #
+        # @return [Hash] Normalized body structure with type information
+        #
+        # @private
+        #
+        def normalize_response_body(body)
+          proc = lambda do |value|
+            {type: determine_type(value)}
+          end
+
+          case body
+          when Hash
+            {
+              type: "object",
+              content: body.deep_transform_values(&proc)
+            }
+          when Array
+            {
+              type: "array",
+              content: body.map(&proc)
+            }
+          when String
+            {
+              type: "string",
+              content: body
+            }
+          else
+            raise "Unexpected body: #{body.inspect}"
+          end
+        end
+      end
+    end
+  end
+end

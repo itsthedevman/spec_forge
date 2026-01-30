@@ -5,7 +5,7 @@ RSpec.describe SpecForge::Attribute::Faker do
   let(:positional) { [] }
   let(:keyword) { {} }
 
-  subject(:attribute) { described_class.new(input, positional, keyword) }
+  subject(:attribute) { described_class.new(input, positional:, keyword:) }
 
   include_examples "from_input_to_attribute" do
     let(:input) { "faker.string.random" }

@@ -1,0 +1,11 @@
+- name: "Setup"
+  tags: [ setup ]
+  include: [ auth_setup, database ]
+
+- name: "Main Test"
+  tags: [ main ]
+  steps:
+  - name: "Test Step 1"
+    tags: [ test ]
+  - name: "Test Step 2"
+    tags: [ test ]

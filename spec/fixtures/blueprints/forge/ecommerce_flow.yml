@@ -1,0 +1,308 @@
+# E-Commerce Order Flow
+# A realistic workflow: register → login → browse → add to cart → checkout → view order
+
+# Setup
+- call: seed_products
+
+- store:
+    user_email: "customer@example.com"
+    user_password: "securepass123"
+
+# Step 1: Register a new customer account
+- name: "Register new customer"
+  tags: [auth, registration]
+  request:
+    method: POST
+    url: "/api/v1/customers"
+    json:
+      email: "{{ user_email }}"
+      password: "{{ user_password }}"
+      name: "Jane Doe"
+  expect:
+    - status: 201
+      json:
+        shape:
+          id: integer
+          email: string
+          name: string
+          created_at: string
+        content:
+          email: "{{ user_email }}"
+          name: "Jane Doe"
+  store:
+    customer_id: "{{ response.body.id }}"
+
+# Step 2: Login to get auth token
+- name: "Login"
+  tags: [auth, login]
+  request:
+    method: POST
+    url: "/api/v1/auth/login"
+    json:
+      email: "{{ user_email }}"
+      password: "{{ user_password }}"
+  expect:
+    - status: 200
+      json:
+        shape:
+          token: string
+          expires_at: string
+          customer:
+            id: integer
+            email: string
+  store:
+    auth_token: "{{ response.body.token }}"
+
+# Step 3: Browse product catalog
+- name: "List products"
+  tags: [products, browse]
+  request:
+    method: GET
+    url: "/api/v1/products"
+    headers:
+      Authorization: "Bearer {{ auth_token }}"
+    query:
+      category: "electronics"
+      in_stock: true
+  expect:
+    - status: 200
+      json:
+        shape:
+          - id: integer
+            name: string
+            price_cents: integer
+            currency: string
+            in_stock: boolean
+            category: string
+  store:
+    first_product_id: "{{ response.body.0.id }}"
+    first_product_price: "{{ response.body.0.price_cents }}"
+
+# Step 4: Get product details
+- name: "View product details"
+  tags: [products, detail]
+  request:
+    method: GET
+    url: "/api/v1/products/{{ first_product_id }}"
+    headers:
+      Authorization: "Bearer {{ auth_token }}"
+  expect:
+    - status: 200
+      json:
+        shape:
+          id: integer
+          name: string
+          description: string
+          price_cents: integer
+          currency: string
+          in_stock: boolean
+          inventory_count: integer
+          images:
+            - url: string
+              alt: ?string
+        content:
+          id: "{{ first_product_id }}"
+
+# Step 5: Create shopping cart
+- name: "Create cart"
+  tags: [cart, create]
+  request:
+    method: POST
+    url: "/api/v1/carts"
+    headers:
+      Authorization: "Bearer {{ auth_token }}"
+  expect:
+    - status: 201
+      json:
+        shape:
+          id: string
+          customer_id: integer
+          items: array
+          subtotal_cents: integer
+          status: string
+        content:
+          customer_id: "{{ customer_id }}"
+          items: []
+          subtotal_cents: 0
+          status: "active"
+  store:
+    cart_id: "{{ response.body.id }}"
+
+# Step 6: Add item to cart
+- name: "Add product to cart"
+  tags: [cart, items]
+  request:
+    method: POST
+    url: "/api/v1/carts/{{ cart_id }}/items"
+    headers:
+      Authorization: "Bearer {{ auth_token }}"
+    json:
+      product_id: "{{ first_product_id }}"
+      quantity: 2
+  expect:
+    - status: 201
+      json:
+        shape:
+          id: string
+          product_id: integer
+          quantity: integer
+          unit_price_cents: integer
+          line_total_cents: integer
+        content:
+          product_id: "{{ first_product_id }}"
+          quantity: 2
+  store:
+    cart_item_id: "{{ response.body.id }}"
+
+# Step 7: View updated cart
+- name: "View cart with items"
+  tags: [cart, view]
+  request:
+    method: GET
+    url: "/api/v1/carts/{{ cart_id }}"
+    headers:
+      Authorization: "Bearer {{ auth_token }}"
+  expect:
+    - status: 200
+      json:
+        size: 5
+        shape:
+          id: string
+          customer_id: integer
+          items:
+            - id: string
+              product_id: integer
+              quantity: integer
+              unit_price_cents: integer
+          subtotal_cents: integer
+          status: string
+        content:
+          status: "active"
+
+# Step 8: Update item quantity
+- name: "Update cart item quantity"
+  tags: [cart, items, update]
+  request:
+    method: PATCH
+    url: "/api/v1/carts/{{ cart_id }}/items/{{ cart_item_id }}"
+    headers:
+      Authorization: "Bearer {{ auth_token }}"
+    json:
+      quantity: 3
+  expect:
+    - status: 200
+      json:
+        content:
+          quantity: 3
+
+# Step 9: Add shipping address
+- name: "Set shipping address"
+  tags: [checkout, shipping]
+  request:
+    method: PUT
+    url: "/api/v1/carts/{{ cart_id }}/shipping_address"
+    headers:
+      Authorization: "Bearer {{ auth_token }}"
+    json:
+      street: "123 Main St"
+      city: "Portland"
+      state: "OR"
+      zip: "97201"
+      country: "US"
+  expect:
+    - status: 200
+      json:
+        shape:
+          id: integer
+          street: string
+          city: string
+          state: string
+          zip: string
+          country: string
+
+# Step 10: Checkout - convert cart to order
+- name: "Checkout"
+  tags: [checkout, order]
+  request:
+    method: POST
+    url: "/api/v1/carts/{{ cart_id }}/checkout"
+    headers:
+      Authorization: "Bearer {{ auth_token }}"
+    json:
+      payment_method_id: "pm_test_visa"
+  expect:
+    - status: 201
+      json:
+        shape:
+          id: string
+          customer_id: integer
+          status: string
+          items:
+            - product_id: integer
+              quantity: integer
+              unit_price_cents: integer
+          subtotal_cents: integer
+          tax_cents: integer
+          shipping_cents: integer
+          total_cents: integer
+          shipping_address:
+            street: string
+            city: string
+          created_at: string
+        content:
+          customer_id: "{{ customer_id }}"
+          status: "confirmed"
+  store:
+    order_id: "{{ response.body.id }}"
+    order_total: "{{ response.body.total_cents }}"
+
+# Step 11: View order confirmation
+- name: "View order details"
+  tags: [orders, view]
+  request:
+    method: GET
+    url: "/api/v1/orders/{{ order_id }}"
+    headers:
+      Authorization: "Bearer {{ auth_token }}"
+  expect:
+    - status: 200
+      json:
+        content:
+          id: "{{ order_id }}"
+          status: "confirmed"
+          total_cents: "{{ order_total }}"
+
+# Step 12: List customer orders
+- name: "List my orders"
+  tags: [orders, list]
+  request:
+    method: GET
+    url: "/api/v1/customers/{{ customer_id }}/orders"
+    headers:
+      Authorization: "Bearer {{ auth_token }}"
+  expect:
+    - status: 200
+      json:
+        size: 1
+        shape:
+          - id: string
+            status: string
+            total_cents: integer
+            created_at: string
+
+# Step 13: Original cart should now be "completed"
+- name: "Verify cart is completed"
+  tags: [cart, verify]
+  request:
+    method: GET
+    url: "/api/v1/carts/{{ cart_id }}"
+    headers:
+      Authorization: "Bearer {{ auth_token }}"
+  expect:
+    - status: 200
+      json:
+        content:
+          status: "completed"
+
+# Cleanup
+- call: cleanup_test_data

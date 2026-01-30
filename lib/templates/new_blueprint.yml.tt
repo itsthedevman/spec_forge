@@ -1,0 +1,54 @@
+# <%= original_name %>.yml
+
+# Store some test data
+- store:
+    test_email: "test@example.com"
+    test_name: "Test <%= singular_name.titleize %>"
+
+# Create a <%= singular_name %>
+- name: "Create <%= singular_name %>"
+  request:
+    path: /<%= plural_name %>
+    method: POST
+    json:
+      name: "{{ test_name }}"
+      email: "{{ test_email }}"
+  expect:
+  - status: 201
+    json:
+      shape:
+        id: integer
+        name: string
+        email: string
+  store:
+    <%= singular_name %>_id: "{{ response.body.id }}"
+
+# Get the <%= singular_name %> we just created
+- name: "Show <%= singular_name %>"
+  request:
+    path: "/<%= plural_name %>/{{ <%= singular_name %>_id }}"
+    method: GET
+  expect:
+  - status: 200
+    json:
+      content:
+        id: "{{ <%= singular_name %>_id }}"
+        name: "{{ test_name }}"
+
+# Update the <%= singular_name %>
+- name: "Update <%= singular_name %>"
+  request:
+    path: "/<%= plural_name %>/{{ <%= singular_name %>_id }}"
+    method: PATCH
+    json:
+      name: "Updated <%= singular_name.titleize %>"
+  expect:
+  - status: 200
+
+# Delete the <%= singular_name %>
+- name: "Delete <%= singular_name %>"
+  request:
+    path: "/<%= plural_name %>/{{ <%= singular_name %>_id }}"
+    method: DELETE
+  expect:
+  - status: 200

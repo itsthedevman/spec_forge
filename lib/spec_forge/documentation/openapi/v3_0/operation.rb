@@ -3,7 +3,7 @@
 module SpecForge
   module Documentation
     module OpenAPI
-      module V3_0 # standard:disable Naming/ClassAndModuleCamelCase
+      class V30
         #
         # Represents an OpenAPI 3.0 Operation object
         #
@@ -12,7 +12,23 @@ module SpecForge
         #
         # @see https://spec.openapis.org/oas/v3.0.4.html#operation-object
         #
-        class Operation < OpenAPI::Base
+        class Operation
+          #
+          # The document object containing structured API data
+          #
+          # @return [Object] The document with endpoint information
+          #
+          attr_reader :document
+
+          #
+          # Creates a new Operation from a document
+          #
+          # @param document [Object] The document containing operation data
+          #
+          def initialize(document)
+            @document = document
+          end
+
           #
           # Converts the operation to an OpenAPI-compliant hash
           #
@@ -44,7 +60,7 @@ module SpecForge
           #
           def id
             # The object ID is added to make every ID unique
-            document.id.to_camelcase(:lower) + object_id.to_s
+            document.id + object_id.to_s
           end
 
           alias_method :operationId, :id
@@ -55,7 +71,7 @@ module SpecForge
           # @return [String, nil] Brief operation summary
           #
           def summary
-            document.id.humanize
+            document.summary
           end
 
           #
@@ -64,7 +80,7 @@ module SpecForge
           # @return [String] Detailed operation description
           #
           def description
-            document.description
+            ""
           end
 
           #

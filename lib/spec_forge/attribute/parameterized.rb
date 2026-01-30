@@ -26,24 +26,24 @@ module SpecForge
       # Creates a new attribute instance from a hash representation
       #
       # @param hash [Hash] A hash containing the attribute name and arguments
+      # @param options [Hash] Additional options to pass to the attribute (e.g., context)
       #
       # @return [Parameterized] A new parameterized attribute instance
       #
-      def self.from_hash(hash)
+      def self.from_hash(hash, **options)
         metadata = hash.first
 
         input = metadata.first
         arguments = metadata.second
 
         case arguments
-        when ArrayLike
-          new(input, arguments)
-        when HashLike
-          # Offset for positional arguments. No support for both at this time
-          new(input, [], arguments)
+        when Array
+          new(input, positional: arguments, **options)
+        when Hash
+          new(input, keyword: arguments, **options)
         else
           # Single value
-          new(input, [arguments])
+          new(input, positional: [arguments], **options)
         end
       end
 
@@ -63,23 +63,21 @@ module SpecForge
       # Creates a new parameterized attribute with the specified arguments
       #
       # @param input [String, Symbol] The key that contains these arguments
-      # @param positional [Array] Any positional arguments
-      # @param keyword [Hash] Any keyword arguments
+      # @param options [Hash] Options including positional and keyword arguments
+      # @option options [Array] :positional Positional arguments
+      # @option options [Hash] :keyword Keyword arguments
       #
-      def initialize(input, positional = [], keyword = {})
-        super(input.to_s.downcase)
+      def initialize(...)
+        super
 
-        @arguments = {positional:, keyword:}
-      end
+        @input = @input.to_s.downcase
 
-      #
-      # Binds variables to any nested attributes in the arguments
-      #
-      # @param variables [Hash] A hash of variable attributes
-      #
-      def bind_variables(variables)
-        arguments[:positional].each { |v| Attribute.bind_variables(v, variables) }
-        arguments[:keyword].each_value { |v| Attribute.bind_variables(v, variables) }
+        @arguments = {
+          positional: @options[:positional] || [],
+          keyword: @options[:keyword] || {}
+        }
+
+        @options.clear # No need to store a duplicate
       end
 
       protected
@@ -93,7 +91,7 @@ module SpecForge
       #
       # @private
       #
-      def prepare_arguments!
+      def prepare_arguments
         @arguments = Attribute.from(arguments)
       end
     end

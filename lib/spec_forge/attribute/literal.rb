@@ -14,20 +14,7 @@ module SpecForge
     #   active: true
     #
     class Literal < Attribute
-      # @return [Object] The literal value
-      attr_reader :value
-
-      #
-      # Creates a new literal attribute with the specified value
-      #
-      # @param input [Object] The value to store
-      #
-      def initialize(input)
-        super
-
-        @value = input
-      end
-
+      alias_method :value, :input
       alias_method :resolve, :value
     end
   end

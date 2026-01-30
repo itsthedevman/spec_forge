@@ -1,0 +1,15 @@
+- name: "Search users by name"
+  tags: [ users, search, read ]
+  request:
+    method: GET
+    url: "/api/users/search"
+    query:
+      name: "John"
+
+- name: "Search users by email"
+  tags: [ users, search, read ]
+  request:
+    method: GET
+    url: "/api/users/search"
+    query:
+      email: "john@example.com"

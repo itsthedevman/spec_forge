@@ -3,110 +3,63 @@
 module SpecForge
   module HTTP
     #
-    # The attributes used to build a Request
+    # Represents an HTTP request with all its components
     #
-    # @return [Array<Symbol>]
+    # Request is a value object that holds the URL, method, headers,
+    # query parameters, and body for an HTTP request.
     #
-    REQUEST_ATTRIBUTES = %i[
-      base_url
-      url
-      http_verb
-      content_type
-      headers
-      query
-      body
-    ].freeze
-
-    #
-    # Represents an HTTP request configuration
-    #
-    # This data object contains all the necessary information to construct
-    # an HTTP request, including URL, method, headers, query params, and body.
-    #
-    # @example Creating a request
-    #   request = HTTP::Request.new(
-    #     base_url: "https://api.example.com",
-    #     url: "/users",
-    #     http_verb: "GET",
-    #     headers: {"Content-Type" => "application/json"},
-    #     query: {page: 1},
-    #     body: {}
-    #   )
-    #
-    class Request < Data.define(*REQUEST_ATTRIBUTES)
+    class Request < Struct.new(:base_url, :url, :http_verb, :headers, :query, :body)
       #
-      # Regex that attempts to match a valid header
+      # Creates a new HTTP request with the specified options
       #
-      # @return [Regexp]
+      # @param options [Hash] Request options
+      # @option options [String] :base_url The base URL for the request
+      # @option options [String] :url The URL path for the request
+      # @option options [String] :http_verb The HTTP method (defaults to "GET")
+      # @option options [Hash] :headers HTTP headers
+      # @option options [Hash] :query Query parameters
+      # @option options [Hash, String] :body Request body
       #
-      HEADER = /^[A-Z][A-Za-z0-9!-]*$/
-
-      #
-      # Creates a new Request with standardized headers and values
-      #
-      # @param base_url [String, nil] The base URL for the request
-      # @param url [String, nil] The path portion of the URL
-      # @param http_verb [String, Symbol, nil] The HTTP method (GET, POST, etc.)
-      # @param headers [Hash, nil] HTTP headers for the request
-      # @param query [Hash, nil] Query parameters to include
-      # @param body [Hash, nil] Request body data
-      #
-      # @return [Request] A new immutable request object
+      # @return [Request] A new request instance
       #
       def initialize(**options)
-        base_url = options[:base_url] || ""
-        url = options[:url] || ""
-        http_verb = Verb.from(options[:http_verb].presence || "GET")
-        query = Attribute.from(options[:query] || {})
-        body = Attribute.from(options[:body] || {})
-        headers = normalize_headers(options[:headers] || {})
-        content_type = "application/json"
-
-        super(base_url:, url:, http_verb:, content_type:, headers:, query:, body:)
+        super(
+          base_url: options[:base_url] || "",
+          url: options[:url] || "",
+          http_verb: Verb.from(options[:http_verb].presence || "GET"),
+          headers: options[:headers] || {},
+          query: options[:query] || {},
+          body: options[:body] || {}
+        )
       end
 
       #
-      # Returns a hash representation with all attributes fully resolved
+      # Returns the Content-Type header value
       #
-      # @return [Hash] The request data with all dynamic values resolved
+      # @return [String, nil] The content type or nil if not set
+      #
+      def content_type
+        headers["content-type"]
+      end
+
+      #
+      # Returns whether this request has a JSON content type
+      #
+      # @return [Boolean] True if content type is application/json
+      #
+      def json?
+        content_type == "application/json"
+      end
+
+      #
+      # Converts the request to a hash with stringified verb
+      #
+      # @return [Hash] Hash representation of the request
       #
       def to_h
-        hash = super.transform_values { |v| v.respond_to?(:resolved) ? v.resolved : v }
-        hash[:http_verb] = hash[:http_verb].to_s
-        hash
-      end
-
-      private
-
-      #
-      # Normalizes HTTP header keys to standard format
-      #
-      # Converts snake_case and other formats to HTTP Header-Case format
-      # Examples:
-      #   content_type -> Content-Type
-      #   api_key -> Api-Key
-      #
-      # @param headers [Hash] The headers to normalize
-      #
-      # @return [Attribute::ResolvableHash] Normalized headers as attributes
-      #
-      # @private
-      #
-      def normalize_headers(headers)
-        headers =
-          headers.transform_keys do |key|
-            key = key.to_s
-
-            # If the key is already like a header, don't change it
-            if key.match?(HEADER)
-              key
-            else
-              # content_type => Content-Type
-              key.downcase.titleize.gsub(/\s+/, "-")
-            end
-          end
-
-        Attribute.from(headers)
+        super.tap do |h|
+          h[:http_verb] = h[:http_verb].to_s
+        end
       end
     end
   end

@@ -1,0 +1,153 @@
+# Forge-level hook - runs once before any blueprints
+- hook:
+    before_forge: setup_test_environment
+    after_forge: teardown_test_environment
+
+# Blueprint-level hook - runs once before first step in this file
+- hook:
+    before_blueprint: seed_database
+    after_blueprint: cleanup_database
+
+# Blueprint-level step hook - affects ALL subsequent steps
+- hook:
+    before_step: global_step_logger
+    after_step: global_step_cleanup
+
+- name: "First step after global hook"
+  store:
+    test_var: "value1"
+  # Effective hooks: {before: [global_step_logger], after: [global_step_cleanup]}
+
+- name: "Second step - also gets global hook"
+  store:
+    another_var: "value2"
+  # Effective hooks: {before: [global_step_logger], after: [global_step_cleanup]}
+
+# Section with shared hooks (only affects nested steps)
+- name: "Auth section"
+  tags: [auth, critical]
+  shared:
+    hook:
+      before_step: auth_logger
+      after_step: auth_validator
+  steps:
+    - name: "Login"
+      store:
+        auth_token: "fake_token_123"
+      # Effective hooks: {before: [global_step_logger, auth_logger], after: [auth_validator, global_step_cleanup]}
+
+    - name: "Verify token"
+      store:
+        user_id: 42
+      # Effective hooks: {before: [global_step_logger, auth_logger], after: [auth_validator, global_step_cleanup]}
+
+# Another section - doesn't inherit auth hooks
+- name: "User operations"
+  tags: [users]
+  shared:
+    hook:
+      before_step: user_operation_logger
+  steps:
+    - name: "Create user"
+      store:
+        created_user: "john_doe"
+      # Effective hooks: {before: [global_step_logger, user_operation_logger], after: [global_step_cleanup]}
+      # Notice: auth_logger and auth_validator are gone!
+
+    - name: "Update user"
+      store:
+        updated_at: "2025-01-12"
+      # Effective hooks: {before: [global_step_logger, user_operation_logger], after: [global_step_cleanup]}
+
+# Nested sections - accumulation
+- name: "Nested workflows"
+  shared:
+    hook:
+      before_step: outer_logger
+  steps:
+    - name: "Outer step"
+      store:
+        level: "outer"
+      # Effective hooks: {before: [global_step_logger, outer_logger], after: [global_step_cleanup]}
+
+    - name: "Middle section"
+      shared:
+        hook:
+          before_step: middle_logger
+      steps:
+        - name: "Middle step"
+          store:
+            level: "middle"
+          # Effective hooks: {before: [global_step_logger, outer_logger, middle_logger], after: [global_step_cleanup]}
+
+        - name: "Inner section"
+          shared:
+            hook:
+              before_step: inner_logger
+          steps:
+            - name: "Deep step"
+              store:
+                level: "deep"
+              # Effective hooks: {before: [global_step_logger, outer_logger, middle_logger, inner_logger], after: [global_step_cleanup]}
+
+# Hook deduplication test
+- name: "Deduplication section"
+  shared:
+    hook:
+      before_step: duplicate_logger
+      after_step: duplicate_cleanup
+  steps:
+    - name: "First substep"
+      # Has duplicate_logger
+
+    - name: "Second substep with same hook"
+      hook:
+        before_step: duplicate_logger # This gets deduplicated!
+      store:
+        test: "value"
+      # Effective hooks: {before: [global_step_logger, duplicate_logger], after: [duplicate_cleanup, global_step_cleanup]}
+      # duplicate_logger only runs once even though defined twice
+
+# Include with hook inheritance
+- name: "Include shared workflows"
+  tags: [shared]
+  shared:
+    hook:
+      before_step: include_context_logger
+  steps:
+    - include: shared_workflow.yml
+      # All steps from shared_workflow.yml inherit include_context_logger
+
+# Action + steps restriction examples (these would ERROR in real implementation)
+# Uncomment to test error handling:
+
+# - name: "INVALID - call with steps"
+#   call: some_callback
+#   steps:
+#     - name: "This should error"
+
+# - name: "INVALID - debug with steps"
+#   debug: true
+#   steps:
+#     - name: "This should error"
+
+# Valid alternatives to above:
+
+- name: "VALID - separate action from organization"
+  call: some_callback
+
+- name: "Then organize"
+  steps:
+    - name: "Step 1"
+    - name: "Step 2"
+
+# Multiple blueprint hooks (deduplicated)
+- hook:
+    before_blueprint: duplicate_blueprint_hook
+
+- hook:
+    before_blueprint: duplicate_blueprint_hook # Only runs once!
+
+- name: "Step after duplicate blueprint hooks"
+  store:
+    test: "final"
