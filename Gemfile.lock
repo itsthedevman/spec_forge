@@ -161,8 +161,8 @@ GEM
       prism (~> 1.5)
     mustermann (3.0.4)
       ruby2_keywords (~> 0.0.1)
-    net-http (0.5.0)
-      uri
+    net-http (0.9.1)
+      uri (>= 0.11.1)
     net-imap (0.6.2)
       date
       net-protocol
@@ -343,7 +343,7 @@ PLATFORMS
 DEPENDENCIES
   benchmark-ips (~> 2.14)
   kramdown
-  net-http (~> 0.5.0)
+  net-http (~> 0.9.1)
   pry
   puma
   rails (~> 8.0)
