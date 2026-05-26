@@ -13,7 +13,7 @@ gem "standard", "~> 1.49"
 
 gem "pry"
 
-gem "benchmark-ips", "~> 2.14"
+gem "benchmark-ips", "~> 2.15"
 
 group :test do
   gem "simplecov", require: false
