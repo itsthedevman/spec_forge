@@ -12,27 +12,8 @@ RSpec.describe "Forge: Discord API", :integration do
 
   subject(:forge) { SpecForge::Forge.new(blueprints, verbosity_level: 0, hooks: forge_hooks) }
 
-  # Start API server in background thread
-  before(:all) do
-    @server_thread = Thread.new do
-      DiscordAPI.run!(
-        port: 4569,
-        server: "webrick",
-        logging: false,
-        traps: false,
-        server_settings: {
-          Logger: WEBrick::Log.new(File::NULL),
-          AccessLog: []
-        }
-      )
-    end
-
-    sleep 0.01
-  end
-
-  after(:all) do
-    @server_thread&.kill
-  end
+  before(:all) { @server_thread = ApiServer.start(DiscordAPI, port: 4569) }
+  after(:all) { ApiServer.stop(@server_thread) }
 
   before do
     # Reset data between tests

@@ -14,27 +14,8 @@ RSpec.describe "Forge: E-commerce Flow", :integration do
 
   subject(:forge) { SpecForge::Forge.new(blueprints, verbosity_level: 0, hooks: forge_hooks) }
 
-  # Start API server in background thread
-  before(:all) do
-    @server_thread = Thread.new do
-      EcommerceAPI.run!(
-        port: 4568,
-        server: "webrick",
-        logging: false,
-        traps: false,
-        server_settings: {
-          Logger: WEBrick::Log.new(File::NULL),
-          AccessLog: []
-        }
-      )
-    end
-
-    sleep 0.01
-  end
-
-  after(:all) do
-    @server_thread&.kill
-  end
+  before(:all) { @server_thread = ApiServer.start(EcommerceAPI, port: 4568) }
+  after(:all) { ApiServer.stop(@server_thread) }
 
   before do
     # Reset data between tests
