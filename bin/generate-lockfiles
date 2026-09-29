@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+set -euo pipefail
+IFS=$'\n\t'
+
+# Bundler resolves against whichever Ruby is running, so each lockfile is generated inside the oldest Ruby that CI
+# pairs with its Gemfile. Resolving on a newer Ruby can lock a gem that the older matrix legs cannot install.
+#
+# Every lockfile is fully re-resolved, since `bundle lock` keeps an existing lock that the running Ruby cannot install.
+# Gem names pass through to limit the update, e.g. `bin/generate-lockfiles rubocop`.
+declare -A ruby_version_by_gemfile=(
+  ["gemfiles/ruby_3_2.gemfile"]="3.2"
+  ["gemfiles/ruby_3_3.gemfile"]="3.3"
+)
+
+project_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+if ! command -v docker > /dev/null; then
+  echo "generate-lockfiles: docker is required to resolve each lockfile under its own Ruby version" >&2
+  exit 1
+fi
+
+# Each Ruby image ships a different default Bundler, which would otherwise rewrite BUNDLED WITH on every run
+bundler_version="$(awk '/^BUNDLED WITH/ { getline; print $1 }' "$project_root/Gemfile.lock")"
+
+for gemfile in "${!ruby_version_by_gemfile[@]}"; do
+  ruby_version="${ruby_version_by_gemfile[$gemfile]}"
+  echo "==> Locking $gemfile on Ruby $ruby_version with Bundler $bundler_version"
+
+  # Seeding a new lockfile from the main one keeps its versions in step when only some gems are updated
+  lockfile="$project_root/$gemfile.lock"
+  [[ "$gemfile" == "Gemfile" ]] || [[ -f "$lockfile" ]] || cp "$project_root/Gemfile.lock" "$lockfile"
+
+  docker run --rm \
+    --user "$(id -u):$(id -g)" \
+    --volume "$project_root:/app" \
+    --workdir /app \
+    --env HOME=/tmp \
+    --env GEM_HOME=/tmp/gems \
+    --env BUNDLE_GEMFILE="/app/$gemfile" \
+    "ruby:$ruby_version" \
+    bash -c 'gem install bundler --version "$0" --no-document --silent && bundle "_$0_" lock --update "$@"' \
+    "$bundler_version" "$@"
+done

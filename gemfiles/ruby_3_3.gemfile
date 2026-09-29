@@ -1,0 +1,4 @@
+# frozen_string_literal: true
+
+# Regenerate with bin/generate-lockfiles
+eval_gemfile "../Gemfile"

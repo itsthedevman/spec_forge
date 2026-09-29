@@ -13,11 +13,17 @@ jobs:
     name: Unit Tests (Ruby ${{ matrix.ruby }})
     strategy:
       matrix:
-        ruby:
-          - 3.2
-          - 3.3
-          - 3.4
+        include:
+          - ruby: "3.2"
+            gemfile: gemfiles/ruby_3_2.gemfile
+          - ruby: "3.3"
+            gemfile: gemfiles/ruby_3_3.gemfile
+          - ruby: "3.4"
+            gemfile: Gemfile
       fail-fast: false
+
+    env:
+      BUNDLE_GEMFILE: ${{ github.workspace }}/${{ matrix.gemfile }}
 
     ##############################################
     steps:
@@ -29,8 +35,8 @@ jobs:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true
       ######
-      - name: Run RSpec
-        run: bin/rspec
+      - name: Run tests
+        run: bin/test
       ######
       - name: Run Standard
         run: bin/rake standard
