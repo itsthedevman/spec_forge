@@ -1,0 +1,6 @@
+push
+-W .github/workflows/main.yml
+--network bridge
+-P ubuntu-latest=catthehacker/ubuntu:act-latest
+--cache-server-addr 172.17.0.1
+--cache-server-port 34567

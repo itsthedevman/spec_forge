@@ -28,6 +28,7 @@
             readline
             zstd
             libyaml
+            act
           ];
 
           shellHook = ''
